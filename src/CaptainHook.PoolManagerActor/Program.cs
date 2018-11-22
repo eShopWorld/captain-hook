@@ -1,7 +1,6 @@
 ﻿namespace CaptainHook.PoolManagerActor
 {
     using System;
-    using System.Diagnostics.CodeAnalysis;
     using System.Threading;
     using System.Threading.Tasks;
     using Autofac;

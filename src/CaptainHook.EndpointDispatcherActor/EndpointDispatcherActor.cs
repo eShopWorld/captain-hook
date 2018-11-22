@@ -40,7 +40,7 @@
             // Any serializable object can be saved in the StateManager.
             // For more information, see https://aka.ms/servicefabricactorsstateserialization
 
-            return this.StateManager.TryAddStateAsync("count", 0);
+            return StateManager.TryAddStateAsync("count", 0);
         }
 
         /// <summary>
@@ -49,7 +49,7 @@
         /// <returns></returns>
         Task<int> IEndpointDispatcherActor.GetCountAsync(CancellationToken cancellationToken)
         {
-            return this.StateManager.GetStateAsync<int>("count", cancellationToken);
+            return StateManager.GetStateAsync<int>("count", cancellationToken);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@
         {
             // Requests are not guaranteed to be processed in order nor at most once.
             // The update function here verifies that the incoming count is greater than the current count to preserve order.
-            return this.StateManager.AddOrUpdateStateAsync("count", count, (key, value) => count > value ? count : value, cancellationToken);
+            return StateManager.AddOrUpdateStateAsync("count", count, (key, value) => count > value ? count : value, cancellationToken);
         }
     }
 }
