@@ -2,17 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Net;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Common.Nasty;
+    using Autofac.Features.Indexed;
+    using Common.Authentication;
     using Common.Telemetry;
     using Eshopworld.Core;
-    using IdentityModel.Client;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Runtime;
-    using Newtonsoft.Json;
 
     /// <remarks>
     /// This class represents an actor.
@@ -25,8 +23,8 @@
     [StatePersistence(StatePersistence.Persisted)]
     public class EventHandlerActor : Actor, IEventHandlerActor
     {
+        private readonly IHandlerFactory _handlerFactory;
         private readonly IBigBrother _bigBrother;
-        private readonly Dictionary<string, IHandler> _handlers;
         private IActorTimer _handleTimer;
 
         /// <summary>
@@ -34,13 +32,17 @@
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
-        public EventHandlerActor(ActorService actorService, ActorId actorId, IBigBrother bigBrother)
+        /// <param name="handlerFactory"></param>
+        /// <param name="bigBrother"></param>
+        public EventHandlerActor(
+            ActorService actorService,
+            ActorId actorId,
+            IHandlerFactory handlerFactory,
+            IBigBrother bigBrother)
             : base(actorService, actorId)
         {
+            _handlerFactory = handlerFactory;
             _bigBrother = bigBrother;
-            //register one handler per type such that the key is the object type and all the crap to handle it is contained in the handler
-            this._handlers = new Dictionary<string, IHandler>();
-            //todo inject httpclient for use so it get reused
         }
 
         /// <summary>
@@ -96,14 +98,18 @@
             var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
             if (!messageData.HasValue)
             {
-                //todo maybe a bit weird so we might want to event on this.
+                //todo event on this flow.
                 return;
             }
 
-            if (this._handlers.TryGetValue(messageData.Value.Type, out var handler))
-            {
-                await handler.MakeCall();
+            // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
 
+            //brandtype v message type
+            var handler = _handlerFactory.CreateHandler(messageData.Value.Type);
+
+            if (handler != null)
+            {
+                await handler.MakeCall(messageData.Value);
                 _bigBrother.Publish(new MessageExecuted
                 {
                     Payload = messageData.Value.Payload,
@@ -118,115 +124,57 @@
                     Type = messageData.Value.Type
                 });
             }
-
-            // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
-
             await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
         }
     }
 
-    public class RetailerOrderConfirmationDomainEvent : DomainEvent
+    public interface IHandlerFactory
     {
-        public Guid OrderCode { get; set; }
-
-        public OrderConfirmationRequestDto OrderConfirmationRequestDto { get; set; }
+        IHandler CreateHandler(string brandType);
     }
 
-
-    public interface IHandler
+    public class HandlerFactory : IHandlerFactory
     {
-        void Register();
+        private readonly HttpClient _client;
+        private readonly AuthConfig _authConfig;
+        private readonly IIndex<string, WebHookConfig> _webHookConfig;
 
-        Task MakeCall(MessageData data);
-    }
-
-    public class HandlerConfig
-    {
-        public string Uri { get; set; }
-
-        public string Payload { get; set; }
-    }
-
-    public class MmEventHandler : BaseHandler
-    {
-        private readonly SecurityConfig _securityConfig;
-        private readonly HandlerConfig _config;
-
-        public MmEventHandler(SecurityConfig securityConfig, HandlerConfig config)
+        public HandlerFactory(
+            HttpClient client,
+            AuthConfig authConfig,
+            IIndex<string, WebHookConfig> webHookConfig)
         {
-            _securityConfig = securityConfig;
-            _config = config;
+            _client = client;
+            _authConfig = authConfig;
+            _webHookConfig = webHookConfig;
         }
 
-        public override void Register()
+        public IHandler CreateHandler(string brandType)
         {
-            //todo feels like I don't really need this
-            throw new NotImplementedException();
-        }
-
-        public override async Task MakeCall(MessageData data)
-        {
-            var token = await this.GetAuthorizationAccessToken(_securityConfig);
-
-            var client = new HttpClient();
-            client.SetBearerToken(token);
-
-            //hit MaxMara
-            //todo polly 429 and 503
-            var response1 = await client.PostAsJsonAsync(_config.Uri, _config.Payload);
-
-            if (response1.IsSuccessStatusCode)
+            switch (brandType)
             {
-                //call checkout
-                return;
+                case "MAX":
+                    {
+                        var handler = new GenericEventHandler(_authConfig, _webHookConfig["MAX"]);
+                        return handler;
+                    }
+                case "DIF":
+                    {
+                        var handler = new GenericEventHandler(_authConfig, _webHookConfig["DIF"]);
+                        return handler;
+                    }
+                case "GOC":
+                    {
+                        var handler = new GenericEventHandler(_authConfig, _webHookConfig["GOC"]);
+                        return handler;
+                    }
+
+                default:
+                    //todo this should not happen but should defend against it
+                    break;
             }
 
-            var model = JsonConvert.DeserializeObject<RetailerOrderConfirmationDomainEvent>(data.Payload);
-
-            var request = new HttpResponseDto
-            {
-                StatusCode = (int)response1.StatusCode,
-                Content = response1
-            };
-
-            //hit platform
-            var response2 = await client.PutAsJsonAsync($"api/v2/webhook/putorderconfirmationresult/{}", request);
-
-             
+            return null;
         }
-    }
-
-    public abstract class BaseHandler : IHandler
-    {
-        protected async Task<string> GetAuthorizationAccessToken(SecurityConfig config)
-        {
-            var httpClient = new HttpClient();
-
-            var response = await httpClient.RequestTokenAsync(new TokenRequest
-            {
-                Address = config.Uri,
-                ClientId = config.ClientId,
-                ClientSecret = config.ClientSecret,
-            });
-            return response.AccessToken;
-        }
-
-        public abstract void Register();
-
-        public abstract Task MakeCall(MessageData data);
-    }
-
-    public class SecurityConfig
-    {
-        /// <summary>
-        /// //todo put this in ci securityConfig/production securityConfig
-        /// </summary>
-        public string Uri { get; set; } = "https://security-sts.ci.eshopworld.net";
-
-        public string ClientId { get; set; } = "esw.esa.hook.client";
-
-        public string ClientSecret { get; set; } = "itdoesn'tmatterightnow";
-
-        public string Scopes { get; set; }
     }
 }

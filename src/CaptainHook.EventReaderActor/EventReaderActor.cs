@@ -74,6 +74,7 @@
                 await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers);
             }
 
+            //todo will need more namespace setup per tenant
             await SetupServiceBus();
 
             _poolTimer = RegisterTimer(

@@ -8,7 +8,7 @@
             <DefaultService Name="EventHandlerActorService" />
             <ReplicatorEndpoint Name="EventHandlerActorServiceReplicatorEndpoint" />
             <ReplicatorConfigSection Name="EventHandlerActorServiceReplicatorConfig" />
-            <ReplicatorSecurityConfigSection Name="EventHandlerActorServiceReplicatorSecurityConfig" />
+            <ReplicatorAuthConfigSection Name="EventHandlerActorServiceReplicatorAuthConfig" />
             <StoreConfigSection Name="EventHandlerActorServiceLocalStoreConfig" />
             <ServiceEndpointV2_1 Name="EventHandlerActorServiceEndpointV2_1" />
           </GeneratedNames>

@@ -4,7 +4,7 @@
     <Parameter Name="ReplicatorEndpoint" Value="EventHandlerActorServiceReplicatorEndpoint" />
     <Parameter Name="BatchAcknowledgementInterval" Value="0.005" />
   </Section>
-  <Section Name="EventHandlerActorServiceReplicatorSecurityConfig">
+  <Section Name="EventHandlerActorServiceReplicatorAuthConfig">
     <Parameter Name="CredentialType" Value="None" />
   </Section>
   <!-- The content will be generated during build -->
