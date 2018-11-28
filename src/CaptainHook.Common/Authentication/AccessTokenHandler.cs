@@ -5,18 +5,22 @@
     using System.Threading.Tasks;
     using IdentityModel.Client;
 
+    public interface IAuthHandlerFactory
+    {
+        IAccessTokenHandler Get(string name);
+    }
+
+
     public class AccessTokenHandler : IAccessTokenHandler
     {
-        private readonly HttpClient _client;
-        private readonly AuthConfig _config;
+        protected readonly AuthConfig Config;
 
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
         private readonly AuthToken _token = new AuthToken();
 
-        public AccessTokenHandler(HttpClient client, AuthConfig config)
+        public AccessTokenHandler(AuthConfig config)
         {
-            _client = client;
-            _config = config;
+            Config = config;
         }
 
         /// <summary>
@@ -26,16 +30,16 @@
         /// Or they may not give a refresh token at all...annoying. Override, implement and inject as needed.
         /// </summary>
         /// <returns></returns>
-        public virtual async Task<string> GetToken()
+        public virtual async Task GetToken(HttpClient client)
         {
             //get initial access token and refresh token
             if (_token.AccessToken == null)
             {
-                var response = await _client.RequestTokenAsync(new TokenRequest
+                var response = await client.RequestTokenAsync(new TokenRequest
                 {
-                    Address = _config.Uri,
-                    ClientId = _config.ClientId,
-                    ClientSecret = _config.ClientSecret,
+                    Address = Config.Uri,
+                    ClientId = Config.ClientId,
+                    ClientSecret = Config.ClientSecret,
                 });
 
                 if (response.IsError)
@@ -50,9 +54,9 @@
             //get a new access token from the refresh token
             if (_token.ExpiresTime >= DateTime.UtcNow)
             {
-                var response = await _client.RequestRefreshTokenAsync(new RefreshTokenRequest
+                var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
                 {
-                    Address = _config.Uri,
+                    Address = Config.Uri,
                     RefreshToken = _token.RefreshToken
                 });
 
@@ -64,7 +68,7 @@
                 UpdateToken(response);
             }
 
-            return _token.AccessToken;
+            client.SetBearerToken(_token.AccessToken);
         }
 
         /// <summary>

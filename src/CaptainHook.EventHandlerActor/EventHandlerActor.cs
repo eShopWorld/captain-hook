@@ -1,13 +1,10 @@
 ﻿namespace CaptainHook.EventHandlerActor
 {
     using System;
-    using System.Collections.Generic;
-    using System.Net.Http;
     using System.Threading.Tasks;
-    using Autofac.Features.Indexed;
-    using Common.Authentication;
-    using Common.Telemetry;
+    using System.Transactions;
     using Eshopworld.Core;
+    using Handlers;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
     using Microsoft.ServiceFabric.Actors.Runtime;
@@ -98,79 +95,39 @@
                 return;
             }
 
-            // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
-
-            //brandtype v message type
-            var handler = _handlerFactory.CreateHandler(messageData.Value.Type);
-
-            if (handler != null)
+            try
             {
-                await handler.MakeCall(messageData.Value);
-                _bigBrother.Publish(new MessageExecuted
+                // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
+                using (var scope = new TransactionScope())
                 {
-                    Payload = messageData.Value.Payload,
-                    Type = messageData.Value.Type
-                });
+                    var brandType = ModelParser.ParseBrandType(messageData.Value.Payload);
+
+                    var handler = _handlerFactory.CreateHandler(brandType);
+
+                    await handler.Call(messageData.Value);
+
+                    await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
+                    scope.Complete();
+                }
             }
-            else
+            catch (TransactionAbortedException transactionAbortedException)
             {
-                _bigBrother.Publish(new UnknownMessageType
-                {
-                    Payload = messageData.Value.Payload,
-                    Type = messageData.Value.Type
-                });
+                //todo telemetry event here.
             }
-            await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
         }
     }
 
-    public interface IHandlerFactory
-    {
-        IHandler CreateHandler(string brandType);
-    }
-
-    public class HandlerFactory : IHandlerFactory
-    {
-        private readonly HttpClient _client;
-        private readonly AuthConfig _authConfig;
-        private readonly IIndex<string, WebHookConfig> _webHookConfig;
-
-        public HandlerFactory(
-            HttpClient client,
-            AuthConfig authConfig,
-            IIndex<string, WebHookConfig> webHookConfig)
-        {
-            _client = client;
-            _authConfig = authConfig;
-            _webHookConfig = webHookConfig;
-        }
-
-        public IHandler CreateHandler(string brandType)
-        {
-            switch (brandType)
+    /*
+            if (domainType == "PlatformOrderCreateDomainEvent")
             {
-                case "MAX":
-                    {
-                        var handler = new GenericEventHandler(_authConfig, _webHookConfig["MAX"]);
-                        return handler;
-                    }
-                case "DIF":
-                    {
-                        var handler = new GenericEventHandler(_authConfig, _webHookConfig["DIF"]);
-                        return handler;
-                    }
-                case "GOC":
-                    {
-                        var handler = new GenericEventHandler(_authConfig, _webHookConfig["GOC"]);
-                        return handler;
-                    }
-
-                default:
-                    //todo this should not happen but should defend against it
-                    break;
+                //PutCorePlatformOrderCreateResult(
             }
 
-            return null;
-        }
-    }
+            //todo don't put the URLs out here if we can, maybe put them into KeyVault that way it won't
+            if (domainType == "RetailerOrderConfirmationDomainEvent")
+            {
+                //PutOrderConfirmationResult
+            }
+     
+     */
 }

@@ -3,14 +3,14 @@
     using System;
     using Eshopworld.Core;
 
-    public class MessageExecuted : TelemetryEvent
+    public class WebhookExecuted : TelemetryEvent
     {
-        public MessageExecuted()
+        public WebhookExecuted()
         {
             
         }
 
-        public MessageExecuted(Guid handle, string type, string payload)
+        public WebhookExecuted(Guid handle, string type, string payload)
         {
             Handle = handle;
             Payload = payload;
