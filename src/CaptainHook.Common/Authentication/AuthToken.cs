@@ -1,6 +1,7 @@
 ﻿namespace CaptainHook.Common.Authentication
 {
     using System;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Local cache token for requests to whatever
@@ -10,6 +11,7 @@
         /// <summary>
         /// 
         /// </summary>
+        [JsonProperty("access_token")]
         public string AccessToken { get; set; }
 
         /// <summary>
@@ -20,12 +22,25 @@
         /// <summary>
         /// Time in seconds
         /// </summary>
+        [JsonProperty("expires_in")]
         public int ExpiresIn { get; private set; }
 
         /// <summary>
         /// Wall clock time of expires in
         /// </summary>
         public DateTime ExpiresTime { get; private set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [JsonProperty("scope")]
+        public string Scope { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [JsonProperty("token_type")]
+        public string TokenType { get; set; }
 
         /// <summary>
         /// Updates the local expiration time in seconds and gives an estimated expires time
