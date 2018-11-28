@@ -17,4 +17,10 @@
     <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.2.187" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\..\..\..\..\.nuget\packages\autofac\4.6.2\lib\netstandard1.1\Autofac.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

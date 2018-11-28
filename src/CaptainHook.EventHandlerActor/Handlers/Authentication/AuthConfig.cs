@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Common.Authentication
+﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
     //todo generalise this and inject from config and keyvalut
     //todo this should be generic so can be used by any provider
@@ -7,12 +7,12 @@
         /// <summary>
         /// //todo put this in ci authConfig/production authConfig
         /// </summary>
-        public string Uri { get; set; } = "https://security-sts.ci.eshopworld.net";
+        public string Uri { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        public string ClientId { get; set; } = "tooling.eda.client";
+        public string ClientId { get; set; }
 
         /// <summary>
         /// Gets it from keyvault
@@ -22,6 +22,6 @@
         /// <summary>
         /// 
         /// </summary>
-        public string Scopes { get; set; } = "eda.api.all";
+        public string Scopes { get; set; }
     }
 }

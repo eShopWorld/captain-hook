@@ -1,8 +1,8 @@
 ﻿namespace CaptainHook.EventHandlerActor.Handlers
 {
     using System.Net.Http;
+    using Authentication;
     using Autofac.Features.Indexed;
-    using Common.Authentication;
     using Eshopworld.Core;
 
     public class HandlerFactory : IHandlerFactory

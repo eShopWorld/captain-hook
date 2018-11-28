@@ -95,7 +95,7 @@
             var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
             if (!messageData.HasValue)
             {
-                //todo event on this flow.
+                //todo event on this bad message.
                 return;
             }
 
@@ -120,18 +120,4 @@
             }
         }
     }
-
-    /*
-            if (domainType == "PlatformOrderCreateDomainEvent")
-            {
-                //PutCorePlatformOrderCreateResult(
-            }
-
-            //todo don't put the URLs out here if we can, maybe put them into KeyVault that way it won't
-            if (domainType == "RetailerOrderConfirmationDomainEvent")
-            {
-                //PutOrderConfirmationResult
-            }
-     
-     */
 }

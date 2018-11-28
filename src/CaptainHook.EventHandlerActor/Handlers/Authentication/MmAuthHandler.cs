@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Common.Authentication
+﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
     using System;
     using System.Net;
@@ -6,9 +6,9 @@
     using System.Threading.Tasks;
     using Newtonsoft.Json;
 
-    public class MmAccessTokenHandler : AccessTokenHandler
+    public class MmAuthHandler : AuthHandler
     {
-        public MmAccessTokenHandler(
+        public MmAuthHandler(
             AuthConfig config)
             : base(config)
         { }

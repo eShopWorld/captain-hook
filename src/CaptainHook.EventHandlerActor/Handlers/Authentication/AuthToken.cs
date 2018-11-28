@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Common.Authentication
+﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
     using System;
     using Newtonsoft.Json;

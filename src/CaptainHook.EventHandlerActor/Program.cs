@@ -8,6 +8,8 @@
     using Common;
     using Eshopworld.Core;
     using Eshopworld.Telemetry;
+    using Handlers;
+    using Handlers.Authentication;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
@@ -44,6 +46,51 @@
 
                 builder.RegisterInstance(settings)
                     .SingleInstance();
+
+                builder.RegisterType<IHandlerFactory>().As<HandlerFactory>().SingleInstance();
+                builder.RegisterType<IAuthHandlerFactory>().As<AuthHandlerFactory>().SingleInstance();
+
+                //todo convention and clean this up
+                //todo webhook--{tenantcode}-callback
+                //todo webhook--{tenantcode}-authEnabled
+                //todo webhook--{tenantcode}-auth--clientId
+                var maxWebHookConfig = new WebHookConfig
+                {
+                    Uri = settings.MAXCallback,
+                    AuthConfig = new AuthConfig
+                    {
+                        ClientId = settings.MAXClientId,
+                        ClientSecret = settings.MAXClientSecret,
+                        Uri = settings.MAXAuthURI
+                    }
+                };
+
+                var difWebHookConfig = new WebHookConfig
+                {
+                    Uri = settings.DIFCallback,
+                    AuthConfig = new AuthConfig
+                    {
+                        ClientId = settings.DIFClientId,
+                        ClientSecret = settings.DIFClientSecret,
+                        Uri = settings.DIFAuthURI
+                    }
+                };
+
+                var eswWebHookConfig = new WebHookConfig
+                {
+                    Uri = settings.OMSCallback,
+                    AuthConfig = new AuthConfig
+                    {
+                        ClientId = settings.SecurityClientId,
+                        ClientSecret = settings.SecurityClientSecret,
+                        Uri = settings.SecurityClientURI
+                    }
+                };
+                
+                builder.RegisterInstance(maxWebHookConfig).Named<WebHookConfig>("MAX");
+                builder.RegisterInstance(difWebHookConfig).Named<WebHookConfig>("DIF");
+                builder.RegisterInstance(eswWebHookConfig).Named<WebHookConfig>("ESW");
+
 
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<EventHandlerActor>();

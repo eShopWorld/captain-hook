@@ -1,9 +1,9 @@
-﻿namespace CaptainHook.Common.Authentication
+﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
     using System.Net.Http;
     using System.Threading.Tasks;
 
-    public interface IAccessTokenHandler
+    public interface IAuthHandler
     {
         Task GetToken(HttpClient client);
     }

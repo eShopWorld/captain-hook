@@ -2,8 +2,10 @@
 {
     using System;
     using System.Net.Http;
+    using System.Text;
     using System.Threading.Tasks;
-    using Common.Authentication;
+    using Authentication;
+    using Common.Nasty;
     using Common.Telemetry;
     using Eshopworld.Core;
 
@@ -13,20 +15,26 @@
         private readonly IBigBrother _bigBrother;
 
         protected readonly WebHookConfig WebHookConfig;
-        protected readonly IAccessTokenHandler AccessTokenHandler;
+        protected readonly IAuthHandler AuthHandler;
 
         public GenericEventHandler(
-            IAccessTokenHandler accessTokenHandler,
+            IAuthHandler authHandler,
             IBigBrother bigBrother,
             HttpClient client,
             WebHookConfig webHookConfig)
         {
             _client = client;
-            AccessTokenHandler = accessTokenHandler;
+            AuthHandler = authHandler;
             _bigBrother = bigBrother;
             WebHookConfig = webHookConfig;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TRequest"></typeparam>
+        /// <param name="request"></param>
+        /// <returns></returns>
         public virtual Task Call<TRequest>(TRequest request)
         {
             throw new NotImplementedException();
@@ -39,7 +47,7 @@
         /// <typeparam name="TResponse"></typeparam>
         /// <param name="request"></param>
         /// <returns></returns>
-        public virtual async Task<TResponse> Call<TRequest, TResponse>(TRequest request)
+        public virtual async Task<HttpResponseDto> Call<TRequest, TResponse>(TRequest request)
         {
             if (!(request is MessageData data))
             {
@@ -49,12 +57,12 @@
             //make a call to client identity provider
             if (WebHookConfig.RequiresAuth)
             {
-                await AccessTokenHandler.GetToken(_client);
+                await AuthHandler.GetToken(_client);
             }
 
             //make a call to their api
             //todo polly 429 and 503
-            var response = await _client.PostAsJsonAsync(WebHookConfig.Uri, data.Payload);
+            var response = await _client.PostAsync(WebHookConfig.Uri, new StringContent(data.Payload, Encoding.UTF8, "application/json"));
 
             //todo decisions, either continue to make calls or create a new event and throw it on to the appropriate topic for process
             if (response.IsSuccessStatusCode)
@@ -67,7 +75,13 @@
                 //todo webhook failure
             }
 
-            return response;
+            var dto = new HttpResponseDto
+            {
+                Content = await response.Content.ReadAsStringAsync(),
+                StatusCode = (int)response.StatusCode
+            };
+
+            return dto;
         }
     }
 }

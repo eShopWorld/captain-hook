@@ -3,7 +3,7 @@
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
-    using Common.Authentication;
+    using Authentication;
     using Common.Nasty;
     using Eshopworld.Core;
 
@@ -17,8 +17,8 @@
             HttpClient client,
             IBigBrother bigBrother,
             WebHookConfig webHookConfig, 
-            IAccessTokenHandler accessTokenHandler)
-            : base(accessTokenHandler, bigBrother, client, webHookConfig)
+            IAuthHandler authHandler)
+            : base(authHandler, bigBrother, client, webHookConfig)
         {
             _handlerFactory = handlerFactory;
             _client = client;
@@ -33,7 +33,7 @@
 
             if (WebHookConfig.RequiresAuth)
             {
-                await AccessTokenHandler.GetToken(_client);
+                await AuthHandler.GetToken(_client);
 
                 //todo handler failure here ie call the web hook with the message
             }

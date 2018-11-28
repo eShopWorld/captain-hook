@@ -1,7 +1,5 @@
 ﻿namespace CaptainHook.Common
 {
-    using System;
-
     public class MessageHook
     {
         public int HandlerId { get; set; }

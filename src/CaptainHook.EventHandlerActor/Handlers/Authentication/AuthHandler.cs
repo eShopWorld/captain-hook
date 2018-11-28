@@ -1,24 +1,18 @@
-﻿namespace CaptainHook.Common.Authentication
+﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
     using IdentityModel.Client;
 
-    public interface IAuthHandlerFactory
-    {
-        IAccessTokenHandler Get(string name);
-    }
-
-
-    public class AccessTokenHandler : IAccessTokenHandler
+    public class AuthHandler : IAuthHandler
     {
         protected readonly AuthConfig Config;
 
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
         private readonly AuthToken _token = new AuthToken();
 
-        public AccessTokenHandler(AuthConfig config)
+        public AuthHandler(AuthConfig config)
         {
             Config = config;
         }
