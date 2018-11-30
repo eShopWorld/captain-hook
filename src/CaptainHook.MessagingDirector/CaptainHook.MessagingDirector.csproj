@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.ServiceFabric" Version="2.1.0" />
-    <PackageReference Include="Eshopworld.Telemetry" Version="2.1.0" />
+    <PackageReference Include="Eshopworld.Telemetry" Version="2.1.1" />
     <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.2.187" />
   </ItemGroup>
 
