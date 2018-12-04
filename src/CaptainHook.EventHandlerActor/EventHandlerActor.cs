@@ -98,26 +98,15 @@
                 //todo event on this bad message.
                 return;
             }
+            // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
 
-            try
-            {
-                // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
-                using (var scope = new TransactionScope())
-                {
-                    var brandType = ModelParser.ParseBrandType(messageData.Value.Payload);
+            var brandType = ModelParser.ParseBrandType(messageData.Value.Payload);
 
-                    var handler = _handlerFactory.CreateHandler(brandType);
+            var handler = _handlerFactory.CreateHandler(brandType);
 
-                    await handler.Call(messageData.Value);
+            await handler.Call(messageData.Value);
 
-                    await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
-                    scope.Complete();
-                }
-            }
-            catch (TransactionAbortedException transactionAbortedException)
-            {
-                //todo telemetry event here.
-            }
+            await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
         }
     }
 }

@@ -7,5 +7,8 @@
   <Section Name="EventHandlerActorServiceReplicatorAuthConfig">
     <Parameter Name="CredentialType" Value="None" />
   </Section>
+  <Section Name="EventHandlerActorServiceReplicatorSecurityConfig">
+    <Parameter Name="CredentialType" Value="None" />
+  </Section>
   <!-- The content will be generated during build -->
 </Settings>

@@ -1,6 +1,7 @@
 ﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
     using Autofac.Features.Indexed;
+    using Common;
 
     public interface IAuthHandlerFactory
     {

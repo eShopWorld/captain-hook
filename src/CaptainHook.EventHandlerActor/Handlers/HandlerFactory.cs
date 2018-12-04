@@ -3,6 +3,7 @@
     using System.Net.Http;
     using Authentication;
     using Autofac.Features.Indexed;
+    using Common;
     using Eshopworld.Core;
 
     public class HandlerFactory : IHandlerFactory

@@ -3,6 +3,7 @@
     using System;
     using System.Net.Http;
     using System.Threading.Tasks;
+    using Common;
     using IdentityModel.Client;
 
     public class AuthHandler : IAuthHandler

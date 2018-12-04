@@ -4,6 +4,7 @@
     using System.Net.Http;
     using System.Threading.Tasks;
     using Authentication;
+    using Common;
     using Common.Nasty;
     using Eshopworld.Core;
 

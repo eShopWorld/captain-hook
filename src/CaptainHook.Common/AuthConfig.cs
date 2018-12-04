@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
+﻿namespace CaptainHook.Common
 {
     //todo generalise this and inject from config and keyvalut
     //todo this should be generic so can be used by any provider

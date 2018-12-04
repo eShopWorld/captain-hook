@@ -1,6 +1,8 @@
 ﻿namespace CaptainHook.EventHandlerActor
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
@@ -14,7 +16,7 @@
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Configuration.AzureKeyVault;
-
+    
     internal static class Program
     {
         /// <summary>
@@ -33,9 +35,30 @@
                             .KeyVaultTokenCallback)),
                     new DefaultKeyVaultSecretManager()).Build();
 
+                //autowire up configs in keyvault to webhooks
+                var section = config.GetSection("webhook");
+                var values = section.GetChildren().ToList();
+
+                var list = new List<WebHookConfig>(values.Count);
+                foreach (var configurationSection in values)
+                {
+                    var webHookConfig = new WebHookConfig
+                    {
+                        Name = configurationSection.Key,
+                        DomainEvent = config[$"webhook:{configurationSection.Key}:domainevent"],
+                        Uri = config[$"webhook:{configurationSection.Key}:hook"]
+                    };
+
+                    var authConfig = new AuthConfig();
+                    config.GetSection($"webhook:{configurationSection.Key}:auth").Bind(authConfig);
+
+                    webHookConfig.AuthConfig = authConfig;
+                    list.Add(webHookConfig);
+                }
+
                 var settings = new ConfigurationSettings();
                 config.Bind(settings);
-
+                
                 var bb = new BigBrother(settings.InstrumentationKey, settings.InstrumentationKey);
                 bb.UseEventSourceSink().ForExceptions();
 
@@ -50,47 +73,11 @@
                 builder.RegisterType<IHandlerFactory>().As<HandlerFactory>().SingleInstance();
                 builder.RegisterType<IAuthHandlerFactory>().As<AuthHandlerFactory>().SingleInstance();
 
-                //todo convention and clean this up
-                //todo webhook--{tenantcode}-callback
-                //todo webhook--{tenantcode}-authEnabled
-                //todo webhook--{tenantcode}-auth--clientId
-                var maxWebHookConfig = new WebHookConfig
+                //Register each webhook config separately for injection
+                foreach (var setting in settings.Webhooks)
                 {
-                    Uri = settings.MAXCallback,
-                    AuthConfig = new AuthConfig
-                    {
-                        ClientId = settings.MAXClientId,
-                        ClientSecret = settings.MAXClientSecret,
-                        Uri = settings.MAXAuthURI
-                    }
-                };
-
-                var difWebHookConfig = new WebHookConfig
-                {
-                    Uri = settings.DIFCallback,
-                    AuthConfig = new AuthConfig
-                    {
-                        ClientId = settings.DIFClientId,
-                        ClientSecret = settings.DIFClientSecret,
-                        Uri = settings.DIFAuthURI
-                    }
-                };
-
-                var eswWebHookConfig = new WebHookConfig
-                {
-                    Uri = settings.OMSCallback,
-                    AuthConfig = new AuthConfig
-                    {
-                        ClientId = settings.SecurityClientId,
-                        ClientSecret = settings.SecurityClientSecret,
-                        Uri = settings.SecurityClientURI
-                    }
-                };
-                
-                builder.RegisterInstance(maxWebHookConfig).Named<WebHookConfig>("MAX");
-                builder.RegisterInstance(difWebHookConfig).Named<WebHookConfig>("DIF");
-                builder.RegisterInstance(eswWebHookConfig).Named<WebHookConfig>("ESW");
-
+                    builder.RegisterInstance(setting).Named<WebHookConfig>(setting.Name);
+                }
 
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<EventHandlerActor>();
