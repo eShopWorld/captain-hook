@@ -104,7 +104,7 @@
             var (brandType, domainType) = ModelParser.ParseBrandAndDomainType(messageData.Value.Payload);
             
             //todo need to register the handlers based on the contents of the domain events and the data in the messages
-            var handler = _handlerFactory.CreateHandler(brandType.ToLower());
+            var handler = _handlerFactory.CreateHandler($"{brandType.ToLower()}-{domainType.ToLower()}");
 
             await handler.Call(messageData.Value);
 

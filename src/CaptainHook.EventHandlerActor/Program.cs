@@ -74,7 +74,7 @@
                 builder.RegisterType<IAuthHandlerFactory>().As<AuthHandlerFactory>().SingleInstance();
 
                 //Register each webhook config separately for injection
-                foreach (var setting in settings.Webhooks)
+                foreach (var setting in list)
                 {
                     builder.RegisterInstance(setting).Named<WebHookConfig>(setting.Name);
                 }

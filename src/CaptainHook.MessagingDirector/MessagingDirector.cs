@@ -33,7 +33,12 @@
         /// <inheritdoc />
         protected override async Task OnActivateAsync()
         {
-            await StateManager.TryAddStateAsync(MessageTypesKey, new[] { "myexampleevent1"/*, "myexampleevent2"*/ });
+            await StateManager.TryAddStateAsync(MessageTypesKey,
+                new[]
+                {
+                    "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
+                    "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent"
+                });
         }
 
         public async Task Run(CancellationToken cancellationToken)
