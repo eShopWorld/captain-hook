@@ -44,7 +44,7 @@
                 {
                     var webHookConfig = new WebHookConfig
                     {
-                        Name = configurationSection.Key,
+                        Name = configurationSection.Key.ToLower(),
                         DomainEvent = config[$"webhook:{configurationSection.Key}:domainevent"],
                         Uri = config[$"webhook:{configurationSection.Key}:hook"]
                     };

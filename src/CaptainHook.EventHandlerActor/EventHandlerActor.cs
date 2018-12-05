@@ -2,7 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
-    using System.Transactions;
+    using Common.Telemetry;
     using Eshopworld.Core;
     using Handlers;
     using Interfaces;
@@ -96,13 +96,14 @@
             var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
             if (!messageData.HasValue)
             {
-                //todo event on this bad message.
+               _bigBrother.Publish(new WebhookEvent("message was empty") );
                 return;
             }
 
             //todo nuke this in V1
-            var brandType = ModelParser.ParseBrandType(messageData.Value.Payload);
-
+            var (brandType, domainType) = ModelParser.ParseBrandAndDomainType(messageData.Value.Payload);
+            
+            //todo need to register the handlers based on the contents of the domain events and the data in the messages
             var handler = _handlerFactory.CreateHandler(brandType.ToLower());
 
             await handler.Call(messageData.Value);

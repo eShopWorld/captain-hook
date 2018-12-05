@@ -6,6 +6,7 @@
     using Authentication;
     using Common;
     using Common.Nasty;
+    using Common.Telemetry;
     using Eshopworld.Core;
 
     public class MmEventHandler : GenericEventHandler
@@ -35,27 +36,21 @@
             if (WebHookConfig.RequiresAuth)
             {
                 await AuthHandler.GetToken(_client);
-                //todo handler failure here ie call the web hook with the message
             }
 
             //todo move order code to body so we don't have to deal with it in CH
             var orderCode = ModelParser.ParseOrderCode(data.Payload);
 
-            //todo polly
-            var mmResponse = await _client.PostAsJsonAsync($"{WebHookConfig.Uri}/{orderCode}", data.Payload);
+            var response = await _client.PostAsJsonReliability($"{WebHookConfig.Uri}/{orderCode}", data.Payload, BigBrother);
 
-            if (!mmResponse.IsSuccessStatusCode)
-            {
-                //todo failure here that is not a retry
-            }
+            BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 
-            var domainType = ModelParser.ParseDomainType(data.Payload);
             var eswHandler = _handlerFactory.CreateHandler("esw");
 
             var payload = new HttpResponseDto
             {
-                Content = await mmResponse.Content.ReadAsStringAsync(),
-                StatusCode = (int) mmResponse.StatusCode
+                Content = await response.Content.ReadAsStringAsync(),
+                StatusCode = (int) response.StatusCode
             };
 
             await eswHandler.Call(payload);

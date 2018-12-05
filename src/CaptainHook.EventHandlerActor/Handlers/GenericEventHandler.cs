@@ -2,7 +2,6 @@
 {
     using System;
     using System.Net.Http;
-    using System.Text;
     using System.Threading.Tasks;
     using Authentication;
     using Common;
@@ -13,7 +12,7 @@
     public class GenericEventHandler : IHandler
     {
         private readonly HttpClient _client;
-        private readonly IBigBrother _bigBrother;
+        protected readonly IBigBrother BigBrother;
 
         protected readonly WebHookConfig WebHookConfig;
         protected readonly IAuthHandler AuthHandler;
@@ -26,7 +25,7 @@
         {
             _client = client;
             AuthHandler = authHandler;
-            _bigBrother = bigBrother;
+            BigBrother = bigBrother;
             WebHookConfig = webHookConfig;
         }
 
@@ -61,20 +60,9 @@
                 await AuthHandler.GetToken(_client);
             }
 
-            //make a call to their api
-            //todo polly 429 and 503
-            var response = await _client.PostAsync(WebHookConfig.Uri, new StringContent(data.Payload, Encoding.UTF8, "application/json"));
+            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data.Payload, BigBrother);
 
-            //todo decisions, either continue to make calls or create a new event and throw it on to the appropriate topic for process
-            if (response.IsSuccessStatusCode)
-            {
-                //todo don't be sending customer payloads around for logging
-                _bigBrother.Publish(new WebhookExecuted(data.Handle, data.Type, data.Payload));
-            }
-            else
-            {
-                //todo webhook failure
-            }
+            BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 
             var dto = new HttpResponseDto
             {
