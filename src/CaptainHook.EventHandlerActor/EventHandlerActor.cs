@@ -98,11 +98,11 @@
                 //todo event on this bad message.
                 return;
             }
-            // TODO: HANDLE THE THING - PROBABLY PUT A TRANSACTION HERE AND SCOPE IT TO THE STATEMANAGER CALL
 
+            //todo nuke this in V1
             var brandType = ModelParser.ParseBrandType(messageData.Value.Payload);
 
-            var handler = _handlerFactory.CreateHandler(brandType);
+            var handler = _handlerFactory.CreateHandler(brandType.ToLower());
 
             await handler.Call(messageData.Value);
 

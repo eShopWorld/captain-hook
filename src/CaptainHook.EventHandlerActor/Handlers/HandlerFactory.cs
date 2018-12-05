@@ -1,5 +1,6 @@
 ﻿namespace CaptainHook.EventHandlerActor.Handlers
 {
+    using System;
     using System.Net.Http;
     using Authentication;
     using Autofac.Features.Indexed;
@@ -32,23 +33,22 @@
         /// <returns></returns>
         public IHandler CreateHandler(string brandType)
         {
-            if (_webHookConfig.TryGetValue(brandType.ToUpper(), out var webhookConfig))
+            if (!_webHookConfig.TryGetValue(brandType.ToUpper(), out var webhookConfig))
             {
-                var tokenHandler = _authHandlerFactory.Get(brandType);
-
-                switch (brandType.ToUpper())
-                {
-                    case "MAX":
-                    case "DIF":
-                        return new MmEventHandler(this, _client, _bigBrother, webhookConfig, tokenHandler);
-                    default:
-                        return new GenericEventHandler(tokenHandler, _bigBrother, _client, webhookConfig);
-                }
+                throw new Exception("Boom, don't know the brand type");
             }
-            else
+
+            var tokenHandler = _authHandlerFactory.Get(brandType);
+
+            switch (brandType.ToLower())
             {
-                //todo handle unknown webhook
-                return null;
+                case "max":
+                case "dif":
+                    return new MmEventHandler(this, _client, _bigBrother, webhookConfig, tokenHandler);
+                case "esw":
+                    return new GenericEventHandler(tokenHandler, _bigBrother, _client, webhookConfig);
+                default:
+                    throw new Exception("Boom, don't know the brand type");
             }
         }
     }

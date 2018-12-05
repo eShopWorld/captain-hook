@@ -35,7 +35,6 @@
             if (WebHookConfig.RequiresAuth)
             {
                 await AuthHandler.GetToken(_client);
-
                 //todo handler failure here ie call the web hook with the message
             }
 
@@ -51,7 +50,7 @@
             }
 
             var domainType = ModelParser.ParseDomainType(data.Payload);
-            var eswHandler = _handlerFactory.CreateHandler($"esw-{domainType}");
+            var eswHandler = _handlerFactory.CreateHandler("esw");
 
             var payload = new HttpResponseDto
             {

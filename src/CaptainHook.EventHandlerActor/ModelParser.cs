@@ -4,7 +4,7 @@
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// todo nuke this
+    /// todo nuke this in V1
     /// </summary>
     public static class ModelParser
     {
