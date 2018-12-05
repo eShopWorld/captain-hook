@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Common;
     using Common.Telemetry;
@@ -40,7 +41,7 @@
 
         private readonly IBigBrother _bb;
         private readonly ConfigurationSettings _settings;
-        private IActorTimer _poolTimer;
+        private Timer _poolTimer;
         private MessageReceiver _receiver;
 
         private ConditionalValue<Dictionary<Guid, string>> _messagesInHandlers;
@@ -61,45 +62,49 @@
 
         protected override async Task OnActivateAsync()
         {
-            _bb.Publish(new ActorActivated(this));
-
-            var inHandlers = await StateManager.TryGetStateAsync<Dictionary<Guid, string>>(nameof(_messagesInHandlers));
-            if (inHandlers.HasValue)
+            try
             {
-                _messagesInHandlers = inHandlers;
+                _bb.Publish(new ActorActivated(this));
+
+                var inHandlers = await StateManager.TryGetStateAsync<Dictionary<Guid, string>>(nameof(_messagesInHandlers));
+                if (inHandlers.HasValue)
+                {
+                    _messagesInHandlers = inHandlers;
+                }
+                else
+                {
+                    _messagesInHandlers = new ConditionalValue<Dictionary<Guid, string>>(true, new Dictionary<Guid, string>());
+                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers);
+                }
+
+                await SetupServiceBus();
+
+                // TODO: SET REMINDER - 10 MINS
+                _poolTimer = new Timer(
+                    ReadEvents,
+                    null,
+                    TimeSpan.FromMilliseconds(500),
+                    TimeSpan.FromMilliseconds(500));
+
+                _receiver = new MessageReceiver(
+                    _settings.ServiceBusConnectionString,
+                    EntityNameHelper.FormatSubscriptionPath(TypeExtensions.GetEntityName(Id.GetStringId()), SubscriptionName),
+                    ReceiveMode.PeekLock,
+                    new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
+                    BatchSize);
             }
-            else
+            catch (Exception e)
             {
-                _messagesInHandlers = new ConditionalValue<Dictionary<Guid, string>>(true, new Dictionary<Guid, string>());
-                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers);
+                _bb.Publish(e.ToExceptionEvent());
+                throw;
             }
-
-            //todo will need more namespace setup per tenant
-            await SetupServiceBus();
-
-            _poolTimer = RegisterTimer(
-                ReadEvents,
-                null,
-                TimeSpan.FromMilliseconds(100),
-                TimeSpan.FromMilliseconds(100));
-
-            _receiver = new MessageReceiver(
-                _settings.ServiceBusConnectionString,
-                EntityNameHelper.FormatSubscriptionPath(TypeExtensions.GetEntityName(Id.GetStringId()), SubscriptionName),
-                ReceiveMode.PeekLock,
-                new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
-                BatchSize);
 
             await base.OnActivateAsync();
         }
 
         protected override Task OnDeactivateAsync()
         {
-            if (_poolTimer != null)
-            {
-                UnregisterTimer(_poolTimer);
-            }
-
+            _poolTimer?.Dispose();
             return base.OnDeactivateAsync();
         }
 
@@ -128,27 +133,27 @@
             await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
 
-        internal async Task ReadEvents(object _)
+        internal void ReadEvents(object _)
         {
             if (_receiver.IsClosedOrClosing) return;
 
-            var messages = await _receiver.ReceiveAsync(BatchSize).ConfigureAwait(false);
+            var messages = _receiver.ReceiveAsync(BatchSize, TimeSpan.FromMilliseconds(50)).Result;
             if (messages == null) return;
 
             foreach (var message in messages)
             {
-                var handle = await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
+                var handle = ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId()).Result;
                 _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
-                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers);
+                StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => _messagesInHandlers).Wait();
             }
         }
 
         /// <remarks>
         /// Do nothing by design. We just need to make sure that the actor is properly activated.
         /// </remarks>>
-        public async Task Run()
+        public Task Run()
         {
-            await Task.Yield();
+            return Task.CompletedTask;
         }
 
         public async Task CompleteMessage(Guid handle)

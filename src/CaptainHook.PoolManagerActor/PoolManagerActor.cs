@@ -1,10 +1,5 @@
 ﻿namespace CaptainHook.PoolManagerActor
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using System.Transactions;
     using Common;
     using Eshopworld.Core;
     using Interfaces;
@@ -12,6 +7,10 @@
     using Microsoft.ServiceFabric.Actors.Client;
     using Microsoft.ServiceFabric.Actors.Runtime;
     using Microsoft.ServiceFabric.Data;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     /// <remarks>
     /// This class represents an actor.
@@ -65,8 +64,8 @@
                     _free.Value.Add(i);
                 }
 
-                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => _free);
-                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => _busy);
+                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
             }
         }
 
@@ -74,62 +73,50 @@
         {
             // need to handle the possibility of the resources in the pool being all busy!
 
-            using (var scope = new TransactionScope())
+            try
             {
-                try
-                {
-                    var handlerId = _free.Value.First();
-                    var handle = Guid.NewGuid();
-                    _free.Value.Remove(handlerId);
-                    _busy.Value.Add(
-                        handle,
-                        new MessageHook
-                        {
-                            HandlerId = handlerId,
-                            Type = type
-                        });
+                var handlerId = _free.Value.First();
+                var handle = Guid.NewGuid();
+                _free.Value.Remove(handlerId);
+                _busy.Value.Add(
+                    handle,
+                    new MessageHook
+                    {
+                        HandlerId = handlerId,
+                        Type = type
+                    });
 
-                    await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => _free);
-                    await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => _busy);
+                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                    await ActorProxy.Create<IEventHandlerActor>(new ActorId(handlerId)).Handle(handle, payload, type);
+                await ActorProxy.Create<IEventHandlerActor>(new ActorId(handlerId)).Handle(handle, payload, type);
 
-                    scope.Complete(); // TODO: make sure we test this behaviour - fail the transaction if we can't invoke handle on the handler
-
-                    return handle;
-                }
-                catch (Exception e)
-                {
-                    _bigBrother.Publish(e.ToExceptionEvent());
-                    scope.Dispose();
-                    throw;
-                }
+                return handle;
+            }
+            catch (Exception e)
+            {
+                _bigBrother.Publish(e.ToExceptionEvent());
+                throw;
             }
         }
 
         public async Task CompleteWork(Guid handle)
         {
-            using (var scope = new TransactionScope())
+            try
             {
-                try
-                {
-                    var msgHook = _busy.Value[handle];
-                    _busy.Value.Remove(handle);
-                    _free.Value.Add(msgHook.HandlerId);
+                var msgHook = _busy.Value[handle];
+                _busy.Value.Remove(handle);
+                _free.Value.Add(msgHook.HandlerId);
 
-                    await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => _free);
-                    await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => _busy);
+                await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
+                await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                    await ActorProxy.Create<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle);
-
-                    scope.Complete();
-                }
-                catch (Exception e)
-                {
-                    _bigBrother.Publish(e.ToExceptionEvent());
-                    scope.Dispose();
-                    throw;
-                }
+                await ActorProxy.Create<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle);
+            }
+            catch (Exception e)
+            {
+                _bigBrother.Publish(e.ToExceptionEvent());
+                throw;
             }
         }
     }

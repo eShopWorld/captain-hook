@@ -7,6 +7,7 @@
     using Handlers;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
+    using Microsoft.ServiceFabric.Actors.Client;
     using Microsoft.ServiceFabric.Actors.Runtime;
 
     /// <remarks>
@@ -70,7 +71,7 @@
                 Type = type
             };
 
-            await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => messageData);
+            await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => pair);
 
             _handleTimer = RegisterTimer(
                 InternalHandle,
@@ -107,6 +108,7 @@
             await handler.Call(messageData.Value);
 
             await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
+            await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
         }
     }
 }
