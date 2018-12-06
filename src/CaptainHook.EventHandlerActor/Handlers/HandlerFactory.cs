@@ -42,9 +42,12 @@
 
             switch (brandType.ToLower())
             {
-                case "max":
-                case "dif":
+                case "max-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
+                case "dif-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                     return new MmEventHandler(this, _client, _bigBrother, webhookConfig, tokenHandler);
+
+                case "max-checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
+                case "dif-checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
                 case "esw":
                     return new GenericEventHandler(tokenHandler, _bigBrother, _client, webhookConfig);
                 default:
