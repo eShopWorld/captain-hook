@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
     using Autofac;
@@ -77,8 +78,9 @@
                 foreach (var setting in list)
                 {
                     builder.RegisterInstance(setting).Named<WebHookConfig>(setting.Name);
+                    builder.RegisterInstance(new HttpClient()).Named<HttpClient>(setting.Name).SingleInstance();
                 }
-
+                    
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<EventHandlerActor>();
 

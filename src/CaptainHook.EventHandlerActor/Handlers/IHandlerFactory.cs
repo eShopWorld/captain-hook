@@ -2,6 +2,6 @@
 {
     public interface IHandlerFactory
     {
-        IHandler CreateHandler(string brandType);
+        IHandler CreateHandler(string brandType, string domainType);
     }
 }

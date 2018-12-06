@@ -45,7 +45,7 @@
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 
-            var eswHandler = _handlerFactory.CreateHandler("esw");
+            var eswHandler = _handlerFactory.CreateHandler("esw", string.Empty);
 
             var payload = new HttpResponseDto
             {

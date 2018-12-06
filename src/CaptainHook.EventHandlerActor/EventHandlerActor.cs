@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using Common.Telemetry;
     using Eshopworld.Core;
+    using Eshopworld.Telemetry;
     using Handlers;
     using Interfaces;
     using Microsoft.ServiceFabric.Actors;
@@ -100,16 +101,23 @@
                 return;
             }
 
-            //todo nuke this in V1
-            var (brandType, domainType) = ModelParser.ParseBrandAndDomainType(messageData.Value.Payload);
-            
-            //todo need to register the handlers based on the contents of the domain events and the data in the messages
-            var handler = _handlerFactory.CreateHandler($"{brandType.ToLower()}-{domainType.ToLower()}");
+            try
+            {
+                //todo nuke this in V1
+                var (brandType, domainType) = ModelParser.ParseBrandAndDomainType(messageData.Value.Payload);
 
-            await handler.Call(messageData.Value);
+                //todo need to register the handlers based on the contents of the domain events and the data in the messages
+                var handler = _handlerFactory.CreateHandler(brandType, domainType);
 
-            await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
-            await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
+                await handler.Call(messageData.Value);
+
+                await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
+                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
+            }
+            catch (Exception e)
+            {
+                BigBrother.Write(e);
+            }
         }
     }
 }
