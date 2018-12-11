@@ -112,7 +112,7 @@
                 var handler = _handlerFactory.CreateHandler(brandType, domainType);
 
                 await handler.Call(messageData.Value);
-
+                
                 await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
                 await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
             }

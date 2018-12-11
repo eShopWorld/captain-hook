@@ -10,12 +10,12 @@
     using Eshopworld.Core;
     using Newtonsoft.Json;
 
-    public class MmEventHandler : GenericEventHandler
+    public class RetailerEventHandler : GenericEventHandler
     {
         private readonly HttpClient _client;
         private readonly IHandlerFactory _handlerFactory;
 
-        public MmEventHandler(
+        public RetailerEventHandler(
             IHandlerFactory handlerFactory,
             HttpClient client,
             IBigBrother bigBrother,

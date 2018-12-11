@@ -79,11 +79,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             
             if (payload is string s)
             {
-                content = new StringContent(s, Encoding.UTF32, contentType);
+                content = new StringContent(s, Encoding.UTF8, contentType);
             }
             else
             {
-                content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF32, contentType);
+                content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, contentType);
             }
             
             return await client.PostAsync(uri, content, token);
