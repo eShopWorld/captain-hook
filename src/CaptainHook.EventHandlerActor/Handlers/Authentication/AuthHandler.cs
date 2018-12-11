@@ -30,7 +30,7 @@
             //get initial access token and refresh token
             if (_token.AccessToken == null)
             {
-                var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest
+                var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest 
                 {
                     Address = Config.Uri,
                     ClientId = Config.ClientId,
@@ -45,7 +45,6 @@
                 }
 
                 UpdateToken(response);
-
             }
 
             //get a new access token from the refresh token
