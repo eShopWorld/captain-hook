@@ -1,6 +1,7 @@
 ﻿namespace CaptainHook.Common.Nasty
 {
     using System;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
     /// <summary>
@@ -43,7 +44,7 @@
                 jObject = JObject.Parse(payloadAsString);
             }
 
-            var innerPayload = jObject.SelectToken("OrderConfirmationRequestDto").ToString();
+            var innerPayload = jObject.SelectToken("OrderConfirmationRequestDto").ToString(Formatting.None);
             if (innerPayload != null)
             {
                 return innerPayload;
