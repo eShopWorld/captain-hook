@@ -47,14 +47,7 @@
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 
-            if (WebHookConfig.Callback == null)
-            {
-                return;
-            }
-
-            //todo wire this up
-            //response or types needs to go somewhere in the config
-            var eswHandler = _handlerFactory.CreateCallbackHandler("esw",ModelParser.ParseBrandType(data.Payload));
+            var eswHandler = _handlerFactory.CreateHandler("esw", "esw");
 
             var payload = new HttpResponseDto
             {
