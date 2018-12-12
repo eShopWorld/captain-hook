@@ -35,6 +35,22 @@
             throw new FormatException($"cannot parse order code in payload {orderCode}");
         }
 
+        public static string GetInnerPayload<T>(T payload, JObject jObject = null)
+        {
+            if (jObject == null)
+            {
+                var payloadAsString = payload as string;
+                jObject = JObject.Parse(payloadAsString);
+            }
+
+            var innerPayload = jObject.SelectToken("OrderConfirmationRequestDto").ToString();
+            if (innerPayload != null)
+            {
+                return innerPayload;
+            }
+            throw new FormatException($"cannot parse order to get the request dto {payload}");
+        }
+
         public static string ParseBrandType(string payload, JObject jObject = null)
         {
             if (jObject == null)

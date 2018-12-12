@@ -39,10 +39,7 @@
                 await AuthHandler.GetToken(_client);
             }
 
-            //todo move order code to body so we don't have to deal with it in CH
-            var orderCode = ModelParser.ParseOrderCode(data.Payload);
-
-            var uri = new Uri(new Uri(WebHookConfig.Uri), orderCode.ToString());
+            var uri = new Uri(WebHookConfig.Uri);
             var response = await _client.PostAsJsonReliability(uri.AbsoluteUri, data, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));

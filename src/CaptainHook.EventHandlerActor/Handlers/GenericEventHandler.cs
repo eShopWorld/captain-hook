@@ -13,7 +13,6 @@
     {
         private readonly HttpClient _client;
         protected readonly IBigBrother BigBrother;
-
         protected readonly WebHookConfig WebHookConfig;
         protected readonly IAuthHandler AuthHandler;
 

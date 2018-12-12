@@ -40,7 +40,6 @@
                 throw new Exception("Boom, don't know the brand type");
             }
 
-            //todo change to brandType Only
             var tokenHandler = _authHandlerFactory.Get(brandType);
 
             switch (domainType.ToLower())

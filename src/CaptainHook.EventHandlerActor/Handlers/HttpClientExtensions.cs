@@ -9,6 +9,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
     using System.Threading;
     using System.Threading.Tasks;
     using Common;
+    using Common.Nasty;
     using Common.Telemetry;
     using Eshopworld.Core;
     using Newtonsoft.Json;
@@ -79,7 +80,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
             
             if (payload is string s)
             {
-                content = new StringContent(s, Encoding.UTF8, contentType);
+                var innerPayload = ModelParser.GetInnerPayload(payload);
+                content = new StringContent(innerPayload, Encoding.UTF8, contentType);
             }
             else
             {
