@@ -17,7 +17,7 @@
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Configuration.AzureKeyVault;
-    
+
     internal static class Program
     {
         /// <summary>
@@ -50,6 +50,19 @@
                         Uri = config[$"webhook:{configurationSection.Key}:hook"]
                     };
 
+                    if (config[$"webhook:{configurationSection.Key}:callback:name"] != null)
+                    {
+                        webHookConfig.Callback = new WebHookConfig
+                        {
+                            Name = $"webhook:{configurationSection.Key}:callback:name",
+                            Uri = config[$"webhook:{configurationSection.Key}:callback:uri"]
+                        };
+
+                        var callbackAuthConfig = new AuthConfig();
+                        config.GetSection($"webhook:{configurationSection.Key}:hook:auth").Bind(callbackAuthConfig);
+                        webHookConfig.Callback.AuthConfig = callbackAuthConfig;
+                    }
+
                     var authConfig = new AuthConfig();
                     config.GetSection($"webhook:{configurationSection.Key}:auth").Bind(authConfig);
 
@@ -59,7 +72,7 @@
 
                 var settings = new ConfigurationSettings();
                 config.Bind(settings);
-                
+
                 var bb = new BigBrother(settings.InstrumentationKey, settings.InstrumentationKey);
                 bb.UseEventSourceSink().ForExceptions();
 
@@ -80,7 +93,7 @@
                     builder.RegisterInstance(setting).Named<WebHookConfig>(setting.Name);
                     builder.RegisterInstance(new HttpClient()).Named<HttpClient>(setting.Name).SingleInstance();
                 }
-                    
+
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<EventHandlerActor>();
 

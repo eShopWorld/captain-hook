@@ -11,5 +11,7 @@
         public AuthConfig AuthConfig { get; set; }
 
         public string Name { get; set; }
+
+        public WebHookConfig Callback { get; set; }
     }
 }
