@@ -1,6 +1,7 @@
 ﻿namespace CaptainHook.EventHandlerActor.Handlers
 {
     using System;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Authentication;
@@ -39,9 +40,12 @@
                 await AuthHandler.GetToken(_client);
             }
 
-            if (WebHookConfig.DomainEventPath != null)
+            //todo get publishers to send clean models
+            var path = WebHookConfig.DomainEventConfig.GetPath(data.Type);
+
+            if (path != null)
             {
-                data.Payload = ModelParser.GetInnerPayload(data.Payload, WebHookConfig.DomainEventPath);               
+                data.Payload = ModelParser.GetInnerPayload(data.Payload, path);
             }
 
             var uri = new Uri(WebHookConfig.Uri);

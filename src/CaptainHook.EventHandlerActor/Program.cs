@@ -46,9 +46,8 @@
                     var webHookConfig = new WebHookConfig
                     {
                         Name = configurationSection.Key.ToLower(),
-                        DomainEvent = config[$"webhook:{configurationSection.Key}:domainevent"],
-                        Uri = config[$"webhook:{configurationSection.Key}:hook"],
-                        DomainEventPath = config[$"webhook:{configurationSection.Key}:domainevent:path"]
+                        DomainEventConfig = configurationSection.GetSection($"webhook:{configurationSection.Key}:domainevent").Get<DomainEventConfig>(),
+                        Uri = config[$"webhook:{configurationSection.Key}:hook"]
                     };
 
                     if (config[$"webhook:{configurationSection.Key}:callback:name"] != null)

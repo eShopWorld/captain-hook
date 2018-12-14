@@ -37,8 +37,6 @@
         }
 
         /// <summary>
-        /// PreOrderApiInternalModelOrderRequestDto
-        /// OrderConfirmationRequestDto
         /// </summary>
         /// <param name="payload"></param>
         /// <param name="dtoName"></param>
@@ -51,7 +49,7 @@
                 jObject = JObject.Parse(payload);
             }
 
-            var innerPayload = jObject.SelectToken("dtoName").ToString(Formatting.None);
+            var innerPayload = jObject.SelectToken(dtoName).ToString(Formatting.None);
             if (innerPayload != null)
             {
                 return innerPayload;

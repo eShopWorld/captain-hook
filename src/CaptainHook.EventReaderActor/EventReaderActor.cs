@@ -39,7 +39,7 @@
         // TAKE NUMBER OF HANDLERS INTO CONSIDERATION, DO NOT BATCH MORE THEN HANDLERS
         private const int BatchSize = 1; // make this configurable
 
-        private readonly IBigBrother _bb;
+        private readonly IBigBrother _bigBrother;
         private readonly ConfigurationSettings _settings;
         private readonly object _gate = new object();
 
@@ -54,12 +54,12 @@
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
-        /// <param name="bb">The <see cref="IBigBrother"/> telemetry instance that this actor instance will use to publish.</param>
+        /// <param name="bigBrother">The <see cref="IBigBrother"/> telemetry instance that this actor instance will use to publish.</param>
         /// <param name="settings">The <see cref="ConfigurationSettings"/> being read from the KeyVault.</param>
-        public EventReaderActor(ActorService actorService, ActorId actorId, IBigBrother bb, ConfigurationSettings settings)
+        public EventReaderActor(ActorService actorService, ActorId actorId, IBigBrother bigBrother, ConfigurationSettings settings)
             : base(actorService, actorId)
         {
-            _bb = bb;
+            _bigBrother = bigBrother;
             _settings = settings;
         }
 
@@ -67,7 +67,7 @@
         {
             try
             {
-                _bb.Publish(new ActorActivated(this));
+                _bigBrother.Publish(new ActorActivated(this));
 
                 var inHandlers = await StateManager.TryGetStateAsync<Dictionary<Guid, string>>(nameof(_messagesInHandlers));
                 if (inHandlers.HasValue)
@@ -99,7 +99,7 @@
             }
             catch (Exception e)
             {
-                _bb.Publish(e.ToExceptionEvent());
+                _bigBrother.Publish(e.ToExceptionEvent());
                 throw;
             }
 
@@ -170,11 +170,18 @@
 
         public async Task CompleteMessage(Guid handle)
         {
-            // NOT HANDLING FAULTS YET - BE CAREFUL HERE!
-
-            await _receiver.CompleteAsync(_messagesInHandlers.Value[handle]);
-            _messagesInHandlers.Value.Remove(handle);
-            await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value);
+            //todo NOT HANDLING FAULTS YET - BE CAREFUL HERE!
+            try
+            {
+                await _receiver.CompleteAsync(_messagesInHandlers.Value[handle]);
+                _messagesInHandlers.Value.Remove(handle);
+                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers, (s, value) => value);
+            }
+            catch (Exception e)
+            {
+                _bigBrother.Publish(e.ToExceptionEvent());
+                throw;
+            }
         }
     }
 }
