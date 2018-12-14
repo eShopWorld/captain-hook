@@ -39,6 +39,11 @@
                 await AuthHandler.GetToken(_client);
             }
 
+            if (WebHookConfig.DomainEventPath != null)
+            {
+                data.Payload = ModelParser.GetInnerPayload(data.Payload, WebHookConfig.DomainEventPath);               
+            }
+
             var uri = new Uri(WebHookConfig.Uri);
             var response = await _client.PostAsJsonReliability(uri.AbsoluteUri, data, BigBrother);
 

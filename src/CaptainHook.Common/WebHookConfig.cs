@@ -13,5 +13,10 @@
         public string Name { get; set; }
 
         public WebHookConfig Callback { get; set; }
+
+        /// <summary>
+        /// DomainEventPath within the payload to query to get data for delivery
+        /// </summary>
+        public string DomainEventPath { get; set; }
     }
 }

@@ -36,15 +36,22 @@
             throw new FormatException($"cannot parse order code in payload {orderCode}");
         }
 
-        public static string GetInnerPayload<T>(T payload, JObject jObject = null)
+        /// <summary>
+        /// PreOrderApiInternalModelOrderRequestDto
+        /// OrderConfirmationRequestDto
+        /// </summary>
+        /// <param name="payload"></param>
+        /// <param name="dtoName"></param>
+        /// <param name="jObject"></param>
+        /// <returns></returns>
+        public static string GetInnerPayload(string payload, string dtoName, JObject jObject = null)
         {
             if (jObject == null)
             {
-                var payloadAsString = payload as string;
-                jObject = JObject.Parse(payloadAsString);
+                jObject = JObject.Parse(payload);
             }
 
-            var innerPayload = jObject.SelectToken("OrderConfirmationRequestDto").ToString(Formatting.None);
+            var innerPayload = jObject.SelectToken("dtoName").ToString(Formatting.None);
             if (innerPayload != null)
             {
                 return innerPayload;

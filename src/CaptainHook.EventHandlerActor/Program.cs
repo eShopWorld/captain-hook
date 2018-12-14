@@ -47,7 +47,8 @@
                     {
                         Name = configurationSection.Key.ToLower(),
                         DomainEvent = config[$"webhook:{configurationSection.Key}:domainevent"],
-                        Uri = config[$"webhook:{configurationSection.Key}:hook"]
+                        Uri = config[$"webhook:{configurationSection.Key}:hook"],
+                        DomainEventPath = config[$"webhook:{configurationSection.Key}:domainevent:path"]
                     };
 
                     if (config[$"webhook:{configurationSection.Key}:callback:name"] != null)

@@ -80,8 +80,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             
             if (payload is string s)
             {
-                var innerPayload = ModelParser.GetInnerPayload(payload);
-                content = new StringContent(innerPayload, Encoding.UTF8, contentType);
+                content = new StringContent(s, Encoding.UTF8, contentType);
             }
             else
             {
