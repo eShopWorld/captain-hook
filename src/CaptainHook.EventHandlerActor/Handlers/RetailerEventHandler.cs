@@ -41,11 +41,11 @@
             }
 
             //todo get publishers to send clean models
-            var path = WebHookConfig.DomainEventConfig.GetPath(data.Type);
+            var domainEventConfig = WebHookConfig.DomainEvents.FirstOrDefault(t => t.Name == data.Type);
 
-            if (path != null)
+            if (domainEventConfig != null)
             {
-                data.Payload = ModelParser.GetInnerPayload(data.Payload, path);
+                data.Payload = ModelParser.GetInnerPayload(data.Payload, domainEventConfig.Path);
             }
 
             var uri = new Uri(WebHookConfig.Uri);

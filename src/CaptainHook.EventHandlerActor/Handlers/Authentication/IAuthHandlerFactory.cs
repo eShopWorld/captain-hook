@@ -25,9 +25,9 @@
                 {
                     case "max":
                     case "dif":
-                        return new MmAuthHandler(config.AuthConfig);
+                        return new MmAuthHandler(config.Auth);
                     default:
-                        return new AuthHandler(config.AuthConfig);
+                        return new AuthHandler(config.Auth);
                 }
             }
             else

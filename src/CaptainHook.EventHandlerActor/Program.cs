@@ -43,30 +43,25 @@
                 var list = new List<WebHookConfig>(values.Count);
                 foreach (var configurationSection in values)
                 {
-                    var webHookConfig = new WebHookConfig
-                    {
-                        Name = configurationSection.Key.ToLower(),
-                        DomainEventConfig = configurationSection.GetSection($"webhook:{configurationSection.Key}:domainevent").Get<DomainEventConfig>(),
-                        Uri = config[$"webhook:{configurationSection.Key}:hook"]
-                    };
+                    var webHookConfig = config.GetSection($"webhook:{configurationSection.Key}").Get<WebHookConfig>();
 
-                    if (config[$"webhook:{configurationSection.Key}:callback:name"] != null)
+                    if (configurationSection.Key == "goc")
                     {
-                        webHookConfig.Callback = new WebHookConfig
+                        var event0 = new DomainEventConfig
                         {
-                            Name = $"webhook:{configurationSection.Key}:callback:name",
-                            Uri = config[$"webhook:{configurationSection.Key}:callback:uri"]
+                            Name = "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
+                            Path = "OrderConfirmationRequestDto"
                         };
+                        webHookConfig.DomainEvents.Add(event0);
 
-                        var callbackAuthConfig = new AuthConfig();
-                        config.GetSection($"webhook:{configurationSection.Key}:hook:auth").Bind(callbackAuthConfig);
-                        webHookConfig.Callback.AuthConfig = callbackAuthConfig;
+                        var event1 = new DomainEventConfig()
+                        {
+                            Name = "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent",
+                            Path = "PreOrderApiInternalModelOrderRequestDto"
+                        };
+                        webHookConfig.DomainEvents.Add(event1);
                     }
 
-                    var authConfig = new AuthConfig();
-                    config.GetSection($"webhook:{configurationSection.Key}:auth").Bind(authConfig);
-
-                    webHookConfig.AuthConfig = authConfig;
                     list.Add(webHookConfig);
                 }
 
