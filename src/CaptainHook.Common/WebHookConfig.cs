@@ -4,6 +4,11 @@
 
     public class WebHookConfig
     {
+        public WebHookConfig()
+        {
+            this.DomainEvents = new List<DomainEventConfig>();
+        }
+
         public string Uri { get; set; }
 
         public bool RequiresAuth { get; set; } = true;

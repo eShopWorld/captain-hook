@@ -1,5 +1,6 @@
 ﻿namespace CaptainHook.EventHandlerActor.Handlers
 {
+    using System;
     using System.Threading.Tasks;
     using Common.Nasty;
 
@@ -7,6 +8,7 @@
     {
         Task Call<TRequest>(TRequest request);
 
+        [Obsolete]
         Task<HttpResponseDto> Call<TRequest, TResponse>(TRequest request);
     }
 }

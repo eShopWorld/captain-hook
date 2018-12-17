@@ -47,7 +47,21 @@
                 await AuthHandler.GetToken(_client);
             }
 
-            var response = await _client.PostAsJsonReliability(WebHookConfig.Uri, data, BigBrother);
+            //call the platform something like 
+            //call checkout
+            var uri = WebHookConfig.Uri;
+
+            if (data.Type == "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
+            {
+                uri = $"https://checkout-api.ci.eshopworld.net/api/v2/webhook/PutOrderConfirmationResult/";
+            }
+
+            if (data.Type == "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent")
+            {
+                uri = $"https://checkout-api.ci.eshopworld.net/api/v2/PutCorePlatformOrderCreateResult/";
+            }
+
+            var response = await _client.PostAsJsonReliability(uri, data, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
         }
@@ -59,6 +73,7 @@
         /// <typeparam name="TResponse"></typeparam>
         /// <param name="request"></param>
         /// <returns></returns>
+        [Obsolete]
         public virtual async Task<HttpResponseDto> Call<TRequest, TResponse>(TRequest request)
         {
             if (!(request is MessageData data))
