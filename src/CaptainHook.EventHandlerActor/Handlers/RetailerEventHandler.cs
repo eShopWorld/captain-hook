@@ -9,8 +9,7 @@
     using Common.Nasty;
     using Common.Telemetry;
     using Eshopworld.Core;
-    using Newtonsoft.Json;
-
+    
     public class RetailerEventHandler : GenericEventHandler
     {
         private readonly HttpClient _client;
@@ -43,6 +42,8 @@
             //todo get publishers to send clean models
             var domainEventConfig = WebHookConfig.DomainEvents.FirstOrDefault(t => t.Name == data.Type);
 
+            var orderCode = ModelParser.ParseOrderCode(data.Payload);
+
             if (domainEventConfig != null)
             {
                 data.Payload = ModelParser.GetInnerPayload(data.Payload, domainEventConfig.Path);
@@ -55,16 +56,16 @@
             BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 
             //call callback
-            
             var eswHandler = _handlerFactory.CreateHandler("esw", "esw");
 
             var payload = new HttpResponseDto
             {
+                OrderCode = orderCode,
                 Content = await response.Content.ReadAsStringAsync(),
                 StatusCode = (int)response.StatusCode
             };
 
-            data.Payload = JsonConvert.SerializeObject(payload);
+            data.CallbackPayload = payload;
             await eswHandler.Call(data);
         }
     }
