@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CaptainHook.EventHandlerActor.Handlers
+﻿namespace CaptainHook.EventHandlerActor.Handlers
 {
     using System;
     using System.Net;
@@ -9,7 +7,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
     using System.Threading;
     using System.Threading.Tasks;
     using Common;
-    using Common.Nasty;
     using Common.Telemetry;
     using Eshopworld.Core;
     using Newtonsoft.Json;

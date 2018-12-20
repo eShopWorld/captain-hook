@@ -36,10 +36,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.Azure.Management.Batch.Fluent">
-    </Reference>
-    <Reference Include="Microsoft.Azure.Management.Dns.Fluent">
-    </Reference>
     <Reference Include="Microsoft.Extensions.Configuration">
     </Reference>
   </ItemGroup>
