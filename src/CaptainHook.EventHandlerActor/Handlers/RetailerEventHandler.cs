@@ -65,6 +65,7 @@
                 StatusCode = (int)response.StatusCode
             };
 
+            data.OrderCode = orderCode;
             data.CallbackPayload = payload;
             await eswHandler.Call(data);
         }

@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers
+﻿using CaptainHook.Common.Nasty;
+
+namespace CaptainHook.EventHandlerActor.Handlers
 {
     using System;
     using System.Net.Http;
@@ -52,14 +54,16 @@
                 //call checkout
                 var uri = WebHookConfig.Uri;
 
+                var orderCode = ModelParser.ParseOrderCode(data.Payload);
+                //todo move this out of here into the config management
                 if (data.Type == "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
                 {
-                    uri = $"https://checkout-api.ci.eshopworld.net/api/v2/webhook/PutOrderConfirmationResult/{data.CallbackPayload.OrderCode}";
+                    uri = $"https://checkout-api.ci.eshopworld.net/api/v2/webhook/PutOrderConfirmationResult/{orderCode}";
                 }
 
                 if (data.Type == "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent")
                 {
-                    uri = $"https://checkout-api.ci.eshopworld.net/api/v2/PutCorePlatformOrderCreateResult/{data.CallbackPayload.OrderCode}";
+                    uri = $"https://checkout-api.ci.eshopworld.net/api/v2/PutCorePlatformOrderCreateResult/{orderCode}";
                 }
 
                 var response = await _client.PostAsJsonReliability(uri, data, BigBrother);
