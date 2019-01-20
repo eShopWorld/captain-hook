@@ -47,19 +47,19 @@
 
                     if (configurationSection.Key == "goc")
                     {
-                        var event0 = new DomainEventConfig
+                        var event0 = new EventConfig
                         {
                             Name = "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
                             ModelQueryPath = "OrderConfirmationRequestDto"
                         };
-                        webHookConfig.DomainEvents.Add(event0);
+                        webHookConfig.EventConfig.Add(event0);
 
-                        var event1 = new DomainEventConfig
+                        var event1 = new EventConfig
                         {
                             Name = "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent",
                             ModelQueryPath = "PreOrderApiInternalModelOrderRequestDto"
                         };
-                        webHookConfig.DomainEvents.Add(event1);
+                        webHookConfig.EventConfig.Add(event1);
                     }
 
                     list.Add(webHookConfig);

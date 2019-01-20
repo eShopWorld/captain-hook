@@ -7,27 +7,25 @@ using Eshopworld.Core;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
-    //todo remove in v1
     public class HandlerFactory : IHandlerFactory
     {
         private readonly IIndex<string, HttpClient> _httpClients;
         private readonly IBigBrother _bigBrother;
-        private readonly IIndex<string, EventHandlerConfig> _webHookConfig;
+        private readonly IIndex<string, EventHandlerConfig> _eventHandlerConfig;
         private readonly IAuthHandlerFactory _authHandlerFactory;
 
         public HandlerFactory(
             IIndex<string, HttpClient> httpClients,
             IBigBrother bigBrother,
-            IIndex<string, EventHandlerConfig> webHookConfig,
+            IIndex<string, EventHandlerConfig> eventHandlerConfig,
             IAuthHandlerFactory authHandlerFactory)
         {
             _httpClients = httpClients;
             _bigBrother = bigBrother;
-            _webHookConfig = webHookConfig;
+            _eventHandlerConfig = eventHandlerConfig;
             _authHandlerFactory = authHandlerFactory;
         }
 
-        /// <inheritdoc />
         /// <summary>
         /// Create the custom handler such that we get a mapping from the webhook name to the handler selected
         /// </summary>
@@ -35,35 +33,28 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public IHandler CreateHandler(string name)
         {
-            if (!_webHookConfig.TryGetValue(name.ToLower(), out var webhookConfig))
+            if (!_eventHandlerConfig.TryGetValue(name.ToLower(), out var eventHandlerConfig))
             {
                 throw new Exception("Boom, don't know the brand type");
             }
 
             var authHandler = _authHandlerFactory.Get(name);
 
-            switch (name.ToLower())
+            if (eventHandlerConfig.CallBackEnabled)
             {
-                //todo not needed in v1
-                case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
-                    return new WebhookResponseHandler(
-                        this,
-                        authHandler,
-                        _bigBrother,
-                        _httpClients[name.ToLower()], 
-                        webhookConfig);
-                
-                case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                case "esw":
-                    return new GenericWebhookHandler(
-                        authHandler, 
-                        _bigBrother, 
-                        _httpClients[name.ToLower()], 
-                        webhookConfig.WebHookConfig);
-                
-                default:
-                    throw new Exception($"Boom, don't know the domain type or handler name {name}");
+                return new WebhookResponseHandler(
+                    this,
+                    authHandler,
+                    _bigBrother,
+                    _httpClients[name.ToLower()],
+                    eventHandlerConfig);
             }
+
+            return new GenericWebhookHandler(
+                authHandler,
+                _bigBrother,
+                _httpClients[name.ToLower()],
+                eventHandlerConfig.WebHookConfig);
         }
     }
 }

@@ -40,16 +40,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 await AuthHandler.GetToken(_client);
             }
-
-            //todo get publishers to send clean models
-            var domainEventConfig = _eventHandlerConfig.DomainEvents.FirstOrDefault(t => t.Name == messageData.Type);
-
-            if (domainEventConfig == null)
-            {
-                throw new Exception("No domain events registered for this config");
-            }
-
-            var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, domainEventConfig.ModelQueryPath);
+            
+            var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.EventConfig.ModelQueryPath);
             var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
 
             var response = await _client.PostAsJsonReliability(WebhookConfig.Uri, innerPayload, messageData, BigBrother);

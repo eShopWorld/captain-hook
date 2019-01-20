@@ -67,7 +67,7 @@
             return brandType;
         }
 
-        public static (string brandType, string domainType) ParseBrandAndDomainType(MessageData data)
+        public static (string brandType, string domainType) ParseBrandAndEventType(MessageData data)
         {
             var jObject = JObject.Parse(data.Payload);
 

@@ -50,7 +50,7 @@ namespace CaptainHook.UnitTests
                     new WebhookConfig
                     {
                         Uri = "http://localhost/callback",
-                        Name = "Callback"
+                        Name = "CallbackConfig"
                     }));
 
             _webhookResponseHandler = new WebhookResponseHandler(
@@ -60,13 +60,10 @@ namespace CaptainHook.UnitTests
                 new HttpClient(_mockHttpHandler.Object),
                 new EventHandlerConfig
                 {
-                    DomainEvents = new List<DomainEventConfig>
+                    EventConfig = new EventConfig
                     {
-                        new DomainEventConfig
-                        {
-                            Name = "TestType",
-                            ModelQueryPath = "TransportModel"
-                        }
+                        Name = "TestType",
+                        ModelQueryPath = "TransportModel"
                     },
                     WebHookConfig = new WebhookConfig
                     {

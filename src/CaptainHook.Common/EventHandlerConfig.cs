@@ -1,7 +1,5 @@
 ﻿namespace CaptainHook.Common
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Webhook config contains details for the webhook, eg uri and auth details
     /// </summary>
@@ -14,6 +12,9 @@
         public string Uri { get; set; }
 
         public string Name { get; set; }
+
+        //todo implement this on the calls to the webhook
+        public string HttpVerb { get; set; }
     }
 
     /// <summary>
@@ -21,21 +22,18 @@
     /// </summary>
     public class EventHandlerConfig
     {
-        public EventHandlerConfig()
-        {
-            this.DomainEvents = new List<DomainEventConfig>();
-        }
-
         public WebhookConfig WebHookConfig { get; set; }
 
         public WebhookConfig CallbackConfig { get; set; }
 
-        public List<DomainEventConfig> DomainEvents { get; set; }
+        public EventConfig EventConfig { get; set; }
 
         public string Name { get; set; }
+
+        public bool CallBackEnabled => CallbackConfig != null;
     }
 
-    public class DomainEventConfig
+    public class EventConfig
     {
         /// <summary>
         /// name of the domain event

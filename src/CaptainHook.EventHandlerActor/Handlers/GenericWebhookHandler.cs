@@ -10,7 +10,7 @@ using Eshopworld.Core;
 namespace CaptainHook.EventHandlerActor.Handlers
 {
     /// <summary>
-    /// Generic WebHook Handler which executes the call to a webhook based on the supplied configuration
+    /// Generic WebHookConfig Handler which executes the call to a webhook based on the supplied configuration
     /// </summary>
     public class GenericWebhookHandler : IHandler
     {

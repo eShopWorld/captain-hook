@@ -1,18 +1,18 @@
-﻿namespace CaptainHook.EventHandlerActor
-{
-    using System;
-    using System.Threading.Tasks;
-    using Common;
-    using Common.Nasty;
-    using Common.Telemetry;
-    using Eshopworld.Core;
-    using Eshopworld.Telemetry;
-    using Handlers;
-    using Interfaces;
-    using Microsoft.ServiceFabric.Actors;
-    using Microsoft.ServiceFabric.Actors.Client;
-    using Microsoft.ServiceFabric.Actors.Runtime;
+﻿using System;
+using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Nasty;
+using CaptainHook.Common.Telemetry;
+using CaptainHook.EventHandlerActor.Handlers;
+using CaptainHook.Interfaces;
+using Eshopworld.Core;
+using Eshopworld.Telemetry;
+using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Client;
+using Microsoft.ServiceFabric.Actors.Runtime;
 
+namespace CaptainHook.EventHandlerActor
+{
     /// <remarks>
     /// This class represents an actor.
     /// Every ActorID maps to an instance of this class.
@@ -105,9 +105,9 @@
 
             try
             {
-                var domainType = ModelParser.ParseDomainType(messageData.Value.Payload);
+                var (brandType, eventType)  = ModelParser.ParseBrandAndEventType(messageData.Value);
 
-                var handler = _handlerFactory.CreateHandler($"{domainType.ToLower()}");
+                var handler = _handlerFactory.CreateHandler($"{brandType}-{eventType}");
 
                 await handler.Call(messageData.Value);
                 
