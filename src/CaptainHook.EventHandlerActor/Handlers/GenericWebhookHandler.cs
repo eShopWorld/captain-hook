@@ -1,32 +1,34 @@
-﻿using CaptainHook.Common.Nasty;
+﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Nasty;
+using CaptainHook.Common.Telemetry;
+using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using Eshopworld.Core;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
-    using System;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using Authentication;
-    using Common;
-    using Common.Telemetry;
-    using Eshopworld.Core;
-
-    public class GenericEventHandler : IHandler
+    /// <summary>
+    /// Generic WebHook Handler which executes the call to a webhook based on the supplied configuration
+    /// </summary>
+    public class GenericWebhookHandler : IHandler
     {
         private readonly HttpClient _client;
         protected readonly IBigBrother BigBrother;
-        protected readonly WebHookConfig WebHookConfig;
+        protected readonly WebhookConfig WebhookConfig;
         protected readonly IAuthHandler AuthHandler;
 
-        public GenericEventHandler(
+        public GenericWebhookHandler(
             IAuthHandler authHandler,
             IBigBrother bigBrother,
             HttpClient client,
-            WebHookConfig webHookConfig)
+            WebhookConfig webhookConfig)
         {
             _client = client;
             AuthHandler = authHandler;
             BigBrother = bigBrother;
-            WebHookConfig = webHookConfig;
+            WebhookConfig = webhookConfig;
         }
 
         /// <summary>
@@ -45,28 +47,24 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
 
                 //make a call to client identity provider
-                if (WebHookConfig.RequiresAuth)
+                if (WebhookConfig.RequiresAuth)
                 {
                     await AuthHandler.GetToken(_client);
                 }
+                
+                var uri = WebhookConfig.Uri;
 
-                //call the platform something like 
-                //call checkout
-                var uri = WebHookConfig.Uri;
-
+                //todo move this out of here into a jpath executor so that the guid is added via a handler based on config
                 var orderCode = ModelParser.ParseOrderCode(data.Payload);
-                //todo move this out of here into the config management
-                if (data.Type == "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
+                switch (data.Type)
                 {
-                    uri = $"https://checkout-api.ci.eshopworld.net/api/v2/webhook/PutOrderConfirmationResult/{orderCode}";
+                    case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
+                    case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
+                        uri = $"{WebhookConfig.Uri}/{orderCode}";
+                        break;
                 }
 
-                if (data.Type == "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent")
-                {
-                    uri = $"https://checkout-api.ci.eshopworld.net/api/v2/PutCorePlatformOrderCreateResult/{orderCode}";
-                }
-
-                var response = await _client.PostAsJsonReliability(uri, data, BigBrother);
+                var response = await _client.PostAsJsonReliability(uri, data.Payload, data, BigBrother);
 
                 BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
 

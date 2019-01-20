@@ -1,8 +1,8 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
-{
-    using Autofac.Features.Indexed;
-    using Common;
+﻿using Autofac.Features.Indexed;
+using CaptainHook.Common;
 
+namespace CaptainHook.EventHandlerActor.Handlers.Authentication
+{
     public interface IAuthHandlerFactory
     {
         IAuthHandler Get(string name);
@@ -10,9 +10,9 @@
 
     public class AuthHandlerFactory : IAuthHandlerFactory
     {
-        private readonly IIndex<string, WebHookConfig> _webHookConfigs;
+        private readonly IIndex<string, WebhookConfig> _webHookConfigs;
 
-        public AuthHandlerFactory(IIndex<string, WebHookConfig> webHookConfigs)
+        public AuthHandlerFactory(IIndex<string, WebhookConfig> webHookConfigs)
         {
             _webHookConfigs = webHookConfigs;
         }
@@ -25,9 +25,9 @@
                 {
                     case "max":
                     case "dif":
-                        return new MmAuthHandler(config.Auth);
+                        return new MmAuthHandler(config.AuthConfig);
                     default:
-                        return new AuthHandler(config.Auth);
+                        return new AuthHandler(config.AuthConfig);
                 }
             }
             else

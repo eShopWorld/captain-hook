@@ -40,24 +40,24 @@
                 var section = config.GetSection("webhook");
                 var values = section.GetChildren().ToList();
 
-                var list = new List<WebHookConfig>(values.Count);
+                var list = new List<EventHandlerConfig>(values.Count);
                 foreach (var configurationSection in values)
                 {
-                    var webHookConfig = config.GetSection($"webhook:{configurationSection.Key}").Get<WebHookConfig>();
+                    var webHookConfig = config.GetSection($"webhook:{configurationSection.Key}").Get<EventHandlerConfig>();
 
                     if (configurationSection.Key == "goc")
                     {
                         var event0 = new DomainEventConfig
                         {
                             Name = "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
-                            Path = "OrderConfirmationRequestDto"
+                            ModelQueryPath = "OrderConfirmationRequestDto"
                         };
                         webHookConfig.DomainEvents.Add(event0);
 
-                        var event1 = new DomainEventConfig()
+                        var event1 = new DomainEventConfig
                         {
                             Name = "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent",
-                            Path = "PreOrderApiInternalModelOrderRequestDto"
+                            ModelQueryPath = "PreOrderApiInternalModelOrderRequestDto"
                         };
                         webHookConfig.DomainEvents.Add(event1);
                     }
@@ -85,7 +85,7 @@
                 //Register each webhook config separately for injection
                 foreach (var setting in list)
                 {
-                    builder.RegisterInstance(setting).Named<WebHookConfig>(setting.Name);
+                    builder.RegisterInstance(setting).Named<EventHandlerConfig>(setting.Name);
                     builder.RegisterInstance(new HttpClient()).Named<HttpClient>(setting.Name).SingleInstance();
                 }
 

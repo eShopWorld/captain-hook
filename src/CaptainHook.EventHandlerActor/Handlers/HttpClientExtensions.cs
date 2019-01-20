@@ -1,17 +1,17 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers
-{
-    using System;
-    using System.Net;
-    using System.Net.Http;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Common;
-    using Common.Telemetry;
-    using Eshopworld.Core;
-    using Newtonsoft.Json;
-    using Polly;
+﻿using System;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Telemetry;
+using Eshopworld.Core;
+using Newtonsoft.Json;
+using Polly;
 
+namespace CaptainHook.EventHandlerActor.Handlers
+{
     public static class HttpClientExtensions
     {
         /// <summary>
@@ -20,18 +20,20 @@
         /// <typeparam name="T"></typeparam>
         /// <param name="client"></param>
         /// <param name="uri"></param>
-        /// <param name="data"></param>
+        /// <param name="payload"></param>
+        /// <param name="messageData"></param>
         /// <param name="bigBrother"></param>
         /// <param name="contentType"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public static async Task<HttpResponseMessage> PostAsJsonReliability<T>(
+        public static async Task<HttpResponseMessage> PostAsJsonReliability(
             this HttpClient client,
             string uri,
-            T data,
+            string payload,
+            MessageData messageData,
             IBigBrother bigBrother,
             string contentType = "application/json",
-            CancellationToken token = default) where T : MessageData
+            CancellationToken token = default)
         {
             var response = await Policy.HandleResult<HttpResponseMessage>(
                     message =>
@@ -46,12 +48,12 @@
                 }, (result, timeSpan, retryCount, context) =>
                 {
                         bigBrother.Publish(new HttpClientFailure(
-                            data.Handle, 
-                            data.Type, 
-                            data.Payload,
+                            messageData.Handle, 
+                            messageData.Type, 
+                            messageData.Payload,
                             $"retry count {retryCount} of {context.Count}"));
                     
-                }).ExecuteAsync(() => client.PostAsJson(uri, data.Payload, contentType, token));
+                }).ExecuteAsync(() => client.PostAsJson(uri, payload, contentType, token));
 
             return response;
         }
@@ -73,18 +75,18 @@
             string contentType = "application/json",
             CancellationToken token = default)
         {
-            StringContent content;
+            StringContent stringContent;
             
-            if (payload is string s)
+            if (payload is string content)
             {
-                content = new StringContent(s, Encoding.UTF8, contentType);
+                stringContent = new StringContent(content, Encoding.UTF8, contentType);
             }
             else
             {
-                content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, contentType);
+                stringContent = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, contentType);
             }
             
-            return await client.PostAsync(uri, content, token);
+            return await client.PostAsync(uri, stringContent, token);
         }
     }
 }
