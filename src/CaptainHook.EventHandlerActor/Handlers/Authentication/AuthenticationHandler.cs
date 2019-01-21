@@ -6,14 +6,14 @@
     using Common;
     using IdentityModel.Client;
 
-    public class AuthHandler : IAuthHandler
+    public class AuthenticationHandler : IAuthHandler
     {
-        protected readonly AuthConfig Config;
+        protected readonly AuthenticationConfig Config;
 
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
         private readonly AuthToken _token = new AuthToken();
 
-        public AuthHandler(AuthConfig config)
+        public AuthenticationHandler(AuthenticationConfig config)
         {
             Config = config;
         }

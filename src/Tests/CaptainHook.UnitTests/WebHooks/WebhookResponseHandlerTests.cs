@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace CaptainHook.UnitTests
+namespace CaptainHook.UnitTests.WebHooks
 {
     public class WebhookResponseHandlerTests
     {
@@ -60,11 +59,6 @@ namespace CaptainHook.UnitTests
                 new HttpClient(_mockHttpHandler.Object),
                 new EventHandlerConfig
                 {
-                    EventParsers = new EventParsers
-                    {
-                        Name = "TestType",
-                        ModelQueryPath = "TransportModel"
-                    },
                     WebHookConfig = new WebhookConfig
                     {
                         Uri = "http://localhost/webhook"

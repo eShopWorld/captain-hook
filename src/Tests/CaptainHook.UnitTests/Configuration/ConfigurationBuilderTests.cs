@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Xunit;
 
-namespace CaptainHook.UnitTests
+namespace CaptainHook.UnitTests.Configuration
 {
     public class ConfigurationBuilderTests
     {

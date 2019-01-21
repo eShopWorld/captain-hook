@@ -25,9 +25,9 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 {
                     case "max":
                     case "dif":
-                        return new MmAuthHandler(config.AuthConfig);
+                        return new MmAuthenticationHandler(config.AuthenticationConfig);
                     default:
-                        return new AuthHandler(config.AuthConfig);
+                        return new AuthenticationHandler(config.AuthenticationConfig);
                 }
             }
             else

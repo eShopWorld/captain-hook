@@ -1,6 +1,6 @@
 ﻿namespace CaptainHook.Common
 {
-    public class AuthConfig
+    public class AuthenticationConfig
     {
         /// <summary>
         /// //todo put this in ci authConfig/production authConfig

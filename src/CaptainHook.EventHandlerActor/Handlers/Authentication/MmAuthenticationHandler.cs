@@ -1,17 +1,17 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
-{
-    using System;
-    using System.Net;
-    using System.Net.Http;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Common;
-    using Newtonsoft.Json;
+﻿using System;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using CaptainHook.Common;
+using Newtonsoft.Json;
 
-    public class MmAuthHandler : AuthHandler
+namespace CaptainHook.EventHandlerActor.Handlers.Authentication
+{
+    public class MmAuthenticationHandler : AuthenticationHandler
     {
-        public MmAuthHandler(
-            AuthConfig config)
+        public MmAuthenticationHandler(
+            AuthenticationConfig config)
             : base(config)
         { }
 
@@ -32,6 +32,7 @@
                 var responseContent = await authProviderResponse.Content.ReadAsStringAsync();
                 var stsResult = JsonConvert.DeserializeObject<AuthToken>(responseContent);
 
+                client.DefaultRequestHeaders.Clear();
                 client.SetBearerToken(stsResult.AccessToken);
                 return;
             }

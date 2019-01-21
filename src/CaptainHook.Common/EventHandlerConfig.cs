@@ -9,7 +9,7 @@ namespace CaptainHook.Common
     {
         public bool RequiresAuth { get; set; } = true;
 
-        public AuthConfig AuthConfig { get; set; }
+        public AuthenticationConfig AuthenticationConfig { get; set; }
 
         public string Uri { get; set; }
 
@@ -39,16 +39,6 @@ namespace CaptainHook.Common
 
     public class EventParser
     {
-        /// <summary>
-        /// name of the domain event
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// DomainEventPath within the payload to query to get data for delivery
-        /// </summary>
-        public string ModelQueryPath { get; set; }
-
         /// <summary>
         /// ie from payload, header, etc etc
         /// </summary>

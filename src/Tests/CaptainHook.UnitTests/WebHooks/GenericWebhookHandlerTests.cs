@@ -10,7 +10,7 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace CaptainHook.UnitTests
+namespace CaptainHook.UnitTests.WebHooks
 {
     public class GenericWebhookHandlerTests
     {
