@@ -1,51 +1,26 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
-using Moq;
-using Moq.Protected;
+using Eshopworld.Tests.Core;
 using Newtonsoft.Json;
+using RichardSzalay.MockHttp;
 using Xunit;
 
 namespace CaptainHook.UnitTests.Authentication
 {
     public class MmAuthenticationHandlerTests
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        private readonly MmAuthenticationHandler _handler;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private readonly HttpClient _httpClient;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private readonly Mock<HttpMessageHandler> _mockHttpHandler;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private static string _expectedAccessToken = "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282";
-
-        /// <summary>
-        /// Setup for all tests contained within
-        /// </summary>
-        public MmAuthenticationHandlerTests()
+        [Theory]
+        [InlineData("6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282")]
+        [IsLayer1]
+        public async Task AuthorisationTokenTests(string expectedAccessToken)
         {
             var expectedResponse = JsonConvert.SerializeObject(new AuthToken
             {
-                AccessToken = _expectedAccessToken
+                AccessToken = expectedAccessToken
             });
-
-            _mockHttpHandler = EventHandlerTestHelper.GetMockHandler(new StringContent(expectedResponse), HttpStatusCode.Created);
-            _httpClient = new HttpClient(_mockHttpHandler.Object);
 
             var config = new AuthenticationConfig
             {
@@ -54,27 +29,20 @@ namespace CaptainHook.UnitTests.Authentication
                 Uri = "http://localhost/authendpoint"
             };
 
-            _handler = new MmAuthenticationHandler(config);        }
+            var mockHttp = new MockHttpMessageHandler();
+            mockHttp.When(HttpMethod.Post, config.Uri)
+                .WithHeaders("client_id", config.ClientId)
+                .WithHeaders("client_secret", config.ClientSecret)
+                .WithContentType("application/json-patch+json", string.Empty)
+                .Respond(HttpStatusCode.Created, "application/json-patch+json", expectedResponse);
 
-        [Fact]
-        public async Task AuthorisationTokenTests()
-        {
-            await _handler.GetToken(_httpClient);
-            
-            Assert.NotNull(_httpClient.DefaultRequestHeaders.Authorization);
-            Assert.Equal(_expectedAccessToken, _httpClient.DefaultRequestHeaders.Authorization.Parameter);
-            Assert.Equal("Bearer", _httpClient.DefaultRequestHeaders.Authorization.Scheme);
-        }
+            var handler = new MmAuthenticationHandler(config);
+            var httpClient = mockHttp.ToHttpClient();
+            await handler.GetToken(httpClient);
 
-        [Fact]
-        public void RequestTokenTests()
-        {
-            //verifies that the request was sent as a post and has a specific content type
-            _mockHttpHandler.Protected().Verify("SendAsync", Times.AtMostOnce(),ItExpr.Is<HttpRequestMessage>(
-                    req => req.Method == HttpMethod.Post &&
-                                req.RequestUri == new Uri("http://localhost/authendpoint") && 
-                                req.Content.Headers.ContentType.MediaType == "application/json-patch+json"),
-                ItExpr.IsAny<CancellationToken>());
+            Assert.NotNull(httpClient.DefaultRequestHeaders.Authorization);
+            Assert.Equal(expectedAccessToken, httpClient.DefaultRequestHeaders.Authorization.Parameter);
+            Assert.Equal("Bearer", httpClient.DefaultRequestHeaders.Authorization.Scheme);
         }
     }
 }
