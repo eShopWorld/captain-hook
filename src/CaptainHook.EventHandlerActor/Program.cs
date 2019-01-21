@@ -45,22 +45,22 @@
                 {
                     var webHookConfig = config.GetSection($"webhook:{configurationSection.Key}").Get<EventHandlerConfig>();
 
-                    if (configurationSection.Key == "goc")
-                    {
-                        var event0 = new EventConfig
-                        {
-                            Name = "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
-                            ModelQueryPath = "OrderConfirmationRequestDto"
-                        };
-                        webHookConfig.EventConfig.Add(event0);
+                    //if (configurationSection.Key == "goc")
+                    //{
+                    //    var event0 = new EventParsers
+                    //    {
+                    //        Name = "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
+                    //        ModelQueryPath = "OrderConfirmationRequestDto"
+                    //    };
+                    //    webHookConfig.EventParsers.Add(event0);
 
-                        var event1 = new EventConfig
-                        {
-                            Name = "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent",
-                            ModelQueryPath = "PreOrderApiInternalModelOrderRequestDto"
-                        };
-                        webHookConfig.EventConfig.Add(event1);
-                    }
+                    //    var event1 = new EventParsers
+                    //    {
+                    //        Name = "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent",
+                    //        ModelQueryPath = "PreOrderApiInternalModelOrderRequestDto"
+                    //    };
+                    //    webHookConfig.EventParsers.Add(event1);
+                    //}
 
                     list.Add(webHookConfig);
                 }

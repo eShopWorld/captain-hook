@@ -60,7 +60,7 @@ namespace CaptainHook.UnitTests
                 new HttpClient(_mockHttpHandler.Object),
                 new EventHandlerConfig
                 {
-                    EventConfig = new EventConfig
+                    EventParsers = new EventParsers
                     {
                         Name = "TestType",
                         ModelQueryPath = "TransportModel"
