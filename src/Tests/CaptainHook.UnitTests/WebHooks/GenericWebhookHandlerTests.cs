@@ -6,6 +6,7 @@ using CaptainHook.Common;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
+using Eshopworld.Tests.Core;
 using Moq;
 using Moq.Protected;
 using Xunit;
@@ -46,6 +47,7 @@ namespace CaptainHook.UnitTests.WebHooks
         }
 
         [Fact]
+        [IsLayer1]
         public async Task ExecuteHappyPath()
         {
             var messageData = new MessageData

@@ -1,8 +1,8 @@
-﻿namespace CaptainHook.Common.Telemetry
-{
-    using Eshopworld.Core;
-    using Microsoft.ServiceFabric.Actors.Runtime;
+﻿using Eshopworld.Core;
+using Microsoft.ServiceFabric.Actors.Runtime;
 
+namespace CaptainHook.Common.Telemetry
+{
     public class ActorActivated : TelemetryEvent
     {
         public string ActorName { get; set; }

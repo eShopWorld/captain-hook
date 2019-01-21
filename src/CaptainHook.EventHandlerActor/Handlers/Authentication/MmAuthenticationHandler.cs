@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using Eshopworld.Core;
 using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
@@ -11,8 +12,9 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     public class MmAuthenticationHandler : AuthenticationHandler
     {
         public MmAuthenticationHandler(
-            AuthenticationConfig config)
-            : base(config)
+            AuthenticationConfig config,
+            IBigBrother bigBrother)
+            : base(config, bigBrother)
         { }
 
         /// <inheritdoc />

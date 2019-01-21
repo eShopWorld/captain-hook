@@ -12,7 +12,7 @@ using Xunit;
 
 namespace CaptainHook.UnitTests.Authentication
 {
-    public class AuthenticationHandlerTests
+    public class MmAuthenticationHandlerTests
     {
         [IsLayer1]
         [Theory]
@@ -28,14 +28,18 @@ namespace CaptainHook.UnitTests.Authentication
             {
                 ClientId = "bob",
                 ClientSecret = "bobsecret",
-                Scopes = "bob.scope.all",
                 Uri = "http://localhost/authendpoint"
             };
 
-            var handler = new AuthenticationHandler(config, new Mock<IBigBrother>().Object);
+            var mockHttp = new MockHttpMessageHandler();
+            mockHttp.When(HttpMethod.Post, config.Uri)
+                .WithHeaders("client_id", config.ClientId)
+                .WithHeaders("client_secret", config.ClientSecret)
+                .WithContentType("application/json-patch+json", string.Empty)
+                .Respond(HttpStatusCode.Created, "application/json-patch+json", expectedResponse);
 
-            var httpMessageHandler = EventHandlerTestHelper.GetMockHandler(new StringContent(expectedResponse));
-            var httpClient = new HttpClient(httpMessageHandler.Object);
+            var handler = new MmAuthenticationHandler(config, new Mock<IBigBrother>().Object);
+            var httpClient = mockHttp.ToHttpClient();
             await handler.GetToken(httpClient);
 
             Assert.NotNull(httpClient.DefaultRequestHeaders.Authorization);
