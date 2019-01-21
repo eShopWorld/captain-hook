@@ -70,12 +70,10 @@ namespace CaptainHook.UnitTests.Authentication
         public void RequestTokenTests()
         {
             //verifies that the request was sent as a post and has a specific content type
-            _mockHttpHandler.Protected().Verify(
-                "SendAsync",
-                Times.AtMostOnce(),
-                ItExpr.Is<HttpRequestMessage>(
+            _mockHttpHandler.Protected().Verify("SendAsync", Times.AtMostOnce(),ItExpr.Is<HttpRequestMessage>(
                     req => req.Method == HttpMethod.Post &&
-                           req.RequestUri == new Uri("http://localhost/authendpoint") && req.Content.Headers.ContentType.MediaType == "application/json-patch+json"),
+                                req.RequestUri == new Uri("http://localhost/authendpoint") && 
+                                req.Content.Headers.ContentType.MediaType == "application/json-patch+json"),
                 ItExpr.IsAny<CancellationToken>());
         }
     }
