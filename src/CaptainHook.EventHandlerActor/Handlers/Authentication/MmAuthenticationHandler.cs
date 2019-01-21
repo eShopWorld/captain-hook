@@ -21,6 +21,21 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <returns></returns>
         public override async Task GetToken(HttpClient client)
         {
+            if (string.IsNullOrEmpty(Config.ClientId))
+            {
+                throw new ArgumentNullException(nameof(Config.ClientId));
+            }
+
+            if (string.IsNullOrEmpty(Config.ClientId))
+            {
+                throw new ArgumentNullException(nameof(Config.ClientSecret));
+            }
+
+            if (string.IsNullOrEmpty(Config.ClientId))
+            {
+                throw new ArgumentNullException(nameof(Config.Uri), "Uri is not valid for token service request");
+            }
+
             //todo get the auth handler
             client.DefaultRequestHeaders.TryAddWithoutValidation("client_id", Config.ClientId);
             client.DefaultRequestHeaders.TryAddWithoutValidation("client_secret", Config.ClientSecret);
