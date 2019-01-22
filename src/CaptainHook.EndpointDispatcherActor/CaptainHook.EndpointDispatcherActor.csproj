@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <TargetLatestRuntimePatch>True</TargetLatestRuntimePatch>
 
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.ServiceFabric" Version="2.1.0" />
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.617" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.624" />
   </ItemGroup>
 
   <ItemGroup>

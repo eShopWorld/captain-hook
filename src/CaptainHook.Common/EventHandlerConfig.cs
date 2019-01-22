@@ -37,8 +37,22 @@ namespace CaptainHook.Common
         public bool CallBackEnabled => CallbackConfig != null;
     }
 
+    /// <summary>
+    /// Action for the event parser to be preformed on the webhook request or on the callback request
+    /// </summary>
+    public enum ActionPreformedOn
+    {
+        Webhook = 1,
+        Callback = 2
+    }
+
     public class EventParser
     {
+        /// <summary>
+        ///  Whether to preform the action on the webhook or the callback
+        /// </summary>
+        public ActionPreformedOn ActionPreformedOn { get; set; }
+
         /// <summary>
         /// ie from payload, header, etc etc
         /// </summary>
@@ -48,6 +62,11 @@ namespace CaptainHook.Common
         /// ie uri, body, header
         /// </summary>
         public ParserLocation Destination { get; set; }
+
+        /// <summary>
+        /// Name for reference
+        /// </summary>
+        public string Name { get; set; }
     }
 
     public class ParserLocation

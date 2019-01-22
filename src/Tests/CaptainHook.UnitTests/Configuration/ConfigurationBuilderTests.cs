@@ -17,7 +17,7 @@ namespace CaptainHook.UnitTests.Configuration
         [Fact]
         public async Task BuildConfigurationHappyPath()
         {
-            var kvUri = "https://dg-testdg.vault.azure.net/";
+            var kvUri = "https://dg-test.vault.azure.net/";
 
             var config = new ConfigurationBuilder().AddAzureKeyVault(
                 kvUri,
@@ -38,39 +38,73 @@ namespace CaptainHook.UnitTests.Configuration
                 var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                 var webHookConfig = configurationSection.GetSection($"webhook:{configurationSection.Key}").Get<WebhookConfig>();
 
-                eventHandlerConfig.EventParsers = new List<EventParser>
+                if (eventHandlerConfig.Name == "goc-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
                 {
-                    new EventParser
+                    eventHandlerConfig.EventParsers = new List<EventParser>
                     {
-                        Source = new ParserLocation
+                        new EventParser
+                        {
+                            ActionPreformedOn = ActionPreformedOn.Callback,
+                            Source = new ParserLocation
+                            {
+                                Name = "OrderCode",
+                                QueryLocation = QueryLocation.Body
+                            },
+                            Destination = new ParserLocation
+                            {
+                                QueryLocation = QueryLocation.Uri
+                            }
+                        },
+                        new EventParser
+                        {
+                            ActionPreformedOn = ActionPreformedOn.Webhook,
+                            Source = new ParserLocation
+                            {
+                                Name = "OrderConfirmationRequestDto",
+                                QueryLocation = QueryLocation.Body
+                            },
+                            Destination = new ParserLocation
+                            {
+                                QueryLocation = QueryLocation.Body
+                            }
+                        }
+                    };
+                }
+
+                if (eventHandlerConfig.Name == "goc-checkout.domain.infrastructure.domainevents.platformordercreatedomainevent")
+                {
+                    eventHandlerConfig.EventParsers = new List<EventParser>
+                    {
+                        new EventParser
                         {
                             Name = "OrderCode",
-                            QueryLocation = QueryLocation.Body
+                            ActionPreformedOn = ActionPreformedOn.Webhook,
+                            Source = new ParserLocation
+                            {
+                                Name = "OrderCode",
+                                QueryLocation = QueryLocation.Body
+                            },
+                            Destination = new ParserLocation
+                            {
+                                QueryLocation = QueryLocation.Uri
+                            }
                         },
-                        Destination = new ParserLocation
+                        new EventParser
                         {
-                            QueryLocation = QueryLocation.Uri
+                            Name = "Payload Parser from event to webhook",
+                            ActionPreformedOn = ActionPreformedOn.Webhook,
+                            Source = new ParserLocation
+                            {
+                                Name = "PreOrderApiInternalModelOrderRequestDto",
+                                QueryLocation = QueryLocation.Body
+                            },
+                            Destination = new ParserLocation
+                            {
+                                QueryLocation = QueryLocation.Body
+                            }
                         }
-                    }
-                };
-
-
-                //if (configurationSection.Key == "goc")
-                //{
-                //    var event0 = new EventParsers
-                //    {
-                //        Name = "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent",
-                //        ModelQueryPath = "OrderConfirmationRequestDto"
-                //    };
-                //    webHookConfig.EventParsers.Add(event0);
-
-                //    var event1 = new EventParsers
-                //    {
-                //        Name = "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent",
-                //        ModelQueryPath = "PreOrderApiInternalModelOrderRequestDto"
-                //    };
-                //    webHookConfig.EventParsers.Add(event1);
-                //}
+                    };
+                }
 
                 //todo dup check on webhook names/urls
                 eventList.Add(eventHandlerConfig);
