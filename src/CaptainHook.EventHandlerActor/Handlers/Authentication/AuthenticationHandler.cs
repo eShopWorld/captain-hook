@@ -1,21 +1,26 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
-{
-    using System;
-    using System.Net.Http;
-    using System.Threading.Tasks;
-    using Common;
-    using IdentityModel.Client;
+﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Telemetry;
+using Eshopworld.Core;
+using Eshopworld.Telemetry;
+using IdentityModel.Client;
 
-    public class AuthHandler : IAuthHandler
+namespace CaptainHook.EventHandlerActor.Handlers.Authentication
+{
+    public class AuthenticationHandler : IAuthHandler
     {
-        protected readonly AuthConfig Config;
+        protected readonly AuthenticationConfig Config;
+        private readonly IBigBrother _bigBrother;
 
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
         private readonly AuthToken _token = new AuthToken();
 
-        public AuthHandler(AuthConfig config)
+        public AuthenticationHandler(AuthenticationConfig config, IBigBrother bigBrother)
         {
             Config = config;
+            _bigBrother = bigBrother;
         }
 
         /// <summary>
@@ -39,16 +44,12 @@
                     Scope = Config.Scopes
                 });
 
-                if (response.IsError)
-                {
-                    //todo do something about failed login to get an access/refresh token
-                }
-
+                ReportTokenUpdateFailure(response);
                 UpdateToken(response);
             }
 
             //get a new access token from the refresh token
-            if (_token.ExpiresTime <= DateTime.UtcNow)
+            if (_token.ExpireTime >= DateTime.UtcNow)
             {
                 var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
                 {
@@ -56,15 +57,19 @@
                     RefreshToken = _token.RefreshToken
                 });
 
-                if (response.IsError)
-                {
-                    //todo do something about failed login to get an access/refresh token
-                }
-
+                ReportTokenUpdateFailure(response);
                 UpdateToken(response);
             }
 
             client.SetBearerToken(_token.AccessToken);
+        }
+
+        private void ReportTokenUpdateFailure(TokenResponse response)
+        {
+            if (response.IsError)
+            {
+                _bigBrother.Publish(new AuthenticationEvent {Message = $"Unable to get get access token from STS. Error = {response.ErrorDescription}"});
+            }
         }
 
         /// <summary>

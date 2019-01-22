@@ -31,14 +31,14 @@
             set
             {
                 _expiresIn = value;
-                ExpiresTime = DateTime.UtcNow.AddSeconds(_expiresIn);
+                ExpireTime = DateTime.UtcNow.AddSeconds(_expiresIn);
             }
         }
 
         /// <summary>
         /// Wall clock time of expires in
         /// </summary>
-        public DateTime ExpiresTime { get; private set; }
+        public DateTime ExpireTime { get; private set; }
 
         /// <summary>
         /// 

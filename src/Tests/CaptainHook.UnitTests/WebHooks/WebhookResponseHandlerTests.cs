@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,11 +6,12 @@ using CaptainHook.Common;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
+using Eshopworld.Tests.Core;
 using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace CaptainHook.UnitTests
+namespace CaptainHook.UnitTests.WebHooks
 {
     public class WebhookResponseHandlerTests
     {
@@ -60,11 +60,6 @@ namespace CaptainHook.UnitTests
                 new HttpClient(_mockHttpHandler.Object),
                 new EventHandlerConfig
                 {
-                    EventParsers = new EventParsers
-                    {
-                        Name = "TestType",
-                        ModelQueryPath = "TransportModel"
-                    },
                     WebHookConfig = new WebhookConfig
                     {
                         Uri = "http://localhost/webhook"
@@ -76,6 +71,7 @@ namespace CaptainHook.UnitTests
                 });
         }
 
+        [IsLayer1]
         [Fact]
         public async Task ExecuteHappyPath()
         {

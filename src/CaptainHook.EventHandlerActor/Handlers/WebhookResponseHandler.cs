@@ -41,8 +41,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 await AuthHandler.GetToken(_client);
             }
             
-            var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.EventParsers.ModelQueryPath);
+            throw new NotImplementedException();
+            //var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.EventParsers.ModelQueryPath);
             var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
+            string innerPayload;
+
 
             var response = await _client.PostAsJsonReliability(WebhookConfig.Uri, innerPayload, messageData, BigBrother);
 
