@@ -74,8 +74,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             var authHandler = _authHandlerFactory.Get(webHookName);
-
-
+            
             return new GenericWebhookHandler(
                 authHandler,
                 _bigBrother,
