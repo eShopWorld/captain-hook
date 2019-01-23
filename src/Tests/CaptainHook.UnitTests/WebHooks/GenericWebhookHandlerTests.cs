@@ -42,7 +42,8 @@ namespace CaptainHook.UnitTests.WebHooks
                 mockBigBrother.Object,
                 httpClient, new WebhookConfig
                 {
-                    Uri = "http://localhost/webhook"
+                    Uri = "http://localhost/webhook",
+                    ModelToParse = "TransportModel"
                 });
         }
 
@@ -52,7 +53,7 @@ namespace CaptainHook.UnitTests.WebHooks
         {
             var messageData = new MessageData
             {
-                Payload = EventHandlerTestHelper.GenerateMockPayload(Guid.NewGuid()),
+                Payload = EventHandlerTestHelper.GenerateMockPayloadWithInternalModel(Guid.NewGuid()),
                 Type = "TestType",
             };
 

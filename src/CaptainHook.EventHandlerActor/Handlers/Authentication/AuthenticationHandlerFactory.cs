@@ -1,4 +1,5 @@
-﻿using Autofac.Features.Indexed;
+﻿using System;
+using Autofac.Features.Indexed;
 using CaptainHook.Common;
 using Eshopworld.Core;
 
@@ -17,23 +18,19 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 
         public IAuthHandler Get(string name)
         {
-            if(_webHookConfigs.TryGetValue(name.ToLower(), out var config))
+            if (!_webHookConfigs.TryGetValue(name.ToLower(), out var config))
             {
-                switch (name.ToLower())
-                {
-                    case "max":
-                    case "dif":
-                        return new MmAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
-                    default:
-                        return new AuthenticationHandler(config.AuthenticationConfig, _bigBrother);
-                }
-            }
-            else
-            {
-                //todo handle unknown auth config
+                throw new Exception($"Authentication Provider {name} not found");
             }
 
-            return null;
+            switch (name.ToLower())
+            {
+                case "max":
+                case "dif":
+                    return new MmAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
+                default:
+                    return new AuthenticationHandler(config.AuthenticationConfig, _bigBrother);
+            }
         }
     }
 }

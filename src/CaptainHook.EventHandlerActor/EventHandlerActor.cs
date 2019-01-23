@@ -24,7 +24,7 @@ namespace CaptainHook.EventHandlerActor
     [StatePersistence(StatePersistence.Persisted)]
     public class EventHandlerActor : Actor, IEventHandlerActor
     {
-        private readonly IHandlerFactory _handlerFactory;
+        private readonly IEventHandlerFactory _eventHandlerFactory;
         private readonly IBigBrother _bigBrother;
         private IActorTimer _handleTimer;
 
@@ -33,16 +33,16 @@ namespace CaptainHook.EventHandlerActor
         /// </summary>
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
-        /// <param name="handlerFactory"></param>
+        /// <param name="eventHandlerFactory"></param>
         /// <param name="bigBrother"></param>
         public EventHandlerActor(
             ActorService actorService,
             ActorId actorId,
-            IHandlerFactory handlerFactory,
+            IEventHandlerFactory eventHandlerFactory,
             IBigBrother bigBrother)
             : base(actorService, actorId)
         {
-            _handlerFactory = handlerFactory;
+            _eventHandlerFactory = eventHandlerFactory;
             _bigBrother = bigBrother;
         }
 
@@ -107,7 +107,7 @@ namespace CaptainHook.EventHandlerActor
             {
                 var (brandType, eventType)  = ModelParser.ParseBrandAndEventType(messageData.Value);
 
-                var handler = _handlerFactory.CreateHandler($"{brandType}-{eventType}");
+                var handler = _eventHandlerFactory.CreateHandler($"{brandType}-{eventType}", eventType);
 
                 await handler.Call(messageData.Value);
                 

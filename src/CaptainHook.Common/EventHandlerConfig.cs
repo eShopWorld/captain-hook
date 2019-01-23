@@ -17,6 +17,8 @@ namespace CaptainHook.Common
 
         //todo implement this on the calls to the webhook to select http verb
         public string Verb { get; set; }
+
+        public string ModelToParse { get; set; }
     }
 
     /// <summary>
@@ -43,7 +45,8 @@ namespace CaptainHook.Common
     public enum ActionPreformedOn
     {
         Webhook = 1,
-        Callback = 2
+        Callback = 2,
+        Message = 3
     }
 
     public class EventParser

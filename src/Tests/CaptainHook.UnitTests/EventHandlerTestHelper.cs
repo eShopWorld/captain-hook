@@ -38,6 +38,7 @@ namespace CaptainHook.UnitTests
             public TransportModel TransportModel { get; set; }
         }
 
+
         public static string GenerateMockPayload(Guid id, Payload payload = null)
         {
             if (payload == null)

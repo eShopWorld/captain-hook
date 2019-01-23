@@ -41,7 +41,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         {
             try
             {
-                if (!(request is MessageData data))
+                if (!(request is MessageData messageData))
                 {
                     throw new Exception("injected wrong implementation");
                 }
@@ -54,19 +54,27 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 
                 var uri = WebhookConfig.Uri;
 
-                //todo move this out of here into a jpath executor so that the guid is added via a handler based on config
-                var orderCode = ModelParser.ParseOrderCode(data.Payload);
-                switch (data.Type)
+                //todo remove in v1
+                var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
+
+                var innerPayload = messageData.Payload;
+                if (!string.IsNullOrWhiteSpace(WebhookConfig.ModelToParse))
+                {
+                    innerPayload = ModelParser.GetInnerPayload(messageData.Payload, WebhookConfig.ModelToParse);
+                }
+
+                //todo remove in v1
+                switch (messageData.Type)
                 {
                     case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                     case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                        uri = $"{WebhookConfig.Uri}/{orderCode}";
+                        uri = $"{WebhookConfig.Uri}/{orderCode}"; //todo remove in v1
                         break;
                 }
 
-                var response = await _client.PostAsJsonReliability(uri, data.Payload, data, BigBrother);
+                var response = await _client.PostAsJsonReliability(uri, innerPayload, messageData, BigBrother);
 
-                BigBrother.Publish(new WebhookEvent(data.Handle, data.Type, data.Payload, response.IsSuccessStatusCode.ToString()));
+                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
             }
             catch (Exception e)

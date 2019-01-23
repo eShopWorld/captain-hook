@@ -11,10 +11,10 @@ using Xunit;
 
 namespace CaptainHook.UnitTests.Configuration
 {
-    public class ConfigurationBuilderTests
+   public class ConfigurationBuilderTests
     {
         [IsLayer1]
-        [Fact]
+        [Fact(Skip = "Work in progress needs infra and refactor")]
         public async Task BuildConfigurationHappyPath()
         {
             var kvUri = "https://dg-test.vault.azure.net/";
@@ -38,10 +38,29 @@ namespace CaptainHook.UnitTests.Configuration
                 var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                 var webHookConfig = configurationSection.GetSection($"webhook:{configurationSection.Key}").Get<WebhookConfig>();
 
+                //take the parameters from the payload of the message and then add them to the requests which are sent to the webhook and callback
+
                 if (eventHandlerConfig.Name == "goc-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
                 {
                     eventHandlerConfig.EventParsers = new List<EventParser>
                     {
+                        new EventParser
+                        {
+                            ActionPreformedOn = ActionPreformedOn.Message,
+                            Name = "OrderCodeParser",
+                            Source = new ParserLocation
+                            {
+                                //take it from the body of the message
+                                Name = "OrderCode",
+                                QueryLocation = QueryLocation.Body
+                            },
+                            Destination = new ParserLocation
+                            {
+                                //put it in the URI
+                                Name = "OrderCode",
+                                QueryLocation = QueryLocation.Uri
+                            }
+                        },
                         new EventParser
                         {
                             ActionPreformedOn = ActionPreformedOn.Callback,

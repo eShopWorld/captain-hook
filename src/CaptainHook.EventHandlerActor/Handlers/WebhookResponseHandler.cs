@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -14,17 +13,17 @@ namespace CaptainHook.EventHandlerActor.Handlers
     {
         private readonly HttpClient _client;
         private readonly EventHandlerConfig _eventHandlerConfig;
-        private readonly IHandlerFactory _handlerFactory;
+        private readonly IEventHandlerFactory _eventHandlerFactory;
 
         public WebhookResponseHandler(
-            IHandlerFactory handlerFactory,
+            IEventHandlerFactory eventHandlerFactory,
             IAuthHandler authHandler,
             IBigBrother bigBrother,
             HttpClient client,
             EventHandlerConfig eventHandlerConfig)
             : base(authHandler, bigBrother, client, eventHandlerConfig.WebHookConfig)
         {
-            _handlerFactory = handlerFactory;
+            _eventHandlerFactory = eventHandlerFactory;
             _client = client;
             _eventHandlerConfig = eventHandlerConfig;
         }
@@ -40,25 +39,23 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 await AuthHandler.GetToken(_client);
             }
-            
-            throw new NotImplementedException();
-            //var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.EventParsers.ModelQueryPath);
-            var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
-            string innerPayload;
 
+            //todo remove in v1
+            var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
+            var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
 
             var response = await _client.PostAsJsonReliability(WebhookConfig.Uri, innerPayload, messageData, BigBrother);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
             //call callback
-            var eswHandler = _handlerFactory.CreateHandler(_eventHandlerConfig.CallbackConfig.Name);
+            var eswHandler = _eventHandlerFactory.CreateHandler(_eventHandlerConfig.CallbackConfig.Name);
 
             var payload = new HttpResponseDto
             {
                 OrderCode = orderCode,
                 Content = await response.Content.ReadAsStringAsync(),
-                StatusCode = (int)response.StatusCode
+                StatusCode = (int)response.StatusCode   
             };
 
             messageData.OrderCode = orderCode;

@@ -33,7 +33,7 @@ namespace CaptainHook.UnitTests.WebHooks
         /// <summary>
         /// 
         /// </summary>
-        private readonly Mock<IHandlerFactory> _mockHandlerFactory;
+        private readonly Mock<IEventHandlerFactory> _mockHandlerFactory;
 
         public WebhookResponseHandlerTests()
         {
@@ -41,8 +41,8 @@ namespace CaptainHook.UnitTests.WebHooks
             _mockAuthHandler = new Mock<IAuthHandler>();
             var mockBigBrother = new Mock<IBigBrother>();
 
-            _mockHandlerFactory = new Mock<IHandlerFactory>();
-            _mockHandlerFactory.Setup(s => s.CreateHandler(It.IsAny<string>())).Returns(
+            _mockHandlerFactory = new Mock<IEventHandlerFactory>();
+            _mockHandlerFactory.Setup(s => s.CreateHandler("PutOrderConfirmationEvent")).Returns(
                 new GenericWebhookHandler(
                     _mockAuthHandler.Object,
                     mockBigBrother.Object,
@@ -62,10 +62,12 @@ namespace CaptainHook.UnitTests.WebHooks
                 {
                     WebHookConfig = new WebhookConfig
                     {
-                        Uri = "http://localhost/webhook"
+                        Uri = "http://localhost/webhook",
+                        ModelToParse = "TransportModel"
                     },
                     CallbackConfig = new WebhookConfig
                     {
+                        Name = "PutOrderConfirmationEvent",
                         Uri = "http://localhost/callback"
                     }
                 });
