@@ -19,7 +19,7 @@ namespace CaptainHook.UnitTests.Authentication
         [InlineData("6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282")]
         public async Task AuthorisationTokenSuccessTests(string expectedAccessToken)
         {
-            var expectedResponse = JsonConvert.SerializeObject(new AuthToken
+            var expectedResponse = JsonConvert.SerializeObject(new OAuthAuthenticationToken
             {
                 AccessToken = expectedAccessToken
             });
@@ -32,7 +32,7 @@ namespace CaptainHook.UnitTests.Authentication
                 Uri = "http://localhost/authendpoint"
             };
 
-            var handler = new AuthenticationHandler(config, new Mock<IBigBrother>().Object);
+            var handler = new OAuthAuthenticationHandler(config, new Mock<IBigBrother>().Object);
 
             var httpMessageHandler = EventHandlerTestHelper.GetMockHandler(new StringContent(expectedResponse));
             var httpClient = new HttpClient(httpMessageHandler.Object);

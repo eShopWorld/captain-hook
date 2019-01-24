@@ -9,9 +9,9 @@ using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
-    public class MmAuthenticationHandler : AuthenticationHandler
+    public class MmOAuthAuthenticationHandler : OAuthAuthenticationHandler
     {
-        public MmAuthenticationHandler(
+        public MmOAuthAuthenticationHandler(
             AuthenticationConfig authenticationConfig,
             IBigBrother bigBrother)
             : base(authenticationConfig, bigBrother)
@@ -47,7 +47,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             if (authProviderResponse.StatusCode == HttpStatusCode.Created && authProviderResponse.Content != null)
             {
                 var responseContent = await authProviderResponse.Content.ReadAsStringAsync();
-                var stsResult = JsonConvert.DeserializeObject<AuthToken>(responseContent);
+                var stsResult = JsonConvert.DeserializeObject<OAuthAuthenticationToken>(responseContent);
 
                 client.DefaultRequestHeaders.Clear();
                 client.SetBearerToken(stsResult.AccessToken);

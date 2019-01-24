@@ -6,7 +6,7 @@
     /// <summary>
     /// Local cache token for requests to whatever
     /// </summary>
-    public class AuthToken
+    public class OAuthAuthenticationToken
     {
         private int _expiresIn;
 
