@@ -6,145 +6,71 @@ using IdentityModel.Client;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
-    public class BasicAuthenticationToken
-    {
-        public string Username { get; set; }
-
-        public string Password { get; set; }
-
-        private string _encodedToken;
-
-        public bool IsEmpty => Username == null || Password == null;
-
-        /// <summary>
-        /// Gets the encoded token
-        /// </summary>
-        public string EncodedToken
-        {
-            get
-            {
-                if (_encodedToken == null)
-                {
-                    if (string.IsNullOrWhiteSpace(Username))
-                    {
-                        throw new ArgumentException("value needs to be populated correctly", nameof(Username));
-                    }
-
-                    if (string.IsNullOrWhiteSpace(Username))
-                    {
-                        throw new ArgumentException("value needs to be populated correctly", nameof(Password));
-                    }
-
-                    _encodedToken = Convert.ToBase64String(System.Text.Encoding.GetEncoding("UTF-8").GetBytes(Username + ":" + Password));
-                }
-
-                return _encodedToken;
-            }
-        }
-    }
-
-    public class BasicAuthenticationHandler : IAuthenticationHandler
-    {
-        private AuthenticationConfig authenticationConfig;
-
-        //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
-        private readonly BasicAuthenticationToken _authenticationToken = new BasicAuthenticationToken();
-        
-        public BasicAuthenticationHandler(AuthenticationConfig authenticationConfig)
-        {
-            authenticationConfig = authenticationConfig;
-        }
-
-        public virtual Task GetToken(HttpClient client)
-        {
-            if (_authenticationToken.IsEmpty)
-            {
-                _authenticationToken.Username = 
-
-                var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest
-                {
-                    Address = AuthenticationConfig.Uri,
-                    ClientId = AuthenticationConfig.ClientId,
-                    ClientSecret = AuthenticationConfig.ClientSecret,
-                    GrantType = AuthenticationConfig.GrantType,
-                    Scope = AuthenticationConfig.Scopes
-                });
-            }
-        }
-        
-        protected void ReportTokenUpdateFailure(TokenResponse response)
-        {
-            if (!response.IsError)
-            {
-                return;
-            }
-            throw new Exception($"Unable to get access token from STS. Error = {response.ErrorDescription}");
-        }
-    }
-
     /// <summary>
     /// OAuth2 authentication handler.
     /// Gets a token from the supplied STS details included the supplied scopes.
     /// Requests token once
     /// </summary>
-    public class OAuthAuthenticationHandler : BasicAuthenticationHandler
+    public class OAuthAuthenticationHandler : AuthenticationHandler, IAuthenticationHandler
     {
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
-        private readonly OAuthAuthenticationToken _authenticationToken = new OAuthAuthenticationToken();
+        protected OAuthAuthenticationToken OAuthAuthenticationToken = new OAuthAuthenticationToken();
+        protected readonly OAuthAuthenticationConfig OAuthAuthenticationConfig;
 
-        public OAuthAuthenticationHandler(AuthenticationConfig authenticationConfig) : base(authenticationConfig)
+        public OAuthAuthenticationHandler(AuthenticationConfig authenticationConfig)
         {
-            AuthenticationConfig = authenticationConfig;
+            var oAuthAuthenticationToken = authenticationConfig as OAuthAuthenticationConfig;
+            OAuthAuthenticationConfig = oAuthAuthenticationToken ?? throw new ArgumentException($"configuration for basic authentication is not of type {typeof(OAuthAuthenticationConfig)}", nameof(authenticationConfig));
         }
 
         /// <summary>
-        /// This may vary a lot depending on the implementation of each customers auth system
-        /// Ideally they implement OIDC/oAuth2 and with credentials we get an access token and refresh token.
-        /// Access token may expire after one time use or after a period of time. Refresh is used to get a new access token.
-        /// Or they may not give a refresh token at all...annoying. Override, implement and inject as needed.
+        /// Gets a token from the STS based on the supplied credentials and scopes using the client grant OAuth 2 Flow
+        /// This method also does token renewal based on requesting a token if the token is set to expire in the next ten seconds.
         /// </summary>
+        /// <param name="client"></param>
         /// <returns></returns>
-        public override async Task GetToken(HttpClient client)
+        public virtual async Task GetToken(HttpClient client)
         {
             //get initial access token and refresh token
-            if (_authenticationToken.AccessToken == null)
+            if (OAuthAuthenticationToken.AccessToken == null)
             {
-                var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest 
+                var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest
                 {
-                    Address = AuthenticationConfig.Uri,
-                    ClientId = AuthenticationConfig.ClientId,
-                    ClientSecret = AuthenticationConfig.ClientSecret,
-                    GrantType = AuthenticationConfig.GrantType,
-                    Scope = AuthenticationConfig.Scopes
+                    Address = OAuthAuthenticationConfig.Uri,
+                    ClientId = OAuthAuthenticationConfig.ClientId,
+                    ClientSecret = OAuthAuthenticationConfig.ClientSecret,
+                    GrantType = OAuthAuthenticationConfig.GrantType,
+                    Scope = string.Join(" ", OAuthAuthenticationConfig.Scopes)
                 });
 
                 ReportTokenUpdateFailure(response);
                 UpdateToken(response);
             }
-            if (_authenticationToken.ExpireTime.Add(-TimeSpan.FromSeconds(10d)) >= DateTime.UtcNow)
+
+            if (OAuthAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(10d)) >= DateTime.UtcNow)
             {
                 var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
                 {
-                    Address = AuthenticationConfig.Uri,
-                    RefreshToken = _authenticationToken.RefreshToken
+                    Address = OAuthAuthenticationConfig.Uri,
+                    RefreshToken = OAuthAuthenticationToken.RefreshToken
                 });
 
                 ReportTokenUpdateFailure(response);
                 UpdateToken(response);
             }
 
-            client.SetBearerToken(_authenticationToken.AccessToken);
+            client.SetBearerToken(OAuthAuthenticationToken.AccessToken);
         }
-        
+
         /// <summary>
         /// Updates the local cached token
         /// </summary>
         /// <param name="response"></param>
-        private void UpdateToken(TokenResponse response)
+        protected void UpdateToken(TokenResponse response)
         {
-            _authenticationToken.AccessToken = response.AccessToken;
-            _authenticationToken.RefreshToken = response.RefreshToken;
-            _authenticationToken.ExpiresIn = response.ExpiresIn;
+            OAuthAuthenticationToken.AccessToken = response.AccessToken;
+            OAuthAuthenticationToken.RefreshToken = response.RefreshToken;
+            OAuthAuthenticationToken.ExpiresIn = response.ExpiresIn;
         }
     }
 }

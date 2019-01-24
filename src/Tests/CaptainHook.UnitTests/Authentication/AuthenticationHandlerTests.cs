@@ -1,13 +1,9 @@
-﻿using System.Net;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
-using Eshopworld.Core;
 using Eshopworld.Tests.Core;
-using Moq;
 using Newtonsoft.Json;
-using RichardSzalay.MockHttp;
 using Xunit;
 
 namespace CaptainHook.UnitTests.Authentication
@@ -24,15 +20,15 @@ namespace CaptainHook.UnitTests.Authentication
                 AccessToken = expectedAccessToken
             });
 
-            var config = new AuthenticationConfig
+            var config = new OAuthAuthenticationConfig
             {
                 ClientId = "bob",
                 ClientSecret = "bobsecret",
-                Scopes = "bob.scope.all",
+                Scopes = new[] { "bob.scope.all" },
                 Uri = "http://localhost/authendpoint"
             };
 
-            var handler = new OAuthAuthenticationHandler(config, new Mock<IBigBrother>().Object);
+            var handler = new OAuthAuthenticationHandler(config);
 
             var httpMessageHandler = EventHandlerTestHelper.GetMockHandler(new StringContent(expectedResponse));
             var httpClient = new HttpClient(httpMessageHandler.Object);

@@ -3,9 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
-using Eshopworld.Core;
 using Eshopworld.Tests.Core;
-using Moq;
 using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
 using Xunit;
@@ -24,7 +22,7 @@ namespace CaptainHook.UnitTests.Authentication
                 AccessToken = expectedAccessToken
             });
 
-            var config = new AuthenticationConfig
+            var config = new OAuthAuthenticationConfig
             {
                 ClientId = "bob",
                 ClientSecret = "bobsecret",
@@ -38,7 +36,7 @@ namespace CaptainHook.UnitTests.Authentication
                 .WithContentType("application/json-patch+json", string.Empty)
                 .Respond(HttpStatusCode.Created, "application/json-patch+json", expectedResponse);
 
-            var handler = new MmOAuthAuthenticationHandler(config, new Mock<IBigBrother>().Object);
+            var handler = new MmOAuthAuthenticationHandler(config);
             var httpClient = mockHttp.ToHttpClient();
             await handler.GetToken(httpClient);
 

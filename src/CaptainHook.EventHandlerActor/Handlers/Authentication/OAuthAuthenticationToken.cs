@@ -1,12 +1,12 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
-{
-    using System;
-    using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
+namespace CaptainHook.EventHandlerActor.Handlers.Authentication
+{
     /// <summary>
     /// Local cache token for requests to whatever
     /// </summary>
-    public class OAuthAuthenticationToken
+    public class OAuthAuthenticationToken 
     {
         private int _expiresIn;
 

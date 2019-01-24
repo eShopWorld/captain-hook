@@ -27,12 +27,12 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             {
                 case "max":
                 case "dif":
-                    return new MmOAuthAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
+                    return new MmOAuthAuthenticationHandler(config.AuthenticationConfig);
                 //todo hack for now remove in next pass
                 case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent-webhook":
                 case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent-callback":
                 default:
-                    return new OAuthAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
+                    return new OAuthAuthenticationHandler(config.AuthenticationConfig);
             }
         }
     }
