@@ -1,6 +1,6 @@
 ﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
-    public enum AuthenticationTypes
+    public enum AuthenticationType
     {
         None = 0,
         Basic = 1,

@@ -73,7 +73,7 @@ namespace CaptainHook.UnitTests.WebHooks
                 });
         }
 
-        [IsLayer1]
+        [IsLayer0]
         [Fact]
         public async Task ExecuteHappyPath()
         {

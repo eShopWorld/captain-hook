@@ -48,7 +48,7 @@ namespace CaptainHook.UnitTests.WebHooks
         }
 
         [Fact]
-        [IsLayer1]
+        [IsLayer0]
         public async Task ExecuteHappyPath()
         {
             var messageData = new MessageData

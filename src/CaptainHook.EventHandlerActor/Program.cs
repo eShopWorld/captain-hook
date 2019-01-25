@@ -73,7 +73,7 @@
                 builder.RegisterInstance(settings)
                     .SingleInstance();
 
-                builder.RegisterType<EventEventHandlerFactory>().As<IEventHandlerFactory>().SingleInstance();
+                builder.RegisterType<EventHandlerFactory>().As<IEventHandlerFactory>().SingleInstance();
                 builder.RegisterType<AuthenticationHandlerFactory>().As<IAuthHandlerFactory>().SingleInstance();
 
                 //Register each webhook authenticationConfig separately for injection

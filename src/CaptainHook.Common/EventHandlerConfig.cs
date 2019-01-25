@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CaptainHook.EventHandlerActor.Handlers.Authentication;
 
 namespace CaptainHook.Common
 {
@@ -10,6 +11,8 @@ namespace CaptainHook.Common
         public bool RequiresAuth { get; set; } = true;
 
         public AuthenticationConfig AuthenticationConfig { get; set; }
+
+        public AuthenticationType AuthenticationType { get; set; }
 
         public string Uri { get; set; }
 
@@ -78,7 +81,7 @@ namespace CaptainHook.Common
 
         public QueryLocation QueryLocation { get; set; }
     }
-    
+
     public enum QueryLocation
     {
         Uri = 1,

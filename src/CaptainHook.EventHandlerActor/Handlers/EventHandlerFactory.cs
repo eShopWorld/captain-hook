@@ -7,7 +7,7 @@ using Eshopworld.Core;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
-    public class EventEventHandlerFactory : IEventHandlerFactory
+    public class EventHandlerFactory : IEventHandlerFactory
     {
         private readonly IIndex<string, HttpClient> _httpClients;
         private readonly IBigBrother _bigBrother;
@@ -15,7 +15,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         private readonly IIndex<string, WebhookConfig> _webHookConfig;
         private readonly IAuthHandlerFactory _authHandlerFactory;
 
-        public EventEventHandlerFactory(
+        public EventHandlerFactory(
             IIndex<string, HttpClient> httpClients,
             IBigBrother bigBrother,
             IIndex<string, EventHandlerConfig> eventHandlerConfig,
