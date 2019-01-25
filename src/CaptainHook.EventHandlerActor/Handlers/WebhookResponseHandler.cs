@@ -19,11 +19,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public WebhookResponseHandler(
             IEventHandlerFactory eventHandlerFactory,
-            IAuthenticationHandler authenticationHandler,
+            IAcquireTokenHandler acquireTokenHandler,
             IBigBrother bigBrother,
             HttpClient client,
             EventHandlerConfig eventHandlerConfig)
-            : base(authenticationHandler, bigBrother, client, eventHandlerConfig.WebHookConfig)
+            : base(acquireTokenHandler, bigBrother, client, eventHandlerConfig.WebHookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _client = client;
@@ -39,7 +39,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             if (WebhookConfig.RequiresAuth)
             {
-                await AuthenticationHandler.GetToken(_client);
+                await AcquireTokenHandler.GetToken(_client);
             }
 
             //todo remove in v1

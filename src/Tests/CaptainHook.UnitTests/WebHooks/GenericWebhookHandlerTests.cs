@@ -23,7 +23,7 @@ namespace CaptainHook.UnitTests.WebHooks
         /// <summary>
         /// 
         /// </summary>
-        private readonly Mock<IAuthenticationHandler> _mockAuthHandler;
+        private readonly Mock<IAcquireTokenHandler> _mockAuthHandler;
 
         /// <summary>
         /// 
@@ -35,7 +35,7 @@ namespace CaptainHook.UnitTests.WebHooks
             _mockHttpHandler = EventHandlerTestHelper.GetMockHandler(new StringContent("hello"));
             var httpClient = new HttpClient(_mockHttpHandler.Object);
             var mockBigBrother = new Mock<IBigBrother>();
-            _mockAuthHandler = new Mock<IAuthenticationHandler>();
+            _mockAuthHandler = new Mock<IAcquireTokenHandler>();
 
             _genericWebhookHandler = new GenericWebhookHandler(
                 _mockAuthHandler.Object,

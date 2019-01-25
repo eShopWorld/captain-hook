@@ -2,6 +2,6 @@
 {
     public interface IAuthHandlerFactory
     {
-        IAuthenticationHandler Get(string name);
+        IAcquireTokenHandler Get(string name);
     }
 }

@@ -11,13 +11,13 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// Gets a token from the supplied STS details included the supplied scopes.
     /// Requests token once
     /// </summary>
-    public class OAuthAuthenticationHandler : AuthenticationHandler, IAuthenticationHandler
+    public class OAuthTokenHandler : AuthenticationHandler, IAcquireTokenHandler, IRefreshTokenHandler
     {
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
         protected OAuthAuthenticationToken OAuthAuthenticationToken = new OAuthAuthenticationToken();
         protected readonly OAuthAuthenticationConfig OAuthAuthenticationConfig;
 
-        public OAuthAuthenticationHandler(AuthenticationConfig authenticationConfig)
+        public OAuthTokenHandler(AuthenticationConfig authenticationConfig)
         {
             var oAuthAuthenticationToken = authenticationConfig as OAuthAuthenticationConfig;
             OAuthAuthenticationConfig = oAuthAuthenticationToken ?? throw new ArgumentException($"configuration for basic authentication is not of type {typeof(OAuthAuthenticationConfig)}", nameof(authenticationConfig));
@@ -71,6 +71,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             OAuthAuthenticationToken.AccessToken = response.AccessToken;
             OAuthAuthenticationToken.RefreshToken = response.RefreshToken;
             OAuthAuthenticationToken.ExpiresIn = response.ExpiresIn;
+        }
+
+        public virtual Task RefreshToken(HttpClient client)
+        {
+            throw new NotImplementedException();
         }
     }
 }

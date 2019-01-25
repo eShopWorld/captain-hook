@@ -8,7 +8,10 @@ using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
-    public class MmOAuthAuthenticationHandler : OAuthAuthenticationHandler
+    /// <summary>
+    /// Custom Authentication Handler
+    /// </summary>
+    public class MmOAuthAuthenticationHandler : OAuthTokenHandler
     {
         public MmOAuthAuthenticationHandler(AuthenticationConfig authenticationConfig) 
             : base(authenticationConfig)

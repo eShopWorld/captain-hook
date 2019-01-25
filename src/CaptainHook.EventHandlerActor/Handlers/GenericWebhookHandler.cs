@@ -17,16 +17,16 @@ namespace CaptainHook.EventHandlerActor.Handlers
         private readonly HttpClient _client;
         protected readonly IBigBrother BigBrother;
         protected readonly WebhookConfig WebhookConfig;
-        protected readonly IAuthenticationHandler AuthenticationHandler;
+        protected readonly IAcquireTokenHandler AcquireTokenHandler;
 
         public GenericWebhookHandler(
-            IAuthenticationHandler authenticationHandler,
+            IAcquireTokenHandler acquireTokenHandler,
             IBigBrother bigBrother,
             HttpClient client,
             WebhookConfig webhookConfig)
         {
             _client = client;
-            AuthenticationHandler = authenticationHandler;
+            AcquireTokenHandler = acquireTokenHandler;
             BigBrother = bigBrother;
             WebhookConfig = webhookConfig;
         }
@@ -49,7 +49,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 //make a call to client identity provider
                 if (WebhookConfig.RequiresAuth)
                 {
-                    await AuthenticationHandler.GetToken(_client);
+                    await AcquireTokenHandler.GetToken(_client);
                 }
 
                 var uri = WebhookConfig.Uri;

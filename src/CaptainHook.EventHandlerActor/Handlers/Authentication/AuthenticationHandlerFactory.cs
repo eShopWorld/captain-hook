@@ -16,7 +16,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             _bigBrother = bigBrother;
         }
 
-        public IAuthenticationHandler Get(string name)
+        public IAcquireTokenHandler Get(string name)
         {
             if (!_webHookConfigs.TryGetValue(name.ToLower(), out var config))
             {
