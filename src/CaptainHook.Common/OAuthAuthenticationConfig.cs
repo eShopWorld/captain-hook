@@ -5,9 +5,6 @@
     /// </summary>
     public class OAuthAuthenticationConfig : AuthenticationConfig
     {
-        /// <summary>
-        /// //todo put this in ci authConfig/production authConfig
-        /// </summary>
         public string Uri { get; set; }
 
         /// <summary>
