@@ -1,7 +1,6 @@
 ﻿namespace CaptainHook.Common
 {
     using System;
-    using Nasty;
 
     public class MessageData
     {

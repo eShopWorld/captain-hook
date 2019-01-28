@@ -1,6 +1,5 @@
 ﻿namespace CaptainHook.Interfaces
 {
-    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.ServiceFabric.Actors;
 

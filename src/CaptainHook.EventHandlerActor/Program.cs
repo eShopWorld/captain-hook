@@ -10,7 +10,6 @@ namespace CaptainHook.EventHandlerActor
     using System.Threading.Tasks;
     using Autofac;
     using Autofac.Integration.ServiceFabric;
-    using Common;
     using Eshopworld.Core;
     using Eshopworld.Telemetry;
     using Handlers;

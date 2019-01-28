@@ -7,7 +7,6 @@ namespace CaptainHook.EventReaderActor
     using System.Threading.Tasks;
     using Autofac;
     using Autofac.Integration.ServiceFabric;
-    using Common;
     using Eshopworld.Core;
     using Eshopworld.Telemetry;
     using Microsoft.Azure.KeyVault;

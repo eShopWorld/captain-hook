@@ -8,7 +8,6 @@ using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
