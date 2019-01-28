@@ -12,7 +12,7 @@ using Moq;
 using Moq.Protected;
 using Xunit;
 
-namespace CaptainHook.UnitTests.WebHooks
+namespace CaptainHook.Tests.WebHooks
 {
     public class WebhookResponseHandlerTests
     {

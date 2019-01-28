@@ -1,6 +1,6 @@
 ﻿using RichardSzalay.MockHttp;
 
-namespace CaptainHook.UnitTests.Authentication
+namespace CaptainHook.Tests.Authentication
 {
     /// <summary>
     /// Extension for MockHttp

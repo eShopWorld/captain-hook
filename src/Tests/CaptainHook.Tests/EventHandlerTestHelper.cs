@@ -7,7 +7,7 @@ using Moq;
 using Moq.Protected;
 using Newtonsoft.Json;
 
-namespace CaptainHook.UnitTests
+namespace CaptainHook.Tests
 {
     /// <summary>
     /// Helper to structure some of the requests and responses expected

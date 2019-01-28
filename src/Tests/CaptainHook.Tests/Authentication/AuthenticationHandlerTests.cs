@@ -6,7 +6,7 @@ using Eshopworld.Tests.Core;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace CaptainHook.UnitTests.Authentication
+namespace CaptainHook.Tests.Authentication
 {
     public class AuthenticationHandlerTests
     {

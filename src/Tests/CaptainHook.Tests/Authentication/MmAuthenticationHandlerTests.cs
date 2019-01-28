@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
 using Xunit;
 
-namespace CaptainHook.UnitTests.Authentication
+namespace CaptainHook.Tests.Authentication
 {
     public class MmAuthenticationHandlerTests
     {
