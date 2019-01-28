@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication

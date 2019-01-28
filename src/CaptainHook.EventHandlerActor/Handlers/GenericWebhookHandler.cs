@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;

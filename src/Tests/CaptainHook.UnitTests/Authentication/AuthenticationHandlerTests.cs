@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Tests.Core;
 using Newtonsoft.Json;

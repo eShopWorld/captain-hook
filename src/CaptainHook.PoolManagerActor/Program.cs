@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.PoolManagerActor
+﻿using CaptainHook.Common.Configuration;
+
+namespace CaptainHook.PoolManagerActor
 {
     using System;
     using System.Threading;

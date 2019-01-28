@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Common
+﻿namespace CaptainHook.Common.Authentication
 {
     /// <summary>
     /// OAuth2 Authentication Config

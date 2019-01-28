@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers.Authentication
+﻿namespace CaptainHook.Common.Authentication
 {
     public enum AuthenticationType
     {

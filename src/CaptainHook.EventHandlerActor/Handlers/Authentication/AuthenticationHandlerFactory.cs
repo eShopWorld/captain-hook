@@ -1,6 +1,8 @@
 ﻿using System;
 using Autofac.Features.Indexed;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Configuration;
 using Eshopworld.Core;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication

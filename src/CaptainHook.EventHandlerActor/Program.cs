@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.EventHandlerActor
+﻿using CaptainHook.Common.Configuration;
+
+namespace CaptainHook.EventHandlerActor
 {
     using System;
     using System.Collections.Generic;

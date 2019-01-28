@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.EventReaderActor
+﻿using CaptainHook.Common.Configuration;
+
+namespace CaptainHook.EventReaderActor
 {
     using System;
     using System.Threading;

@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Common
+﻿namespace CaptainHook.Common.Authentication
 {
     /// <summary>
     /// Basic authentication configuration

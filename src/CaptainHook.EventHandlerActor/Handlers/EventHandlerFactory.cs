@@ -2,6 +2,7 @@
 using System.Net.Http;
 using Autofac.Features.Indexed;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 

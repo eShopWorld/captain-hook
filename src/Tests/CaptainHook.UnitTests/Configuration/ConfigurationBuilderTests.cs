@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using Eshopworld.Tests.Core;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;

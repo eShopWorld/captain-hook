@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.Common.Authentication;
 
-namespace CaptainHook.Common
+namespace CaptainHook.Common.Configuration
 {
     /// <summary>
     /// Webhook config contains details for the webhook, eg uri and auth details

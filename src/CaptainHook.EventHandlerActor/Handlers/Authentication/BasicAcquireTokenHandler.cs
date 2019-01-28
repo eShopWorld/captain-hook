@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {

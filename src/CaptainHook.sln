@@ -19,7 +19,12 @@ Project("{A07B5EB6-E848-4116-A8D0-A826331D98C6}") = "CaptainHook.Fabric", "Capta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.PoolManagerActor", "CaptainHook.PoolManagerActor\CaptainHook.PoolManagerActor.csproj", "{4035A243-CDC8-4A50-B759-CA51810454FD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaptainHook.UnitTests", "Tests\CaptainHook.UnitTests\CaptainHook.UnitTests.csproj", "{1203ED6F-77D0-41FD-861B-6BF718F2286E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.UnitTests", "Tests\CaptainHook.UnitTests\CaptainHook.UnitTests.csproj", "{1203ED6F-77D0-41FD-861B-6BF718F2286E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C2A4301F-0F3A-4880-A8A6-C9D110FFFD69}"
+	ProjectSection(SolutionItems) = preProject
+		codecoverage.runsettings = codecoverage.runsettings
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
