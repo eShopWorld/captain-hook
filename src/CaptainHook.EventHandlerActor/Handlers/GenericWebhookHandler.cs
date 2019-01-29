@@ -70,6 +70,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     innerPayload = messageData.CallbackPayload;
                 }
 
+                void TelemetryEvent(string msg)
+                {
+                    BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
+                }
+
                 //todo remove in v1
                 switch (messageData.Type)
                 {
@@ -79,7 +84,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                         break;
                 }
 
-                var response = await _client.PostAsJsonReliability(uri, innerPayload, messageData, BigBrother);
+                var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, uri, innerPayload, TelemetryEvent);
 
                 BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 

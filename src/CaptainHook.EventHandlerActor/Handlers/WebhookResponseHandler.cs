@@ -47,7 +47,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
             var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
 
-            var response = await _client.PostAsJsonReliability(WebhookConfig.Uri, innerPayload, messageData, BigBrother);
+            void TelemetryEvent(string msg)
+            {
+                BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
+            }
+
+            var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, WebhookConfig.Uri, innerPayload, TelemetryEvent);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
