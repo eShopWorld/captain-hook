@@ -44,7 +44,8 @@ namespace CaptainHook.Tests.WebHooks
                 httpClient, new WebhookConfig
                 {
                     Uri = "http://localhost/webhook",
-                    ModelToParse = "TransportModel"
+                    ModelToParse = "TransportModel",
+                    Verb = "PUT"
                 });
         }
 

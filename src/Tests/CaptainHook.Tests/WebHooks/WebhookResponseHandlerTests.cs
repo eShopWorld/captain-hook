@@ -53,7 +53,8 @@ namespace CaptainHook.Tests.WebHooks
                     {
                         Uri = "http://localhost/callback",
                         Name = "CallbackConfig",
-                        AuthenticationConfig = new OAuthAuthenticationConfig()
+                        AuthenticationConfig = new OAuthAuthenticationConfig(),
+                        Verb = "POST"
                     }));
 
             _webhookResponseHandler = new WebhookResponseHandler(
@@ -66,12 +67,14 @@ namespace CaptainHook.Tests.WebHooks
                     WebHookConfig = new WebhookConfig
                     {
                         Uri = "http://localhost/webhook",
-                        ModelToParse = "TransportModel"
+                        ModelToParse = "TransportModel",
+                        Verb = "Get"
                     },
                     CallbackConfig = new WebhookConfig
                     {
                         Name = "PutOrderConfirmationEvent",
-                        Uri = "http://localhost/callback"
+                        Uri = "http://localhost/callback",
+                        Verb = "POST"
                     }
                 });
         }
