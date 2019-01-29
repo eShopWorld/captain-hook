@@ -11,12 +11,18 @@ namespace CaptainHook.Tests.Authentication
 {
     public class AuthenticationFactoryTests
     {
-        public static IEnumerable<object[]> Data =>
+        public static IEnumerable<object[]> AuthenticationTestData =>
             new List<object[]>
             {
-                new object[] { "basic", new BasicAuthenticationConfig(), AuthenticationType.Basic, new BasicTokenHandler(new BasicAuthenticationConfig()),  },
-                new object[] { "oauth", new OAuthAuthenticationConfig(), AuthenticationType.OAuth, new OAuthTokenHandler(new OAuthAuthenticationConfig()) },
-                new object[] { "custom", new OAuthAuthenticationConfig(), AuthenticationType.Custom, new MmOAuthAuthenticationHandler(new OAuthAuthenticationConfig())  }
+                new object[] { "basic", new BasicAuthenticationConfig(), new BasicTokenHandler(new BasicAuthenticationConfig()),  },
+                new object[] { "oauth", new OAuthAuthenticationConfig(), new OAuthTokenHandler(new OAuthAuthenticationConfig()) },
+                new object[] { "custom", new OAuthAuthenticationConfig{AuthenticationType = AuthenticationType.Custom}, new MmOAuthAuthenticationHandler(new OAuthAuthenticationConfig())  }
+            };
+
+        public static IEnumerable<object[]> NoneAuthenticationTestData =>
+            new List<object[]>
+            {
+                new object[] {"none", new AuthenticationConfig()}
             };
 
         /// <summary>
@@ -24,19 +30,17 @@ namespace CaptainHook.Tests.Authentication
         /// </summary>
         /// <param name="configurationName"></param>
         /// <param name="authenticationConfig"></param>
-        /// <param name="authenticationType"></param>
         /// <param name="expectedHandler"></param>
         [IsLayer0]
         [Theory]
-        [MemberData(nameof(Data))]
-        public void GetTokenProvider(string configurationName, AuthenticationConfig authenticationConfig, AuthenticationType authenticationType, IAcquireTokenHandler expectedHandler)
+        [MemberData(nameof(AuthenticationTestData))]
+        public void GetTokenProvider(string configurationName, AuthenticationConfig authenticationConfig, IAcquireTokenHandler expectedHandler)
         {
             var indexedDictionary = new IndexDictionary<string, WebhookConfig>
             {
                 {
                     configurationName, new WebhookConfig
                     {
-                        AuthenticationType = authenticationType,
                         Name = configurationName,
                         AuthenticationConfig = authenticationConfig
                     }
@@ -56,18 +60,16 @@ namespace CaptainHook.Tests.Authentication
         /// </summary>
         /// <param name="configurationName"></param>
         /// <param name="authenticationConfig"></param>
-        /// <param name="authenticationType"></param>
         [IsLayer0]
         [Theory]
-        [InlineData("none", null, AuthenticationType.None)]
-        public void NoAuthentication(string configurationName, AuthenticationConfig authenticationConfig, AuthenticationType authenticationType)
+        [MemberData(nameof(NoneAuthenticationTestData))]
+        public void NoAuthentication(string configurationName, AuthenticationConfig authenticationConfig)
         {
             var indexedDictionary = new IndexDictionary<string, WebhookConfig>
             {
                 {
                     configurationName, new WebhookConfig
                     {
-                        AuthenticationType = authenticationType,
                         Name = configurationName,
                         AuthenticationConfig = authenticationConfig
                     }

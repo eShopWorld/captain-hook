@@ -1,7 +1,7 @@
 ﻿namespace CaptainHook.Common.Authentication
 {
-    public abstract class AuthenticationConfig
+    public class AuthenticationConfig
     {
-
+        public AuthenticationType AuthenticationType { get; set; } = AuthenticationType.None;
     }
 }

@@ -5,6 +5,11 @@
     /// </summary>
     public class OAuthAuthenticationConfig : AuthenticationConfig
     {
+        public OAuthAuthenticationConfig()
+        {
+            this.AuthenticationType = AuthenticationType.OAuth;
+        }
+
         public string Uri { get; set; }
 
         /// <summary>

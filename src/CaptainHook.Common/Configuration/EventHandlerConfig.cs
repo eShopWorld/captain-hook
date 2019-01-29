@@ -8,11 +8,12 @@ namespace CaptainHook.Common.Configuration
     /// </summary>
     public class WebhookConfig
     {
-        public bool RequiresAuth { get; set; } = true;
+        public WebhookConfig()
+        {
+            AuthenticationConfig = new AuthenticationConfig();
+        }
 
         public AuthenticationConfig AuthenticationConfig { get; set; }
-
-        public AuthenticationType AuthenticationType { get; set; }
 
         public string Uri { get; set; }
 

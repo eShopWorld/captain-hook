@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
@@ -48,7 +49,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
 
                 //make a call to client identity provider
-                if (WebhookConfig.RequiresAuth)
+                if (WebhookConfig.AuthenticationConfig.AuthenticationType != AuthenticationType.None)
                 {
                     await AcquireTokenHandler.GetToken(_client);
                 }

@@ -28,7 +28,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 throw new Exception($"Authentication Provider {name} not found");
             }
 
-            switch (config.AuthenticationType)
+            switch (config.AuthenticationConfig.AuthenticationType)
             {
                 case AuthenticationType.None:
                     return null;
@@ -41,7 +41,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                     //todo if this is custom it should be another webhook which calls out to another place, this place gets a token on CH's behalf and then adds this into subsequent webhook requests.
                     return new MmOAuthAuthenticationHandler(config.AuthenticationConfig);
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(config.AuthenticationType), $"unknown configuration type of {config.AuthenticationType}");
+                    throw new ArgumentOutOfRangeException(nameof(config.AuthenticationConfig.AuthenticationType), $"unknown configuration type of {config.AuthenticationConfig.AuthenticationType}");
             }
         }
     }
