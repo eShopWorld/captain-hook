@@ -33,7 +33,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 case AuthenticationType.None:
                     return null;
                 case AuthenticationType.Basic:
-                    return new BasicAcquireTokenHandler(config.AuthenticationConfig);
+                    return new BasicTokenHandler(config.AuthenticationConfig);
                 case AuthenticationType.OAuth:
                     return new OAuthTokenHandler(config.AuthenticationConfig);
                 case AuthenticationType.Custom:

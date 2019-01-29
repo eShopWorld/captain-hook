@@ -26,5 +26,10 @@
         /// 
         /// </summary>
         public string GrantType { get; } = "client_credentials";
+
+        /// <summary>
+        /// Refresh interval before the token expires
+        /// </summary>
+        public int RefreshBeforeInSeconds { get; } = 10;
     }
 }

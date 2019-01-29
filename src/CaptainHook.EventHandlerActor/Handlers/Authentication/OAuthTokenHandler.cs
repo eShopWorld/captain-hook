@@ -34,32 +34,36 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             //get initial access token and refresh token
             if (OAuthAuthenticationToken.AccessToken == null)
             {
-                var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest
-                {
-                    Address = OAuthAuthenticationConfig.Uri,
-                    ClientId = OAuthAuthenticationConfig.ClientId,
-                    ClientSecret = OAuthAuthenticationConfig.ClientSecret,
-                    GrantType = OAuthAuthenticationConfig.GrantType,
-                    Scope = string.Join(" ", OAuthAuthenticationConfig.Scopes)
-                });
+                var response = await GetTokenResponse(client);
 
                 ReportTokenUpdateFailure(response);
                 UpdateToken(response);
             }
 
-            if (OAuthAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(10d)) >= DateTime.UtcNow)
+            if (OAuthAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(OAuthAuthenticationConfig.RefreshBeforeInSeconds)) >= DateTime.UtcNow)
             {
-                var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
-                {
-                    Address = OAuthAuthenticationConfig.Uri,
-                    RefreshToken = OAuthAuthenticationToken.RefreshToken
-                });
-
-                ReportTokenUpdateFailure(response);
-                UpdateToken(response);
+                await RefreshToken(client);
             }
 
             client.SetBearerToken(OAuthAuthenticationToken.AccessToken);
+        }
+
+        /// <summary>
+        /// Makes the call to get the token
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        private async Task<TokenResponse> GetTokenResponse(HttpMessageInvoker client)
+        {
+            var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest
+            {
+                Address = OAuthAuthenticationConfig.Uri,
+                ClientId = OAuthAuthenticationConfig.ClientId,
+                ClientSecret = OAuthAuthenticationConfig.ClientSecret,
+                GrantType = OAuthAuthenticationConfig.GrantType,
+                Scope = string.Join(" ", OAuthAuthenticationConfig.Scopes)
+            });
+            return response;
         }
 
         /// <summary>
@@ -73,9 +77,22 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             OAuthAuthenticationToken.ExpiresIn = response.ExpiresIn;
         }
 
-        public virtual Task RefreshToken(HttpClient client)
+        /// <summary>
+        /// Gets a new token from the STS
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public virtual async Task RefreshToken(HttpClient client)
         {
-            throw new NotImplementedException();
+            //var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
+            //{
+            //    Address = OAuthAuthenticationConfig.Uri,
+            //    RefreshToken = OAuthAuthenticationToken.RefreshToken
+            //});
+            var response = await GetTokenResponse(client);
+            
+            ReportTokenUpdateFailure(response);
+            UpdateToken(response);
         }
     }
 }
