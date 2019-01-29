@@ -1,24 +1,23 @@
-﻿using CaptainHook.Common.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Autofac;
+using Autofac.Integration.ServiceFabric;
+using CaptainHook.Common.Configuration;
+using CaptainHook.EventHandlerActor.Handlers;
+using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using Eshopworld.Core;
+using Eshopworld.Telemetry;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace CaptainHook.EventHandlerActor
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Autofac;
-    using Autofac.Integration.ServiceFabric;
-    using Eshopworld.Core;
-    using Eshopworld.Telemetry;
-    using Handlers;
-    using Handlers.Authentication;
-    using Microsoft.Azure.KeyVault;
-    using Microsoft.Azure.Services.AppAuthentication;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Configuration.AzureKeyVault;
-
     internal static class Program
     {
         /// <summary>
@@ -45,7 +44,6 @@ namespace CaptainHook.EventHandlerActor
                 var webhookList = new List<WebhookConfig>(values.Count);
                 foreach (var configurationSection in values)
                 {
-                    //var webHookConfig = authenticationConfig.GetSection($"webhook:{configurationSection.Key}").Get<EventHandlerConfig>();
                     var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                     eventHandlerList.Add(eventHandlerConfig);
 

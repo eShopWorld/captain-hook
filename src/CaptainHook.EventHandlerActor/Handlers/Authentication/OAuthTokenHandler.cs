@@ -11,7 +11,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// Gets a token from the supplied STS details included the supplied scopes.
     /// Requests token once
     /// </summary>
-    public class OAuthTokenHandler : AuthenticationHandler, IAcquireTokenHandler, IRefreshTokenHandler
+    public class OAuthTokenHandler : AuthenticationHandler, IAcquireTokenHandler
     {
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
         protected OAuthAuthenticationToken OAuthAuthenticationToken = new OAuthAuthenticationToken();
@@ -40,10 +40,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 UpdateToken(response);
             }
 
-            if (OAuthAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(OAuthAuthenticationConfig.RefreshBeforeInSeconds)) >= DateTime.UtcNow)
-            {
-                await RefreshToken(client);
-            }
+            await RefreshToken(client);
 
             client.SetBearerToken(OAuthAuthenticationToken.AccessToken);
         }
@@ -79,20 +76,19 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 
         /// <summary>
         /// Gets a new token from the STS
+        /// OAuth refresh flow is not supported in the STS
         /// </summary>
         /// <param name="client"></param>
         /// <returns></returns>
-        public virtual async Task RefreshToken(HttpClient client)
+        protected virtual async Task RefreshToken(HttpClient client)
         {
-            //var response = await client.RequestRefreshTokenAsync(new RefreshTokenRequest
-            //{
-            //    Address = OAuthAuthenticationConfig.Uri,
-            //    RefreshToken = OAuthAuthenticationToken.RefreshToken
-            //});
-            var response = await GetTokenResponse(client);
-            
-            ReportTokenUpdateFailure(response);
-            UpdateToken(response);
+            if (OAuthAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(OAuthAuthenticationConfig.RefreshBeforeInSeconds)) >= DateTime.UtcNow)
+            {
+                var response = await GetTokenResponse(client);
+
+                ReportTokenUpdateFailure(response);
+                UpdateToken(response);
+            }
         }
     }
 }
