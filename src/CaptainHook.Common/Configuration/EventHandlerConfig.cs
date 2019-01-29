@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 
 namespace CaptainHook.Common.Configuration
@@ -22,6 +23,10 @@ namespace CaptainHook.Common.Configuration
         //todo implement this on the calls to the webhook to select http verb
         public string Verb { get; set; }
 
+        /// <summary>
+        /// //todo remove this in v1
+        /// </summary>
+        [Obsolete]
         public string ModelToParse { get; set; }
     }
 
