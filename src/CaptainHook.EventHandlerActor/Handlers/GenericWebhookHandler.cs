@@ -56,8 +56,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 var uri = WebhookConfig.Uri;
 
-                //todo remove in v1
-                var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
+                //todo remove to integration layer by v1
+                switch (messageData.Type)
+                {
+                    case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
+                    case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
+                        var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
+                        uri = $"{WebhookConfig.Uri}/{orderCode}"; //todo remove to integration layer by v1
+                        break;
+                }
 
                 var innerPayload = messageData.Payload;
                 if (!string.IsNullOrWhiteSpace(WebhookConfig.ModelToParse))
@@ -74,20 +81,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 {
                     BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
                 }
-
-                //todo remove in v1
-                switch (messageData.Type)
-                {
-                    case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
-                    case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                        uri = $"{WebhookConfig.Uri}/{orderCode}"; //todo remove in v1
-                        break;
-                }
-
+                
                 var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, uri, innerPayload, TelemetryEvent);
 
                 BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
-
             }
             catch (Exception e)
             {

@@ -65,6 +65,7 @@ namespace CaptainHook.Tests
             return GenerateMockPayload(id, payload);
         }
 
+        [Obsolete]
         public static Mock<HttpMessageHandler> GetMockHandler(HttpContent stringContent = null, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
