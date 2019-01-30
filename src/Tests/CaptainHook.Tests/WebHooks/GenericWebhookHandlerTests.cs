@@ -36,14 +36,18 @@ namespace CaptainHook.Tests.WebHooks
         }
 
         [IsLayer0]
-        [Theory (Skip = "WIP")]
+        [Theory]
         [MemberData(nameof(Data))]
-        public async Task ChecksHttpVerbsMatchUp(WebhookConfig config, HttpMethod httpMethod, HttpStatusCode expectedResponseCode, string expectedResponseBody)
+        public async Task ChecksHttpVerbsMatchUp(WebhookConfig config, HttpMethod httpMethod, string payload, HttpStatusCode expectedResponseCode, string expectedResponseBody)
         {
             var mockHttp = new MockHttpMessageHandler();
             var request = mockHttp.When(httpMethod, config.Uri)
-                .WithContentType("application/json", string.Empty)
                 .Respond(expectedResponseCode, "application/json", expectedResponseBody);
+
+            if (payload != null)
+            {
+                request.WithContentType("application/json", payload);
+            }
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 _mockAuthHandler.Object,
@@ -51,8 +55,7 @@ namespace CaptainHook.Tests.WebHooks
                 mockHttp.ToHttpClient(),
                 config);
 
-            await genericWebhookHandler.Call(new MessageData { Payload = JsonConvert.SerializeObject(new { Message = "Hello World" }) });
-
+            await genericWebhookHandler.Call(new MessageData { Payload = payload });
             Assert.Equal(1, mockHttp.GetMatchCount(request));
         }
 
@@ -62,10 +65,10 @@ namespace CaptainHook.Tests.WebHooks
         public static IEnumerable<object[]> Data =>
             new List<object[]>
             {
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook", Verb = "Post"}, HttpMethod.Post, HttpStatusCode.Created, null  },
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook", Verb = "Put"}, HttpMethod.Put, HttpStatusCode.NoContent, null  },
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook", Verb = "Patch"}, HttpMethod.Patch, HttpStatusCode.NoContent, null  },
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook", Verb = "Get"}, HttpMethod.Get, HttpStatusCode.OK, string.Empty }
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/post", Verb = "Post", }, HttpMethod.Post, JsonConvert.SerializeObject(new { Message = "Hello World Post" }), HttpStatusCode.Created, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/put", Verb = "Put"}, HttpMethod.Put, JsonConvert.SerializeObject(new { Message = "Hello World Put " }), HttpStatusCode.NoContent, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/patch", Verb = "Patch"}, HttpMethod.Patch, JsonConvert.SerializeObject(new { Message = "Hello World Patch" }), HttpStatusCode.NoContent, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/get", Verb = "Get"}, HttpMethod.Get, null, HttpStatusCode.OK, string.Empty }
             };
     }
 
