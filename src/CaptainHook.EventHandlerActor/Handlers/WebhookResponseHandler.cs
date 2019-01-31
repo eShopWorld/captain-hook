@@ -38,7 +38,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 throw new Exception("injected wrong implementation");
             }
 
-            if (WebhookConfig.AuthenticationConfig.AuthenticationType != AuthenticationType.None)
+            if (WebhookConfig.AuthenticationConfig.AuthenticationTypeAsEnum != AuthenticationType.None)
             {
                 await AcquireTokenHandler.GetToken(_client);
             }

@@ -7,7 +7,7 @@
     {
         public OAuthAuthenticationConfig()
         {
-            this.AuthenticationType = AuthenticationType.OAuth;
+            AuthenticationType = "oauth";
         }
 
         public string Uri { get; set; }

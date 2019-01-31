@@ -28,7 +28,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 throw new Exception($"Authentication Provider {name} not found");
             }
 
-            switch (config.AuthenticationConfig.AuthenticationType)
+            switch (config.AuthenticationConfig.AuthenticationTypeAsEnum)
             {
                 case AuthenticationType.None:
                     return null;

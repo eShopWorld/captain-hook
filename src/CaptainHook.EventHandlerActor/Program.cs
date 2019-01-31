@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Integration.ServiceFabric;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
@@ -44,12 +45,31 @@ namespace CaptainHook.EventHandlerActor
                 var webhookList = new List<WebhookConfig>(values.Count);
                 foreach (var configurationSection in values)
                 {
+                    //temp work around until config comes in through the API
                     var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                     eventHandlerList.Add(eventHandlerConfig);
 
                     if (eventHandlerConfig.WebHookConfig != null)
                     {
-                        webhookList.Add(eventHandlerConfig.WebHookConfig);
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.AuthenticationType == "none")
+                        {
+                            webhookList.Add(eventHandlerConfig.WebHookConfig);
+                        }
+
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.AuthenticationType == "basic")
+                        {
+                            webhookList.Add(eventHandlerConfig.WebHookConfig);
+                        }
+
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.AuthenticationType == "oauth")
+                        {
+                            webhookList.Add(eventHandlerConfig.WebHookConfig);
+                        }
+
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.AuthenticationType == "custom")
+                        {
+                            webhookList.Add(eventHandlerConfig.WebHookConfig);
+                        }
                     }
 
                     if (eventHandlerConfig.CallBackEnabled)
