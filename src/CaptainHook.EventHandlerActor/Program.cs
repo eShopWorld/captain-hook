@@ -97,6 +97,8 @@ namespace CaptainHook.EventHandlerActor
                             eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
                             eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
                         }
+
+                        webhookList.Add(eventHandlerConfig.CallbackConfig);
                     }
                 }
 

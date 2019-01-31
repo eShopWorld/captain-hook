@@ -82,7 +82,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <returns></returns>
         protected virtual async Task RefreshToken(HttpClient client)
         {
-            if (OAuthAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(OAuthAuthenticationConfig.RefreshBeforeInSeconds)) >= DateTime.UtcNow)
+            if (OAuthAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(OAuthAuthenticationConfig.RefreshBeforeInSeconds)) <= DateTime.UtcNow)
             {
                 var response = await GetTokenResponse(client);
 
