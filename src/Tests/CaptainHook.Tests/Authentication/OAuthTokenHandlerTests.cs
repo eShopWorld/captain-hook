@@ -47,12 +47,13 @@ namespace CaptainHook.Tests.Authentication
         [Theory]
         [InlineData(0, 1)]
         [InlineData(10, 1)]
-        [InlineData(-10, 2)]
+        [InlineData(3610, 2)]
         public async Task RefreshToken(int refreshBeforeInSeconds, int expectedStsCallCount)
         {
             var expectedResponse = JsonConvert.SerializeObject(new OAuthAuthenticationToken
             {
-                AccessToken = "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282"
+                AccessToken = "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282",
+                ExpiresIn = 3600
             });
 
             var handler = new OAuthTokenHandler(new OAuthAuthenticationConfig
