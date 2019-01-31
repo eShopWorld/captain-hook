@@ -51,25 +51,28 @@ namespace CaptainHook.EventHandlerActor
 
                     if (eventHandlerConfig.WebHookConfig != null)
                     {
-                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.AuthenticationType == "none")
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Basic)
                         {
-                            webhookList.Add(eventHandlerConfig.WebHookConfig);
+                            var basicAuthenticationConfig = new BasicAuthenticationConfig
+                            {
+                                Username = configurationSection["webhookconfig:authenticationconfig:username"],
+                                Password = configurationSection["webhookconfig:authenticationconfig:password"]
+                            };
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = basicAuthenticationConfig;
                         }
 
-                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.AuthenticationType == "basic")
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.OAuth)
                         {
-                            webhookList.Add(eventHandlerConfig.WebHookConfig);
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection);
                         }
 
-                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.AuthenticationType == "oauth")
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
                         {
-                            webhookList.Add(eventHandlerConfig.WebHookConfig);
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection);
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
                         }
 
-                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.AuthenticationType == "custom")
-                        {
-                            webhookList.Add(eventHandlerConfig.WebHookConfig);
-                        }
+                        webhookList.Add(eventHandlerConfig.WebHookConfig);
                     }
 
                     if (eventHandlerConfig.CallBackEnabled)
@@ -120,6 +123,37 @@ namespace CaptainHook.EventHandlerActor
                 BigBrother.Write(e);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Hack to parse out the config types, won't be needed after api configuration
+        /// </summary>
+        /// <param name="configurationSection"></param>
+        /// <returns></returns>
+        private static OAuthAuthenticationConfig ParseOAuthAuthenticationConfig(IConfiguration configurationSection)
+        {
+            var oauthAuthenticationConfig = new OAuthAuthenticationConfig
+            {
+                ClientId = configurationSection["webhookconfig:authenticationconfig:username"],
+                ClientSecret = configurationSection["webhookconfig:authenticationconfig:password"],
+                Uri = configurationSection["webhookconfig:authenticationconfig:uri"],
+                Scopes = configurationSection["webhookconfig:authenticationconfig:scopes"].Split(" ")
+            };
+
+            var refresh = configurationSection["webhookconfig:authenticationconfig:refresh"];
+            if (string.IsNullOrWhiteSpace(refresh))
+            {
+                oauthAuthenticationConfig.RefreshBeforeInSeconds = 3600;
+            }
+            else
+            {
+                if (int.TryParse(refresh, out var refreshValue))
+                {
+                    oauthAuthenticationConfig.RefreshBeforeInSeconds = refreshValue;
+                }
+            }
+
+            return oauthAuthenticationConfig;
         }
     }
 }

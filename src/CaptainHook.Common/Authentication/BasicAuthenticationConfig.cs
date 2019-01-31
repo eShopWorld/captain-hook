@@ -7,7 +7,7 @@
     {
         public BasicAuthenticationConfig()
         {
-            this.AuthenticationType = "basic";
+            Type = AuthenticationType.Basic;
         }
 
         /// <summary>

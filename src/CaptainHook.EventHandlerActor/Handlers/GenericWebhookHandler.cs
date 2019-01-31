@@ -49,7 +49,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
 
                 //make a call to client identity provider
-                if (WebhookConfig.AuthenticationConfig.AuthenticationTypeAsEnum != AuthenticationType.None)
+                if (WebhookConfig.AuthenticationConfig.Type != AuthenticationType.None)
                 {
                     await AcquireTokenHandler.GetToken(_client);
                 }
