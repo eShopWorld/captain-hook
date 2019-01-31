@@ -63,12 +63,12 @@ namespace CaptainHook.EventHandlerActor
 
                         if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.OAuth)
                         {
-                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection);
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
                         }
 
                         if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
                         {
-                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection);
+                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
                             eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
                         }
 
@@ -77,7 +77,26 @@ namespace CaptainHook.EventHandlerActor
 
                     if (eventHandlerConfig.CallBackEnabled)
                     {
-                        webhookList.Add(eventHandlerConfig.CallbackConfig);
+                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.Basic)
+                        {
+                            var basicAuthenticationConfig = new BasicAuthenticationConfig
+                            {
+                                Username = configurationSection["webhookconfig:authenticationconfig:username"],
+                                Password = configurationSection["webhookconfig:authenticationconfig:password"]
+                            };
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = basicAuthenticationConfig;
+                        }
+
+                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.OAuth)
+                        {
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
+                        }
+
+                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
+                        {
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
+                            eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
+                        }
                     }
                 }
 
@@ -134,16 +153,16 @@ namespace CaptainHook.EventHandlerActor
         {
             var oauthAuthenticationConfig = new OAuthAuthenticationConfig
             {
-                ClientId = configurationSection["webhookconfig:authenticationconfig:username"],
-                ClientSecret = configurationSection["webhookconfig:authenticationconfig:password"],
-                Uri = configurationSection["webhookconfig:authenticationconfig:uri"],
-                Scopes = configurationSection["webhookconfig:authenticationconfig:scopes"].Split(" ")
+                ClientId = configurationSection["clientid"],
+                ClientSecret = configurationSection["clientsecret"],
+                Uri = configurationSection["uri"],
+                Scopes = configurationSection["scopes"].Split(" ")
             };
 
-            var refresh = configurationSection["webhookconfig:authenticationconfig:refresh"];
+            var refresh = configurationSection["refresh"];
             if (string.IsNullOrWhiteSpace(refresh))
             {
-                oauthAuthenticationConfig.RefreshBeforeInSeconds = 3600;
+                oauthAuthenticationConfig.RefreshBeforeInSeconds = 10;
             }
             else
             {
