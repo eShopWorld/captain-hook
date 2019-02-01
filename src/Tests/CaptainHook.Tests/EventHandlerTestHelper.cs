@@ -1,10 +1,4 @@
 using System;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using Moq;
-using Moq.Protected;
 using Newtonsoft.Json;
 
 namespace CaptainHook.Tests
@@ -63,28 +57,6 @@ namespace CaptainHook.Tests
             };
 
             return GenerateMockPayload(id, payload);
-        }
-
-        [Obsolete("Use MockHttpMessageHandler Library instead")]
-        public static Mock<HttpMessageHandler> GetMockHandler(HttpContent stringContent = null, HttpStatusCode statusCode = HttpStatusCode.OK)
-        {
-            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
-            handlerMock
-                .Protected()
-                // Setup the PROTECTED method to mock
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>()
-                )
-                // prepare the expected response of the mocked http call
-                .ReturnsAsync(new HttpResponseMessage
-                {
-                    StatusCode = statusCode,
-                    Content = stringContent
-                })
-                .Verifiable();
-            return handlerMock;
         }
     }
 }

@@ -1,16 +1,18 @@
 using System;
+using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.Tests.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using Moq;
-using Moq.Protected;
+using Newtonsoft.Json;
+using RichardSzalay.MockHttp;
 using Xunit;
 
 namespace CaptainHook.Tests.WebHooks
@@ -18,93 +20,73 @@ namespace CaptainHook.Tests.WebHooks
     public class WebhookResponseHandlerTests
     {
         /// <summary>
-        /// 
+        /// Tests the whole flow for a webhook handler with a callback
         /// </summary>
-        private readonly Mock<HttpMessageHandler> _mockHttpHandler;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private readonly WebhookResponseHandler _webhookResponseHandler;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private readonly Mock<IAcquireTokenHandler> _mockAuthHandler;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        private readonly Mock<IEventHandlerFactory> _mockHandlerFactory;
-
-        public WebhookResponseHandlerTests()
-        {
-            _mockHttpHandler = EventHandlerTestHelper.GetMockHandler(new StringContent("hello"));
-            _mockAuthHandler = new Mock<IAcquireTokenHandler>();
-            var mockBigBrother = new Mock<IBigBrother>();
-
-            _mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            _mockHandlerFactory.Setup(s => s.CreateHandler("PutOrderConfirmationEvent")).Returns(
-                new GenericWebhookHandler(
-                    _mockAuthHandler.Object,
-                    mockBigBrother.Object,
-                    new HttpClient(_mockHttpHandler.Object),
-                    new WebhookConfig
-                    {
-                        Uri = "http://localhost/callback",
-                        Name = "CallbackConfig",
-                        AuthenticationConfig = new OAuthAuthenticationConfig(),
-                        Verb = "POST"
-                    }));
-
-            _webhookResponseHandler = new WebhookResponseHandler(
-                _mockHandlerFactory.Object,
-                _mockAuthHandler.Object,
-                mockBigBrother.Object,
-                new HttpClient(_mockHttpHandler.Object),
-                new EventHandlerConfig
-                {
-                    WebHookConfig = new WebhookConfig
-                    {
-                        Uri = "http://localhost/webhook",
-                        ModelToParse = "TransportModel",
-                        Verb = "Get"
-                    },
-                    CallbackConfig = new WebhookConfig
-                    {
-                        Name = "PutOrderConfirmationEvent",
-                        Uri = "http://localhost/callback",
-                        Verb = "POST"
-                    }
-                });
-        }
-
+        /// <returns></returns>
         [IsLayer0]
         [Fact]
         public async Task ExecuteHappyPath()
         {
+            var config = new EventHandlerConfig
+            {
+                WebHookConfig = new WebhookConfig
+                {
+                    Uri = "http://localhost/webhook",
+                    ModelToParse = "TransportModel",
+                    AuthenticationConfig = new OAuthAuthenticationConfig(),
+                    Verb = "PUT"
+                },
+                CallbackConfig = new WebhookConfig
+                {
+                    Name = "PutOrderConfirmationEvent",
+                    Uri = "http://localhost/callback",
+                    AuthenticationConfig = new OAuthAuthenticationConfig(),
+                    Verb = "POST"
+                }
+            };
+
+            var mockHttpHandler = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
+            var mockWebHookRequestWithCallback = mockHttpHandler.When(HttpMethod.Put, config.WebHookConfig.Uri)
+                .WithContentType("application/json", JsonConvert.SerializeObject(new EventHandlerTestHelper.TransportModel{Name = "Hello World"}))
+                .Respond(HttpStatusCode.Created, "application/json", "hello");
+
+            var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Post, config.WebHookConfig.Uri)
+                .WithContentType("application/json", JsonConvert.SerializeObject(new EventHandlerTestHelper.TransportModel { Name = "Hello World" }))
+                .Respond(HttpStatusCode.Created, "application/json", "hello");
+
+            var httpClient = mockHttpHandler.ToHttpClient();
+
+            var mockAuthHandler = new Mock<IAcquireTokenHandler>();
+            var mockBigBrother = new Mock<IBigBrother>();
+
+            var mockHandlerFactory = new Mock<IEventHandlerFactory>();
+            mockHandlerFactory.Setup(s => s.CreateHandler("PutOrderConfirmationEvent")).Returns(
+                new GenericWebhookHandler(
+                    mockAuthHandler.Object,
+                    mockBigBrother.Object,
+                    httpClient,
+                    config.WebHookConfig));
+
+            var webhookResponseHandler = new WebhookResponseHandler(
+                mockHandlerFactory.Object,
+                mockAuthHandler.Object,
+                mockBigBrother.Object,
+                httpClient,
+                config);
+
             var messageData = new MessageData
             {
                 Payload = EventHandlerTestHelper.GenerateMockPayloadWithInternalModel(Guid.NewGuid()),
                 Type = "TestType"
             };
 
-            await _webhookResponseHandler.Call(messageData);
+            await webhookResponseHandler.Call(messageData);
 
-            _mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(1));
-            _mockHttpHandler.Protected().Verify(
-                "SendAsync",
-                Times.AtMostOnce(),
-                ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get && req.RequestUri == new Uri("http://localhost/webhook")),
-                ItExpr.IsAny<CancellationToken>());
+            mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(1));
+            mockHandlerFactory.Verify(e => e.CreateHandler(It.IsAny<string>()), Times.AtMostOnce);
 
-            _mockHttpHandler.Protected().Verify(
-                "SendAsync",
-                Times.AtMostOnce(),
-                ItExpr.Is<HttpRequestMessage>(req => req.Method == HttpMethod.Get && req.RequestUri == new Uri("http://localhost/callback")),
-                ItExpr.IsAny<CancellationToken>());
-
-            _mockHandlerFactory.Verify(e => e.CreateHandler(It.IsAny<string>()), Times.AtMostOnce);
+            Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequestWithCallback));
+            Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequest));
         }
     }
 }

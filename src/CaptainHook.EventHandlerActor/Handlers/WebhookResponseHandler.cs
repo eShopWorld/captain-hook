@@ -59,6 +59,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             //call callback
             var eswHandler = _eventHandlerFactory.CreateHandler($"{_eventHandlerConfig.CallbackConfig.Name}");
 
+            //have a think about a null payload and what should be done here
             var payload = new HttpResponseDto
             {
                 OrderCode = orderCode,
