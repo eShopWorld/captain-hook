@@ -30,8 +30,9 @@ namespace CaptainHook.Tests.Authentication
 
             var mockHttp = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
             var mockRequest = mockHttp.When(HttpMethod.Post, config.Uri)
-                .WithContentType("application/json", JsonConvert.SerializeObject(config))
-                .Respond(HttpStatusCode.Created, "application/json",
+                .WithFormData("client_id", config.ClientId)
+                .WithFormData("client_secret", config.ClientSecret)
+                .Respond(HttpStatusCode.OK, "application/json",
                     JsonConvert.SerializeObject(new OAuthAuthenticationToken
                     {
                         AccessToken = "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282"
@@ -41,6 +42,7 @@ namespace CaptainHook.Tests.Authentication
 
             await handler.GetToken(httpClient);
 
+            Assert.Equal(1, mockHttp.GetMatchCount(mockRequest));
             Assert.NotNull(httpClient.DefaultRequestHeaders.Authorization);
             Assert.Equal(expectedAccessToken, httpClient.DefaultRequestHeaders.Authorization.Parameter);
             Assert.Equal("Bearer", httpClient.DefaultRequestHeaders.Authorization.Scheme);
@@ -73,10 +75,11 @@ namespace CaptainHook.Tests.Authentication
 
             var handler = new OAuthTokenHandler(config);
 
-            var mockHttp = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
+            var mockHttp = new MockHttpMessageHandler();
             var mockRequest = mockHttp.When(HttpMethod.Post, config.Uri)
-                .WithContentType("application/json", JsonConvert.SerializeObject(config))
-                .Respond(HttpStatusCode.Created, "application/json",
+                .WithFormData("client_id", config.ClientId)
+                .WithFormData("client_secret", config.ClientSecret)
+                .Respond(HttpStatusCode.OK, "application/json",
                     JsonConvert.SerializeObject(new OAuthAuthenticationToken
                     {
                         AccessToken = "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282",

@@ -45,14 +45,19 @@ namespace CaptainHook.Tests.WebHooks
                 }
             };
 
+            var messageData = new MessageData
+            {
+                Payload = EventHandlerTestHelper.GenerateMockPayloadWithInternalModel(Guid.NewGuid()),
+                Type = "TestType"
+            };
+
             var mockHttpHandler = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
             var mockWebHookRequestWithCallback = mockHttpHandler.When(HttpMethod.Put, config.WebHookConfig.Uri)
-                .WithContentType("application/json", JsonConvert.SerializeObject(new EventHandlerTestHelper.TransportModel{Name = "Hello World"}))
-                .Respond(HttpStatusCode.Created, "application/json", "hello");
+                .WithContentType("application/json", JsonConvert.SerializeObject(new { Name = "Hello World" }))
+                .Respond(HttpStatusCode.OK, "application/json", "hello");
 
-            var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Post, config.WebHookConfig.Uri)
-                .WithContentType("application/json", JsonConvert.SerializeObject(new EventHandlerTestHelper.TransportModel { Name = "Hello World" }))
-                .Respond(HttpStatusCode.Created, "application/json", "hello");
+            var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Post, config.CallbackConfig.Uri)
+                .Respond(HttpStatusCode.OK, "application/json", "hello");
 
             var httpClient = mockHttpHandler.ToHttpClient();
 
@@ -60,12 +65,12 @@ namespace CaptainHook.Tests.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateHandler("PutOrderConfirmationEvent")).Returns(
+            mockHandlerFactory.Setup(s => s.CreateHandler(config.CallbackConfig.Name)).Returns(
                 new GenericWebhookHandler(
                     mockAuthHandler.Object,
                     mockBigBrother.Object,
                     httpClient,
-                    config.WebHookConfig));
+                    config.CallbackConfig));
 
             var webhookResponseHandler = new WebhookResponseHandler(
                 mockHandlerFactory.Object,
@@ -74,15 +79,9 @@ namespace CaptainHook.Tests.WebHooks
                 httpClient,
                 config);
 
-            var messageData = new MessageData
-            {
-                Payload = EventHandlerTestHelper.GenerateMockPayloadWithInternalModel(Guid.NewGuid()),
-                Type = "TestType"
-            };
-
             await webhookResponseHandler.Call(messageData);
 
-            mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(1));
+            mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(2));
             mockHandlerFactory.Verify(e => e.CreateHandler(It.IsAny<string>()), Times.AtMostOnce);
 
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequestWithCallback));

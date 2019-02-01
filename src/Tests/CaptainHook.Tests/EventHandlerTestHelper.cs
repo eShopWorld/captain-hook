@@ -41,7 +41,7 @@ namespace CaptainHook.Tests
             }
 
             payload.OrderCode = id;
-            payload.BrandType = "bob";
+            payload.BrandType = "Bob";
 
             return JsonConvert.SerializeObject(payload);
         }
@@ -52,7 +52,7 @@ namespace CaptainHook.Tests
             {
                 TransportModel = new TransportModel
                 {
-                    Name = "hello world"
+                    Name = "Hello World"
                 }
             };
 

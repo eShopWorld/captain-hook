@@ -56,21 +56,20 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
-            //call callback
-            var eswHandler = _eventHandlerFactory.CreateHandler($"{_eventHandlerConfig.CallbackConfig.Name}");
-
-            //have a think about a null payload and what should be done here
+            //todo remove this such that the raw payload is what is sent back from the webhook to the callback
             var payload = new HttpResponseDto
             {
                 OrderCode = orderCode,
                 Content = await response.Content.ReadAsStringAsync(),
                 StatusCode = (int)response.StatusCode
             };
-
             messageData.OrderCode = orderCode;
             messageData.CallbackPayload = JsonConvert.SerializeObject(payload);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.CallbackPayload));
+
+            //call callback
+            var eswHandler = _eventHandlerFactory.CreateHandler($"{_eventHandlerConfig.CallbackConfig.Name}");
 
             await eswHandler.Call(messageData);
         }
