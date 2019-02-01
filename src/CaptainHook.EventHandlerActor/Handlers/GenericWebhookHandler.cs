@@ -66,12 +66,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
                         break;
                 }
 
+                //todo refactor out
                 var innerPayload = messageData.Payload;
                 if (!string.IsNullOrWhiteSpace(WebhookConfig.ModelToParse))
                 {
                     innerPayload = ModelParser.GetInnerPayload(messageData.Payload, WebhookConfig.ModelToParse);
                 }
 
+                //todo refactor out
                 if (!string.IsNullOrWhiteSpace(messageData.CallbackPayload))
                 {
                     innerPayload = messageData.CallbackPayload;

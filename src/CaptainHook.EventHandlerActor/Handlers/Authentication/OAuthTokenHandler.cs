@@ -39,8 +39,10 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 ReportTokenUpdateFailure(response);
                 UpdateToken(response);
             }
-
-            await RefreshToken(client);
+            else
+            {
+                await RefreshToken(client);
+            }
 
             client.SetBearerToken(OAuthAuthenticationToken.AccessToken);
         }

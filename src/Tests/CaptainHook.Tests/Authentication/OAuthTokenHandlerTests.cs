@@ -43,17 +43,24 @@ namespace CaptainHook.Tests.Authentication
             Assert.Equal("Bearer", httpClient.DefaultRequestHeaders.Authorization.Scheme);
         }
 
+        /// <summary>
+        /// Tests the refresh of a token. 
+        /// First call is to get a token. Second call is to get a token but through the refresh flow. 
+        /// </summary>
+        /// <param name="refreshBeforeInSeconds"></param>
+        /// <param name="expectedStsCallCount"></param>
+        /// <returns></returns>
         [IsLayer0]
         [Theory]
         [InlineData(0, 1)]
-        [InlineData(10, 1)]
-        [InlineData(3610, 2)]
+        [InlineData(1, 1)]
+        [InlineData(5, 2)]
         public async Task RefreshToken(int refreshBeforeInSeconds, int expectedStsCallCount)
         {
             var expectedResponse = JsonConvert.SerializeObject(new OAuthAuthenticationToken
             {
                 AccessToken = "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282",
-                ExpiresIn = 3600
+                ExpiresIn = 5
             });
 
             var handler = new OAuthTokenHandler(new OAuthAuthenticationConfig
@@ -67,9 +74,13 @@ namespace CaptainHook.Tests.Authentication
 
             var httpMessageHandler = EventHandlerTestHelper.GetMockHandler(new StringContent(expectedResponse));
             var httpClient = new HttpClient(httpMessageHandler.Object);
+
             await handler.GetToken(httpClient);
 
-            Assert.NotNull(httpClient);
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            await handler.GetToken(httpClient);
+
             httpMessageHandler.Protected().Verify(
                 "SendAsync",
                 Times.Exactly(expectedStsCallCount),
