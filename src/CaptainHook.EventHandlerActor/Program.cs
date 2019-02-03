@@ -61,7 +61,7 @@ namespace CaptainHook.EventHandlerActor
                             eventHandlerConfig.WebHookConfig.AuthenticationConfig = basicAuthenticationConfig;
                         }
 
-                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.OAuth)
+                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.OIDC)
                         {
                             eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
                         }
@@ -87,7 +87,7 @@ namespace CaptainHook.EventHandlerActor
                             eventHandlerConfig.CallbackConfig.AuthenticationConfig = basicAuthenticationConfig;
                         }
 
-                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.OAuth)
+                        if (eventHandlerConfig.CallbackConfig.AuthenticationConfig.Type == AuthenticationType.OIDC)
                         {
                             eventHandlerConfig.CallbackConfig.AuthenticationConfig = ParseOAuthAuthenticationConfig(configurationSection.GetSection("callbackconfig:authenticationconfig"));
                         }
@@ -151,9 +151,9 @@ namespace CaptainHook.EventHandlerActor
         /// </summary>
         /// <param name="configurationSection"></param>
         /// <returns></returns>
-        private static OAuthAuthenticationConfig ParseOAuthAuthenticationConfig(IConfiguration configurationSection)
+        private static OidcAuthenticationConfig ParseOAuthAuthenticationConfig(IConfiguration configurationSection)
         {
-            var oauthAuthenticationConfig = new OAuthAuthenticationConfig
+            var oauthAuthenticationConfig = new OidcAuthenticationConfig
             {
                 ClientId = configurationSection["clientid"],
                 ClientSecret = configurationSection["clientsecret"],

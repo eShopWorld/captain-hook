@@ -1,0 +1,88 @@
+{
+  "Event": [
+    {
+      "Name": "eventName",
+      "Type": "eventType",
+      "WebhookConfig": {
+        "Name": "webhookName",
+        "URI": "https://blah.blah/webhook",
+        "AuthenticationConfig": {
+          "Type": "oAuth",
+          "URI": "https://blah.blah/token",
+          "ClientId": "clientId",
+          "ClientSecret": "ClientSecret",
+          "Scopes": "scope1 scope2 scope3"
+        },
+        "HttpVerb": "POST",
+        "WebhookParsingRules": [
+          {
+            "Name": "BrandType",
+            "Source": "Body",
+            "Type": "Webhook",
+            "Routes": [
+              {
+                "Name": "Route1",
+                "Selector": "Brand1",
+                "WebhookConfig": {
+                  "Name": "Brand1WebhookConfig",
+                  "URI": "https://blah.blah/webhook",
+                  "AuthenticationConfig": {
+                    "Type": "OIDC",
+                    "URI": "https://blah.blah/token",
+                    "ClientId": "clientId",
+                    "ClientSecret": "ClientSecret",
+                    "Scopes": "scope1 scope2 scope3"
+                  },
+                  "HttpVerb": "POST"
+                }
+              },
+              {
+                "Name": "Route2",
+                "Selector": "Brand2",
+                "WebhookConfig": {
+                  "Name": "webhookName",
+                  "URI": "https://blah.blah/webhook",
+                  "AuthenticationConfig": {
+                    "Type": "OIDC",
+                    "URI": "https://blah.blah/token",
+                    "ClientId": "clientId",
+                    "ClientSecret": "ClientSecret",
+                    "Scopes": "scope1 scope2 scope3"
+                  },
+                  "HttpVerb": "POST"
+                }
+              }
+            ]
+          },
+          {
+            "Name": "GuidforURI",
+            "Path": "OrderCode",
+            "Source": "Body",
+            "Destination": "URI",
+            "Type": "Parameter"
+          },
+          {
+            "Name": "Model",
+            "Path": "OrderConfirmationRequestDto",
+            "Source": "Body",
+            "Destination": "Body",
+            "Type": "Model"
+          }
+        ]
+      },
+      "CallbackConfig": {
+        "Name": "CallbackName",
+        "URI": "https://blah.blah/callback",
+        "AuthenticationConfig": {
+          "Type": "oAuth",
+          "URI": "https://blah.blah/token",
+          "ClientId": "clientId",
+          "ClientSecret": "ClientSecret",
+          "Scopes": "scope1 scope2 scope3"
+        },
+        "HttpVerb": "POST",
+        "ModelToParse": "BlahCallbackConfig"
+      }
+    }
+  ]
+}

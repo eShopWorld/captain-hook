@@ -11,9 +11,9 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// <summary>
     /// Custom Authentication Handler
     /// </summary>
-    public class MmOAuthAuthenticationHandler : OAuthTokenHandler
+    public class MmAuthenticationHandler : OidcAuthenticationHandler
     {
-        public MmOAuthAuthenticationHandler(AuthenticationConfig authenticationConfig) 
+        public MmAuthenticationHandler(AuthenticationConfig authenticationConfig) 
             : base(authenticationConfig)
         {
 
@@ -25,21 +25,21 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <returns></returns>
         public override async Task GetToken(HttpClient client)
         {
-            if (string.IsNullOrEmpty(OAuthAuthenticationConfig.ClientId))
+            if (string.IsNullOrEmpty(OidcAuthenticationConfig.ClientId))
             {
-                throw new ArgumentNullException(nameof(OAuthAuthenticationConfig.ClientId));
+                throw new ArgumentNullException(nameof(OidcAuthenticationConfig.ClientId));
             }
 
-            if (string.IsNullOrEmpty(OAuthAuthenticationConfig.ClientSecret))
+            if (string.IsNullOrEmpty(OidcAuthenticationConfig.ClientSecret))
             {
-                throw new ArgumentNullException(nameof(OAuthAuthenticationConfig.ClientSecret));
+                throw new ArgumentNullException(nameof(OidcAuthenticationConfig.ClientSecret));
             }
 
             //todo get the auth handler
-            client.DefaultRequestHeaders.TryAddWithoutValidation("client_id", OAuthAuthenticationConfig.ClientId);
-            client.DefaultRequestHeaders.TryAddWithoutValidation("client_secret", OAuthAuthenticationConfig.ClientSecret);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("client_id", OidcAuthenticationConfig.ClientId);
+            client.DefaultRequestHeaders.TryAddWithoutValidation("client_secret", OidcAuthenticationConfig.ClientSecret);
 
-            var authProviderResponse = await client.PostAsync(OAuthAuthenticationConfig.Uri, new StringContent("", Encoding.UTF32, "application/json-patch+json"));
+            var authProviderResponse = await client.PostAsync(OidcAuthenticationConfig.Uri, new StringContent("", Encoding.UTF32, "application/json-patch+json"));
 
             if (authProviderResponse.StatusCode != HttpStatusCode.Created || authProviderResponse.Content == null)
             {
@@ -47,12 +47,12 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             }
 
             var responseContent = await authProviderResponse.Content.ReadAsStringAsync();
-            var stsResult = JsonConvert.DeserializeObject<OAuthAuthenticationToken>(responseContent);
+            var stsResult = JsonConvert.DeserializeObject<OidcAuthenticationToken>(responseContent);
 
             client.DefaultRequestHeaders.Clear();
             client.SetBearerToken(stsResult.AccessToken);
 
-            OAuthAuthenticationToken = stsResult;
+            OidcAuthenticationToken = stsResult;
         }
     }
 }

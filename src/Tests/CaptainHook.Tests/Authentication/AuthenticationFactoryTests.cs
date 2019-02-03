@@ -14,9 +14,9 @@ namespace CaptainHook.Tests.Authentication
         public static IEnumerable<object[]> AuthenticationTestData =>
             new List<object[]>
             {
-                new object[] { "basic", new BasicAuthenticationConfig(), new BasicTokenHandler(new BasicAuthenticationConfig()),  },
-                new object[] { "oauth", new OAuthAuthenticationConfig(), new OAuthTokenHandler(new OAuthAuthenticationConfig()) },
-                new object[] { "custom", new OAuthAuthenticationConfig{ Type = AuthenticationType.Custom}, new MmOAuthAuthenticationHandler(new OAuthAuthenticationConfig())  }
+                new object[] { "basic", new BasicAuthenticationConfig(), new BasicAuthenticationHandler(new BasicAuthenticationConfig()),  },
+                new object[] { "oidc", new OidcAuthenticationConfig(), new OidcAuthenticationHandler(new OidcAuthenticationConfig()) },
+                new object[] { "custom", new OidcAuthenticationConfig{ Type = AuthenticationType.Custom}, new MmAuthenticationHandler(new OidcAuthenticationConfig())  }
             };
 
         public static IEnumerable<object[]> NoneAuthenticationTestData =>
