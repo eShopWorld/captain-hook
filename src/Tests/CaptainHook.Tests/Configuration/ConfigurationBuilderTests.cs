@@ -39,7 +39,7 @@ namespace CaptainHook.Tests.Configuration
 
                 //take the parameters from the payload of the message and then add them to the requests which are sent to the webhook and callback
 
-                if (eventHandlerConfig.Name == "goc-checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
+                if (eventHandlerConfig.Name == "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
                 {
                     eventHandlerConfig.EventParsers = new List<EventParser>
                     {

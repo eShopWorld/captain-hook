@@ -11,14 +11,14 @@ using Xunit;
 
 namespace CaptainHook.Tests.Authentication
 {
-    public class OAuthTokenHandlerTests
+    public class OidcTokenHandlerTests
     {
         [IsLayer0]
         [Theory]
         [InlineData("6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282")]
         public async Task AuthorisationTokenSuccess(string expectedAccessToken)
         {
-            var config = new OAuthAuthenticationConfig
+            var config = new OidcAuthenticationConfig
             {
                 ClientId = "bob",
                 ClientSecret = "bobsecret",
@@ -26,14 +26,14 @@ namespace CaptainHook.Tests.Authentication
                 Uri = "http://localhost/authendpoint"
             };
 
-            var handler = new OAuthTokenHandler(config);
+            var handler = new OidcAuthenticationHandler(config);
 
             var mockHttp = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
             var mockRequest = mockHttp.When(HttpMethod.Post, config.Uri)
                 .WithFormData("client_id", config.ClientId)
                 .WithFormData("client_secret", config.ClientSecret)
                 .Respond(HttpStatusCode.OK, "application/json",
-                    JsonConvert.SerializeObject(new OAuthAuthenticationToken
+                    JsonConvert.SerializeObject(new OidcAuthenticationToken
                     {
                         AccessToken = "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282"
                     }));
@@ -64,7 +64,7 @@ namespace CaptainHook.Tests.Authentication
         [InlineData(5, 5, 2)]
         public async Task RefreshToken(int refreshBeforeInSeconds, int expiryTimeInSeconds, int expectedStsCallCount)
         {
-            var config = new OAuthAuthenticationConfig
+            var config = new OidcAuthenticationConfig
             {
                 ClientId = "bob",
                 ClientSecret = "bobsecret",
@@ -73,14 +73,14 @@ namespace CaptainHook.Tests.Authentication
                 RefreshBeforeInSeconds = refreshBeforeInSeconds
             };
 
-            var handler = new OAuthTokenHandler(config);
+            var handler = new OidcAuthenticationHandler(config);
 
             var mockHttp = new MockHttpMessageHandler();
             var mockRequest = mockHttp.When(HttpMethod.Post, config.Uri)
                 .WithFormData("client_id", config.ClientId)
                 .WithFormData("client_secret", config.ClientSecret)
                 .Respond(HttpStatusCode.OK, "application/json",
-                    JsonConvert.SerializeObject(new OAuthAuthenticationToken
+                    JsonConvert.SerializeObject(new OidcAuthenticationToken
                     {
                         AccessToken = "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282",
                         ExpiresIn = expiryTimeInSeconds

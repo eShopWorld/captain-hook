@@ -8,7 +8,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
     /// <summary>
     /// Selects the correct authentication handler based on the type specified by the authentication type.
-    /// This implemented both Basic, OAuth and a custom implemented which will be moved to an integration layer.
+    /// This implemented both Basic, OIDC and a custom implemented which will be moved to an integration layer.
     /// </summary>
     public class AuthenticationHandlerFactory : IAuthHandlerFactory
     {
@@ -33,13 +33,13 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 case AuthenticationType.None:
                     return null;
                 case AuthenticationType.Basic:
-                    return new BasicTokenHandler(config.AuthenticationConfig);
-                case AuthenticationType.OAuth:
-                    return new OAuthTokenHandler(config.AuthenticationConfig);
+                    return new BasicAuthenticationHandler(config.AuthenticationConfig);
+                case AuthenticationType.OIDC:
+                    return new OidcAuthenticationHandler(config.AuthenticationConfig);
                 case AuthenticationType.Custom:
                     //todo hack for now until we move this out of here and into an integration layer
                     //todo if this is custom it should be another webhook which calls out to another place, this place gets a token on CH's behalf and then adds this into subsequent webhook requests.
-                    return new MmOAuthAuthenticationHandler(config.AuthenticationConfig);
+                    return new MmAuthenticationHandler(config.AuthenticationConfig);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(config.AuthenticationConfig.Type), $"unknown configuration type of {config.AuthenticationConfig.Type}");
             }

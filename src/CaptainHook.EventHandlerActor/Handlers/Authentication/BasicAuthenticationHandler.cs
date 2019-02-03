@@ -8,11 +8,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// <summary>
     /// Basic Authentication Handler which returns a http client with a basic http authentication header
     /// </summary>
-    public class BasicTokenHandler : AuthenticationHandler, IAcquireTokenHandler
+    public class BasicAuthenticationHandler : AuthenticationHandler, IAcquireTokenHandler
     {
         protected readonly BasicAuthenticationConfig BasicAuthenticationConfig;
 
-        public BasicTokenHandler(AuthenticationConfig authenticationConfig)
+        public BasicAuthenticationHandler(AuthenticationConfig authenticationConfig)
         {
             var basicAuthenticationConfig = authenticationConfig as BasicAuthenticationConfig;
 

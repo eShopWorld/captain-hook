@@ -17,12 +17,12 @@ namespace CaptainHook.Tests.Authentication
         [InlineData("6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282")]
         public async Task AuthorisationTokenSuccessTests(string expectedAccessToken)
         {
-            var expectedResponse = JsonConvert.SerializeObject(new OAuthAuthenticationToken
+            var expectedResponse = JsonConvert.SerializeObject(new OidcAuthenticationToken
             {
                 AccessToken = expectedAccessToken
             });
 
-            var config = new OAuthAuthenticationConfig
+            var config = new OidcAuthenticationConfig
             {
                 ClientId = "bob",
                 ClientSecret = "bobsecret",
@@ -36,7 +36,7 @@ namespace CaptainHook.Tests.Authentication
                 .WithContentType("application/json-patch+json", string.Empty)
                 .Respond(HttpStatusCode.Created, "application/json-patch+json", expectedResponse);
 
-            var handler = new MmOAuthAuthenticationHandler(config);
+            var handler = new MmAuthenticationHandler(config);
             var httpClient = mockHttp.ToHttpClient();
             await handler.GetToken(httpClient);
 

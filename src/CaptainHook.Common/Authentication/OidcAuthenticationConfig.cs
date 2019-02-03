@@ -3,11 +3,11 @@
     /// <summary>
     /// OAuth2 Authentication Config
     /// </summary>
-    public class OAuthAuthenticationConfig : AuthenticationConfig
+    public class OidcAuthenticationConfig : AuthenticationConfig
     {
-        public OAuthAuthenticationConfig()
+        public OidcAuthenticationConfig()
         {
-            Type = AuthenticationType.OAuth;
+            Type = AuthenticationType.OIDC;
         }
 
         public string Uri { get; set; }

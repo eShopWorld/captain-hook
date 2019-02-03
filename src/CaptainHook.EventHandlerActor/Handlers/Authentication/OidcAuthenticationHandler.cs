@@ -11,20 +11,20 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// Gets a token from the supplied STS details included the supplied scopes.
     /// Requests token once
     /// </summary>
-    public class OAuthTokenHandler : AuthenticationHandler, IAcquireTokenHandler
+    public class OidcAuthenticationHandler : AuthenticationHandler, IAcquireTokenHandler
     {
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
-        protected OAuthAuthenticationToken OAuthAuthenticationToken = new OAuthAuthenticationToken();
-        protected readonly OAuthAuthenticationConfig OAuthAuthenticationConfig;
+        protected OidcAuthenticationToken OidcAuthenticationToken = new OidcAuthenticationToken();
+        protected readonly OidcAuthenticationConfig OidcAuthenticationConfig;
 
-        public OAuthTokenHandler(AuthenticationConfig authenticationConfig)
+        public OidcAuthenticationHandler(AuthenticationConfig authenticationConfig)
         {
-            var oAuthAuthenticationToken = authenticationConfig as OAuthAuthenticationConfig;
-            OAuthAuthenticationConfig = oAuthAuthenticationToken ?? throw new ArgumentException($"configuration for basic authentication is not of type {typeof(OAuthAuthenticationConfig)}", nameof(authenticationConfig));
+            var oAuthAuthenticationToken = authenticationConfig as OidcAuthenticationConfig;
+            OidcAuthenticationConfig = oAuthAuthenticationToken ?? throw new ArgumentException($"configuration for basic authentication is not of type {typeof(OidcAuthenticationConfig)}", nameof(authenticationConfig));
         }
 
         /// <summary>
-        /// Gets a token from the STS based on the supplied credentials and scopes using the client grant OAuth 2 Flow
+        /// Gets a token from the STS based on the supplied credentials and scopes using the client grant OIDC 2 Flow
         /// This method also does token renewal based on requesting a token if the token is set to expire in the next ten seconds.
         /// </summary>
         /// <param name="client"></param>
@@ -32,7 +32,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         public virtual async Task GetToken(HttpClient client)
         {
             //get initial access token and refresh token
-            if (OAuthAuthenticationToken.AccessToken == null)
+            if (OidcAuthenticationToken.AccessToken == null)
             {
                 var response = await GetTokenResponse(client);
 
@@ -44,7 +44,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 await RefreshToken(client);
             }
 
-            client.SetBearerToken(OAuthAuthenticationToken.AccessToken);
+            client.SetBearerToken(OidcAuthenticationToken.AccessToken);
         }
 
         /// <summary>
@@ -56,11 +56,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         {
             var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
-                Address = OAuthAuthenticationConfig.Uri,
-                ClientId = OAuthAuthenticationConfig.ClientId,
-                ClientSecret = OAuthAuthenticationConfig.ClientSecret,
-                GrantType = OAuthAuthenticationConfig.GrantType,
-                Scope = string.Join(" ", OAuthAuthenticationConfig.Scopes)
+                Address = OidcAuthenticationConfig.Uri,
+                ClientId = OidcAuthenticationConfig.ClientId,
+                ClientSecret = OidcAuthenticationConfig.ClientSecret,
+                GrantType = OidcAuthenticationConfig.GrantType,
+                Scope = string.Join(" ", OidcAuthenticationConfig.Scopes)
             });
             return response;
         }
@@ -71,20 +71,20 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <param name="response"></param>
         protected void UpdateToken(TokenResponse response)
         {
-            OAuthAuthenticationToken.AccessToken = response.AccessToken;
-            OAuthAuthenticationToken.RefreshToken = response.RefreshToken;
-            OAuthAuthenticationToken.ExpiresIn = response.ExpiresIn;
+            OidcAuthenticationToken.AccessToken = response.AccessToken;
+            OidcAuthenticationToken.RefreshToken = response.RefreshToken;
+            OidcAuthenticationToken.ExpiresIn = response.ExpiresIn;
         }
 
         /// <summary>
         /// Gets a new token from the STS
-        /// OAuth refresh flow is not supported in the STS
+        /// OIDC refresh flow is not supported in the STS
         /// </summary>
         /// <param name="client"></param>
         /// <returns></returns>
         protected virtual async Task RefreshToken(HttpClient client)
         {
-            if (OAuthAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(OAuthAuthenticationConfig.RefreshBeforeInSeconds)) <= DateTime.UtcNow)
+            if (OidcAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(OidcAuthenticationConfig.RefreshBeforeInSeconds)) <= DateTime.UtcNow)
             {
                 var response = await GetTokenResponse(client);
 

@@ -4,7 +4,7 @@
     {
         None = 0,
         Basic = 1,
-        OAuth = 2,
+        OIDC = 2,
         Custom = 3
     }
 }

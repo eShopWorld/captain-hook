@@ -6,7 +6,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// <summary>
     /// Local cache token for requests to whatever
     /// </summary>
-    public class OAuthAuthenticationToken 
+    public class OidcAuthenticationToken 
     {
         private int _expiresIn;
 
