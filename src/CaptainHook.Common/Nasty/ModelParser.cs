@@ -20,14 +20,14 @@
             return domainType;
         }
 
-        public static Guid ParseOrderCode(string payload, JObject jObject = null)
+        public static Guid ParseOrderCode(string name, string payload, JObject jObject = null)
         {
             if (jObject == null)
             {
                 jObject = JObject.Parse(payload);
             }
 
-            var orderCode = jObject.SelectToken("OrderCode").Value<string>();
+            var orderCode = jObject.SelectToken(name).Value<string>();
             if (Guid.TryParse(orderCode, out var result))
             {
                 return result;
@@ -35,7 +35,7 @@
 
             throw new FormatException($"cannot parse order code in payload {orderCode}");
         }
-
+        
         /// <summary>
         /// </summary>
         /// <param name="payload"></param>
