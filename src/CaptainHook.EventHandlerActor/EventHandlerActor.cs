@@ -106,18 +106,34 @@ namespace CaptainHook.EventHandlerActor
             var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
             if (!messageData.HasValue)
             {
-               _bigBrother.Publish(new WebhookEvent("message was empty") );
+                _bigBrother.Publish(new WebhookEvent("message was empty"));
                 return;
             }
 
             try
             {
-                var (brandType, eventType)  = ModelParser.ParseBrandAndEventType(messageData.Value);
+                var key = string.Empty;
+                var eventType = messageData.Value.Type;
 
-                var handler = _eventHandlerFactory.CreateHandler($"{brandType}-{eventType}", eventType);
+                //todo remove to integration layer by v1
+                switch (messageData.Value.Type)
+                {
+                    case "nike.snkrs.core.events.productupdate":
+                    case "nike.snkrs.core.events.productrefreshevent":
+                        key = $"snkrs-{eventType}";
+                        break;
+
+                    case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
+                    case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
+                        var brandType = ModelParser.ParseBrandAndEventType(messageData.Value);
+                        key = $"{brandType}-{eventType}";
+                        break;
+                }
+
+                var handler = _eventHandlerFactory.CreateHandler(key, eventType);
 
                 await handler.Call(messageData.Value);
-                
+
                 await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
                 await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
             }

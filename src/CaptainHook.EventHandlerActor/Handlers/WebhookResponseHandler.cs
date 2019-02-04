@@ -43,9 +43,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 await AcquireTokenHandler.GetToken(_client);
             }
 
+
             //todo remove in v1
             var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
-            var orderCode = ModelParser.ParseOrderCode(messageData.Payload);
+            var orderCode = ModelParser.ParseOrderCode("OrderCode", messageData.Payload);
 
             void TelemetryEvent(string msg)
             {
