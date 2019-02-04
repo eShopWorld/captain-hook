@@ -14,7 +14,7 @@
           "Scopes": "scope1 scope2 scope3"
         },
         "HttpVerb": "POST",
-        "WebhookParsingRules": [
+        "WebhookRequestRules": [
           {
             "Name": "BrandType",
             "Source": "Body",

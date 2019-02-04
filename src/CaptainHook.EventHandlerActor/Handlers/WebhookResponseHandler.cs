@@ -52,7 +52,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
             }
 
-            var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, WebhookConfig.Uri, innerPayload, TelemetryEvent);
+            var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, WebhookConfig.Uri, innerPayload, TelemetryEvent);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
