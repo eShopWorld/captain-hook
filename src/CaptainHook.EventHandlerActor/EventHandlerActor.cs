@@ -115,7 +115,7 @@ namespace CaptainHook.EventHandlerActor
                 var key = string.Empty;
                 var eventType = messageData.Value.Type;
 
-                //todo remove to integration layer by v1
+                //todo remove when configuration is done and jpaths. Handlers should be just generic with injected configurations
                 switch (messageData.Value.Type)
                 {
                     case "nike.snkrs.core.events.productupdate":
@@ -125,7 +125,7 @@ namespace CaptainHook.EventHandlerActor
 
                     case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                     case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                        var brandType = ModelParser.ParseBrandAndEventType(messageData.Value);
+                        var brandType = ModelParser.ParsePayloadProperty("BrandCode", messageData.Value.Payload);
                         key = $"{brandType}-{eventType}";
                         break;
                 }

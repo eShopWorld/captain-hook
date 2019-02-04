@@ -55,13 +55,19 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
 
                 var uri = WebhookConfig.Uri;
-
+                
                 //todo remove to integration layer by v1
                 switch (messageData.Type)
                 {
+                    case "nike.snkrs.core.events.productupdate":
+                    case "nike.snkrs.core.events.productrefreshevent":
+                        var id = ModelParser.ParsePayloadProperty("ProductId", messageData.Payload);
+                        uri = $"{WebhookConfig.Uri}/{id}"; //todo remove to integration layer by v1
+                        break;
+
                     case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                     case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                        var orderCode = ModelParser.ParseOrderCode("OrderCode", messageData.Payload);
+                        var orderCode = ModelParser.ParsePayloadProperty("OrderCode", messageData.Payload);
                         uri = $"{WebhookConfig.Uri}/{orderCode}"; //todo remove to integration layer by v1
                         break;
                 }
