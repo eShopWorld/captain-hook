@@ -41,9 +41,9 @@ namespace CaptainHook.Tests.Configuration
 
                 if (eventHandlerConfig.Name == "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent")
                 {
-                    eventHandlerConfig.EventParsers = new List<EventParser>
+                    eventHandlerConfig.EventParsers = new List<WebhookRequestRule>
                     {
-                        new EventParser
+                        new WebhookRequestRule
                         {
                             ActionPreformedOn = ActionPreformedOn.Message,
                             Name = "OrderCodeParser",
@@ -60,7 +60,7 @@ namespace CaptainHook.Tests.Configuration
                                 QueryLocation = QueryLocation.Uri
                             }
                         },
-                        new EventParser
+                        new WebhookRequestRule
                         {
                             ActionPreformedOn = ActionPreformedOn.Callback,
                             Source = new ParserLocation
@@ -73,7 +73,7 @@ namespace CaptainHook.Tests.Configuration
                                 QueryLocation = QueryLocation.Uri
                             }
                         },
-                        new EventParser
+                        new WebhookRequestRule
                         {
                             ActionPreformedOn = ActionPreformedOn.Webhook,
                             Source = new ParserLocation
@@ -91,9 +91,9 @@ namespace CaptainHook.Tests.Configuration
 
                 if (eventHandlerConfig.Name == "goc-checkout.domain.infrastructure.domainevents.platformordercreatedomainevent")
                 {
-                    eventHandlerConfig.EventParsers = new List<EventParser>
+                    eventHandlerConfig.EventParsers = new List<WebhookRequestRule>
                     {
-                        new EventParser
+                        new WebhookRequestRule
                         {
                             Name = "OrderCode",
                             ActionPreformedOn = ActionPreformedOn.Webhook,
@@ -107,7 +107,7 @@ namespace CaptainHook.Tests.Configuration
                                 QueryLocation = QueryLocation.Uri
                             }
                         },
-                        new EventParser
+                        new WebhookRequestRule
                         {
                             Name = "Payload Parser from event to webhook",
                             ActionPreformedOn = ActionPreformedOn.Webhook,
