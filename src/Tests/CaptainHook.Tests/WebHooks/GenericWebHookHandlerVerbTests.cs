@@ -17,7 +17,7 @@ using Xunit;
 namespace CaptainHook.Tests.WebHooks
 {
     /// <summary>
-    /// Tests the HTTP Verb selection maps to the actual requests made to the webhooks and callbacks
+    /// Tests the HTTP HttpVerb selection maps to the actual requests made to the webhooks and callbacks
     /// </summary>
     public class GenericWebHookHandlerVerbTests
     {
@@ -66,9 +66,9 @@ namespace CaptainHook.Tests.WebHooks
         public static IEnumerable<object[]> CreationData =>
             new List<object[]>
             {
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/post", Verb = "Post", }, HttpMethod.Post, JsonConvert.SerializeObject(new { Message = "Hello World Post" }), HttpStatusCode.Created, string.Empty  },
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/put", Verb = "Put"}, HttpMethod.Put, JsonConvert.SerializeObject(new { Message = "Hello World Put " }), HttpStatusCode.NoContent, string.Empty  },
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/patch", Verb = "Patch"}, HttpMethod.Patch, JsonConvert.SerializeObject(new { Message = "Hello World Patch" }), HttpStatusCode.NoContent, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/post", HttpVerb = "Post", }, HttpMethod.Post, JsonConvert.SerializeObject(new { Message = "Hello World Post" }), HttpStatusCode.Created, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/put", HttpVerb = "Put"}, HttpMethod.Put, JsonConvert.SerializeObject(new { Message = "Hello World Put " }), HttpStatusCode.NoContent, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/patch", HttpVerb = "Patch"}, HttpMethod.Patch, JsonConvert.SerializeObject(new { Message = "Hello World Patch" }), HttpStatusCode.NoContent, string.Empty  },
             };
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace CaptainHook.Tests.WebHooks
         public static IEnumerable<object[]> GetData =>
             new List<object[]>
             {
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/get", Verb = "Get"}, HttpMethod.Get, null, HttpStatusCode.OK, string.Empty}
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/get", HttpVerb = "Get"}, HttpMethod.Get, null, HttpStatusCode.OK, string.Empty}
             };
     }
 }

@@ -21,13 +21,9 @@ namespace CaptainHook.Common.Configuration
         public string Name { get; set; }
 
         //todo implement this on the calls to the webhook to select http verb
-        public string Verb { get; set; }
+        public string HttpVerb { get; set; }
 
-        /// <summary>
-        /// //todo remove this in v1
-        /// </summary>
-        [Obsolete]
-        public string ModelToParse { get; set; }
+        public List<WebhookRequestRule> Rules { get; set; }
     }
 
     /// <summary>
@@ -38,8 +34,6 @@ namespace CaptainHook.Common.Configuration
         public WebhookConfig WebHookConfig { get; set; }
 
         public WebhookConfig CallbackConfig { get; set; }
-
-        public List<EventParser> EventParsers { get; set; }
 
         public string Name { get; set; }
 
@@ -58,7 +52,7 @@ namespace CaptainHook.Common.Configuration
         Message = 3
     }
 
-    public class EventParser
+    public class WebhookRequestRule
     {
         /// <summary>
         ///  Whether to preform the action on the webhook or the callback

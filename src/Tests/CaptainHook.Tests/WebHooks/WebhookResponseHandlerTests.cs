@@ -34,14 +34,14 @@ namespace CaptainHook.Tests.WebHooks
                     Uri = "http://localhost/webhook",
                     ModelToParse = "TransportModel",
                     AuthenticationConfig = new OidcAuthenticationConfig(),
-                    Verb = "PUT"
+                    HttpVerb = "PUT"
                 },
                 CallbackConfig = new WebhookConfig
                 {
                     Name = "PutOrderConfirmationEvent",
                     Uri = "http://localhost/callback",
                     AuthenticationConfig = new OidcAuthenticationConfig(),
-                    Verb = "POST"
+                    HttpVerb = "POST"
                 }
             };
 
