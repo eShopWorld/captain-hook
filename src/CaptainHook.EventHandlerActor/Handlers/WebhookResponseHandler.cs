@@ -46,7 +46,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             //todo remove in v1
             var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
-            var orderCode = ModelParser.ParseOrderCode("OrderCode", messageData.Payload);
+            var orderCode = ModelParser.ParsePayloadProperty("OrderCode", messageData.Payload);
 
             void TelemetryEvent(string msg)
             {
