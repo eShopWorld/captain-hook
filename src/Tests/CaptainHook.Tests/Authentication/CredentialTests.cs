@@ -1,4 +1,5 @@
 ﻿using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Eshopworld.Tests.Core;
 using IdentityModel.Client;
@@ -8,7 +9,7 @@ namespace CaptainHook.Tests.Authentication
 {
     public class CredentialTests
     {
-        [Theory(Skip = "For debugging untilplugged into keyvault and into the correct flow")]
+        [Theory]
         [IsLayer1]
         [InlineData("esw.nike.snkrs.controltower.webhook.api.all")]
         [InlineData("esw.nike.snkrs.product.webhook.api.all")]
@@ -16,14 +17,14 @@ namespace CaptainHook.Tests.Authentication
         public async Task GetCredentials(string scope)
         {
             var client = new HttpClient();
-            var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest
+            var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
-                Address = "https://security-sts.test.eshopworld.net/connect/token",
+                Address = "https://security-sts.ci.eshopworld.net/connect/token",
                 ClientId = "tooling.eda.client",
-                ClientSecret = "",
+                ClientSecret = "goodluck",
                 GrantType = "client_credentials",
                 Scope = scope
-            });
+            }, CancellationToken.None);
 
             Assert.Equal(ResponseErrorType.None, response.ErrorType);
         }

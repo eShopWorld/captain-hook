@@ -54,7 +54,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <returns></returns>
         private async Task<TokenResponse> GetTokenResponse(HttpMessageInvoker client)
         {
-            var response = await client.RequestTokenAsync(new ClientCredentialsTokenRequest
+            var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
                 Address = OAuthAuthenticationConfig.Uri,
                 ClientId = OAuthAuthenticationConfig.ClientId,
