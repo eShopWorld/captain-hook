@@ -9,7 +9,7 @@ namespace CaptainHook.Tests.Authentication
 {
     public class CredentialTests
     {
-        [Theory]
+        [Theory(Skip = "Will enable when getting to layer 1 tests in V1")]
         [IsLayer1]
         [InlineData("esw.nike.snkrs.controltower.webhook.api.all")]
         [InlineData("esw.nike.snkrs.product.webhook.api.all")]
