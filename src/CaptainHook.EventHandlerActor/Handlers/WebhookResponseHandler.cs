@@ -42,8 +42,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 await AcquireTokenHandler.GetToken(_client);
             }
-
-
+            
             //todo remove in v1
             var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
             var orderCode = ModelParser.ParsePayloadProperty("OrderCode", messageData.Payload);

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.Interfaces;
@@ -101,36 +100,20 @@ namespace CaptainHook.EventHandlerActor
 
         private async Task InternalHandle(object _)
         {
-            UnregisterTimer(_handleTimer);
-
-            var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
-            if (!messageData.HasValue)
-            {
-                _bigBrother.Publish(new WebhookEvent("message was empty"));
-                return;
-            }
-
             try
             {
-                var key = string.Empty;
-                var eventType = messageData.Value.Type;
+                UnregisterTimer(_handleTimer);
 
-                //todo remove when configuration is done and jpaths. Handlers should be just generic with injected configurations
-                switch (messageData.Value.Type)
+                var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
+                if (!messageData.HasValue)
                 {
-                    case "nike.snkrs.core.events.productupdate":
-                    case "nike.snkrs.core.events.productrefreshevent":
-                        key = $"snkrs-{eventType}";
-                        break;
-
-                    case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
-                    case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                        var brandType = ModelParser.ParsePayloadProperty("BrandCode", messageData.Value.Payload);
-                        key = $"{brandType}-{eventType}";
-                        break;
+                    _bigBrother.Publish(new WebhookEvent("message was empty"));
+                    return;
                 }
 
-                var handler = _eventHandlerFactory.CreateHandler(key, eventType);
+                var eventType = messageData.Value.Type;
+
+                var handler = _eventHandlerFactory.CreateHandler(eventType);
 
                 await handler.Call(messageData.Value);
 

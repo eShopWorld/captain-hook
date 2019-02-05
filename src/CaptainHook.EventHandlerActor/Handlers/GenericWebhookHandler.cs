@@ -55,16 +55,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
 
                 var uri = WebhookConfig.Uri;
-                
+
                 //todo remove to integration layer by v1
                 switch (messageData.Type)
                 {
-                    case "nike.snkrs.core.events.productupdate":
-                    case "nike.snkrs.core.events.productrefreshevent":
-                        var id = ModelParser.ParsePayloadProperty("ProductId", messageData.Payload);
-                        uri = $"{WebhookConfig.Uri}/{id}"; //todo remove to integration layer by v1
-                        break;
-
                     case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                     case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
                         var orderCode = ModelParser.ParsePayloadProperty("OrderCode", messageData.Payload);
@@ -91,8 +85,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
 
                 var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, uri, innerPayload, TelemetryEvent);
-
-                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
+                
+                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
             }
             catch (Exception e)
             {
