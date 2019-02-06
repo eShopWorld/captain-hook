@@ -33,7 +33,7 @@ namespace CaptainHook.EventReaderActor
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
     [StatePersistence(StatePersistence.Persisted)]
-    public class EventReaderActor : Actor, IEventReaderActor
+    public class EventReaderActor : Actor, IEventReaderActor, IRemindable
     {
         private const string SubscriptionName = "captain-hook";
 
@@ -47,6 +47,8 @@ namespace CaptainHook.EventReaderActor
         private volatile bool _readingEvents;
         private Timer _poolTimer;
         private MessageReceiver _receiver;
+        private IActorReminder _reminder;
+        private const string ReminderName = "Wake up";
 
         private ConditionalValue<Dictionary<Guid, string>> _messagesInHandlers;
 
@@ -83,14 +85,6 @@ namespace CaptainHook.EventReaderActor
 
                 await SetupServiceBus();
 
-                // TODO: SET REMINDER - 10 MINS
-
-                _poolTimer = new Timer(
-                    ReadEvents,
-                    null,
-                    TimeSpan.FromMilliseconds(500),
-                    TimeSpan.FromMilliseconds(500));
-
                 _receiver = new MessageReceiver(
                     _settings.ServiceBusConnectionString,
                     EntityNameHelper.FormatSubscriptionPath(TypeExtensions.GetEntityName(Id.GetStringId()), SubscriptionName),
@@ -110,6 +104,7 @@ namespace CaptainHook.EventReaderActor
         protected override Task OnDeactivateAsync()
         {
             _bigBrother.Publish(new ActorDeactivated(this));
+            
             _poolTimer?.Dispose();
             return base.OnDeactivateAsync();
         }
@@ -169,9 +164,19 @@ namespace CaptainHook.EventReaderActor
         /// <remarks>
         /// Do nothing by design. We just need to make sure that the actor is properly activated.
         /// </remarks>>
-        public Task Run()
+        public async Task Run()
         {
-            return Task.CompletedTask;
+            _reminder = await this.RegisterReminderAsync(
+                ReminderName,
+                null,
+                TimeSpan.FromMilliseconds(100),
+                TimeSpan.FromMilliseconds(100));
+
+            //_poolTimer = new Timer(
+            //    ReadEvents,
+            //    null,
+            //    TimeSpan.FromMilliseconds(500),
+            //    TimeSpan.FromMilliseconds(500));
         }
 
         public async Task CompleteMessage(Guid handle)
@@ -188,6 +193,18 @@ namespace CaptainHook.EventReaderActor
                 _bigBrother.Publish(e.ToExceptionEvent());
                 throw;
             }
+        }
+
+        public Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
+        {
+            _bigBrother.Publish(new ActorReminderCalled(this, reminderName));
+
+            if (reminderName.Equals(ReminderName, StringComparison.OrdinalIgnoreCase))
+            {
+                ReadEvents(null);
+            }
+
+            return Task.CompletedTask;
         }
     }
 }
