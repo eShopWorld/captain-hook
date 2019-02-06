@@ -197,8 +197,6 @@ namespace CaptainHook.EventReaderActor
 
         public Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
         {
-            _bigBrother.Publish(new ActorReminderCalled(this, reminderName));
-
             if (reminderName.Equals(ReminderName, StringComparison.OrdinalIgnoreCase))
             {
                 ReadEvents();
