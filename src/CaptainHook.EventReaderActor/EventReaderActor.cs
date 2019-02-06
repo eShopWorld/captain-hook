@@ -134,7 +134,7 @@ namespace CaptainHook.EventReaderActor
             await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
 
-        internal void ReadEvents(object _)
+        internal void ReadEvents()
         {
             lock (_gate)
             {
@@ -201,7 +201,7 @@ namespace CaptainHook.EventReaderActor
 
             if (reminderName.Equals(ReminderName, StringComparison.OrdinalIgnoreCase))
             {
-                ReadEvents(null);
+                ReadEvents();
             }
 
             return Task.CompletedTask;
