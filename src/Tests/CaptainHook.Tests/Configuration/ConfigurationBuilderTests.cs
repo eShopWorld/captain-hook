@@ -51,13 +51,13 @@ namespace CaptainHook.Tests.Configuration
                             {
                                 //take it from the body of the message
                                 Name = "OrderCode",
-                                QueryLocation = QueryLocation.Body
+                                Location = Location.Body
                             },
                             Destination = new ParserLocation
                             {
                                 //put it in the URI
                                 Name = "OrderCode",
-                                QueryLocation = QueryLocation.Uri
+                                Location = Location.Uri
                             }
                         },
                         new WebhookRequestRule
@@ -66,11 +66,11 @@ namespace CaptainHook.Tests.Configuration
                             Source = new ParserLocation
                             {
                                 Name = "OrderCode",
-                                QueryLocation = QueryLocation.Body
+                                Location = Location.Body
                             },
                             Destination = new ParserLocation
                             {
-                                QueryLocation = QueryLocation.Uri
+                                Location = Location.Uri
                             }
                         },
                         new WebhookRequestRule
@@ -79,11 +79,11 @@ namespace CaptainHook.Tests.Configuration
                             Source = new ParserLocation
                             {
                                 Name = "OrderConfirmationRequestDto",
-                                QueryLocation = QueryLocation.Body
+                                Location = Location.Body
                             },
                             Destination = new ParserLocation
                             {
-                                QueryLocation = QueryLocation.Body
+                                Location = Location.Body
                             }
                         }
                     };
@@ -100,11 +100,11 @@ namespace CaptainHook.Tests.Configuration
                             Source = new ParserLocation
                             {
                                 Name = "OrderCode",
-                                QueryLocation = QueryLocation.Body
+                                Location = Location.Body
                             },
                             Destination = new ParserLocation
                             {
-                                QueryLocation = QueryLocation.Uri
+                                Location = Location.Uri
                             }
                         },
                         new WebhookRequestRule
@@ -114,11 +114,11 @@ namespace CaptainHook.Tests.Configuration
                             Source = new ParserLocation
                             {
                                 Name = "PreOrderApiInternalModelOrderRequestDto",
-                                QueryLocation = QueryLocation.Body
+                                Location = Location.Body
                             },
                             Destination = new ParserLocation
                             {
-                                QueryLocation = QueryLocation.Body
+                                Location = Location.Body
                             }
                         }
                     };

@@ -23,7 +23,7 @@ namespace CaptainHook.Common.Configuration
         //todo implement this on the calls to the webhook to select http verb
         public string HttpVerb { get; set; }
 
-        public List<WebhookRequestRule> Rules { get; set; }
+        public List<WebhookRequestRule> WebhookRequestRules { get; set; }
     }
 
     /// <summary>
@@ -73,16 +73,35 @@ namespace CaptainHook.Common.Configuration
         /// Name for reference
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public QueryRuleTypes Type { get; set; }
+
+        /// <summary>
+        /// Routes used for webhook rule types
+        /// </summary>
+        public List<WebhookConfig> Routes { get; set; }
+    }
+
+    public enum QueryRuleTypes
+    {
+        Parameter = 1,
+        Model = 2,
+        WebHook = 3
     }
 
     public class ParserLocation
     {
         public string Name { get; set; }
 
-        public QueryLocation QueryLocation { get; set; }
+        public string Path { get; set; }
+
+        public Location Location { get; set; }
     }
 
-    public enum QueryLocation
+    public enum Location
     {
         Uri = 1,
         Body = 2,

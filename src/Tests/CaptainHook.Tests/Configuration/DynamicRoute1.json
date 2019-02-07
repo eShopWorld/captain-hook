@@ -56,17 +56,25 @@
           },
           {
             "Name": "GuidforURI",
-            "Path": "OrderCode",
-            "Source": "Body",
-            "Destination": "URI",
+            "Source": {
+              "Path": "OrderCode",
+              "Location": "Body"
+            },
+            "Destination": {
+              "Location": "URI"
+            },
             "Type": "Parameter"
           },
           {
-            "Name": "Model",
-            "Path": "OrderConfirmationRequestDto",
-            "Source": "Body",
-            "Destination": "Body",
-            "Type": "Model"
+            "Name": "PayloadModel",
+            "Type": "Model",
+            "Source": {
+              "Path": "OrderConfirmationRequestDto",
+              "Location": "Body"
+            },
+            "Destination": {
+              "Location": "Body"
+            }
           }
         ]
       },
