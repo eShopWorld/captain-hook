@@ -23,7 +23,7 @@ namespace CaptainHook.Common.Configuration
         //todo implement this on the calls to the webhook to select http verb
         public string HttpVerb { get; set; }
 
-        public List<WebhookRequestRule> WebhookRequestRules { get; set; }
+        public List<WebhookQueryRule> WebhookQueryRules { get; set; }
     }
 
     /// <summary>
@@ -42,23 +42,8 @@ namespace CaptainHook.Common.Configuration
         public bool CallBackEnabled => CallbackConfig != null;
     }
 
-    /// <summary>
-    /// Action for the event parser to be preformed on the webhook request or on the callback request
-    /// </summary>
-    public enum ActionPreformedOn
+    public class WebhookQueryRule
     {
-        Webhook = 1,
-        Callback = 2,
-        Message = 3
-    }
-
-    public class WebhookRequestRule
-    {
-        /// <summary>
-        ///  Whether to preform the action on the webhook or the callback
-        /// </summary>
-        public ActionPreformedOn ActionPreformedOn { get; set; }
-
         /// <summary>
         /// ie from payload, header, etc etc
         /// </summary>
@@ -82,7 +67,15 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// Routes used for webhook rule types
         /// </summary>
-        public List<WebhookConfig> Routes { get; set; }
+        public List<WebhookConfigRoutes> Routes { get; set; }
+    }
+
+    public class WebhookConfigRoutes : WebhookConfig
+    {
+        /// <summary>
+        /// A selector that is used in the payload to determine where the request should be routed to in the config
+        /// </summary>
+        public string Selector { get; set; }
     }
 
     public enum QueryRuleTypes
@@ -94,17 +87,51 @@ namespace CaptainHook.Common.Configuration
 
     public class ParserLocation
     {
+        [Obsolete]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Path for the parameter to query from or to be placed
+        /// ie: path in the message both or if it's a value in the http header
+        /// </summary>
         public string Path { get; set; }
 
+        /// <summary>
+        /// The location of the parsed parameter or the location it should go
+        /// </summary>
         public Location Location { get; set; }
     }
 
     public enum Location
     {
+        /// <summary>
+        /// Mostly used to add something to the URI of the request
+        /// </summary>
         Uri = 1,
-        Body = 2,
+
+        /// <summary>
+        /// The request payload body. Can come from or be attached to
+        /// </summary>
+        PayloadBody = 2,
+
+        /// <summary>
+        /// Headers for the requests to add
+        /// </summary>
         Header = 3,
+
+        /// <summary>
+        /// Query parameters to add, esp for HTTP Gets
+        /// </summary>
+        QueryParameter = 4,
+
+        /// <summary>
+        /// The domain event body, ie where the data can come from
+        /// </summary>
+        MessageBody = 5,
+
+        /// <summary>
+        /// Special case to get the status code of the webhook request and add it to the call back body
+        /// </summary>
+        StatusCode = 6
     }
 }

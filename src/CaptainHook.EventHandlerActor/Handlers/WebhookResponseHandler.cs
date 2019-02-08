@@ -63,8 +63,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 Content = await response.Content.ReadAsStringAsync(),
                 StatusCode = (int)response.StatusCode
             };
-            messageData.OrderCode = orderCode;
-            messageData.Payload = JsonConvert.SerializeObject(payload);
+            messageData.CallbackPayload = JsonConvert.SerializeObject(payload);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.CallbackPayload));
 
