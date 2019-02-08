@@ -23,7 +23,7 @@ namespace CaptainHook.Common.Configuration
         //todo implement this on the calls to the webhook to select http verb
         public string HttpVerb { get; set; }
 
-        public List<WebhookQueryRule> WebhookQueryRules { get; set; }
+        public List<WebhookRequestRule> WebhookRequestRules { get; set; }
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ namespace CaptainHook.Common.Configuration
         public bool CallBackEnabled => CallbackConfig != null;
     }
 
-    public class WebhookQueryRule
+    public class WebhookRequestRule
     {
         /// <summary>
         /// ie from payload, header, etc etc

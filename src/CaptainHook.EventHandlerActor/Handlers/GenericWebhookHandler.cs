@@ -61,7 +61,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 {
                     case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
                     case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                        var orderCode = ModelParser.ParsePayloadProperty("OrderCode", messageData.Payload);
+                        var orderCode = ModelParser.ParsePayloadPropertyAsGuid("OrderCode", messageData.Payload);
                         uri = $"{WebhookConfig.Uri}/{orderCode}"; //todo remove to integration layer by v1
                         break;
                 }

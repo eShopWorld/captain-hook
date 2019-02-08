@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -24,33 +25,10 @@ namespace CaptainHook.Tests.WebHooks
         /// </summary>
         /// <returns></returns>
         [IsLayer0]
-        [Fact]
-        public async Task ExecuteHappyPath()
+        [Theory]
+        [MemberData(nameof(Data))]
+        public async Task ExecuteHappyPath(EventHandlerConfig config, MessageData messageData)
         {
-            var config = new EventHandlerConfig
-            {
-                WebHookConfig = new WebhookConfig
-                {
-                    Uri = "http://localhost/webhook",
-                    ModelToParse = "TransportModel",
-                    AuthenticationConfig = new OidcAuthenticationConfig(),
-                    HttpVerb = "PUT"
-                },
-                CallbackConfig = new WebhookConfig
-                {
-                    Name = "PutOrderConfirmationEvent",
-                    Uri = "http://localhost/callback",
-                    AuthenticationConfig = new OidcAuthenticationConfig(),
-                    HttpVerb = "POST"
-                }
-            };
-
-            var messageData = new MessageData
-            {
-                Payload = EventHandlerTestHelper.GenerateMockPayloadWithInternalModel(Guid.NewGuid()),
-                Type = "TestType"
-            };
-
             var mockHttpHandler = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
             var mockWebHookRequestWithCallback = mockHttpHandler.When(HttpMethod.Put, config.WebHookConfig.Uri)
                 .WithContentType("application/json", JsonConvert.SerializeObject(new { Name = "Hello World" }))
@@ -87,5 +65,142 @@ namespace CaptainHook.Tests.WebHooks
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequestWithCallback));
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequest));
         }
+
+
+        public static IEnumerable<object[]> Data =>
+            new List<object[]>
+            {
+                new object[]
+                {
+                    new EventHandlerConfig
+                    {
+                        Name = "Event 1",
+                        Type = "blahblah",
+                        WebHookConfig = new WebhookConfig
+                        {
+                            Name = "Webhook1",
+                            HttpVerb = "POST",
+                            Uri = "https://blah.blah.eshopworld.com",
+                            AuthenticationConfig = new OidcAuthenticationConfig
+                            {
+                                Type = AuthenticationType.OIDC,
+                                Uri = "https://blah-blah.sts.eshopworld.com",
+                                ClientId = "ClientId",
+                                ClientSecret = "ClientSecret",
+                                Scopes = new[] {"scope1", "scope2"}
+                            },
+                            WebhookRequestRules = new List<WebhookRequestRule>
+                            {
+                                new WebhookRequestRule
+                                {
+                                    Name = "OrderCode",
+                                    Source = new ParserLocation
+                                    {
+                                        Location = Location.PayloadBody,
+                                        Path = "OrderCode"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.Uri
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Type = QueryRuleTypes.WebHook,
+                                    Source = new ParserLocation
+                                    {
+                                        Path = "BrandType",
+                                        Location = Location.PayloadBody
+                                    },
+                                    Routes = new List<WebhookConfigRoutes>
+                                    {
+                                        new WebhookConfigRoutes
+                                        {
+                                            Uri = "https://blah.blah.brandytype.eshopworld.com",
+                                            HttpVerb = "POST",
+                                            Selector = "Brand1",
+                                            AuthenticationConfig = new AuthenticationConfig
+                                            {
+                                                Type = AuthenticationType.None
+                                            }
+                                        }
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Source = new ParserLocation
+                                    {
+                                        Path = "OrderConfirmationRequestDto",
+                                        Location = Location.PayloadBody
+                                    },
+                                    Type = QueryRuleTypes.Model,
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.PayloadBody
+                                    }
+                                }
+                            }
+                        },
+                        CallbackConfig = new WebhookConfig
+                        {
+                            Name = "PutOrderConfirmationEvent",
+                            HttpVerb = "PUT",
+                            Uri = "https://callback.eshopworld.com",
+                            AuthenticationConfig = new AuthenticationConfig
+                            {
+                                Type = AuthenticationType.None
+                            },
+                            WebhookRequestRules = new List<WebhookRequestRule>
+                            {
+                                new WebhookRequestRule
+                                {
+                                    Type = QueryRuleTypes.Parameter,
+                                    Source = new ParserLocation
+                                    {
+                                        Location = Location.MessageBody,
+                                        Path = "OrderCode"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.PayloadBody,
+                                        Path = "OrderCode"
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Type = QueryRuleTypes.Parameter,
+                                    Source = new ParserLocation
+                                    {
+                                        Location = Location.StatusCode,
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.PayloadBody,
+                                        Path = "StatusCode"
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Type = QueryRuleTypes.Parameter,
+                                    Source = new ParserLocation
+                                    {
+                                        Location = Location.PayloadBody
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.PayloadBody,
+                                        Path = "Content"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    new MessageData
+                    {
+                        Payload = EventHandlerTestHelper.GenerateMockPayloadWithInternalModel(Guid.NewGuid()),
+                        Type = "TestType"
+                    }
+                }
+            };
     }
 }

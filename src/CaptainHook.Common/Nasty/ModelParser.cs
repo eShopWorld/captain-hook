@@ -9,7 +9,7 @@
     /// </summary>
     public static class ModelParser
     {
-        public static Guid ParsePayloadProperty(string name, string payload, JObject jObject = null)
+        public static Guid ParsePayloadPropertyAsGuid(string name, string payload, JObject jObject = null)
         {
             if (jObject == null)
             {
@@ -24,7 +24,23 @@
 
             throw new FormatException($"cannot parse order code in payload {orderCode}");
         }
-        
+
+        public static string ParsePayloadPropertyAsString(string name, string payload, JObject jObject = null)
+        {
+            if (jObject == null)
+            {
+                jObject = JObject.Parse(payload);
+            }
+
+            var orderCode = jObject.SelectToken(name).Value<string>();
+
+            if (!string.IsNullOrWhiteSpace(orderCode))
+            {
+                return orderCode;
+            }
+            throw new FormatException($"cannot parse order code in payload {orderCode}");
+        }
+
         /// <summary>
         /// </summary>
         /// <param name="payload"></param>
