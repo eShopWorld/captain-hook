@@ -58,16 +58,65 @@ namespace CaptainHook.Tests.Configuration
                                 {
                                     Source = new ParserLocation
                                     {
+                                        Path = "OrderConfirmationRequestDto",
+                                        Location = Location.PayloadBody
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.PayloadBody
+                                    }
+                                }
+                            }
+                        },
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
+                    "https://blah.blah.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
+                },
+                new object[]
+                {
+                    new WebhookConfig
+                        {
+                            Name = "Webhook1",
+                            HttpVerb = "POST",
+                            Uri = "https://blah.blah.eshopworld.com/webhook/",
+                            WebhookRequestRules = new List<WebhookRequestRule>
+                            {
+                                new WebhookRequestRule
+                                {
+                                    Name = "OrderCode",
+                                    Source = new ParserLocation
+                                    {
+                                        Location = Location.MessageBody,
+                                        Path = "OrderCode"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.Uri
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Source = new ParserLocation
+                                    {
                                         Path = "BrandType",
                                         Location = Location.PayloadBody
                                     },
-                                    Routes = new List<WebhookConfigRoutes>
+                                    Routes = new List<WebhookConfigRoute>
                                     {
-                                        new WebhookConfigRoutes
+                                        new WebhookConfigRoute
                                         {
-                                            Uri = "https://blah.blah.brandytype.eshopworld.com",
+                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
                                             HttpVerb = "POST",
                                             Selector = "Brand1",
+                                            AuthenticationConfig = new AuthenticationConfig
+                                            {
+                                                Type = AuthenticationType.None
+                                            }
+                                        },
+                                        new WebhookConfigRoute
+                                        {
+                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
+                                            HttpVerb = "PUT",
+                                            Selector = "Brand2",
                                             AuthenticationConfig = new AuthenticationConfig
                                             {
                                                 Type = AuthenticationType.None
@@ -82,7 +131,81 @@ namespace CaptainHook.Tests.Configuration
                                         Path = "OrderConfirmationRequestDto",
                                         Location = Location.PayloadBody
                                     },
-                                    Type = QueryRuleTypes.Model,
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.PayloadBody
+                                    }
+                                }
+                            }
+                        },
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
+                    "https://blah.blah.brand1.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
+                }
+            };
+
+        public static IEnumerable<object[]> PayloadData =>
+            new List<object[]>
+            {
+                new object[]
+                {
+                    new WebhookConfig
+                        {
+                            Name = "Webhook1",
+                            HttpVerb = "POST",
+                            Uri = "https://blah.blah.eshopworld.com/webhook/",
+                            WebhookRequestRules = new List<WebhookRequestRule>
+                            {
+                                new WebhookRequestRule
+                                {
+                                    Name = "OrderCode",
+                                    Source = new ParserLocation
+                                    {
+                                        Location = Location.MessageBody,
+                                        Path = "OrderCode"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.Uri
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Source = new ParserLocation
+                                    {
+                                        Path = "BrandType",
+                                        Location = Location.PayloadBody
+                                    },
+                                    Routes = new List<WebhookConfigRoute>
+                                    {
+                                        new WebhookConfigRoute
+                                        {
+                                            Uri = "https://blah.blah.brand1.eshopworld.com",
+                                            HttpVerb = "POST",
+                                            Selector = "Brand1",
+                                            AuthenticationConfig = new AuthenticationConfig
+                                            {
+                                                Type = AuthenticationType.None
+                                            }
+                                        },
+                                        new WebhookConfigRoute
+                                        {
+                                            Uri = "https://blah.blah.brand2.eshopworld.com",
+                                            HttpVerb = "PUT",
+                                            Selector = "Brand2",
+                                            AuthenticationConfig = new AuthenticationConfig
+                                            {
+                                                Type = AuthenticationType.None
+                                            }
+                                        }
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Source = new ParserLocation
+                                    {
+                                        Path = "OrderConfirmationRequestDto",
+                                        Location = Location.PayloadBody
+                                    },
                                     Destination = new ParserLocation
                                     {
                                         Location = Location.PayloadBody
@@ -92,15 +215,6 @@ namespace CaptainHook.Tests.Configuration
                         },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"GOC\"}",
                     "https://blah.blah.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
-                }
-            };
-
-        public static IEnumerable<object[]> PayloadData =>
-            new List<object[]>
-            {
-                new object[]
-                {
-
                 }
             };
     }

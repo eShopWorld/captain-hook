@@ -12,6 +12,7 @@ namespace CaptainHook.Common.Configuration
         public WebhookConfig()
         {
             AuthenticationConfig = new AuthenticationConfig();
+            WebhookRequestRules = new List<WebhookRequestRule>();
         }
 
         public AuthenticationConfig AuthenticationConfig { get; set; }
@@ -44,6 +45,11 @@ namespace CaptainHook.Common.Configuration
 
     public class WebhookRequestRule
     {
+        public WebhookRequestRule()
+        {
+            Routes = new List<WebhookConfigRoute>();
+        }
+
         /// <summary>
         /// ie from payload, header, etc etc
         /// </summary>
@@ -60,29 +66,17 @@ namespace CaptainHook.Common.Configuration
         public string Name { get; set; }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public QueryRuleTypes Type { get; set; }
-
-        /// <summary>
         /// Routes used for webhook rule types
         /// </summary>
-        public List<WebhookConfigRoutes> Routes { get; set; }
+        public List<WebhookConfigRoute> Routes { get; set; }
     }
 
-    public class WebhookConfigRoutes : WebhookConfig
+    public class WebhookConfigRoute : WebhookConfig
     {
         /// <summary>
         /// A selector that is used in the payload to determine where the request should be routed to in the config
         /// </summary>
         public string Selector { get; set; }
-    }
-
-    public enum QueryRuleTypes
-    {
-        Parameter = 1,
-        Model = 2,
-        URI = 3
     }
 
     public class ParserLocation

@@ -105,15 +105,14 @@ namespace CaptainHook.Tests.WebHooks
                                 },
                                 new WebhookRequestRule
                                 {
-                                    Type = QueryRuleTypes.URI,
                                     Source = new ParserLocation
                                     {
                                         Path = "BrandType",
                                         Location = Location.PayloadBody
                                     },
-                                    Routes = new List<WebhookConfigRoutes>
+                                    Routes = new List<WebhookConfigRoute>
                                     {
-                                        new WebhookConfigRoutes
+                                        new WebhookConfigRoute
                                         {
                                             Uri = "https://blah.blah.brandytype.eshopworld.com",
                                             HttpVerb = "POST",
@@ -132,7 +131,6 @@ namespace CaptainHook.Tests.WebHooks
                                         Path = "OrderConfirmationRequestDto",
                                         Location = Location.PayloadBody
                                     },
-                                    Type = QueryRuleTypes.Model,
                                     Destination = new ParserLocation
                                     {
                                         Location = Location.PayloadBody
@@ -153,7 +151,6 @@ namespace CaptainHook.Tests.WebHooks
                             {
                                 new WebhookRequestRule
                                 {
-                                    Type = QueryRuleTypes.Parameter,
                                     Source = new ParserLocation
                                     {
                                         Location = Location.MessageBody,
@@ -167,7 +164,6 @@ namespace CaptainHook.Tests.WebHooks
                                 },
                                 new WebhookRequestRule
                                 {
-                                    Type = QueryRuleTypes.Parameter,
                                     Source = new ParserLocation
                                     {
                                         Location = Location.StatusCode,
@@ -180,7 +176,6 @@ namespace CaptainHook.Tests.WebHooks
                                 },
                                 new WebhookRequestRule
                                 {
-                                    Type = QueryRuleTypes.Parameter,
                                     Source = new ParserLocation
                                     {
                                         Location = Location.PayloadBody
