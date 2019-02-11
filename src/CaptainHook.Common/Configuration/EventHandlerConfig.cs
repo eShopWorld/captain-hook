@@ -48,6 +48,8 @@ namespace CaptainHook.Common.Configuration
         public WebhookRequestRule()
         {
             Routes = new List<WebhookConfigRoute>();
+            Source = new ParserLocation();
+            Destination = new ParserLocation();
         }
 
         /// <summary>
