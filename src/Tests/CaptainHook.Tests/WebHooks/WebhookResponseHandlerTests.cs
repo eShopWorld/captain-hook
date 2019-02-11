@@ -66,7 +66,6 @@ namespace CaptainHook.Tests.WebHooks
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequest));
         }
 
-
         public static IEnumerable<object[]> Data =>
             new List<object[]>
             {
@@ -106,7 +105,7 @@ namespace CaptainHook.Tests.WebHooks
                                 },
                                 new WebhookRequestRule
                                 {
-                                    Type = QueryRuleTypes.WebHook,
+                                    Type = QueryRuleTypes.URI,
                                     Source = new ParserLocation
                                     {
                                         Path = "BrandType",

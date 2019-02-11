@@ -82,7 +82,7 @@ namespace CaptainHook.Common.Configuration
     {
         Parameter = 1,
         Model = 2,
-        WebHook = 3
+        URI = 3
     }
 
     public class ParserLocation

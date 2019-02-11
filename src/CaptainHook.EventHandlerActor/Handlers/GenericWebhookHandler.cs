@@ -66,11 +66,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
                         break;
                 }
 
-                //todo refactor out
+                //todo refactor out and uncomment below
                 var innerPayload = messageData.Payload;
-                if (!string.IsNullOrWhiteSpace(WebhookConfig.ModelToParse))
+                //if (!string.IsNullOrWhiteSpace(WebhookConfig.ModelToParse))
                 {
-                    innerPayload = ModelParser.GetInnerPayload(messageData.Payload, WebhookConfig.ModelToParse);
+                //    innerPayload = ModelParser.GetInnerPayload(messageData.Payload, WebhookConfig.ModelToParse);
                 }
 
                 //todo refactor out
@@ -84,9 +84,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
                 }
 
-                var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, uri, innerPayload, TelemetryEvent);
+                //var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, uri, innerPayload, TelemetryEvent);
                 
-                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
+                //BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
             }
             catch (Exception e)
             {

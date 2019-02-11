@@ -24,9 +24,10 @@
     <PackageReference Include="Microsoft.ApplicationInsights.ServiceFabric.Native" Version="2.2.2" />
     <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.19.0" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="3.3.0" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.2.0-preview" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.2.0" />
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.624" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.638" />
   </ItemGroup>
 
   <ItemGroup>

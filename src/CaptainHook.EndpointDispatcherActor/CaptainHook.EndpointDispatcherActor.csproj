@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Autofac.ServiceFabric" Version="2.1.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.ServiceFabric.Native" Version="2.2.2" />
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.624" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.638" />
   </ItemGroup>
 
   <ItemGroup>

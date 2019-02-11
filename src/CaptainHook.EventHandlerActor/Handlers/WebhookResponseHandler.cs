@@ -13,9 +13,29 @@ using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
+    public static class StringExtensions
+    {
+
+        public static int LastIndexOfSafe(this string value, char searchCharacter)
+        {
+            try
+            {
+                var position = value.LastIndexOf("/", StringComparison.Ordinal);
+                return position;
+            }
+            catch (Exception e)
+            {
+                // ignored
+            }
+
+            return 0;
+        }
+    }
+
+
     public class RequestBuilder
     {
-        public string BuildUri(WebhookConfig config, string payload)
+        public static string BuildUri(WebhookConfig config, string payload)
         {
             var rule = config.WebhookRequestRules.FirstOrDefault(l => l.Destination.Location == Location.Uri);
             if (rule != null)
@@ -23,21 +43,22 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 if (rule.Source.Location == Location.MessageBody)
                 {
                     var parameter = ModelParser.ParsePayloadPropertyAsString(rule.Source.Path, payload);
-                    return $"{config.Uri}/{parameter}";
+                    var position = config.Uri.LastIndexOfSafe('/');
+                    return position == config.Uri.Length - 1 ? $"{config.Uri}{parameter}" : $"{config.Uri}/{parameter}";
                 }
             }
 
             return config.Uri;
         }
 
-        public string BuildPayload(WebhookConfig config, string payload)
+        public static string BuildPayload(WebhookConfig config, string payload)
         {
-
+            return string.Empty;
         }
 
-        public (string uri, string payload) BuildRequest(WebhookConfig config, string payload)
+        public static (string uri, string payload) BuildRequest(WebhookConfig config, string payload)
         {
-
+            return (string.Empty, string.Empty);
         }
     }
 
@@ -73,7 +94,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             //todo remove in v1
-            var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
+            var innerPayload = string.Empty;
+            //var innerPayload = ModelParser.GetInnerPayload(messageData.Payload, _eventHandlerConfig.WebHookConfig.ModelToParse);
             var orderCode = ModelParser.ParsePayloadPropertyAsGuid("OrderCode", messageData.Payload);
 
             void TelemetryEvent(string msg)

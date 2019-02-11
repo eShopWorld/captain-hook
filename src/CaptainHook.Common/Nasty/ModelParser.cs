@@ -32,13 +32,13 @@
                 jObject = JObject.Parse(payload);
             }
 
-            var orderCode = jObject.SelectToken(name).Value<string>();
+            var value = jObject.SelectToken(name).Value<string>();
 
-            if (!string.IsNullOrWhiteSpace(orderCode))
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                return orderCode;
+                return value;
             }
-            throw new FormatException($"cannot parse order code in payload {orderCode}");
+            throw new FormatException($"cannot parse order code in payload {value}");
         }
 
         /// <summary>
