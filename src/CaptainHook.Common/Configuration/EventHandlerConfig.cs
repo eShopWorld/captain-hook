@@ -96,6 +96,17 @@ namespace CaptainHook.Common.Configuration
         /// The location of the parsed parameter or the location it should go
         /// </summary>
         public Location Location { get; set; }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Action Action { get; set; }
+    }
+
+    public enum Action
+    {
+        Replace = 1,
+        Add = 2
     }
 
     public enum Location

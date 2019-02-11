@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
+using IdentityModel.Client;
+using Action = CaptainHook.Common.Configuration.Action;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -67,9 +70,29 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return uri;
         }
 
-        public static string BuildPayload(WebhookConfig config, string payload)
+        public static string BuildPayload(WebhookConfig config, string sourcePayload, string destinationPayload)
         {
-            return string.Empty;
+            var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.PayloadBody).ToList();
+
+            //Any replace action replaces the payload and that is returned.
+            var replaceRule = rules.FirstOrDefault(r => r.Destination.Action == Action.Replace);
+
+            if (replaceRule != null)
+            {
+                sourcePayload = ModelParser.ParsePayloadPropertyAsString(replaceRule.Destination.Path, sourcePayload);
+            }
+
+            var payload = ModelParser.GetJObject(destinationPayload);
+            foreach (var rule in rules)
+            {
+                if (rule.Destination.Action == Action.Add)
+                {
+                    var value = ModelParser.ParsePayloadPropertyAsString(rule.Source.Path, sourcePayload);
+                    ModelParser.AddPropertyToPayload(rule.Destination.Path, value, payload);
+                }
+            }
+            
+            return destinationPayload;
         }
 
         /// <summary>

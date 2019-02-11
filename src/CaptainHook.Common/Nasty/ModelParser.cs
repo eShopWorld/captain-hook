@@ -13,7 +13,7 @@
         {
             if (jObject == null)
             {
-                jObject = JObject.Parse(payload);
+                jObject = GetJObject(payload);
             }
 
             var orderCode = jObject.SelectToken(name).Value<string>();
@@ -29,7 +29,7 @@
         {
             if (jObject == null)
             {
-                jObject = JObject.Parse(payload);
+                jObject = GetJObject(payload);
             }
 
             var value = jObject.SelectToken(name).Value<string>();
@@ -39,6 +39,11 @@
                 return value;
             }
             throw new FormatException($"cannot parse order code in payload {value}");
+        }
+
+        public static void AddPropertyToPayload(string name, string value, JObject jObject)
+        {
+            jObject.Add(name, new JValue(value));
         }
 
         /// <summary>
@@ -51,7 +56,7 @@
         {
             if (jObject == null)
             {
-                jObject = JObject.Parse(payload);
+                jObject = GetJObject(payload);
             }
 
             var innerPayload = jObject.SelectToken(dtoName).ToString(Formatting.None);
@@ -60,6 +65,11 @@
                 return innerPayload;
             }
             throw new FormatException($"cannot parse order to get the request dto {payload}");
+        }
+
+        public static JObject GetJObject(string payload)
+        {
+            return JObject.Parse(payload);
         }
     }
 }
