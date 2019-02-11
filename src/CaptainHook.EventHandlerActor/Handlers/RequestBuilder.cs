@@ -72,9 +72,20 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return string.Empty;
         }
 
+        /// <summary>
+        /// Main entry point if you want to get both a uri and payload constructed
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="payload"></param>
+        /// <returns></returns>
         public static (string uri, string payload) BuildRequest(WebhookConfig config, string payload)
         {
-            return (string.Empty, string.Empty);
+            if (config == null)
+            {
+                throw new ArgumentNullException(nameof(WebhookConfig), "webhook config cannot be null");
+            }
+            
+            return (BuildUri(config, payload), BuildPayload(config, payload));
         }
     }
 }

@@ -22,11 +22,11 @@ namespace CaptainHook.Tests.Configuration
         [IsLayer0]
         [Theory]
         [MemberData(nameof(PayloadData))]
-        public void PayloadConstructionTests(WebhookConfig config, string payload, string expectedUri)
+        public void PayloadConstructionTests(WebhookConfig config, string messagePayload, string expectedPayload)
         {
-            var uri = RequestBuilder.BuildPayload(config, payload);
+            var requestPayload = RequestBuilder.BuildPayload(config, messagePayload);
 
-            Assert.Equal(expectedUri, uri);
+            Assert.Equal(expectedPayload, requestPayload);
         }
 
         public static IEnumerable<object[]> UriData =>
@@ -231,208 +231,208 @@ namespace CaptainHook.Tests.Configuration
                     "https://blah.blah.brand2.eshopworld.com/webhook"
                 }
             };
+
         public static IEnumerable<object[]> PayloadData =>
             new List<object[]>
             {
                 new object[]
                 {
                     new WebhookConfig
+                    {
+                        Name = "Webhook1",
+                        HttpVerb = "POST",
+                        Uri = "https://blah.blah.eshopworld.com/webhook/",
+                        WebhookRequestRules = new List<WebhookRequestRule>
                         {
-                            Name = "Webhook1",
-                            HttpVerb = "POST",
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
+                            new WebhookRequestRule
                             {
-                                new WebhookRequestRule
+                                Name = "OrderCode",
+                                Source = new ParserLocation
                                 {
-                                    Name = "OrderCode",
-                                    Source = new ParserLocation
-                                    {
-                                        Location = Location.MessageBody,
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
+                                    Location = Location.MessageBody,
+                                    Path = "OrderCode"
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    Location = Location.Uri
                                 }
                             }
-                        },
+                        }
+                    },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     "https://blah.blah.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
                 },
                 new object[]
                 {
                     new WebhookConfig
+                    {
+                        Name = "Webhook2",
+                        HttpVerb = "POST",
+                        Uri = "https://blah.blah.eshopworld.com/webhook/",
+                        WebhookRequestRules = new List<WebhookRequestRule>
                         {
-                            Name = "Webhook2",
-                            HttpVerb = "POST",
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
+                            new WebhookRequestRule
                             {
-                                new WebhookRequestRule
+                                Name = "OrderCode",
+                                Source = new ParserLocation
                                 {
-                                    Name = "OrderCode",
-                                    Source = new ParserLocation
-                                    {
-                                        Location = Location.MessageBody,
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
+                                    Location = Location.MessageBody,
+                                    Path = "OrderCode"
                                 },
-                                new WebhookRequestRule
+                                Destination = new ParserLocation
                                 {
-                                    Source = new ParserLocation
+                                    Location = Location.Uri
+                                }
+                            },
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
+                                    Path = "BrandType",
+                                    Location = Location.MessageBody
+                                },
+                                Routes = new List<WebhookConfigRoute>
+                                {
+                                    new WebhookConfigRoute
                                     {
-                                        Path = "BrandType",
-                                        Location = Location.MessageBody
+                                        Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
+                                        HttpVerb = "POST",
+                                        Selector = "Brand1",
+                                        AuthenticationConfig = new AuthenticationConfig
+                                        {
+                                            Type = AuthenticationType.None
+                                        }
                                     },
-                                    Routes = new List<WebhookConfigRoute>
+                                    new WebhookConfigRoute
                                     {
-                                        new WebhookConfigRoute
+                                        Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
+                                        HttpVerb = "PUT",
+                                        Selector = "Brand2",
+                                        AuthenticationConfig = new AuthenticationConfig
                                         {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpVerb = "POST",
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpVerb = "PUT",
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
+                                            Type = AuthenticationType.None
                                         }
                                     }
-                                },
-                                new WebhookRequestRule
+                                }
+                            },
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
                                 {
-                                    Source = new ParserLocation
-                                    {
-                                        Path = "OrderConfirmationRequestDto",
-                                        Location = Location.PayloadBody
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.PayloadBody
-                                    }
+                                    Path = "OrderConfirmationRequestDto",
+                                    Location = Location.PayloadBody
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    Location = Location.PayloadBody
                                 }
                             }
-                        },
+                        }
+                    },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     "https://blah.blah.brand1.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
                 },
                 new object[]
                 {
                     new WebhookConfig
+                    {
+                        Name = "Webhook3",
+                        HttpVerb = "POST",
+                        Uri = "https://blah.blah.eshopworld.com/webhook/",
+                        WebhookRequestRules = new List<WebhookRequestRule>
                         {
-                            Name = "Webhook3",
-                            HttpVerb = "POST",
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
+                            new WebhookRequestRule
                             {
-                                new WebhookRequestRule
+                                Name = "OrderCode",
+                                Source = new ParserLocation
                                 {
-                                    Name = "OrderCode",
-                                    Source = new ParserLocation
-                                    {
-                                        Location = Location.MessageBody,
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
+                                    Location = Location.MessageBody,
+                                    Path = "OrderCode"
                                 },
-                                new WebhookRequestRule
+                                Destination = new ParserLocation
                                 {
-                                    Source = new ParserLocation
+                                    Location = Location.Uri
+                                }
+                            },
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
+                                    Path = "BrandType",
+                                    Location = Location.MessageBody
+                                },
+                                Routes = new List<WebhookConfigRoute>
+                                {
+                                    new WebhookConfigRoute
                                     {
-                                        Path = "BrandType",
-                                        Location = Location.MessageBody
+                                        Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
+                                        HttpVerb = "POST",
+                                        Selector = "Brand1",
+                                        AuthenticationConfig = new AuthenticationConfig
+                                        {
+                                            Type = AuthenticationType.None
+                                        }
                                     },
-                                    Routes = new List<WebhookConfigRoute>
+                                    new WebhookConfigRoute
                                     {
-                                        new WebhookConfigRoute
+                                        Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
+                                        HttpVerb = "PUT",
+                                        Selector = "Brand2",
+                                        AuthenticationConfig = new AuthenticationConfig
                                         {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpVerb = "POST",
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpVerb = "PUT",
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
+                                            Type = AuthenticationType.None
                                         }
                                     }
                                 }
                             }
-                        },
+                        }
+                    },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
                     "https://blah.blah.brand2.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
                 },
                 new object[]
                 {
                     new WebhookConfig
+                    {
+                        Name = "Webhook4",
+                        WebhookRequestRules = new List<WebhookRequestRule>
                         {
-                            Name = "Webhook4",
-                            WebhookRequestRules = new List<WebhookRequestRule>
+                            new WebhookRequestRule
                             {
-                                new WebhookRequestRule
+                                Source = new ParserLocation
                                 {
-                                    Source = new ParserLocation
+                                    Path = "BrandType",
+                                    Location = Location.MessageBody
+                                },
+                                Routes = new List<WebhookConfigRoute>
+                                {
+                                    new WebhookConfigRoute
                                     {
-                                        Path = "BrandType",
-                                        Location = Location.MessageBody
+                                        Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
+                                        HttpVerb = "POST",
+                                        Selector = "Brand1",
+                                        AuthenticationConfig = new AuthenticationConfig
+                                        {
+                                            Type = AuthenticationType.None
+                                        }
                                     },
-                                    Routes = new List<WebhookConfigRoute>
+                                    new WebhookConfigRoute
                                     {
-                                        new WebhookConfigRoute
+                                        Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
+                                        HttpVerb = "PUT",
+                                        Selector = "Brand2",
+                                        AuthenticationConfig = new AuthenticationConfig
                                         {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpVerb = "POST",
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpVerb = "PUT",
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
+                                            Type = AuthenticationType.None
                                         }
                                     }
                                 }
                             }
-                        },
+                        }
+                    },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
                     "https://blah.blah.brand2.eshopworld.com/webhook"
                 }
             };
-
     }
 }
