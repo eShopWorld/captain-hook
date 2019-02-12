@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
@@ -69,16 +69,28 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return uri;
         }
 
-        public static async Task<string> BuildPayload(WebhookConfig config, string sourcePayload, string destinationPayload, HttpResponseMessage httpResponse)
+        public static string BuildPayload(WebhookConfig config, string sourcePayload, Dictionary<string, string> data)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.PayloadBody).ToList();
 
-            //Any replace action replaces the payload and that is returned.
+            if (!rules.Any())
+            {
+                return null;
+            }
+
+            var destinationPayload = data["destinationPayload"];
+
+            //Any replace action replaces the payload 
             var replaceRule = rules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Replace);
 
             if (replaceRule != null)
             {
-                sourcePayload = ModelParser.ParsePayloadPropertyAsString(replaceRule.Destination.Path, sourcePayload);
+                destinationPayload = ModelParser.ParsePayloadPropertyAsString(replaceRule.Destination.Path, sourcePayload);
+                
+                if (rules.Count <= 1)
+                {
+                    return destinationPayload;
+                }
             }
 
             var payload = ModelParser.GetJObject(destinationPayload);
@@ -86,22 +98,20 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 if (rule.Destination.RuleAction == RuleAction.Add)
                 {
-                    var value = string.Empty;
+                    string value;
                     switch (rule.Destination.Type)
                     {
-                        case DataType.Parameter:
+                        case DataType.Property:
                             value = ModelParser.ParsePayloadPropertyAsString(rule.Source.Path, sourcePayload);
                             break;
-
-                        case DataType.Model:
-                            break;
-
+                            
                         case DataType.HttpContent:
-                            value = await httpResponse.Content.ReadAsStringAsync();
+                            //await httpResponse.Content.ReadAsStringAsync()
+                            value = data["content"];
                             break;
 
                         case DataType.HttpStatusCode:
-                            value = httpResponse.StatusCode.ToString();
+                            value = data["statusCode"];
                             break;
 
                         default:

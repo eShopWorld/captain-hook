@@ -107,10 +107,9 @@ namespace CaptainHook.Common.Configuration
 
     public enum DataType
     {
-        Parameter = 1,
-        Model = 2,
-        HttpContent = 3,
-        HttpStatusCode = 4,
+        Property = 1,
+        HttpContent = 2,
+        HttpStatusCode = 3
     }
 
     public enum RuleAction

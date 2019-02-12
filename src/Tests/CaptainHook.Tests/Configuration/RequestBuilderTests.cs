@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
@@ -22,9 +24,13 @@ namespace CaptainHook.Tests.Configuration
         [IsLayer0]
         [Theory]
         [MemberData(nameof(PayloadData))]
-        public void PayloadConstructionTests(WebhookConfig config, string messagePayload, string expectedPayload)
+        public void PayloadConstructionTests(
+            WebhookConfig config,
+            string sourcePayload,
+            Dictionary<string, string> data,
+            string expectedPayload)
         {
-            var requestPayload = RequestBuilder.BuildPayload(config, messagePayload);
+            var requestPayload = RequestBuilder.BuildPayload(config, sourcePayload, data);
 
             Assert.Equal(expectedPayload, requestPayload);
         }
@@ -268,7 +274,7 @@ namespace CaptainHook.Tests.Configuration
                                 Destination = new ParserLocation
                                 {
                                     Location = Location.MessageBody,
-                                    Action = Action.Replace
+                                    RuleAction = RuleAction.Replace
                                 }
                             }
                         }
