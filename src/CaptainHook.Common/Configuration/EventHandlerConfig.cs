@@ -100,10 +100,20 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// 
         /// </summary>
-        public Action Action { get; set; }
+        public RuleAction RuleAction { get; set; }
+
+        public DataType Type { get; set; }
     }
 
-    public enum Action
+    public enum DataType
+    {
+        Parameter = 1,
+        Model = 2,
+        HttpContent = 3,
+        HttpStatusCode = 4,
+    }
+
+    public enum RuleAction
     {
         Replace = 1,
         Add = 2

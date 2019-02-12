@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
-using IdentityModel.Client;
-using Action = CaptainHook.Common.Configuration.Action;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -70,12 +69,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return uri;
         }
 
-        public static string BuildPayload(WebhookConfig config, string sourcePayload, string destinationPayload)
+        public static async Task<string> BuildPayload(WebhookConfig config, string sourcePayload, string destinationPayload, HttpResponseMessage httpResponse)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.PayloadBody).ToList();
 
             //Any replace action replaces the payload and that is returned.
-            var replaceRule = rules.FirstOrDefault(r => r.Destination.Action == Action.Replace);
+            var replaceRule = rules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Replace);
 
             if (replaceRule != null)
             {
@@ -85,30 +84,34 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var payload = ModelParser.GetJObject(destinationPayload);
             foreach (var rule in rules)
             {
-                if (rule.Destination.Action == Action.Add)
+                if (rule.Destination.RuleAction == RuleAction.Add)
                 {
-                    var value = ModelParser.ParsePayloadPropertyAsString(rule.Source.Path, sourcePayload);
+                    var value = string.Empty;
+                    switch (rule.Destination.Type)
+                    {
+                        case DataType.Parameter:
+                            value = ModelParser.ParsePayloadPropertyAsString(rule.Source.Path, sourcePayload);
+                            break;
+
+                        case DataType.Model:
+                            break;
+
+                        case DataType.HttpContent:
+                            value = await httpResponse.Content.ReadAsStringAsync();
+                            break;
+
+                        case DataType.HttpStatusCode:
+                            value = httpResponse.StatusCode.ToString();
+                            break;
+
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
                     ModelParser.AddPropertyToPayload(rule.Destination.Path, value, payload);
                 }
             }
             
             return destinationPayload;
-        }
-
-        /// <summary>
-        /// Main entry point if you want to get both a uri and payload constructed
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="payload"></param>
-        /// <returns></returns>
-        public static (string uri, string payload) BuildRequest(WebhookConfig config, string payload)
-        {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(WebhookConfig), "webhook config cannot be null");
-            }
-            
-            return (BuildUri(config, payload), BuildPayload(config, payload));
         }
     }
 }
