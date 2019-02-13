@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 
 namespace CaptainHook.Common.Configuration
@@ -83,9 +82,6 @@ namespace CaptainHook.Common.Configuration
 
     public class ParserLocation
     {
-        [Obsolete]
-        public string Name { get; set; }
-
         /// <summary>
         /// Path for the parameter to query from or to be placed
         /// ie: path in the message both or if it's a value in the http header
@@ -102,14 +98,15 @@ namespace CaptainHook.Common.Configuration
         /// </summary>
         public RuleAction RuleAction { get; set; }
 
-        public DataType Type { get; set; }
+        public DataType Type { get; set; } = DataType.Property;
     }
 
     public enum DataType
     {
         Property = 1,
         HttpContent = 2,
-        HttpStatusCode = 3
+        HttpStatusCode = 3,
+        Model = 4
     }
 
     public enum RuleAction

@@ -1,14 +1,20 @@
-﻿namespace CaptainHook.Common.Nasty
-{
-    using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+﻿using System;
+using CaptainHook.Common.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-    /// <summary>
-    /// todo nuke this in V1
-    /// </summary>
+namespace CaptainHook.Common.Nasty
+{
     public static class ModelParser
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="payload"></param>
+        /// <param name="jObject"></param>
+        /// <returns></returns>
+        [Obsolete]
         public static Guid ParsePayloadPropertyAsGuid(string name, string payload, JObject jObject = null)
         {
             if (jObject == null)
@@ -25,6 +31,26 @@
             throw new FormatException($"cannot parse order code in payload {orderCode}");
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="rule"></param>
+        /// <param name="sourcePayload"></param>
+        /// <returns></returns>
+        public static string ParsePayloadPropertyAsString(ParserLocation rule, string sourcePayload)
+        {
+            var value = ParsePayloadProperty(rule, sourcePayload);
+
+            return value.ToString(Formatting.None);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="payload"></param>
+        /// <param name="jObject"></param>
+        /// <returns></returns>
         public static string ParsePayloadPropertyAsString(string name, string payload, JObject jObject = null)
         {
             if (jObject == null)
@@ -41,35 +67,44 @@
             throw new FormatException($"cannot parse order code in payload {value}");
         }
 
-        public static void AddPropertyToPayload(string name, string value, JObject jObject)
-        {
-            jObject.Add(name, new JValue(value));
-        }
-
         /// <summary>
+        /// 
         /// </summary>
-        /// <param name="payload"></param>
-        /// <param name="dtoName"></param>
+        /// <param name="location"></param>
+        /// <param name="sourcePayload"></param>
         /// <param name="jObject"></param>
         /// <returns></returns>
-        public static string GetInnerPayload(string payload, string dtoName, JObject jObject = null)
+        public static JToken ParsePayloadProperty(ParserLocation location, string sourcePayload, JObject jObject = null)
         {
             if (jObject == null)
             {
-                jObject = GetJObject(payload);
+                jObject = GetJObject(sourcePayload);
             }
 
-            var innerPayload = jObject.SelectToken(dtoName).ToString(Formatting.None);
-            if (innerPayload != null)
-            {
-                return innerPayload;
-            }
-            throw new FormatException($"cannot parse order to get the request dto {payload}");
+            var value = jObject.SelectToken(location.Path);
+
+            return value;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="location"></param>
+        /// <param name="value"></param>
+        /// <param name="container"></param>
+        public static void AddPropertyToPayload(ParserLocation location, JToken value, JContainer container)
+        {
+            container.Add(new JProperty(location.Path, value));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="payload"></param>
+        /// <returns></returns>
         public static JObject GetJObject(string payload)
         {
-            return JObject.Parse(payload);
+            return string.IsNullOrWhiteSpace(payload) ? new JObject() : JObject.Parse(payload);
         }
     }
 }

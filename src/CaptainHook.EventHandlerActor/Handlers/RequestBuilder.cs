@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Nasty;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -62,6 +63,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return uri;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         private static string CombineUriAndResourceId(string uri, string parameter)
         {
             var position = uri.LastIndexOfSafe('/');
@@ -69,6 +76,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return uri;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="sourcePayload"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
         public static string BuildPayload(WebhookConfig config, string sourcePayload, Dictionary<string, string> data)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.PayloadBody).ToList();
@@ -77,15 +91,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 return null;
             }
-
-            var destinationPayload = data["destinationPayload"];
-
+            
             //Any replace action replaces the payload 
             var replaceRule = rules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Replace);
 
             if (replaceRule != null)
             {
-                destinationPayload = ModelParser.ParsePayloadPropertyAsString(replaceRule.Destination.Path, sourcePayload);
+                var destinationPayload = ModelParser.ParsePayloadPropertyAsString(replaceRule.Source, sourcePayload);
                 
                 if (rules.Count <= 1)
                 {
@@ -93,35 +105,36 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
             }
 
-            var payload = ModelParser.GetJObject(destinationPayload);
+            var payload = new JObject();
             foreach (var rule in rules)
             {
                 if (rule.Destination.RuleAction == RuleAction.Add)
                 {
-                    string value;
-                    switch (rule.Destination.Type)
+                    JToken value;
+                    switch (rule.Source.Type)
                     {
                         case DataType.Property:
-                            value = ModelParser.ParsePayloadPropertyAsString(rule.Source.Path, sourcePayload);
+                        case DataType.Model:
+                            value = ModelParser.ParsePayloadProperty(rule.Source, sourcePayload);
                             break;
                             
                         case DataType.HttpContent:
-                            //await httpResponse.Content.ReadAsStringAsync()
-                            value = data["content"];
+                            value = ModelParser.GetJObject(data["HttpResponseContent"]);
                             break;
 
                         case DataType.HttpStatusCode:
-                            value = data["statusCode"];
+                            value = data["HttpStatusCode"];
                             break;
 
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
-                    ModelParser.AddPropertyToPayload(rule.Destination.Path, value, payload);
+
+                    ModelParser.AddPropertyToPayload(rule.Destination, value, payload);
                 }
             }
             
-            return destinationPayload;
+            return payload.ToString(Formatting.None);
         }
     }
 }

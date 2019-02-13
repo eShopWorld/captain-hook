@@ -252,17 +252,33 @@ namespace CaptainHook.Tests.Configuration
                         {
                             new WebhookRequestRule
                             {
-                                Name = "OrderCode",
+                                Name = "InnerPayload",
                                 Source = new ParserLocation
                                 {
                                     Location = Location.MessageBody,
-                                    Path = "OrderCode"
+                                    Path = "InnerModel"
                                 },
                                 Destination = new ParserLocation
                                 {
-                                    Location = Location.Uri
+                                    Location = Location.PayloadBody,
+                                    RuleAction = RuleAction.Replace
                                 }
-                            },
+                            }
+                        }
+                    },
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
+                    new Dictionary<string, string> (),
+                    "{\"Msg\":\"Buy this thing\"}"
+                },
+                new object[]
+                {
+                    new WebhookConfig
+                    {
+                        Name = "Webhook1",
+                        HttpVerb = "POST",
+                        Uri = "https://blah.blah.eshopworld.com/webhook/",
+                        WebhookRequestRules = new List<WebhookRequestRule>
+                        {
                             new WebhookRequestRule
                             {
                                 Name = "InnerPayload",
@@ -273,14 +289,87 @@ namespace CaptainHook.Tests.Configuration
                                 },
                                 Destination = new ParserLocation
                                 {
+                                    Path = "Payload",
+                                    Location = Location.PayloadBody,
+                                    RuleAction = RuleAction.Add
+                                }
+                            },
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
                                     Location = Location.MessageBody,
-                                    RuleAction = RuleAction.Replace
+                                    Path = "OrderCode"
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    Path = "OrderCode",
+                                    Location = Location.PayloadBody,
+                                    RuleAction = RuleAction.Add
                                 }
                             }
                         }
                     },
-                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\",  {\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}}",
-                    "https://blah.blah.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
+                    new Dictionary<string, string>(),
+                    "{\"Payload\":{\"Msg\":\"Buy this thing\"},\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\"}"
+                },
+                new object[]
+                {
+                    new WebhookConfig
+                    {
+                        Name = "Webhook1",
+                        HttpVerb = "POST",
+                        Uri = "https://blah.blah.eshopworld.com/webhook/",
+                        WebhookRequestRules = new List<WebhookRequestRule>
+                        {
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
+                                    Location = Location.MessageBody,
+                                    Path = "OrderCode"
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    Path = "OrderCode",
+                                    Location = Location.PayloadBody,
+                                    RuleAction = RuleAction.Add
+                                }
+                            },
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
+                                    Type = DataType.HttpStatusCode,
+                                    Location = Location.StatusCode
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    Path = "StatusCode",
+                                    Location = Location.PayloadBody,
+                                    RuleAction = RuleAction.Add
+                                }
+                            },
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
+                                    Type = DataType.HttpContent,
+                                    Location = Location.PayloadBody
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    Path = "Content",
+                                    Location = Location.PayloadBody,
+                                    RuleAction = RuleAction.Add
+                                }
+                            }
+                        }
+                    },
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
+                    new Dictionary<string, string>{{"HttpStatusCode", "200"}, {"HttpResponseContent", "{\"Msg\":\"Buy this thing\"}" } },
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\",\"StatusCode\":\"200\",\"Content\":{\"Msg\":\"Buy this thing\"}}"
                 }
             };
     }
