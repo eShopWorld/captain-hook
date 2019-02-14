@@ -55,8 +55,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, uri, payload, TelemetryEvent);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
-
-
+            
             if (metadata == null)
             {
                 metadata = new Dictionary<string, string>();

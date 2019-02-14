@@ -11,7 +11,6 @@ using CaptainHook.Tests.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using Moq;
-using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
 using Xunit;
 
