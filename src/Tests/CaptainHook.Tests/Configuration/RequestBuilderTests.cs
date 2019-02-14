@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
@@ -49,7 +47,6 @@ namespace CaptainHook.Tests.Configuration
                             {
                                 new WebhookRequestRule
                                 {
-                                    Name = "OrderCode",
                                     Source = new ParserLocation
                                     {
                                         Location = Location.MessageBody,
@@ -76,7 +73,6 @@ namespace CaptainHook.Tests.Configuration
                             {
                                 new WebhookRequestRule
                                 {
-                                    Name = "OrderCode",
                                     Source = new ParserLocation
                                     {
                                         Location = Location.MessageBody,
@@ -146,7 +142,6 @@ namespace CaptainHook.Tests.Configuration
                             {
                                 new WebhookRequestRule
                                 {
-                                    Name = "OrderCode",
                                     Source = new ParserLocation
                                     {
                                         Location = Location.MessageBody,
@@ -252,7 +247,6 @@ namespace CaptainHook.Tests.Configuration
                         {
                             new WebhookRequestRule
                             {
-                                Name = "InnerPayload",
                                 Source = new ParserLocation
                                 {
                                     Location = Location.MessageBody,
@@ -281,7 +275,6 @@ namespace CaptainHook.Tests.Configuration
                         {
                             new WebhookRequestRule
                             {
-                                Name = "InnerPayload",
                                 Source = new ParserLocation
                                 {
                                     Location = Location.MessageBody,

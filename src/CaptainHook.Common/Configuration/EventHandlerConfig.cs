@@ -60,12 +60,7 @@ namespace CaptainHook.Common.Configuration
         /// ie uri, body, header
         /// </summary>
         public ParserLocation Destination { get; set; }
-
-        /// <summary>
-        /// Name for reference
-        /// </summary>
-        public string Name { get; set; }
-
+        
         /// <summary>
         /// Routes used for webhook rule types
         /// </summary>

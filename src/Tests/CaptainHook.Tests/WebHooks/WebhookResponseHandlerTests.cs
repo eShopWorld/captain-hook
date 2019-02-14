@@ -92,7 +92,6 @@ namespace CaptainHook.Tests.WebHooks
                             {
                                 new WebhookRequestRule
                                 {
-                                    Name = "OrderCode",
                                     Source = new ParserLocation
                                     {
                                         Location = Location.PayloadBody,
