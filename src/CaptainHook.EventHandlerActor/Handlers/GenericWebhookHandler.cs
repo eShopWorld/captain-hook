@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Nasty;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
@@ -18,11 +18,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
     {
         private readonly HttpClient _client;
         protected readonly IBigBrother BigBrother;
+        protected readonly IRequestBuilder RequestBuilder;
         protected readonly WebhookConfig WebhookConfig;
         protected readonly IAcquireTokenHandler AcquireTokenHandler;
 
         public GenericWebhookHandler(
             IAcquireTokenHandler acquireTokenHandler,
+            IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
             HttpClient client,
             WebhookConfig webhookConfig)
@@ -30,6 +32,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             _client = client;
             AcquireTokenHandler = acquireTokenHandler;
             BigBrother = bigBrother;
+            RequestBuilder = requestBuilder;
             WebhookConfig = webhookConfig;
         }
 
@@ -54,39 +57,18 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     await AcquireTokenHandler.GetToken(_client);
                 }
 
-                var uri = WebhookConfig.Uri;
-
-                //todo remove to integration layer by v1
-                switch (messageData.Type)
-                {
-                    case "checkout.domain.infrastructure.domainevents.retailerorderconfirmationdomainevent":
-                    case "checkout.domain.infrastructure.domainevents.platformordercreatedomainevent":
-                        var orderCode = ModelParser.ParsePayloadPropertyAsGuid("OrderCode", messageData.Payload);
-                        uri = $"{WebhookConfig.Uri}/{orderCode}"; //todo remove to integration layer by v1
-                        break;
-                }
-
-                //todo refactor out and uncomment below
-                var innerPayload = messageData.Payload;
-                //if (!string.IsNullOrWhiteSpace(WebhookConfig.ModelToParse))
-                {
-                //    innerPayload = ModelParser.GetInnerPayload(messageData.Payload, WebhookConfig.ModelToParse);
-                }
-
-                //todo refactor out
-                if (!string.IsNullOrWhiteSpace(messageData.CallbackPayload))
-                {
-                    innerPayload = messageData.CallbackPayload;
-                }
-
+                var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
+                
+                var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, new Dictionary<string, string>());
+                
                 void TelemetryEvent(string msg)
                 {
                     BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
                 }
 
-                //var response = await _client.ExecuteAsJsonReliably(WebhookConfig.Verb, uri, innerPayload, TelemetryEvent);
+                var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, uri, payload, TelemetryEvent);
                 
-                //BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
+                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
             }
             catch (Exception e)
             {

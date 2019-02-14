@@ -8,9 +8,9 @@ using Newtonsoft.Json.Linq;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
-    public class RequestBuilder
+    public class RequestBuilder : IRequestBuilder
     {
-        public static string BuildUri(WebhookConfig config, string payload)
+        public string BuildUri(WebhookConfig config, string payload)
         {
             var uri = string.Empty;
 
@@ -83,7 +83,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="sourcePayload"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static string BuildPayload(WebhookConfig config, string sourcePayload, Dictionary<string, string> data)
+        public string BuildPayload(WebhookConfig config, string sourcePayload, Dictionary<string, string> data)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.PayloadBody).ToList();
 

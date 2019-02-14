@@ -33,6 +33,7 @@ namespace CaptainHook.Tests.WebHooks
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 new Mock<IAcquireTokenHandler>().Object,
+                new RequestBuilder(),
                 new Mock<IBigBrother>().Object,
                 mockHttp.ToHttpClient(),
                 config);
@@ -52,6 +53,7 @@ namespace CaptainHook.Tests.WebHooks
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 new Mock<IAcquireTokenHandler>().Object,
+                new RequestBuilder(),
                 new Mock<IBigBrother>().Object,
                 mockHttp.ToHttpClient(),
                 config);

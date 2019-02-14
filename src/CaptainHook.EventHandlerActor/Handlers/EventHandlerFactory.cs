@@ -48,6 +48,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 return new WebhookResponseHandler(
                     this,
                     authHandler,
+                    new RequestBuilder(),
                     _bigBrother,
                     _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
                     eventHandlerConfig);
@@ -55,6 +56,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             return new GenericWebhookHandler(
                 authHandler,
+                new RequestBuilder(),
                 _bigBrother,
                 _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
                 eventHandlerConfig.WebHookConfig);
@@ -77,6 +79,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             return new GenericWebhookHandler(
                 authHandler,
+                new RequestBuilder(),
                 _bigBrother,
                 _httpClients[webHookName.ToLower()],
                 webhookConfig);

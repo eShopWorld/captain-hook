@@ -46,6 +46,7 @@ namespace CaptainHook.Tests.WebHooks
             mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
                 new GenericWebhookHandler(
                     mockAuthHandler.Object,
+                    new RequestBuilder(),
                     mockBigBrother.Object,
                     httpClient,
                     config.CallbackConfig));
@@ -53,6 +54,7 @@ namespace CaptainHook.Tests.WebHooks
             var webhookResponseHandler = new WebhookResponseHandler(
                 mockHandlerFactory.Object,
                 mockAuthHandler.Object,
+                new RequestBuilder(),
                 mockBigBrother.Object,
                 httpClient,
                 config);

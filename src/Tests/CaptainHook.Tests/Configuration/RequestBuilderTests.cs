@@ -14,7 +14,7 @@ namespace CaptainHook.Tests.Configuration
         [MemberData(nameof(UriData))]
         public void UriConstructionTests(WebhookConfig config, string payload, string expectedUri)
         {
-            var uri = RequestBuilder.BuildUri(config, payload);
+            var uri = new RequestBuilder().BuildUri(config, payload);
 
             Assert.Equal(expectedUri, uri);
         }
@@ -28,7 +28,7 @@ namespace CaptainHook.Tests.Configuration
             Dictionary<string, string> data,
             string expectedPayload)
         {
-            var requestPayload = RequestBuilder.BuildPayload(config, sourcePayload, data);
+            var requestPayload = new RequestBuilder().BuildPayload(config, sourcePayload, data);
 
             Assert.Equal(expectedPayload, requestPayload);
         }
