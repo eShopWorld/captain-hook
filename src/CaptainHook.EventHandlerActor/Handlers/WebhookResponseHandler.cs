@@ -31,7 +31,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             _eventHandlerConfig = eventHandlerConfig;
         }
 
-        public override async Task Call<TRequest>(TRequest request)
+        public override async Task Call<TRequest>(TRequest request, IDictionary<string, string> metadata = null)
         {
             if (!(request is MessageData messageData))
             {
@@ -45,7 +45,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             
             var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
 
-            var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, new Dictionary<string, string>());
+            var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
             
             void TelemetryEvent(string msg)
             {
@@ -56,21 +56,27 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
-            ////todo remove this such that the raw payload is what is sent back from the webhook to the callback
-            //var payload = new HttpResponseDto
-            //{
-            //    OrderCode = orderCode,
-            //    Content = await response.Content.ReadAsStringAsync(),
-            //    StatusCode = (int)response.StatusCode
-            //};
-            //messageData.CallbackPayload = JsonConvert.SerializeObject(payload);
 
-            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.CallbackPayload));
+            if (metadata == null)
+            {
+                metadata = new Dictionary<string, string>();
+            }
+            else
+            {
+                metadata.Clear();
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            metadata.Add("HttpStatusCode", response.StatusCode.ToString());
+            metadata.Add("HttpResponseContent", content);
+
+            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content));
 
             //call callback
             var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_eventHandlerConfig.CallbackConfig.Name);
 
-            await eswHandler.Call(messageData);
+            await eswHandler.Call(messageData, metadata);
         }
     }
 }

@@ -41,8 +41,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <typeparam name="TRequest"></typeparam>
         /// <param name="request"></param>
+        /// <param name="metadata"></param>
         /// <returns></returns>
-        public virtual async Task Call<TRequest>(TRequest request)
+        public virtual async Task Call<TRequest>(TRequest request, IDictionary<string, string> metadata = null)
         {
             try
             {
@@ -59,14 +60,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
                 
-                var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, new Dictionary<string, string>());
-                
                 void TelemetryEvent(string msg)
                 {
                     BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
                 }
 
-                var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, uri, payload, TelemetryEvent);
+                var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, uri, messageData.Payload, TelemetryEvent);
                 
                 BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
             }

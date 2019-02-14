@@ -94,6 +94,11 @@ namespace CaptainHook.Common.Nasty
         /// <param name="container"></param>
         public static void AddPropertyToPayload(ParserLocation location, JToken value, JContainer container)
         {
+            if (value == null)
+            {
+                return;
+            }
+
             container.Add(new JProperty(location.Path, value));
         }
 
@@ -105,6 +110,17 @@ namespace CaptainHook.Common.Nasty
         public static JObject GetJObject(string payload)
         {
             return string.IsNullOrWhiteSpace(payload) ? new JObject() : JObject.Parse(payload);
+        }
+
+        /// <summary>
+        /// Converts a string to a JValue
+        /// Should use it when it's a primitive type and what to convert into a JValue
+        /// </summary>
+        /// <param name="payload"></param>
+        /// <returns></returns>
+        public static JValue GetJValue(string payload)
+        {
+            return new JValue(payload);
         }
     }
 }

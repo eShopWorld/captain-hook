@@ -1,8 +1,7 @@
-using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
@@ -18,36 +17,47 @@ namespace CaptainHook.Tests.WebHooks
 {
     public class GenericWebhookHandlerTests
     {
-        [Fact]
         [IsLayer0]
+        [Fact]
         public async Task ExecuteHappyPath()
         {
-            var messageData = new MessageData
-            {
-                Payload = EventHandlerTestHelper.GenerateMockPayloadWithInternalModel(Guid.NewGuid()),
-                Type = "TestType",
-            };
+            var (messageData, metaData) = EventHandlerTestHelper.CreateMessageDataPayload();
 
             var config = new WebhookConfig
             {
                 Uri = "http://localhost/webhook",
                 HttpVerb = "PUT",
-                AuthenticationConfig = new AuthenticationConfig()
+                AuthenticationConfig = new AuthenticationConfig(),
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                   new WebhookRequestRule
+                   {
+                       Source = new ParserLocation
+                       {
+                           Path = "OrderCode"
+                       },
+                       Destination = new ParserLocation
+                       {
+                           Location = Location.Uri
+                       }
+                   }
+                }
             };
 
             var mockHttp = new MockHttpMessageHandler();
-            var webhookRequest = mockHttp.When(HttpMethod.Put, config.Uri)
+            var webhookRequest = mockHttp.When(HttpMethod.Put, $"{config.Uri}/{metaData["OrderCode"]}")
                 .WithContentType("application/json", messageData.Payload)
                 .Respond(HttpStatusCode.OK, "application/json", string.Empty);
-            
+
             var genericWebhookHandler = new GenericWebhookHandler(
                 new Mock<IAcquireTokenHandler>().Object,
+                new RequestBuilder(),
                 new Mock<IBigBrother>().Object,
                 mockHttp.ToHttpClient(),
                 config);
 
             await genericWebhookHandler.Call(messageData);
-            
+
             Assert.Equal(1, mockHttp.GetMatchCount(webhookRequest));
         }
     }

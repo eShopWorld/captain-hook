@@ -49,7 +49,6 @@ namespace CaptainHook.Tests.Configuration
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Location = Location.MessageBody,
                                         Path = "OrderCode"
                                     },
                                     Destination = new ParserLocation
@@ -75,7 +74,6 @@ namespace CaptainHook.Tests.Configuration
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Location = Location.MessageBody,
                                         Path = "OrderCode"
                                     },
                                     Destination = new ParserLocation
@@ -87,8 +85,7 @@ namespace CaptainHook.Tests.Configuration
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Path = "BrandType",
-                                        Location = Location.MessageBody
+                                        Path = "BrandType"
                                     },
                                     Routes = new List<WebhookConfigRoute>
                                     {
@@ -118,12 +115,7 @@ namespace CaptainHook.Tests.Configuration
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Path = "OrderConfirmationRequestDto",
-                                        Location = Location.PayloadBody
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.PayloadBody
+                                        Path = "OrderConfirmationRequestDto"
                                     }
                                 }
                             }
@@ -144,7 +136,6 @@ namespace CaptainHook.Tests.Configuration
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Location = Location.MessageBody,
                                         Path = "OrderCode"
                                     },
                                     Destination = new ParserLocation
@@ -156,8 +147,7 @@ namespace CaptainHook.Tests.Configuration
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Path = "BrandType",
-                                        Location = Location.MessageBody
+                                        Path = "BrandType"
                                     },
                                     Routes = new List<WebhookConfigRoute>
                                     {
@@ -199,8 +189,7 @@ namespace CaptainHook.Tests.Configuration
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Path = "BrandType",
-                                        Location = Location.MessageBody
+                                        Path = "BrandType"
                                     },
                                     Routes = new List<WebhookConfigRoute>
                                     {
@@ -249,12 +238,10 @@ namespace CaptainHook.Tests.Configuration
                             {
                                 Source = new ParserLocation
                                 {
-                                    Location = Location.MessageBody,
                                     Path = "InnerModel"
                                 },
                                 Destination = new ParserLocation
                                 {
-                                    Location = Location.PayloadBody,
                                     RuleAction = RuleAction.Replace
                                 }
                             }
@@ -277,28 +264,22 @@ namespace CaptainHook.Tests.Configuration
                             {
                                 Source = new ParserLocation
                                 {
-                                    Location = Location.MessageBody,
                                     Path = "InnerModel"
                                 },
                                 Destination = new ParserLocation
                                 {
-                                    Path = "Payload",
-                                    Location = Location.PayloadBody,
-                                    RuleAction = RuleAction.Add
+                                    Path = "Payload"
                                 }
                             },
                             new WebhookRequestRule
                             {
                                 Source = new ParserLocation
                                 {
-                                    Location = Location.MessageBody,
                                     Path = "OrderCode"
                                 },
                                 Destination = new ParserLocation
                                 {
-                                    Path = "OrderCode",
-                                    Location = Location.PayloadBody,
-                                    RuleAction = RuleAction.Add
+                                    Path = "OrderCode"
                                 }
                             }
                         }
@@ -320,14 +301,11 @@ namespace CaptainHook.Tests.Configuration
                             {
                                 Source = new ParserLocation
                                 {
-                                    Location = Location.MessageBody,
                                     Path = "OrderCode"
                                 },
                                 Destination = new ParserLocation
                                 {
-                                    Path = "OrderCode",
-                                    Location = Location.PayloadBody,
-                                    RuleAction = RuleAction.Add
+                                    Path = "OrderCode"
                                 }
                             },
                             new WebhookRequestRule
@@ -335,34 +313,29 @@ namespace CaptainHook.Tests.Configuration
                                 Source = new ParserLocation
                                 {
                                     Type = DataType.HttpStatusCode,
-                                    Location = Location.StatusCode
+                                    Location = Location.HttpStatusCode
                                 },
                                 Destination = new ParserLocation
                                 {
-                                    Path = "StatusCode",
-                                    Location = Location.PayloadBody,
-                                    RuleAction = RuleAction.Add
+                                    Path = "HttpStatusCode"
                                 }
                             },
                             new WebhookRequestRule
                             {
                                 Source = new ParserLocation
                                 {
-                                    Type = DataType.HttpContent,
-                                    Location = Location.PayloadBody
+                                    Type = DataType.HttpContent
                                 },
                                 Destination = new ParserLocation
                                 {
-                                    Path = "Content",
-                                    Location = Location.PayloadBody,
-                                    RuleAction = RuleAction.Add
+                                    Path = "Content"
                                 }
                             }
                         }
                     },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
                     new Dictionary<string, string>{{"HttpStatusCode", "200"}, {"HttpResponseContent", "{\"Msg\":\"Buy this thing\"}" } },
-                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\",\"StatusCode\":\"200\",\"Content\":{\"Msg\":\"Buy this thing\"}}"
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\",\"HttpStatusCode\":\"200\",\"Content\":{\"Msg\":\"Buy this thing\"}}"
                 }
             };
     }

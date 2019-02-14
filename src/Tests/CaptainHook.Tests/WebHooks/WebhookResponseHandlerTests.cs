@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -27,14 +26,14 @@ namespace CaptainHook.Tests.WebHooks
         [IsLayer0]
         [Theory]
         [MemberData(nameof(Data))]
-        public async Task ExecuteHappyPath(EventHandlerConfig config, MessageData messageData)
+        public async Task CheckWebhookCall(EventHandlerConfig config, MessageData messageData, Dictionary<string, string> metaData)
         {
             var mockHttpHandler = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
-            var mockWebHookRequestWithCallback = mockHttpHandler.When(HttpMethod.Put, config.WebHookConfig.Uri)
-                .WithContentType("application/json", JsonConvert.SerializeObject(new { Name = "Hello World" }))
+            var mockWebHookRequestWithCallback = mockHttpHandler.When(HttpMethod.Post, $"{config.WebHookConfig.Uri}/{metaData["OrderCode"]}")
+                .WithContentType("application/json", metaData["TransportModel"])
                 .Respond(HttpStatusCode.OK, "application/json", "hello");
 
-            var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Post, config.CallbackConfig.Uri)
+            var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Post, $"{config.CallbackConfig.Uri}/{metaData["OrderCode"]}")
                 .Respond(HttpStatusCode.OK, "application/json", "hello");
 
             var httpClient = mockHttpHandler.ToHttpClient();
@@ -96,7 +95,6 @@ namespace CaptainHook.Tests.WebHooks
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Location = Location.PayloadBody,
                                         Path = "OrderCode"
                                     },
                                     Destination = new ParserLocation
@@ -108,8 +106,11 @@ namespace CaptainHook.Tests.WebHooks
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Path = "BrandType",
-                                        Location = Location.PayloadBody
+                                        Path = "BrandType"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        RuleAction = RuleAction.Route
                                     },
                                     Routes = new List<WebhookConfigRoute>
                                     {
@@ -117,7 +118,7 @@ namespace CaptainHook.Tests.WebHooks
                                         {
                                             Uri = "https://blah.blah.brandytype.eshopworld.com",
                                             HttpVerb = "POST",
-                                            Selector = "Brand1",
+                                            Selector = "Bob",
                                             AuthenticationConfig = new AuthenticationConfig
                                             {
                                                 Type = AuthenticationType.None
@@ -129,12 +130,13 @@ namespace CaptainHook.Tests.WebHooks
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Path = "OrderConfirmationRequestDto",
-                                        Location = Location.PayloadBody
+                                        Path = "TransportModel",
+                                        Type = DataType.Model
                                     },
                                     Destination = new ParserLocation
                                     {
-                                        Location = Location.PayloadBody
+                                        Path = "TransportModel",
+                                        Type = DataType.Model
                                     }
                                 }
                             }
@@ -154,12 +156,10 @@ namespace CaptainHook.Tests.WebHooks
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Location = Location.MessageBody,
-                                        Path = "OrderCode"
+                                       Path = "OrderCode"
                                     },
                                     Destination = new ParserLocation
                                     {
-                                        Location = Location.PayloadBody,
                                         Path = "OrderCode"
                                     }
                                 },
@@ -167,34 +167,25 @@ namespace CaptainHook.Tests.WebHooks
                                 {
                                     Source = new ParserLocation
                                     {
-                                        Location = Location.StatusCode,
+                                        Location = Location.HttpStatusCode,
                                     },
                                     Destination = new ParserLocation
                                     {
-                                        Location = Location.PayloadBody,
-                                        Path = "StatusCode"
+                                        Path = "HttpStatusCode"
                                     }
                                 },
                                 new WebhookRequestRule
                                 {
-                                    Source = new ParserLocation
-                                    {
-                                        Location = Location.PayloadBody
-                                    },
                                     Destination = new ParserLocation
                                     {
-                                        Location = Location.PayloadBody,
                                         Path = "Content"
                                     }
                                 }
                             }
                         }
                     },
-                    new MessageData
-                    {
-                        Payload = EventHandlerTestHelper.GenerateMockPayloadWithInternalModel(Guid.NewGuid()),
-                        Type = "TestType"
-                    }
+                    EventHandlerTestHelper.CreateMessageDataPayload().data,
+                    EventHandlerTestHelper.CreateMessageDataPayload().metaData
                 }
             };
     }

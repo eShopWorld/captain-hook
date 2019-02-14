@@ -12,13 +12,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
     {
         public string BuildUri(WebhookConfig config, string payload)
         {
-            var uri = string.Empty;
-
+            var uri = config.Uri;
             //build the uri from the routes first
             var routingRules = config.WebhookRequestRules.FirstOrDefault(l => l.Routes.Any());
             if (routingRules != null)
             {
-                if (routingRules.Source.Location == Location.MessageBody)
+                if (routingRules.Source.Location == Location.Body)
                 {
                     var path = routingRules.Source.Path;
                     var value = ModelParser.ParsePayloadPropertyAsString(path, payload);
@@ -49,7 +48,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var uriRules = config.WebhookRequestRules.FirstOrDefault(l => l.Destination.Location == Location.Uri);
             if (uriRules != null)
             {
-                if (uriRules.Source.Location == Location.MessageBody)
+                if (uriRules.Source.Location == Location.Body)
                 {
                     var parameter = ModelParser.ParsePayloadPropertyAsString(uriRules.Source.Path, payload);
 
@@ -81,11 +80,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="config"></param>
         /// <param name="sourcePayload"></param>
-        /// <param name="data"></param>
+        /// <param name="metadata"></param>
         /// <returns></returns>
-        public string BuildPayload(WebhookConfig config, string sourcePayload, Dictionary<string, string> data)
+        public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, string> metadata = null)
         {
-            var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.PayloadBody).ToList();
+            var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.Body).ToList();
 
             if (!rules.Any())
             {
@@ -94,7 +93,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
             
             //Any replace action replaces the payload 
             var replaceRule = rules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Replace);
-
             if (replaceRule != null)
             {
                 var destinationPayload = ModelParser.ParsePayloadPropertyAsString(replaceRule.Source, sourcePayload);
@@ -103,6 +101,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 {
                     return destinationPayload;
                 }
+            }
+
+            if (metadata == null)
+            {
+                metadata = new Dictionary<string, string>();
             }
 
             var payload = new JObject();
@@ -119,11 +122,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
                             break;
                             
                         case DataType.HttpContent:
-                            value = ModelParser.GetJObject(data["HttpResponseContent"]);
+                            metadata.TryGetValue("HttpResponseContent", out var httpContent);
+                            value = ModelParser.GetJObject(httpContent);
                             break;
 
                         case DataType.HttpStatusCode:
-                            value = data["HttpStatusCode"];
+                            metadata.TryGetValue("HttpStatusCode", out var httpStatusCode);
+                            value = ModelParser.GetJValue(httpStatusCode);
                             break;
 
                         default:

@@ -86,13 +86,16 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The location of the parsed parameter or the location it should go
         /// </summary>
-        public Location Location { get; set; }
+        public Location Location { get; set; } = Location.Body;
 
         /// <summary>
         /// 
         /// </summary>
-        public RuleAction RuleAction { get; set; }
+        public RuleAction RuleAction { get; set; } = RuleAction.Add;
 
+        /// <summary>
+        /// The data type of the property
+        /// </summary>
         public DataType Type { get; set; } = DataType.Property;
     }
 
@@ -107,7 +110,8 @@ namespace CaptainHook.Common.Configuration
     public enum RuleAction
     {
         Replace = 1,
-        Add = 2
+        Add = 2,
+        Route = 3
     }
 
     public enum Location
@@ -120,26 +124,21 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The request payload body. Can come from or be attached to
         /// </summary>
-        PayloadBody = 2,
+        Body = 2,
 
         /// <summary>
-        /// Headers for the requests to add
+        /// 
         /// </summary>
         Header = 3,
 
         /// <summary>
-        /// Query parameters to add, esp for HTTP Gets
+        /// Special case to get the status code of the webhook request and add it to the call back body
         /// </summary>
-        QueryParameter = 4,
-
-        /// <summary>
-        /// The domain event body, ie where the data can come from
-        /// </summary>
-        MessageBody = 5,
+        HttpStatusCode = 4,
 
         /// <summary>
         /// Special case to get the status code of the webhook request and add it to the call back body
         /// </summary>
-        StatusCode = 6
+        HttpContent = 5,
     }
 }
