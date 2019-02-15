@@ -10,7 +10,7 @@ namespace CaptainHook.Tests
             var dictionary = new Dictionary<string, object>
             {
                 {"OrderCode", "BB39357A-90E1-4B6A-9C94-14BD1A62465E"},
-                {"BrandType", "Bob"},
+                {"BrandType", "Good"},
                 {"TransportModel", new { Name = "Hello World" }}
             };
 

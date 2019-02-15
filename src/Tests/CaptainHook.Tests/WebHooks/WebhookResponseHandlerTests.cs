@@ -7,6 +7,7 @@ using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.Tests.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using Moq;
@@ -24,10 +25,11 @@ namespace CaptainHook.Tests.WebHooks
         [IsLayer0]
         [Theory]
         [MemberData(nameof(WebHookCallData))]
-        public async Task CheckWebhookCall(EventHandlerConfig config, MessageData messageData, string expectedUri)
+        public async Task CheckWebhookCall(EventHandlerConfig config, MessageData messageData, string expectedUri, string expectedContent)
         {
-            var mockHttpHandler = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
+            var mockHttpHandler = new MockHttpMessageHandler();
             var mockWebHookRequestWithCallback = mockHttpHandler.When(HttpMethod.Post, expectedUri)
+                .WithContentType("application/json", expectedContent)
                 .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
             var httpClient = mockHttpHandler.ToHttpClient();
@@ -65,14 +67,15 @@ namespace CaptainHook.Tests.WebHooks
         [IsLayer0]
         [Theory]
         [MemberData(nameof(CallbackCallData))]
-        public async Task CheckCallbackCall(EventHandlerConfig config, MessageData messageData, string expectedWebHookUri, string expectedCallbackUri)
+        public async Task CheckCallbackCall(EventHandlerConfig config, MessageData messageData, string expectedWebHookUri, string expectedCallbackUri, string expectedContent)
         {
-            var mockHttpHandler = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
+            var mockHttpHandler = new MockHttpMessageHandler();
             mockHttpHandler.When(HttpMethod.Post, expectedWebHookUri)
-                .Respond(HttpStatusCode.OK, "application/json", "hello");
+                .WithContentType("application/json; charset=utf-8", expectedContent)
+                .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
-            var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Post, expectedCallbackUri)
-                .Respond(HttpStatusCode.OK, "application/json", "hello");
+            var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Put, expectedCallbackUri)
+                .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
             var httpClient = mockHttpHandler.ToHttpClient();
 
@@ -111,11 +114,12 @@ namespace CaptainHook.Tests.WebHooks
         [IsLayer0]
         [Theory]
         [MemberData(nameof(MultiRouteCallData))]
-        public async Task CheckMultiRouteSelection(EventHandlerConfig config, MessageData messageData, string expectedWebHookUri)
+        public async Task CheckMultiRouteSelection(EventHandlerConfig config, MessageData messageData, string expectedWebHookUri, string expectedContent)
         {
             var mockHttpHandler = new MockHttpMessageHandler();
             var multiRouteCall = mockHttpHandler.When(HttpMethod.Post, expectedWebHookUri)
-                .Respond(HttpStatusCode.OK, "application/json", "hello");
+                .WithContentType("application/json; charset=utf-8", expectedContent)
+                .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
             var httpClient = mockHttpHandler.ToHttpClient();
 
@@ -141,6 +145,9 @@ namespace CaptainHook.Tests.WebHooks
 
             await webhookResponseHandler.Call(messageData);
 
+            mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(1));
+            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.IsAny<string>()), Times.AtMostOnce);
+
             Assert.Equal(1, mockHttpHandler.GetMatchCount(multiRouteCall));
         }
 
@@ -149,9 +156,10 @@ namespace CaptainHook.Tests.WebHooks
             {
                 new object[]
                 {
-                    EventHandlerConfig,
+                    EventHandlerConfigWithSingleRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
-                    "https://blah-blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E"
+                    "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
+                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
                 }
             };
         public static IEnumerable<object[]> CallbackCallData =>
@@ -159,10 +167,11 @@ namespace CaptainHook.Tests.WebHooks
             {
                 new object[]
                 {
-                    EventHandlerConfig,
+                    EventHandlerConfigWithSingleRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
-                    "https://blah-blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
-                    "https://callback.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E"
+                    "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
+                    "https://callback.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
+                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
                 }
             };
 
@@ -171,15 +180,111 @@ namespace CaptainHook.Tests.WebHooks
             {
                 new object[]
                 {
-                    EventHandlerConfig,
+                    EventHandlerConfigWithBadMultiRoute,
+                    EventHandlerTestHelper.CreateMessageDataPayload().data,
+                    "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
+                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
+                },
+                new object[]
+                {
+                    EventHandlerConfigWithGoodMultiRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
                     "https://blah.blah.multiroute.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
-                    "https://callback.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
                     "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
                 }
             };
 
-        private static EventHandlerConfig EventHandlerConfig => new EventHandlerConfig
+        private static EventHandlerConfig EventHandlerConfigWithSingleRoute => new EventHandlerConfig
+        {
+            Name = "Event 1",
+            Type = "blahblah",
+            WebHookConfig = new WebhookConfig
+            {
+                Name = "Webhook1",
+                HttpVerb = "POST",
+                Uri = "https://blah.blah.eshopworld.com",
+                AuthenticationConfig = new OidcAuthenticationConfig
+                {
+                    Type = AuthenticationType.OIDC,
+                    Uri = "https://blah-blah.sts.eshopworld.com",
+                    ClientId = "ClientId",
+                    ClientSecret = "ClientSecret",
+                    Scopes = new[] { "scope1", "scope2" }
+                },
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                    new WebhookRequestRule
+                    {
+                        Source = new ParserLocation
+                        {
+                            Path = "OrderCode"
+                        },
+                        Destination = new ParserLocation
+                        {
+                            Location = Location.Uri
+                        }
+                    },
+                    new WebhookRequestRule
+                    {
+                        Source = new ParserLocation
+                        {
+                            Path = "TransportModel",
+                            Type = DataType.Model
+                        },
+                        Destination = new ParserLocation
+                        {
+                            Path = "TransportModel",
+                            Type = DataType.Model
+                        }
+                    }
+                }
+            },
+            CallbackConfig = new WebhookConfig
+            {
+                Name = "PutOrderConfirmationEvent",
+                HttpVerb = "PUT",
+                Uri = "https://callback.eshopworld.com",
+                AuthenticationConfig = new AuthenticationConfig
+                {
+                    Type = AuthenticationType.None
+                },
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                    new WebhookRequestRule
+                    {
+                        Source = new ParserLocation
+                        {
+                            Path = "OrderCode"
+                        },
+                        Destination = new ParserLocation
+                        {
+                            Path = "OrderCode",
+                            Location = Location.Uri
+                        }
+                    },
+                    new WebhookRequestRule
+                    {
+                        Source = new ParserLocation
+                        {
+                            Location = Location.HttpStatusCode,
+                        },
+                        Destination = new ParserLocation
+                        {
+                            Path = "HttpStatusCode"
+                        }
+                    },
+                    new WebhookRequestRule
+                    {
+                        Destination = new ParserLocation
+                        {
+                            Path = "Content"
+                        }
+                    }
+                }
+            }
+        };
+
+        private static EventHandlerConfig EventHandlerConfigWithGoodMultiRoute => new EventHandlerConfig
         {
             Name = "Event 1",
             Type = "blahblah",
@@ -225,7 +330,7 @@ namespace CaptainHook.Tests.WebHooks
                             {
                                 Uri = "https://blah.blah.multiroute.eshopworld.com",
                                 HttpVerb = "POST",
-                                Selector = "Brand1",
+                                Selector = "Good",
                                 AuthenticationConfig = new AuthenticationConfig
                                 {
                                     Type = AuthenticationType.None
@@ -267,7 +372,122 @@ namespace CaptainHook.Tests.WebHooks
                         },
                         Destination = new ParserLocation
                         {
+                            Path = "OrderCode",
+                            Location = Location.Uri
+                        }
+                    },
+                    new WebhookRequestRule
+                    {
+                        Source = new ParserLocation
+                        {
+                            Location = Location.HttpStatusCode,
+                        },
+                        Destination = new ParserLocation
+                        {
+                            Path = "HttpStatusCode"
+                        }
+                    },
+                    new WebhookRequestRule
+                    {
+                        Destination = new ParserLocation
+                        {
+                            Path = "Content"
+                        }
+                    }
+                }
+            }
+        };
+
+        private static EventHandlerConfig EventHandlerConfigWithBadMultiRoute => new EventHandlerConfig
+        {
+            Name = "Event 1",
+            Type = "blahblah",
+            WebHookConfig = new WebhookConfig
+            {
+                Name = "Webhook1",
+                HttpVerb = "POST",
+                Uri = "https://blah.blah.eshopworld.com",
+                AuthenticationConfig = new OidcAuthenticationConfig
+                {
+                    Type = AuthenticationType.OIDC,
+                    Uri = "https://blah-blah.sts.eshopworld.com",
+                    ClientId = "ClientId",
+                    ClientSecret = "ClientSecret",
+                    Scopes = new[] { "scope1", "scope2" }
+                },
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                    new WebhookRequestRule
+                    {
+                        Source = new ParserLocation
+                        {
                             Path = "OrderCode"
+                        },
+                        Destination = new ParserLocation
+                        {
+                            Location = Location.Uri
+                        }
+                    },
+                    new WebhookRequestRule
+                    {
+                        Source = new ParserLocation
+                        {
+                            Path = "BrandType"
+                        },
+                        Destination = new ParserLocation
+                        {
+                            RuleAction = RuleAction.Route
+                        },
+                        Routes = new List<WebhookConfigRoute>
+                        {
+                            new WebhookConfigRoute
+                            {
+                                Uri = "https://blah.blah.multiroute.eshopworld.com",
+                                HttpVerb = "POST",
+                                Selector = "Bad",
+                                AuthenticationConfig = new AuthenticationConfig
+                                {
+                                    Type = AuthenticationType.None
+                                }
+                            }
+                        }
+                    },
+                    new WebhookRequestRule
+                    {
+                        Source = new ParserLocation
+                        {
+                            Path = "TransportModel",
+                            Type = DataType.Model
+                        },
+                        Destination = new ParserLocation
+                        {
+                            Path = "TransportModel",
+                            Type = DataType.Model
+                        }
+                    }
+                }
+            },
+            CallbackConfig = new WebhookConfig
+            {
+                Name = "PutOrderConfirmationEvent",
+                HttpVerb = "PUT",
+                Uri = "https://callback.eshopworld.com",
+                AuthenticationConfig = new AuthenticationConfig
+                {
+                    Type = AuthenticationType.None
+                },
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                    new WebhookRequestRule
+                    {
+                        Source = new ParserLocation
+                        {
+                            Path = "OrderCode"
+                        },
+                        Destination = new ParserLocation
+                        {
+                            Path = "OrderCode",
+                            Location = Location.Uri
                         }
                     },
                     new WebhookRequestRule
