@@ -31,6 +31,50 @@ namespace CaptainHook.Tests.WebHooks
             var mockWebHookRequestWithCallback = mockHttpHandler.When(HttpMethod.Post, $"{config.WebHookConfig.Uri}/{metaData["OrderCode"]}")
                 .WithContentType("application/json", metaData["TransportModel"])
                 .Respond(HttpStatusCode.OK, "application/json", "hello");
+            
+            var httpClient = mockHttpHandler.ToHttpClient();
+
+            var mockAuthHandler = new Mock<IAcquireTokenHandler>();
+            var mockBigBrother = new Mock<IBigBrother>();
+
+            var mockHandlerFactory = new Mock<IEventHandlerFactory>();
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
+                new GenericWebhookHandler(
+                    mockAuthHandler.Object,
+                    new RequestBuilder(),
+                    mockBigBrother.Object,
+                    httpClient,
+                    config.CallbackConfig));
+
+            var webhookResponseHandler = new WebhookResponseHandler(
+                mockHandlerFactory.Object,
+                mockAuthHandler.Object,
+                new RequestBuilder(),
+                mockBigBrother.Object,
+                httpClient,
+                config);
+
+            await webhookResponseHandler.Call(messageData);
+
+            mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(2));
+            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.IsAny<string>()), Times.AtMostOnce);
+
+            Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequestWithCallback));
+        }
+
+        /// <summary>
+        /// Tests the whole flow for a webhook handler with a callback
+        /// </summary>
+        /// <returns></returns>
+        [IsLayer0]
+        [Theory]
+        [MemberData(nameof(Data))]
+        public async Task CheckCallbackCall(EventHandlerConfig config, MessageData messageData, Dictionary<string, string> metaData)
+        {
+            var mockHttpHandler = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
+            mockHttpHandler.When(HttpMethod.Post, $"{config.WebHookConfig.Uri}/{metaData["OrderCode"]}")
+                .WithContentType("application/json", metaData["TransportModel"])
+                .Respond(HttpStatusCode.OK, "application/json", "hello");
 
             var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Post, $"{config.CallbackConfig.Uri}/{metaData["OrderCode"]}")
                 .Respond(HttpStatusCode.OK, "application/json", "hello");
@@ -62,7 +106,6 @@ namespace CaptainHook.Tests.WebHooks
             mockAuthHandler.Verify(e => e.GetToken(It.IsAny<HttpClient>()), Times.Exactly(2));
             mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.IsAny<string>()), Times.AtMostOnce);
 
-            Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequestWithCallback));
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequest));
         }
 
