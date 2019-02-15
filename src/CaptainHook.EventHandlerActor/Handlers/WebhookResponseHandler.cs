@@ -65,12 +65,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 metadata.Clear();
             }
 
-            var content = await response.Content.ReadAsStringAsync();
+            //var content = await response.Content.ReadAsStringAsync();
 
-            metadata.Add("HttpStatusCode", response.StatusCode.ToString());
-            metadata.Add("HttpResponseContent", content);
+            //metadata.Add("HttpStatusCode", response.StatusCode.ToString());
+            //metadata.Add("HttpResponseContent", content);
 
-            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content));
+            //BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content));
 
             //call callback
             var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_eventHandlerConfig.CallbackConfig.Name);
