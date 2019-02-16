@@ -115,7 +115,7 @@ namespace CaptainHook.Common.Nasty
         /// <returns></returns>
         public static JObject GetJObject(string payload)
         {
-            return string.IsNullOrWhiteSpace(payload) ? new JObject() : JObject.Parse(payload);
+            return string.IsNullOrWhiteSpace(payload) ? null : JObject.Parse(payload);
         }
 
         /// <summary>
