@@ -266,7 +266,7 @@ namespace CaptainHook.Tests.WebHooks
                     {
                         Source = new ParserLocation
                         {
-                            Location = Location.HttpStatusCode,
+                            Type = DataType.HttpStatusCode
                         },
                         Destination = new ParserLocation
                         {
@@ -275,6 +275,10 @@ namespace CaptainHook.Tests.WebHooks
                     },
                     new WebhookRequestRule
                     {
+                        Source = new ParserLocation
+                        {
+                            Type = DataType.HttpContent
+                        },
                         Destination = new ParserLocation
                         {
                             Path = "Content"
@@ -380,7 +384,7 @@ namespace CaptainHook.Tests.WebHooks
                     {
                         Source = new ParserLocation
                         {
-                            Location = Location.HttpStatusCode,
+                            Type = DataType.HttpStatusCode
                         },
                         Destination = new ParserLocation
                         {
@@ -389,6 +393,10 @@ namespace CaptainHook.Tests.WebHooks
                     },
                     new WebhookRequestRule
                     {
+                        Source = new ParserLocation
+                        {
+                            Type = DataType.HttpContent
+                        },
                         Destination = new ParserLocation
                         {
                             Path = "Content"
@@ -494,7 +502,7 @@ namespace CaptainHook.Tests.WebHooks
                     {
                         Source = new ParserLocation
                         {
-                            Location = Location.HttpStatusCode,
+                            Type = DataType.HttpStatusCode,
                         },
                         Destination = new ParserLocation
                         {
@@ -503,6 +511,10 @@ namespace CaptainHook.Tests.WebHooks
                     },
                     new WebhookRequestRule
                     {
+                        Source = new ParserLocation
+                        {
+                            Type = DataType.HttpContent
+                        },
                         Destination = new ParserLocation
                         {
                             Path = "Content"
