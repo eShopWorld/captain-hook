@@ -84,7 +84,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             if (!rules.Any())
             {
-                return null;
+                return sourcePayload;
             }
             
             //Any replace action replaces the payload 

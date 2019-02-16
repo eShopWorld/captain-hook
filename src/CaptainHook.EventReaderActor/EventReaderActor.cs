@@ -92,12 +92,11 @@ namespace CaptainHook.EventReaderActor
                     new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
                     BatchSize);
 
-                _wakeupReminder = await this.RegisterReminderAsync(
-                    WakeUpReminderName,
+                _poolTimer = new Timer(
+                    ReadEvents,
                     null,
-                    TimeSpan.FromMilliseconds(100),
-                    TimeSpan.FromMilliseconds(100));
-
+                    TimeSpan.FromMilliseconds(1000),
+                    TimeSpan.FromMilliseconds(500));
             }
             catch (Exception e)
             {
@@ -142,7 +141,7 @@ namespace CaptainHook.EventReaderActor
             await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
 
-        internal void ReadEvents()
+        internal void ReadEvents(object _)
         {
             lock (_gate)
             {
@@ -172,9 +171,13 @@ namespace CaptainHook.EventReaderActor
         /// <remarks>
         /// Do nothing by design. We just need to make sure that the actor is properly activated.
         /// </remarks>>
-        public Task Run()
+        public async Task Run()
         {
-            return Task.CompletedTask;
+            _wakeupReminder = await this.RegisterReminderAsync(
+                WakeUpReminderName,
+                null,
+                TimeSpan.FromMinutes(15),
+                TimeSpan.FromMinutes(15));
         }
 
         public async Task CompleteMessage(Guid handle)
@@ -197,7 +200,7 @@ namespace CaptainHook.EventReaderActor
         {
             if (reminderName.Equals(WakeUpReminderName, StringComparison.OrdinalIgnoreCase))
             {
-                ReadEvents();
+                ReadEvents(null);
             }
 
             return Task.CompletedTask;

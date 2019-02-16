@@ -36,6 +36,7 @@
                 <Source>.*\\EntityFrameworkCore\\.*</Source>
                 <Source>.*\\Migrations\\.*</Source>
                 <Source>.*\\Resources\\.*</Source>
+                <Source>.*\\Tests\\.*</Source>
               </Exclude>
             </Sources>
             
