@@ -92,14 +92,20 @@ namespace CaptainHook.Common.Nasty
         /// <param name="location"></param>
         /// <param name="value"></param>
         /// <param name="container"></param>
-        public static void AddPropertyToPayload(ParserLocation location, JToken value, JContainer container)
+        public static JToken AddPropertyToPayload(ParserLocation location, JToken value, JContainer container)
         {
             if (value == null)
             {
-                return;
+                return container;
+            }
+
+            if (string.IsNullOrWhiteSpace(location.Path))
+            {
+                return value;
             }
 
             container.Add(new JProperty(location.Path, value));
+            return container;
         }
 
         /// <summary>

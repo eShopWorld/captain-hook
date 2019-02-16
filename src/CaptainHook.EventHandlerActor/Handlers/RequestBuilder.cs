@@ -104,7 +104,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 metadata = new Dictionary<string, string>();
             }
 
-            var payload = new JObject();
+            JContainer payload = new JObject();
             foreach (var rule in rules)
             {
                 if (rule.Destination.RuleAction == RuleAction.Add)
@@ -131,7 +131,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                             throw new ArgumentOutOfRangeException();
                     }
 
-                    ModelParser.AddPropertyToPayload(rule.Destination, value, payload);
+                    payload = (JContainer) ModelParser.AddPropertyToPayload(rule.Destination, value, payload);
                 }
             }
             
