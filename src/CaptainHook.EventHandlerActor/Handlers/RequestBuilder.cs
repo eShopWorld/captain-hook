@@ -10,6 +10,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
 {
     public class RequestBuilder : IRequestBuilder
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="payload"></param>
+        /// <returns></returns>
         public string BuildUri(WebhookConfig config, string payload)
         {
             var uri = config.Uri;
@@ -47,14 +53,18 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             //after route has been selected then select the identifier for the RESTful URI if applicable
             var uriRules = config.WebhookRequestRules.FirstOrDefault(l => l.Destination.Location == Location.Uri);
-            if (uriRules != null)
+            if (uriRules == null)
             {
-                if (uriRules.Source.Location == Location.Body)
-                {
-                    var parameter = ModelParser.ParsePayloadPropertyAsString(uriRules.Source.Path, payload);
-                    uri = CombineUriAndResourceId(uri, parameter);
-                }
+                return uri;
             }
+
+            if (uriRules.Source.Location != Location.Body)
+            {
+                return uri;
+            }
+
+            var parameter = ModelParser.ParsePayloadPropertyAsString(uriRules.Source.Path, payload);
+            uri = CombineUriAndResourceId(uri, parameter);
             return uri;
         }
 
@@ -71,8 +81,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return uri;
         }
 
+        /// <inheritdoc />
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="config"></param>
         /// <param name="sourcePayload"></param>
@@ -107,42 +117,45 @@ namespace CaptainHook.EventHandlerActor.Handlers
             JContainer payload = new JObject();
             foreach (var rule in rules)
             {
-                if (rule.Destination.RuleAction == RuleAction.Add)
+                if (rule.Destination.RuleAction != RuleAction.Add)
                 {
-                    JToken value;
-                    switch (rule.Source.Type)
-                    {
-                        case DataType.Property:
-                        case DataType.Model:
-                            value = ModelParser.ParsePayloadProperty(rule.Source, sourcePayload, rule.Destination.Type);
-                            break;
-
-                        case DataType.HttpContent:
-                            metadata.TryGetValue("HttpResponseContent", out var httpContent);
-                            value = ModelParser.GetJObject(httpContent);
-                            break;
-
-                        case DataType.HttpStatusCode:
-                            metadata.TryGetValue("HttpStatusCode", out var httpStatusCode);
-                            value = ModelParser.GetJObject(httpStatusCode);
-                            break;
-
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
-                    if (value == null)
-                    {
-                        continue;
-                    }
-
-                    if (string.IsNullOrWhiteSpace(rule.Destination.Path))
-                    {
-                        payload.Add(value);
-                        continue;
-                    }
-                    payload.Add(new JProperty(rule.Destination.Path, value));
+                    continue;
                 }
+
+                object value;
+                switch (rule.Source.Type)
+                {
+                    case DataType.Property:
+                    case DataType.Model:
+                        value = ModelParser.ParsePayloadProperty(rule.Source, sourcePayload, rule.Destination.Type);
+                        break;
+
+                    case DataType.HttpContent:
+                        metadata.TryGetValue("HttpResponseContent", out var httpContent);
+                        value = ModelParser.GetJObject(httpContent, rule.Destination.Type);
+                        break;
+
+                    case DataType.HttpStatusCode:
+                        metadata.TryGetValue("HttpStatusCode", out var httpStatusCode);
+                        value = ModelParser.GetJObject(httpStatusCode, rule.Destination.Type);
+                        break;
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                if (value == null)
+                {
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(rule.Destination.Path))
+                {
+                    payload = (JContainer) value;
+                    continue;
+                }
+
+                payload.Add(new JProperty(rule.Destination.Path, value));
             }
 
             return payload.ToString(Formatting.None);

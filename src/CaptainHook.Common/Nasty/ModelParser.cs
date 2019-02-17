@@ -1,5 +1,4 @@
-﻿using System;
-using CaptainHook.Common.Configuration;
+﻿using CaptainHook.Common.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -14,7 +13,7 @@ namespace CaptainHook.Common.Nasty
         /// <param name="payload"></param>
         /// <param name="jObject"></param>
         /// <returns></returns>
-        public static string ParsePayloadPropertyAsString(string name, string payload, JToken jObject = null)
+        public static string ParsePayloadPropertyAsString(string name, object payload, JToken jObject = null)
         {
             if (jObject == null)
             {
@@ -39,7 +38,7 @@ namespace CaptainHook.Common.Nasty
         /// <param name="destinationType"></param>
         /// <param name="jObject"></param>
         /// <returns></returns>
-        public static JToken ParsePayloadProperty(ParserLocation location, string sourcePayload, DataType destinationType, JToken jObject = null)
+        public static JToken ParsePayloadProperty(ParserLocation location, object sourcePayload, DataType destinationType, JToken jObject = null)
         {
             if (jObject == null)
             {
@@ -55,9 +54,15 @@ namespace CaptainHook.Common.Nasty
         /// 
         /// </summary>
         /// <param name="payload"></param>
+        /// <param name="destinationType"></param>
         /// <returns></returns>
-        public static JToken GetJObject(object payload)
+        public static JToken GetJObject(object payload, DataType destinationType = DataType.Model)
         {
+            if (destinationType == DataType.String)
+            {
+                return payload as string;
+            }
+
             if (payload is string payloadAsString)
             {
                 return JObject.Parse(payloadAsString);
