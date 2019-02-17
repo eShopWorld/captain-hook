@@ -183,14 +183,14 @@ namespace CaptainHook.Tests.WebHooks
                     EventHandlerConfigWithBadMultiRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
                     "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
-                    "{\"TransportModel\":\"{\\\"Name\\\":\\\"Hello World\\\"}\"}"
+                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
                 },
                 new object[]
                 {
                     EventHandlerConfigWithGoodMultiRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
                     "https://blah.blah.multiroute.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
-                    "{\"TransportModel\":\"{\\\"Name\\\":\\\"Hello World\\\"}\"}"
+                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
                 }
             };
 
@@ -234,7 +234,7 @@ namespace CaptainHook.Tests.WebHooks
                         Destination = new ParserLocation
                         {
                             Path = "TransportModel",
-                            Type = DataType.Model
+                            Type = DataType.String
                         }
                     }
                 }
@@ -281,7 +281,8 @@ namespace CaptainHook.Tests.WebHooks
                         },
                         Destination = new ParserLocation
                         {
-                            Path = "Content"
+                            Path = "Content",
+                            Type = DataType.String
                         }
                     }
                 }
@@ -376,7 +377,6 @@ namespace CaptainHook.Tests.WebHooks
                         },
                         Destination = new ParserLocation
                         {
-                            Path = "OrderCode",
                             Location = Location.Uri
                         }
                     },
@@ -399,7 +399,8 @@ namespace CaptainHook.Tests.WebHooks
                         },
                         Destination = new ParserLocation
                         {
-                            Path = "Content"
+                            Path = "Content",
+                            Type = DataType.String
                         }
                     }
                 }
@@ -517,7 +518,8 @@ namespace CaptainHook.Tests.WebHooks
                         },
                         Destination = new ParserLocation
                         {
-                            Path = "Content"
+                            Path = "Content",
+                            Type = DataType.String
                         }
                     }
                 }

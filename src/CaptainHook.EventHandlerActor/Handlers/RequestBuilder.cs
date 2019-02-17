@@ -91,11 +91,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var replaceRule = rules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Replace);
             if (replaceRule != null)
             {
-                var destinationPayload = ModelParser.ParsePayloadPropertyAsString(replaceRule.Source, sourcePayload);
+                var destinationPayload = ModelParser.ParsePayloadProperty(replaceRule.Source, sourcePayload, replaceRule.Destination.Type);
 
                 if (rules.Count <= 1)
                 {
-                    return destinationPayload;
+                    return destinationPayload.ToString(Formatting.None);
                 }
             }
 
@@ -109,12 +109,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 if (rule.Destination.RuleAction == RuleAction.Add)
                 {
-                    object value;
+                    JToken value;
                     switch (rule.Source.Type)
                     {
                         case DataType.Property:
                         case DataType.Model:
-                            value = ModelParser.ParsePayloadPropertyAsString(rule.Source, sourcePayload);
+                            value = ModelParser.ParsePayloadProperty(rule.Source, sourcePayload, rule.Destination.Type);
                             break;
 
                         case DataType.HttpContent:
@@ -138,10 +138,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                     if (string.IsNullOrWhiteSpace(rule.Destination.Path))
                     {
-                        if (value is string payloadAsString)
-                        {
-                            payload = JObject.Parse(payloadAsString);
-                        }
+                        payload.Add(value);
                         continue;
                     }
                     payload.Add(new JProperty(rule.Destination.Path, value));

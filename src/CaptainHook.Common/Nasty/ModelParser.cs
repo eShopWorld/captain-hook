@@ -10,19 +10,6 @@ namespace CaptainHook.Common.Nasty
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="rule"></param>
-        /// <param name="sourcePayload"></param>
-        /// <returns></returns>
-        public static string ParsePayloadPropertyAsString(ParserLocation rule, string sourcePayload)
-        {
-            var value = ParsePayloadProperty(rule, sourcePayload);
-
-            return value.ToString(Formatting.None);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="name"></param>
         /// <param name="payload"></param>
         /// <param name="jObject"></param>
@@ -34,13 +21,14 @@ namespace CaptainHook.Common.Nasty
                 jObject = GetJObject(payload);
             }
 
-            var value = jObject.SelectToken(name).Value<string>();
+            var value = jObject.SelectToken(name);
 
-            if (!string.IsNullOrWhiteSpace(value))
+            if (value == null)
             {
-                return value;
+                return null;
             }
-            throw new FormatException($"cannot parse order code in payload {value}");
+
+            return value.Type == JTokenType.Object ? value.ToString(Formatting.None) : value.Value<string>();
         }
 
         /// <summary>
@@ -48,18 +36,19 @@ namespace CaptainHook.Common.Nasty
         /// </summary>
         /// <param name="location"></param>
         /// <param name="sourcePayload"></param>
+        /// <param name="destinationType"></param>
         /// <param name="jObject"></param>
         /// <returns></returns>
-        public static JToken ParsePayloadProperty(ParserLocation location, string sourcePayload, JToken jObject = null)
+        public static JToken ParsePayloadProperty(ParserLocation location, string sourcePayload, DataType destinationType, JToken jObject = null)
         {
             if (jObject == null)
             {
                 jObject = GetJObject(sourcePayload);
             }
 
-            var value = jObject.SelectToken(location.Path);
-
-            return value;
+            return destinationType == DataType.String ? 
+                ParsePayloadPropertyAsString(location.Path, sourcePayload) : 
+                jObject.SelectToken(location.Path);
         }
 
         /// <summary>

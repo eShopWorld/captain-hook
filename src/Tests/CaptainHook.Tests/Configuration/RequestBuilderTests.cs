@@ -268,7 +268,8 @@ namespace CaptainHook.Tests.Configuration
                                 },
                                 Destination = new ParserLocation
                                 {
-                                    Path = "Payload"
+                                    Path = "Payload",
+                                    Type = DataType.Model
                                 }
                             },
                             new WebhookRequestRule
@@ -279,7 +280,8 @@ namespace CaptainHook.Tests.Configuration
                                 },
                                 Destination = new ParserLocation
                                 {
-                                    Path = "OrderCode"
+                                    Path = "OrderCode",
+                                    Type = DataType.Model
                                 }
                             }
                         }

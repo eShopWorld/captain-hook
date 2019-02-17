@@ -104,7 +104,8 @@ namespace CaptainHook.Common.Configuration
         Property = 1,
         HttpContent = 2,
         HttpStatusCode = 3,
-        Model = 4
+        Model = 4,
+        String = 5
     }
 
     public enum RuleAction
