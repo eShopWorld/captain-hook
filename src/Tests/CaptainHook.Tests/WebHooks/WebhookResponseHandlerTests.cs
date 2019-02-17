@@ -159,7 +159,7 @@ namespace CaptainHook.Tests.WebHooks
                     EventHandlerConfigWithSingleRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
                     "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
-                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
+                    "{\"TransportModel\":\"{\\\"Name\\\":\\\"Hello World\\\"}\"}"
                 }
             };
         public static IEnumerable<object[]> CallbackCallData =>
@@ -171,7 +171,7 @@ namespace CaptainHook.Tests.WebHooks
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
                     "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
                     "https://callback.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
-                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
+                    "{\"TransportModel\":\"{\\\"Name\\\":\\\"Hello World\\\"}\"}"
                 }
             };
 
@@ -183,14 +183,14 @@ namespace CaptainHook.Tests.WebHooks
                     EventHandlerConfigWithBadMultiRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
                     "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
-                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
+                    "{\"TransportModel\":\"{\\\"Name\\\":\\\"Hello World\\\"}\"}"
                 },
                 new object[]
                 {
                     EventHandlerConfigWithGoodMultiRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
                     "https://blah.blah.multiroute.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
-                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
+                    "{\"TransportModel\":\"{\\\"Name\\\":\\\"Hello World\\\"}\"}"
                 }
             };
 

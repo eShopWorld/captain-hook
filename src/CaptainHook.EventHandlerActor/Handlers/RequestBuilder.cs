@@ -86,13 +86,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 return sourcePayload;
             }
-            
+
             //Any replace action replaces the payload 
             var replaceRule = rules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Replace);
             if (replaceRule != null)
             {
                 var destinationPayload = ModelParser.ParsePayloadPropertyAsString(replaceRule.Source, sourcePayload);
-                
+
                 if (rules.Count <= 1)
                 {
                     return destinationPayload;
@@ -109,14 +109,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 if (rule.Destination.RuleAction == RuleAction.Add)
                 {
-                    JToken value;
+                    object value;
                     switch (rule.Source.Type)
                     {
                         case DataType.Property:
                         case DataType.Model:
-                            value = ModelParser.ParsePayloadProperty(rule.Source, sourcePayload);
+                            value = ModelParser.ParsePayloadPropertyAsString(rule.Source, sourcePayload);
                             break;
-                            
+
                         case DataType.HttpContent:
                             metadata.TryGetValue("HttpResponseContent", out var httpContent);
                             value = ModelParser.GetJObject(httpContent);
@@ -131,10 +131,23 @@ namespace CaptainHook.EventHandlerActor.Handlers
                             throw new ArgumentOutOfRangeException();
                     }
 
-                    payload = (JContainer) ModelParser.AddPropertyToPayload(rule.Destination, value, payload);
+                    if (value == null)
+                    {
+                        continue;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(rule.Destination.Path))
+                    {
+                        if (value is string payloadAsString)
+                        {
+                            payload = JObject.Parse(payloadAsString);
+                        }
+                        continue;
+                    }
+                    payload.Add(new JProperty(rule.Destination.Path, value));
                 }
             }
-            
+
             return payload.ToString(Formatting.None);
         }
     }

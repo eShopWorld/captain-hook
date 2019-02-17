@@ -10,30 +10,6 @@ namespace CaptainHook.Common.Nasty
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="payload"></param>
-        /// <param name="jObject"></param>
-        /// <returns></returns>
-        [Obsolete]
-        public static Guid ParsePayloadPropertyAsGuid(string name, string payload, JToken jObject = null)
-        {
-            if (jObject == null)
-            {
-                jObject = GetJObject(payload);
-            }
-
-            var orderCode = jObject.SelectToken(name).Value<string>();
-            if (Guid.TryParse(orderCode, out var result))
-            {
-                return result;
-            }
-
-            throw new FormatException($"cannot parse order code in payload {orderCode}");
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
         /// <param name="rule"></param>
         /// <param name="sourcePayload"></param>
         /// <returns></returns>
@@ -84,28 +60,6 @@ namespace CaptainHook.Common.Nasty
             var value = jObject.SelectToken(location.Path);
 
             return value;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="location"></param>
-        /// <param name="value"></param>
-        /// <param name="container"></param>
-        public static JToken AddPropertyToPayload(ParserLocation location, JToken value, JContainer container)
-        {
-            if (value == null)
-            {
-                return container;
-            }
-
-            if (string.IsNullOrWhiteSpace(location.Path))
-            {
-                return value;
-            }
-
-            container.Add(new JProperty(location.Path, value));
-            return container;
         }
 
         /// <summary>

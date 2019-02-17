@@ -44,7 +44,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
-
             var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
 
             void TelemetryEvent(string msg)
