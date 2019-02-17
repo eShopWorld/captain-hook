@@ -31,7 +31,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             _eventHandlerConfig = eventHandlerConfig;
         }
 
-        public override async Task Call<TRequest>(TRequest request, IDictionary<string, string> metadata = null)
+        public override async Task Call<TRequest>(TRequest request, IDictionary<string, object> metadata = null)
         {
             if (!(request is MessageData messageData))
             {
@@ -42,11 +42,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 await AcquireTokenHandler.GetToken(_client);
             }
-            
+
             var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
 
             var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
-            
+
             void TelemetryEvent(string msg)
             {
                 BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
@@ -55,10 +55,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, uri, payload, TelemetryEvent);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
-            
+
             if (metadata == null)
             {
-                metadata = new Dictionary<string, string>();
+                metadata = new Dictionary<string, object>();
             }
             else
             {
@@ -66,7 +66,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             var content = await response.Content.ReadAsStringAsync();
-            metadata.Add("HttpStatusCode", response.StatusCode.ToString());
+            metadata.Add("HttpStatusCode", (int)response.StatusCode);
             metadata.Add("HttpResponseContent", content);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content));

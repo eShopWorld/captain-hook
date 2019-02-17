@@ -78,7 +78,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="sourcePayload"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
-        public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, string> metadata = null)
+        public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata = null)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.Body).ToList();
 
@@ -101,7 +101,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             if (metadata == null)
             {
-                metadata = new Dictionary<string, string>();
+                metadata = new Dictionary<string, object>();
             }
 
             JContainer payload = new JObject();
@@ -124,7 +124,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                         case DataType.HttpStatusCode:
                             metadata.TryGetValue("HttpStatusCode", out var httpStatusCode);
-                            value = ModelParser.GetJValue(httpStatusCode);
+                            value = ModelParser.GetJObject(httpStatusCode);
                             break;
 
                         default:

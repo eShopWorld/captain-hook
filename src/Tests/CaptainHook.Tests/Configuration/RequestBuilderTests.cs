@@ -25,7 +25,7 @@ namespace CaptainHook.Tests.Configuration
         public void PayloadConstructionTests(
             WebhookConfig config,
             string sourcePayload,
-            Dictionary<string, string> data,
+            Dictionary<string, object> data,
             string expectedPayload)
         {
             var requestPayload = new RequestBuilder().BuildPayload(config, sourcePayload, data);
@@ -248,7 +248,7 @@ namespace CaptainHook.Tests.Configuration
                         }
                     },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
-                    new Dictionary<string, string> (),
+                    new Dictionary<string, object> (),
                     "{\"Msg\":\"Buy this thing\"}"
                 },
                 new object[]
@@ -285,7 +285,7 @@ namespace CaptainHook.Tests.Configuration
                         }
                     },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
-                    new Dictionary<string, string>(),
+                    new Dictionary<string, object>(),
                     "{\"Payload\":{\"Msg\":\"Buy this thing\"},\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\"}"
                 },
                 new object[]
@@ -334,8 +334,8 @@ namespace CaptainHook.Tests.Configuration
                         }
                     },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
-                    new Dictionary<string, string>{{"HttpStatusCode", "200"}, {"HttpResponseContent", "{\"Msg\":\"Buy this thing\"}" } },
-                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\",\"HttpStatusCode\":\"200\",\"Content\":{\"Msg\":\"Buy this thing\"}}"
+                    new Dictionary<string, object>{{"HttpStatusCode", 200}, {"HttpResponseContent", "{\"Msg\":\"Buy this thing\"}" } },
+                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\",\"HttpStatusCode\":200,\"Content\":{\"Msg\":\"Buy this thing\"}}"
                 }
             };
     }

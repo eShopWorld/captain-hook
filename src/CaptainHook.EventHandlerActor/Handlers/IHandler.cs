@@ -6,6 +6,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
     public interface IHandler
     {
-        Task Call<TRequest>(TRequest request, IDictionary<string, string> metaData = null);
+        Task Call<TRequest>(TRequest request, IDictionary<string, object> metaData = null);
     }
 }

@@ -43,7 +43,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="request"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
-        public virtual async Task Call<TRequest>(TRequest request, IDictionary<string, string> metadata = null)
+        public virtual async Task Call<TRequest>(TRequest request, IDictionary<string, object> metadata = null)
         {
             try
             {

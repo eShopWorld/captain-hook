@@ -20,6 +20,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="sourcePayload"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, string> data = null);
+        string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> data = null);
     }
 }

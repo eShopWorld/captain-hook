@@ -15,7 +15,7 @@ namespace CaptainHook.Common.Nasty
         /// <param name="jObject"></param>
         /// <returns></returns>
         [Obsolete]
-        public static Guid ParsePayloadPropertyAsGuid(string name, string payload, JObject jObject = null)
+        public static Guid ParsePayloadPropertyAsGuid(string name, string payload, JToken jObject = null)
         {
             if (jObject == null)
             {
@@ -51,7 +51,7 @@ namespace CaptainHook.Common.Nasty
         /// <param name="payload"></param>
         /// <param name="jObject"></param>
         /// <returns></returns>
-        public static string ParsePayloadPropertyAsString(string name, string payload, JObject jObject = null)
+        public static string ParsePayloadPropertyAsString(string name, string payload, JToken jObject = null)
         {
             if (jObject == null)
             {
@@ -74,7 +74,7 @@ namespace CaptainHook.Common.Nasty
         /// <param name="sourcePayload"></param>
         /// <param name="jObject"></param>
         /// <returns></returns>
-        public static JToken ParsePayloadProperty(ParserLocation location, string sourcePayload, JObject jObject = null)
+        public static JToken ParsePayloadProperty(ParserLocation location, string sourcePayload, JToken jObject = null)
         {
             if (jObject == null)
             {
@@ -113,20 +113,19 @@ namespace CaptainHook.Common.Nasty
         /// </summary>
         /// <param name="payload"></param>
         /// <returns></returns>
-        public static JObject GetJObject(string payload)
+        public static JToken GetJObject(object payload)
         {
-            return string.IsNullOrWhiteSpace(payload) ? null : JObject.Parse(payload);
-        }
+            if (payload is string payloadAsString)
+            {
+                return JObject.Parse(payloadAsString);
+            }
 
-        /// <summary>
-        /// Converts a string to a JValue
-        /// Should use it when it's a primitive type and what to convert into a JValue
-        /// </summary>
-        /// <param name="payload"></param>
-        /// <returns></returns>
-        public static JValue GetJValue(string payload)
-        {
-            return new JValue(payload);
+            if (payload is int payloadAsInt)
+            {
+                return new JValue(payloadAsInt);
+            }
+
+            return null;
         }
     }
 }
