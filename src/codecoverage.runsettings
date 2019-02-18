@@ -28,6 +28,7 @@
                 <ModulePath>.*fluentassertions.*</ModulePath>
                 <ModulePath>.*tests.*</ModulePath>
                 <ModulePath>.*moq.*</ModulePath>
+                <ModulePath>CaptainHook.Test.dll</ModulePath>
               </Exclude>
             </ModulePaths>
 
@@ -36,7 +37,6 @@
                 <Source>.*\\EntityFrameworkCore\\.*</Source>
                 <Source>.*\\Migrations\\.*</Source>
                 <Source>.*\\Resources\\.*</Source>
-                <Source>.*\\Tests\\.*</Source>
               </Exclude>
             </Sources>
             
