@@ -8,6 +8,8 @@
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <LangVersion>latest</LangVersion>
     <DebugType>Full</DebugType>
+    <Platforms>x64</Platforms>
+    <Platform>x64</Platform>
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>

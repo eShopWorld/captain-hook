@@ -5,7 +5,7 @@
     <TargetLatestRuntimePatch>True</TargetLatestRuntimePatch>
 
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-    <LangVersion>7.1</LangVersion>
+    <LangVersion>latest</LangVersion>
     <DebugType>Full</DebugType>
 
     <OutputType>Exe</OutputType>
