@@ -92,8 +92,7 @@ namespace CaptainHook.EventReaderActor
                     new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
                     BatchSize);
 
-                _poolTimer = new Timer(
-                    ReadEvents,
+                _poolTimer = new Timer(ReadEvents,
                     null,
                     TimeSpan.FromMilliseconds(1000),
                     TimeSpan.FromMilliseconds(100));
@@ -141,7 +140,7 @@ namespace CaptainHook.EventReaderActor
             await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
 
-        internal void ReadEvents(object _)
+        internal async void ReadEvents(object _)
         {
             lock (_gate)
             {
@@ -160,9 +159,11 @@ namespace CaptainHook.EventReaderActor
 
             foreach (var message in messages)
             {
-                var handle = ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId()).Result;
+                await _receiver.RenewLockAsync(message);
+
+                var handle = await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
                 _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
-                StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value).Wait();
+                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
             }
 
             _readingEvents = false;
