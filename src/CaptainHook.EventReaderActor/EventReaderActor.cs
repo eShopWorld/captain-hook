@@ -96,7 +96,7 @@ namespace CaptainHook.EventReaderActor
                     ReadEvents,
                     null,
                     TimeSpan.FromMilliseconds(1000),
-                    TimeSpan.FromMilliseconds(500));
+                    TimeSpan.FromMilliseconds(100));
             }
             catch (Exception e)
             {
