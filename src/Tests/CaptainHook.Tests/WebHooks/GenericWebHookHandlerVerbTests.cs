@@ -10,7 +10,6 @@ using CaptainHook.Tests.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using Moq;
-using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
 using Xunit;
 
@@ -68,9 +67,9 @@ namespace CaptainHook.Tests.WebHooks
         public static IEnumerable<object[]> CreationData =>
             new List<object[]>
             {
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/post", HttpVerb = "Post", }, HttpMethod.Post, JsonConvert.SerializeObject(new { Message = "Hello World Post" }), HttpStatusCode.Created, string.Empty  },
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/put", HttpVerb = "Put"}, HttpMethod.Put, JsonConvert.SerializeObject(new { Message = "Hello World Put " }), HttpStatusCode.NoContent, string.Empty  },
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/patch", HttpVerb = "Patch"}, HttpMethod.Patch, JsonConvert.SerializeObject(new { Message = "Hello World Patch" }), HttpStatusCode.NoContent, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/post", HttpVerb = "Post", }, HttpMethod.Post, "{\"Message\":\"Hello World Post\"}", HttpStatusCode.Created, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/put", HttpVerb = "Put"}, HttpMethod.Put, "{\"Message\":\"Hello World Put\"}", HttpStatusCode.NoContent, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/patch", HttpVerb = "Patch"}, HttpMethod.Patch, "{\"Message\":\"Hello World Patch\"}", HttpStatusCode.NoContent, string.Empty  },
             };
 
         /// <summary>
