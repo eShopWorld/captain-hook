@@ -168,9 +168,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 .WaitAndRetryAsync(new[]
                 {
                     //todo config this + jitter
-                    TimeSpan.FromSeconds(1),
-                    TimeSpan.FromSeconds(2),
-                    TimeSpan.FromSeconds(5)
+                    TimeSpan.FromSeconds(20),
+                    TimeSpan.FromSeconds(30)
 
                 }, (result, timeSpan, retryCount, context) =>
                 {
