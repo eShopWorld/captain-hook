@@ -144,11 +144,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
                         throw new ArgumentOutOfRangeException();
                 }
 
-                if (value == null)
-                {
-                    continue;
-                }
-
                 if (string.IsNullOrWhiteSpace(rule.Destination.Path))
                 {
                     payload = (JContainer) value;

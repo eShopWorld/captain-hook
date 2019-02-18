@@ -73,7 +73,7 @@ namespace CaptainHook.Common.Nasty
                 return new JValue(payloadAsInt);
             }
 
-            return null;
+            return new JObject();
         }
     }
 }
