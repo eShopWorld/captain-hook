@@ -201,7 +201,7 @@ namespace CaptainHook.Tests.WebHooks
             WebHookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
-                HttpVerb = "POST",
+                HttpVerb = HttpVerb.Post,
                 Uri = "https://blah.blah.eshopworld.com",
                 AuthenticationConfig = new OidcAuthenticationConfig
                 {
@@ -242,7 +242,7 @@ namespace CaptainHook.Tests.WebHooks
             CallbackConfig = new WebhookConfig
             {
                 Name = "PutOrderConfirmationEvent",
-                HttpVerb = "PUT",
+                HttpVerb = HttpVerb.Put,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig
                 {
@@ -296,7 +296,7 @@ namespace CaptainHook.Tests.WebHooks
             WebHookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
-                HttpVerb = "POST",
+                HttpVerb = HttpVerb.Post,
                 Uri = "https://blah.blah.eshopworld.com",
                 AuthenticationConfig = new OidcAuthenticationConfig
                 {
@@ -334,7 +334,7 @@ namespace CaptainHook.Tests.WebHooks
                             new WebhookConfigRoute
                             {
                                 Uri = "https://blah.blah.multiroute.eshopworld.com",
-                                HttpVerb = "POST",
+                                HttpVerb = HttpVerb.Post,
                                 Selector = "Good",
                                 AuthenticationConfig = new AuthenticationConfig
                                 {
@@ -361,7 +361,7 @@ namespace CaptainHook.Tests.WebHooks
             CallbackConfig = new WebhookConfig
             {
                 Name = "PutOrderConfirmationEvent",
-                HttpVerb = "PUT",
+                HttpVerb = HttpVerb.Post,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig
                 {
@@ -414,7 +414,7 @@ namespace CaptainHook.Tests.WebHooks
             WebHookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
-                HttpVerb = "POST",
+                HttpVerb = HttpVerb.Post,
                 Uri = "https://blah.blah.eshopworld.com",
                 AuthenticationConfig = new OidcAuthenticationConfig
                 {
@@ -452,7 +452,7 @@ namespace CaptainHook.Tests.WebHooks
                             new WebhookConfigRoute
                             {
                                 Uri = "https://blah.blah.multiroute.eshopworld.com",
-                                HttpVerb = "POST",
+                                HttpVerb = HttpVerb.Post,
                                 Selector = "Bad",
                                 AuthenticationConfig = new AuthenticationConfig
                                 {
@@ -479,7 +479,7 @@ namespace CaptainHook.Tests.WebHooks
             CallbackConfig = new WebhookConfig
             {
                 Name = "PutOrderConfirmationEvent",
-                HttpVerb = "PUT",
+                HttpVerb = HttpVerb.Post,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig
                 {

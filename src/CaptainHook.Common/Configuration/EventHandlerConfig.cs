@@ -21,7 +21,7 @@ namespace CaptainHook.Common.Configuration
         public string Name { get; set; }
 
         //todo implement this on the calls to the webhook to select http verb
-        public string HttpVerb { get; set; }
+        public HttpVerb HttpVerb { get; set; }
 
         public List<WebhookRequestRule> WebhookRequestRules { get; set; }
     }
@@ -97,6 +97,14 @@ namespace CaptainHook.Common.Configuration
         /// The data type of the property
         /// </summary>
         public DataType Type { get; set; } = DataType.Property;
+    }
+
+    public enum HttpVerb
+    {
+        Get = 1,
+        Put = 2,
+        Post = 4,
+        Patch = 5,
     }
 
     public enum DataType

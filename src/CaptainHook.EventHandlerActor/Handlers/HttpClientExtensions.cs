@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Common.Configuration;
 using Polly;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -26,39 +27,30 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public static async Task<HttpResponseMessage> ExecuteAsJsonReliably(
             this HttpClient client,
-            string httpVerb,
+            HttpVerb httpVerb,
             string uri,
             string payload,
             Action<string> telemetryRequest,
             string contentType = "application/json",
             CancellationToken token = default)
         {
-            if (string.IsNullOrWhiteSpace(httpVerb))
+            switch (httpVerb)
             {
-                throw new ArgumentException("is null empty or whitespace in your webhook or callback configuration", nameof(httpVerb));
-            }
+                case HttpVerb.Get:
+                    return await client.GetAsJsonReliably(uri, telemetryRequest, contentType, token);
 
-            if (string.Equals("get", httpVerb, StringComparison.OrdinalIgnoreCase))
-            {
-                return await client.GetAsJsonReliably(uri, telemetryRequest, contentType, token);
-            }
+                case HttpVerb.Put:
+                    return await client.PutAsJsonReliably(uri, payload, telemetryRequest, contentType, token);
 
-            if (string.Equals("post", httpVerb, StringComparison.OrdinalIgnoreCase))
-            {
-                return await client.PostAsJsonReliably(uri, payload, telemetryRequest, contentType, token);
-            }
+                case HttpVerb.Post:
+                    return await client.PostAsJsonReliably(uri, payload, telemetryRequest, contentType, token);
 
-            if (string.Equals("put", httpVerb, StringComparison.OrdinalIgnoreCase))
-            {
-                return await client.PutAsJsonReliably(uri, payload, telemetryRequest, contentType, token);
-            }
+                case HttpVerb.Patch:
+                    return await client.PatchAsJsonReliably(uri, payload, telemetryRequest, contentType, token);
 
-            if (string.Equals("patch", httpVerb, StringComparison.OrdinalIgnoreCase))
-            {
-                return await client.PatchAsJsonReliably(uri, payload, telemetryRequest, contentType, token);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(httpVerb), httpVerb, "no valid http verb found");
             }
-
-            throw new Exception($"no valid http verb found for {httpVerb}");
         }
 
         /// <summary>
