@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Eshopworld.Core" Version="2.0.5" />
+    <PackageReference Include="Eshopworld.Telemetry" Version="2.1.3" />
     <PackageReference Include="IdentityModel" Version="3.10.6" />
     <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.638" />
   </ItemGroup>
