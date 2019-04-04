@@ -42,6 +42,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                         {
                             break;
                         }
+                        throw new Exception("route mapping/selector not found between config and the properties on the domain object");
                     }
 
                     if (route != null)
@@ -122,6 +123,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     continue;
                 }
 
+                //todo add test for this
+                if (rule.Source.RuleAction == RuleAction.Route)
+                {
+                    continue;
+                }
+
                 object value;
                 switch (rule.Source.Type)
                 {
@@ -146,7 +153,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 if (string.IsNullOrWhiteSpace(rule.Destination.Path))
                 {
-                    payload = (JContainer) value;
+                    payload = (JContainer)value;
                     continue;
                 }
 

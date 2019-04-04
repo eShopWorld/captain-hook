@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -113,8 +114,8 @@ namespace CaptainHook.Tests.WebHooks
         /// <returns></returns>
         [IsLayer0]
         [Theory]
-        [MemberData(nameof(MultiRouteCallData))]
-        public async Task CheckMultiRouteSelection(EventHandlerConfig config, MessageData messageData, string expectedWebHookUri, string expectedContent)
+        [MemberData(nameof(GoodMultiRouteCallData))]
+        public async Task GoodCheckMultiRouteSelection(EventHandlerConfig config, MessageData messageData, string expectedWebHookUri, string expectedContent)
         {
             var mockHttpHandler = new MockHttpMessageHandler();
             var multiRouteCall = mockHttpHandler.When(HttpMethod.Post, expectedWebHookUri)
@@ -151,6 +152,45 @@ namespace CaptainHook.Tests.WebHooks
             Assert.Equal(1, mockHttpHandler.GetMatchCount(multiRouteCall));
         }
 
+        /// <summary>
+        /// Tests the whole flow for a webhook handler with a callback
+        /// </summary>
+        /// <returns></returns>
+        [IsLayer0]
+        [Theory]
+        [MemberData(nameof(BadMultiRouteCallData))]
+        public async Task BadCheckMultiRouteSelection(EventHandlerConfig config, MessageData messageData, string expectedWebHookUri, string expectedContent)
+        {
+            var mockHttpHandler = new MockHttpMessageHandler();
+            var multiRouteCall = mockHttpHandler.When(HttpMethod.Post, expectedWebHookUri)
+                .WithContentType("application/json; charset=utf-8", expectedContent)
+                .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
+
+            var httpClient = mockHttpHandler.ToHttpClient();
+
+            var mockAuthHandler = new Mock<IAcquireTokenHandler>();
+            var mockBigBrother = new Mock<IBigBrother>();
+
+            var mockHandlerFactory = new Mock<IEventHandlerFactory>();
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
+                new GenericWebhookHandler(
+                    mockAuthHandler.Object,
+                    new RequestBuilder(),
+                    mockBigBrother.Object,
+                    httpClient,
+                    config.CallbackConfig));
+
+            var webhookResponseHandler = new WebhookResponseHandler(
+                mockHandlerFactory.Object,
+                mockAuthHandler.Object,
+                new RequestBuilder(),
+                mockBigBrother.Object,
+                httpClient,
+                config);
+
+            await Assert.ThrowsAsync<Exception>(async () => await webhookResponseHandler.Call(messageData));
+        }
+
         public static IEnumerable<object[]> WebHookCallData =>
             new List<object[]>
             {
@@ -162,6 +202,7 @@ namespace CaptainHook.Tests.WebHooks
                     "{\"TransportModel\":\"{\\\"Name\\\":\\\"Hello World\\\"}\"}"
                 }
             };
+
         public static IEnumerable<object[]> CallbackCallData =>
             new List<object[]>
             {
@@ -175,7 +216,19 @@ namespace CaptainHook.Tests.WebHooks
                 }
             };
 
-        public static IEnumerable<object[]> MultiRouteCallData =>
+        public static IEnumerable<object[]> GoodMultiRouteCallData =>
+            new List<object[]>
+            {
+                new object[]
+                {
+                    EventHandlerConfigWithGoodMultiRoute,
+                    EventHandlerTestHelper.CreateMessageDataPayload().data,
+                    "https://blah.blah.multiroute.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
+                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
+                }
+            };
+
+        public static IEnumerable<object[]> BadMultiRouteCallData =>
             new List<object[]>
             {
                 new object[]
@@ -183,13 +236,6 @@ namespace CaptainHook.Tests.WebHooks
                     EventHandlerConfigWithBadMultiRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
                     "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
-                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
-                },
-                new object[]
-                {
-                    EventHandlerConfigWithGoodMultiRoute,
-                    EventHandlerTestHelper.CreateMessageDataPayload().data,
-                    "https://blah.blah.multiroute.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
                     "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
                 }
             };
