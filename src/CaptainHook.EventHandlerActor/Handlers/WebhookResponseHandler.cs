@@ -44,6 +44,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
+            var httpVerb = RequestBuilder.SelectHttpVerb(WebhookConfig, messageData.Payload);
             var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
 
             void TelemetryEvent(string msg)
@@ -51,7 +52,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
             }
 
-            var response = await _client.ExecuteAsJsonReliably(WebhookConfig.HttpVerb, uri, payload, TelemetryEvent);
+            var response = await _client.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
