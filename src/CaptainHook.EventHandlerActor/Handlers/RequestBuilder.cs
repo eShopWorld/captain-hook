@@ -162,5 +162,42 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             return payload.ToString(Formatting.None);
         }
+
+        /// <inheritdoc />
+        /// <summary>
+        /// </summary>
+        /// <param name="webhookConfig"></param>
+        /// <param name="payload"></param>
+        /// <returns></returns>
+        public HttpVerb SelectHttpVerb(WebhookConfig webhookConfig, string payload)
+        {
+            //build the uri from the routes first
+            var routingRules = webhookConfig.WebhookRequestRules.FirstOrDefault(l => l.Routes.Any());
+            if (routingRules != null)
+            {
+                if (routingRules.Source.Location == Location.Body)
+                {
+                    var path = routingRules.Source.Path;
+                    var value = ModelParser.ParsePayloadPropertyAsString(path, payload);
+
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        throw new ArgumentNullException(nameof(path), "routing path value in message payload is null or empty");
+                    }
+
+                    //selects the route based on the value found in the payload of the message
+                    foreach (var rules in webhookConfig.WebhookRequestRules.Where(r => r.Routes.Any()))
+                    {
+                        var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
+                        if (route != null)
+                        {
+                            return route.HttpVerb;
+                        }
+                        throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
+                    }
+                }
+            }
+            return webhookConfig.HttpVerb;
+        }
     }
 }
