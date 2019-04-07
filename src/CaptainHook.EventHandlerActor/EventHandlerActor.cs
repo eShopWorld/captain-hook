@@ -100,6 +100,7 @@ namespace CaptainHook.EventHandlerActor
 
         private async Task InternalHandle(object _)
         {
+            var handle = string.Empty;
             try
             {
                 UnregisterTimer(_handleTimer);
@@ -117,7 +118,9 @@ namespace CaptainHook.EventHandlerActor
                     _bigBrother.Publish(new WebhookEvent("message was empty"));
                     return;
                 }
+
                 var messageData = messageDataConditional.Value;
+                handle = messageData.HandleAsString;
 
                 var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type);
 
@@ -128,6 +131,12 @@ namespace CaptainHook.EventHandlerActor
             }
             catch (Exception e)
             {
+                //don't want msg state managed by fabric just yet, let failures be backed by the service bus subscriptions
+                if (handle != string.Empty)
+                {
+                    await StateManager.RemoveStateAsync(handle);
+                }
+
                 BigBrother.Write(e.ToExceptionEvent());
             }
         }
