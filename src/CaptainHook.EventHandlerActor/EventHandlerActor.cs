@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Telemetry;
@@ -52,11 +53,10 @@ namespace CaptainHook.EventHandlerActor
         protected override async Task OnActivateAsync()
         {
             _bigBrother.Publish(new ActorActivated(this));
-            if ((await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor))).HasValue)
-            {
-                // There's a message to handle, but we're not sure if it was fully handled or not, so we are going to handle it anyways
-                // Assuming whatever I'm calling can handle idempotency
 
+            var names = await StateManager.GetStateNamesAsync();
+            if (names.Any())
+            {
                 _handleTimer = RegisterTimer(
                     InternalHandle,
                     null,
@@ -80,7 +80,7 @@ namespace CaptainHook.EventHandlerActor
                 Type = type
             };
 
-            await StateManager.AddOrUpdateStateAsync(nameof(EventHandlerActor), messageData, (s, pair) => pair);
+            await StateManager.AddOrUpdateStateAsync(messageData.HandleAsString, messageData, (s, pair) => pair);
 
             _handleTimer = RegisterTimer(
                 InternalHandle,
@@ -104,21 +104,27 @@ namespace CaptainHook.EventHandlerActor
             {
                 UnregisterTimer(_handleTimer);
 
-                var messageData = await StateManager.TryGetStateAsync<MessageData>(nameof(EventHandlerActor));
-                if (!messageData.HasValue)
+                var names = (await StateManager.GetStateNamesAsync()).ToList();
+
+                if (!names.Any())
+                {
+                    return;
+                }
+
+                var messageDataConditional = await StateManager.TryGetStateAsync<MessageData>(names.First());
+                if (!messageDataConditional.HasValue)
                 {
                     _bigBrother.Publish(new WebhookEvent("message was empty"));
                     return;
                 }
+                var messageData = messageDataConditional.Value;
 
-                var eventType = messageData.Value.Type;
+                var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type);
 
-                var handler = _eventHandlerFactory.CreateEventHandler(eventType);
+                await handler.Call(messageData);
 
-                await handler.Call(messageData.Value);
-
-                await StateManager.RemoveStateAsync(nameof(EventHandlerActor));
-                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Value.Handle);
+                await StateManager.RemoveStateAsync(messageData.HandleAsString);
+                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Handle);
             }
             catch (Exception e)
             {
