@@ -14,7 +14,7 @@ namespace CaptainHook.Tests.Configuration
     public class KeyVaultProviderTests
     {
         [Fact(Skip = "just for local testing, should be ignored otherwise.")]
-        [IsLayer2]
+        [IsDev]
         public void ConfigNotEmpty()
         {
             var kvUri = "https://dgtest.vault.azure.net/";

@@ -10,12 +10,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 {
     public class RequestBuilder : IRequestBuilder
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="payload"></param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public string BuildUri(WebhookConfig config, string payload)
         {
             var uri = config.Uri;
@@ -34,20 +29,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     }
 
                     //selects the route based on the value found in the payload of the message
-                    WebhookConfigRoute route = null;
                     foreach (var rules in config.WebhookRequestRules.Where(r => r.Routes.Any()))
                     {
-                        route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (route != null)
+                        var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
+                        if (route == null)
                         {
-                            break;
+                            throw new Exception("route mapping/selector not found between config and the properties on the domain object");
                         }
-                        throw new Exception("route mapping/selector not found between config and the properties on the domain object");
-                    }
-
-                    if (route != null)
-                    {
                         uri = route.Uri;
+                        break;
                     }
                 }
             }
@@ -83,12 +73,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="sourcePayload"></param>
-        /// <param name="metadata"></param>
-        /// <returns></returns>
         public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata = null)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.Body).ToList();
@@ -164,11 +148,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         }
 
         /// <inheritdoc />
-        /// <summary>
-        /// </summary>
-        /// <param name="webhookConfig"></param>
-        /// <param name="payload"></param>
-        /// <returns></returns>
+
         public HttpVerb SelectHttpVerb(WebhookConfig webhookConfig, string payload)
         {
             //build the uri from the routes first
