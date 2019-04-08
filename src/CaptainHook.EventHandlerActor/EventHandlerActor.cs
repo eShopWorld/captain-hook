@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -102,12 +101,11 @@ namespace CaptainHook.EventHandlerActor
         private async Task InternalHandle(object _)
         {
             var handle = string.Empty;
-            var handleList = new List<string>();
             try
             {
                 UnregisterTimer(_handleTimer);
 
-                handleList = (await StateManager.GetStateNamesAsync()).ToList();
+                var handleList = (await StateManager.GetStateNamesAsync()).ToList();
 
                 if (!handleList.Any())
                 {
@@ -143,8 +141,8 @@ namespace CaptainHook.EventHandlerActor
             }
             finally
             {
-                //restarts the timer incase there are more than one msg in the state
-                if (handleList.Any())
+                //restarts the timer in case there are more than one msg in the state, if not then let it be restarted in the standard msg population flow.
+                if ((await StateManager.GetStateNamesAsync()).Any())
                 {
                     _handleTimer = RegisterTimer(
                         InternalHandle,
