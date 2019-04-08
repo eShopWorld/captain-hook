@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -101,18 +102,19 @@ namespace CaptainHook.EventHandlerActor
         private async Task InternalHandle(object _)
         {
             var handle = string.Empty;
+            var handleList = new List<string>();
             try
             {
                 UnregisterTimer(_handleTimer);
 
-                var names = (await StateManager.GetStateNamesAsync()).ToList();
+                handleList = (await StateManager.GetStateNamesAsync()).ToList();
 
-                if (!names.Any())
+                if (!handleList.Any())
                 {
                     return;
                 }
 
-                var messageDataConditional = await StateManager.TryGetStateAsync<MessageData>(names.First());
+                var messageDataConditional = await StateManager.TryGetStateAsync<MessageData>(handleList.First());
                 if (!messageDataConditional.HasValue)
                 {
                     _bigBrother.Publish(new WebhookEvent("message was empty"));
@@ -138,6 +140,18 @@ namespace CaptainHook.EventHandlerActor
                 }
 
                 BigBrother.Write(e.ToExceptionEvent());
+            }
+            finally
+            {
+                //restarts the timer incase there are more than one msg in the state
+                if (handleList.Any())
+                {
+                    _handleTimer = RegisterTimer(
+                        InternalHandle,
+                        null,
+                        TimeSpan.FromMilliseconds(100),
+                        TimeSpan.MaxValue);
+                }
             }
         }
     }
