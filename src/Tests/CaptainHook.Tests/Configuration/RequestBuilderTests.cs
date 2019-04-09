@@ -100,6 +100,10 @@ namespace CaptainHook.Tests.Configuration
                                     {
                                         Path = "BrandType"
                                     },
+                                    Destination = new ParserLocation
+                                    {
+                                        RuleAction = RuleAction.Route
+                                    },
                                     Routes = new List<WebhookConfigRoute>
                                     {
                                         new WebhookConfigRoute
@@ -162,6 +166,11 @@ namespace CaptainHook.Tests.Configuration
                                     {
                                         Path = "BrandType"
                                     },
+                                    Destination = new ParserLocation
+                                    {
+
+                                        RuleAction = RuleAction.Route
+                                    },
                                     Routes = new List<WebhookConfigRoute>
                                     {
                                         new WebhookConfigRoute
@@ -204,6 +213,10 @@ namespace CaptainHook.Tests.Configuration
                                     {
                                         Path = "BrandType"
                                     },
+                                    Destination = new ParserLocation
+                                    {
+                                        RuleAction = RuleAction.Route
+                                    },
                                     Routes = new List<WebhookConfigRoute>
                                     {
                                         new WebhookConfigRoute
@@ -218,7 +231,7 @@ namespace CaptainHook.Tests.Configuration
                                         },
                                         new WebhookConfigRoute
                                         {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
+                                            Uri = "https://blah.blah.brand3.eshopworld.com/webhook",
                                             HttpVerb = HttpVerb.Put,
                                             Selector = "Brand2",
                                             AuthenticationConfig = new AuthenticationConfig
@@ -231,7 +244,7 @@ namespace CaptainHook.Tests.Configuration
                             }
                         },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
-                    "https://blah.blah.brand2.eshopworld.com/webhook"
+                    "https://blah.blah.brand3.eshopworld.com/webhook"
                 }
             };
 
@@ -428,7 +441,8 @@ namespace CaptainHook.Tests.Configuration
                                     },
                                     Destination = new ParserLocation
                                     {
-                                        Location = Location.Uri
+                                        Location = Location.Uri,
+                                        RuleAction = RuleAction.Route
                                     }
                                 },
                                 new WebhookRequestRule
@@ -436,6 +450,10 @@ namespace CaptainHook.Tests.Configuration
                                     Source = new ParserLocation
                                     {
                                         Path = "BrandType"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        RuleAction = RuleAction.Route
                                     },
                                     Routes = new List<WebhookConfigRoute>
                                     {
