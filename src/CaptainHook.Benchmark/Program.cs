@@ -86,7 +86,8 @@ namespace CaptainHook.Benchmark
         [Benchmark]
         public void BenchmarkBuildUriV2()
         {
-            BuildUriV2(_config, _data);
+            var builder = new RequestBuilder();
+            builder.BuildUri(_config, _data);
         }
 
         /// <inheritdoc />
@@ -117,55 +118,6 @@ namespace CaptainHook.Benchmark
                         }
                         uri = route.Uri;
                         break;
-                    }
-                }
-            }
-
-            //after route has been selected then select the identifier for the RESTful URI if applicable
-            var uriRules = config.WebhookRequestRules.FirstOrDefault(l => l.Destination.Location == Location.Uri);
-            if (uriRules == null)
-            {
-                return uri;
-            }
-
-            if (uriRules.Source.Location != Location.Body)
-            {
-                return uri;
-            }
-
-            var parameter = ModelParser.ParsePayloadPropertyAsString(uriRules.Source.Path, payload);
-            uri = CombineUriAndResourceId(uri, parameter);
-            return uri;
-        }
-
-        /// <inheritdoc />
-        public string BuildUriV2(WebhookConfig config, string payload)
-        {
-            var uri = config.Uri;
-            //build the uri from the routes first
-            var routingRules = config.WebhookRequestRules.FirstOrDefault(l => l.Routes.Any());
-            if (routingRules != null)
-            {
-                if (routingRules.Source.Location == Location.Body)
-                {
-                    var path = routingRules.Source.Path;
-                    var value = ModelParser.ParsePayloadPropertyAsString(path, payload);
-
-                    if (string.IsNullOrWhiteSpace(value))
-                    {
-                        throw new ArgumentNullException(nameof(path), "routing path value in message payload is null or empty");
-                    }
-
-                    var rules = config.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
-                    if (rules != null)
-                    {
-                        //selects the route based on the value found in the payload of the message
-                        var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (route == null)
-                        {
-                            throw new Exception("route mapping/selector not found between config and the properties on the domain object");
-                        }
-                        uri = route.Uri;
                     }
                 }
             }

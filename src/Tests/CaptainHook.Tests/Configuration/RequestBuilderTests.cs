@@ -442,7 +442,6 @@ namespace CaptainHook.Tests.Configuration
                                     Destination = new ParserLocation
                                     {
                                         Location = Location.Uri,
-                                        RuleAction = RuleAction.Route
                                     }
                                 },
                                 new WebhookRequestRule
