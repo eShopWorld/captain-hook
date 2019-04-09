@@ -107,7 +107,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     continue;
                 }
 
-                //todo add test for this
                 if (rule.Source.RuleAction == RuleAction.Route)
                 {
                     continue;
@@ -116,6 +115,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 object value;
                 switch (rule.Source.Type)
                 {
+                    case DataType.String:
                     case DataType.Property:
                     case DataType.Model:
                         value = ModelParser.ParsePayloadProperty(rule.Source, sourcePayload, rule.Destination.Type);
@@ -153,31 +153,36 @@ namespace CaptainHook.EventHandlerActor.Handlers
         {
             //build the uri from the routes first
             var routingRules = webhookConfig.WebhookRequestRules.FirstOrDefault(l => l.Routes.Any());
-            if (routingRules != null)
+            if (routingRules == null)
             {
-                if (routingRules.Source.Location == Location.Body)
-                {
-                    var path = routingRules.Source.Path;
-                    var value = ModelParser.ParsePayloadPropertyAsString(path, payload);
-
-                    if (string.IsNullOrWhiteSpace(value))
-                    {
-                        throw new ArgumentNullException(nameof(path), "routing path value in message payload is null or empty");
-                    }
-
-                    //selects the route based on the value found in the payload of the message
-                    foreach (var rules in webhookConfig.WebhookRequestRules.Where(r => r.Routes.Any()))
-                    {
-                        var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (route != null)
-                        {
-                            return route.HttpVerb;
-                        }
-                        throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
-                    }
-                }
+                return webhookConfig.HttpVerb;
             }
-            return webhookConfig.HttpVerb;
+
+            if (routingRules.Source.Location != Location.Body)
+            {
+                return webhookConfig.HttpVerb;
+            }
+
+            var path = routingRules.Source.Path;
+            var value = ModelParser.ParsePayloadPropertyAsString(path, payload);
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentNullException(nameof(path), "routing path value in message payload is null or empty");
+            }
+
+            var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
+            if (rules == null)
+            {
+                return webhookConfig.HttpVerb;
+            }
+
+            var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
+            if (route == null)
+            {
+                throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
+            }
+            return route.HttpVerb;
         }
     }
 }
