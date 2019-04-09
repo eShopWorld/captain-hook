@@ -14,13 +14,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
         public string BuildUri(WebhookConfig config, string payload)
         {
             var uri = config.Uri;
+
             //build the uri from the routes first
-            var routingRules = config.WebhookRequestRules.FirstOrDefault(l => l.Routes.Any());
-            if (routingRules != null)
+            var rules = config.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
+            if (rules != null)
             {
-                if (routingRules.Source.Location == Location.Body)
+                if (rules.Source.Location == Location.Body)
                 {
-                    var path = routingRules.Source.Path;
+                    var path = rules.Source.Path;
                     var value = ModelParser.ParsePayloadPropertyAsString(path, payload);
 
                     if (string.IsNullOrWhiteSpace(value))
@@ -28,17 +29,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
                         throw new ArgumentNullException(nameof(path), "routing path value in message payload is null or empty");
                     }
 
-                    var rules = config.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
-                    if (rules != null)
+                    //selects the route based on the value found in the payload of the message
+                    var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
+                    if (route == null)
                     {
-                        //selects the route based on the value found in the payload of the message
-                        var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (route == null)
-                        {
-                            throw new Exception("route mapping/selector not found between config and the properties on the domain object");
-                        }
-                        uri = route.Uri;
+                        throw new Exception("route mapping/selector not found between config and the properties on the domain object");
                     }
+                    uri = route.Uri;
                 }
             }
 
@@ -152,29 +149,22 @@ namespace CaptainHook.EventHandlerActor.Handlers
         public HttpVerb SelectHttpVerb(WebhookConfig webhookConfig, string payload)
         {
             //build the uri from the routes first
-            var routingRules = webhookConfig.WebhookRequestRules.FirstOrDefault(l => l.Routes.Any());
-            if (routingRules == null)
-            {
-                return webhookConfig.HttpVerb;
-            }
-
-            if (routingRules.Source.Location != Location.Body)
-            {
-                return webhookConfig.HttpVerb;
-            }
-
-            var path = routingRules.Source.Path;
-            var value = ModelParser.ParsePayloadPropertyAsString(path, payload);
-
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                throw new ArgumentNullException(nameof(path), "routing path value in message payload is null or empty");
-            }
-
             var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
             if (rules == null)
             {
                 return webhookConfig.HttpVerb;
+            }
+
+            if (rules.Source.Location != Location.Body)
+            {
+                return webhookConfig.HttpVerb;
+            }
+
+            var value = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentNullException(nameof(rules.Source.Path), "routing path value in message payload is null or empty");
             }
 
             var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
