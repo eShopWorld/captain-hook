@@ -27,7 +27,7 @@ namespace CaptainHook.PoolManagerActor
         private HashSet<int> _free; // free pool resources
         private Dictionary<Guid, MessageHook> _busy; // busy pool resources
 
-        private const int NumberOfHandlers = 10; // TODO: TWEAK THIS - HARDCODED FOR NOW
+        private const int NumberOfHandlers = 20; // TODO: TWEAK THIS - HARDCODED FOR NOW
 
         /// <summary>
         /// Initializes a new instance of PoolManagerActor
@@ -52,6 +52,7 @@ namespace CaptainHook.PoolManagerActor
 
             if (free.HasValue)
             {
+                _free = free.Value;
                 var busy = await StateManager.TryGetStateAsync<Dictionary<Guid, MessageHook>>(nameof(_busy));
                 if (busy.HasValue)
                 {
@@ -65,7 +66,6 @@ namespace CaptainHook.PoolManagerActor
 
                 for (var i = 0; i < NumberOfHandlers; i++)
                 {
-                    ActorProxy.Create<IEventHandlerActor>(new ActorId(i)); // TODO: this probably isn't needed here since we're not invoking the actor at this point - REVIEW
                     _free.Add(i);
                 }
 
@@ -88,7 +88,12 @@ namespace CaptainHook.PoolManagerActor
 
             try
             {
-                var handlerId = _free.First();
+                var handlerId = _free.FirstOrDefault();
+                if (handlerId == default)
+                {
+                    throw new Exception("There are no free handlers in the pool manager to handle this event");
+                }
+
                 var handle = Guid.NewGuid();
                 _free.Remove(handlerId);
                 _busy.Add(handle, new MessageHook

@@ -80,7 +80,7 @@ namespace CaptainHook.EventHandlerActor
                 Type = type
             };
 
-            await StateManager.AddOrUpdateStateAsync(messageData.HandleAsString, messageData, (s, pair) => pair);
+            await StateManager.AddOrUpdateStateAsync(messageData.Handle.ToString(), messageData, (s, pair) => pair);
 
             _handleTimer = RegisterTimer(
                 InternalHandle,
@@ -120,13 +120,13 @@ namespace CaptainHook.EventHandlerActor
                 }
 
                 var messageData = messageDataConditional.Value;
-                handle = messageData.HandleAsString;
+                handle = messageData.Handle.ToString();
 
                 var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type);
 
                 await handler.Call(messageData);
 
-                await StateManager.RemoveStateAsync(messageData.HandleAsString);
+                await StateManager.RemoveStateAsync(messageData.Handle.ToString());
                 await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Handle);
             }
             catch (Exception e)

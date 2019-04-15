@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 
 namespace CaptainHook.Common.Configuration
@@ -29,7 +30,7 @@ namespace CaptainHook.Common.Configuration
         /// Request duration maximum timeout in seconds
         /// Left at 100 seconds as the default value for the http client timeout
         /// </summary>
-        public int TimeoutInSeconds { get; set; } = 100;
+        public TimeSpan Timeout { get; set; } = new TimeSpan(0,0, 100);
     }
 
     /// <summary>

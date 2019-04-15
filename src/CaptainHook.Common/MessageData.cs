@@ -9,7 +9,5 @@ namespace CaptainHook.Common
         public string Payload { get; set; }
 
         public string Type { get; set; }
-
-        public string HandleAsString => Handle.ToString();
     }
 }

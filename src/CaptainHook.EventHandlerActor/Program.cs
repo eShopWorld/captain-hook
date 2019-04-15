@@ -129,7 +129,7 @@ namespace CaptainHook.EventHandlerActor
                 {
                     builder.RegisterInstance(webhookConfig).Named<WebhookConfig>(webhookConfig.Name);
 
-                    var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(webhookConfig.TimeoutInSeconds) };
+                    var httpClient = new HttpClient { Timeout = webhookConfig.Timeout };
                     builder.RegisterInstance(httpClient).Named<HttpClient>(webhookConfig.Name).SingleInstance();
                 }
 
