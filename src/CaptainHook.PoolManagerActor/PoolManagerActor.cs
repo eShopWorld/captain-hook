@@ -72,6 +72,12 @@ namespace CaptainHook.PoolManagerActor
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
             }
+
+            _bigBrother.Publish(new PoolManagerActorTelemetryEvent("state of pool manager at activation time", this)
+            {
+                BusyHandlerCount = _busy.Count,
+                FreeHandlerCount = _free.Count
+            });
         }
 
         protected override async Task OnDeactivateAsync()
@@ -80,6 +86,12 @@ namespace CaptainHook.PoolManagerActor
 
             await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
             await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
+
+            _bigBrother.Publish(new PoolManagerActorTelemetryEvent("state of pool manager at deactivation time", this)
+            {
+                BusyHandlerCount = _busy.Count,
+                FreeHandlerCount = _free.Count
+            });
         }
 
         public async Task<Guid> DoWork(string payload, string type)
