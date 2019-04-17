@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.Interfaces;
@@ -22,14 +23,16 @@ namespace CaptainHook.Tests.Actors
         [IsLayer0]
         public async Task CheckFreeHandlers()
         {
+            //setup the actors
             var bigBrotherMock = new Mock<IBigBrother>().Object;
 
             var actorProxyFactory = new MockActorProxyFactory();
-            var eventHandlerActor = CreateEventHandlerActor(new ActorId(1), bigBrotherMock);
+            var eventHandlerActor = CreateMockEventHandlerActor(new ActorId(1), bigBrotherMock);
             actorProxyFactory.RegisterActor(eventHandlerActor);
 
-            var eventReaderActor = CreateEventReaderActor(new ActorId("test.type"), bigBrotherMock);
+            var eventReaderActor = CreateMockEventReaderActor(new ActorId("test.type"), bigBrotherMock);
             actorProxyFactory.RegisterActor(eventReaderActor);
+            
 
             var actor = CreatePoolManagerActor(new ActorId(0), bigBrotherMock, actorProxyFactory);
             var stateManager = (MockActorStateManager)actor.StateManager;
@@ -49,23 +52,27 @@ namespace CaptainHook.Tests.Actors
         [IsLayer0]
         public async Task CheckBusyHandlers()
         {
+            //setup the actors
             var bigBrotherMock = new Mock<IBigBrother>().Object;
 
             var actorProxyFactory = new MockActorProxyFactory();
-            var eventHandlerActor = CreateEventHandlerActor(new ActorId(0), bigBrotherMock);
-            actorProxyFactory.RegisterActor(eventHandlerActor);
+            var eventHandlerActor1 = CreateMockEventHandlerActor(new ActorId(1), bigBrotherMock);
+            actorProxyFactory.RegisterActor(eventHandlerActor1);
 
-            var actor = CreatePoolManagerActor(new ActorId(0), bigBrotherMock, actorProxyFactory);
+            var eventHandlerActor2 = CreateMockEventHandlerActor(new ActorId(2), bigBrotherMock);
+            actorProxyFactory.RegisterActor(eventHandlerActor2);
+
+            var actor = CreatePoolManagerActor(new ActorId("test.type"), bigBrotherMock, actorProxyFactory);
             var stateManager = (MockActorStateManager)actor.StateManager;
             await actor.InvokeOnActivateAsync();
 
             //create state
-            var handle = await actor.DoWork(string.Empty, "test.type");
+            await actor.DoWork(string.Empty, "test.type1");
+            await actor.DoWork(string.Empty, "test.type2");
 
-            await actor.CompleteWork(handle);
             //get state
-            var actual = await stateManager.GetStateAsync<HashSet<int>>("_busy");
-            Assert.Equal(18, actual.Count);
+            var actual = await stateManager.GetStateAsync<Dictionary<Guid, MessageHook>>("_busy");
+            Assert.Equal(2, actual.Count);
         }
 
         private static PoolManagerActor.PoolManagerActor CreatePoolManagerActor(ActorId id, IBigBrother bb, IActorProxyFactory mockActorProxyFactory)
@@ -76,20 +83,54 @@ namespace CaptainHook.Tests.Actors
             return actor;
         }
 
-        private static IEventHandlerActor CreateEventHandlerActor(ActorId id, IBigBrother bb)
+        private static IEventHandlerActor CreateMockEventHandlerActor(ActorId id, IBigBrother bb)
         {
-            ActorBase ActorFactory(ActorService service, ActorId actorId) => new EventHandlerActor.EventHandlerActor(service, id, new Mock<IEventHandlerFactory>().Object, bb);
-            var svc = MockActorServiceFactory.CreateActorServiceForActor<EventHandlerActor.EventHandlerActor>(ActorFactory);
+            ActorBase ActorFactory(ActorService service, ActorId actorId) => new MockEventHandlerActor(service, id);
+            var svc = MockActorServiceFactory.CreateActorServiceForActor<MockEventHandlerActor>(ActorFactory);
             var actor = svc.Activate(id);
             return actor;
         }
 
-        private static IEventReaderActor CreateEventReaderActor(ActorId id, IBigBrother bb)
+        private static IEventReaderActor CreateMockEventReaderActor(ActorId id, IBigBrother bb)
         {
-            ActorBase ActorFactory(ActorService service, ActorId actorId) => new EventReaderActor.EventReaderActor(service, id, bb, new ConfigurationSettings());
-            var svc = MockActorServiceFactory.CreateActorServiceForActor<EventReaderActor.EventReaderActor>(ActorFactory);
+            ActorBase ActorFactory(ActorService service, ActorId actorId) => new MockEventReaderActor(service, id);
+            var svc = MockActorServiceFactory.CreateActorServiceForActor<MockEventReaderActor>(ActorFactory);
             var actor = svc.Activate(id);
             return actor;
+        }
+
+        private class MockEventHandlerActor : Actor, IEventHandlerActor
+        {
+            public MockEventHandlerActor(ActorService actorService, ActorId actorId) : base(actorService, actorId)
+            {
+            }
+
+            public Task Handle(Guid handle, string payload, string type)
+            {
+                return Task.FromResult(true);
+            }
+
+            public Task CompleteHandle(Guid handle)
+            {
+                return Task.FromResult(true);
+            }
+        }
+
+        private class MockEventReaderActor : Actor, IEventReaderActor
+        {
+            public MockEventReaderActor(ActorService actorService, ActorId actorId) : base(actorService, actorId)
+            {
+            }
+
+            public Task Run()
+            {
+                return Task.FromResult(true);
+            }
+
+            public Task CompleteMessage(Guid handle)
+            {
+                return Task.FromResult(true);
+            }
         }
     }
 }
