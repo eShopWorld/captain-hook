@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CaptainHook.EventHandlerActor\CaptainHook.EventHandlerActor.csproj" />
+    <ProjectReference Include="..\..\CaptainHook.EventReaderActor\CaptainHook.EventReaderActor.csproj" />
     <ProjectReference Include="..\..\CaptainHook.PoolManagerActor\CaptainHook.PoolManagerActor.csproj" />
   </ItemGroup>
 
