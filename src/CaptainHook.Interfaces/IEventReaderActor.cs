@@ -12,6 +12,6 @@
     {
         Task Run();
 
-        Task CompleteMessage(Guid handle);
+        Task CompleteMessage(Guid handle, bool messageSuccess);
     }
 }

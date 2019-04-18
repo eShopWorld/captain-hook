@@ -80,7 +80,7 @@ namespace CaptainHook.EventHandlerActor
                 Type = type
             };
 
-            await StateManager.AddOrUpdateStateAsync(messageData.Handle.ToString(), messageData, (s, pair) => pair);
+            await StateManager.AddOrUpdateStateAsync(Id.GetStringId(), messageData, (s, pair) => pair);
 
             _handleTimer = RegisterTimer(
                 InternalHandle,
@@ -105,14 +105,7 @@ namespace CaptainHook.EventHandlerActor
             {
                 UnregisterTimer(_handleTimer);
 
-                var handleList = (await StateManager.GetStateNamesAsync()).ToList();
-
-                if (!handleList.Any())
-                {
-                    return;
-                }
-
-                var messageDataConditional = await StateManager.TryGetStateAsync<MessageData>(handleList.First());
+                var messageDataConditional = await StateManager.TryGetStateAsync<MessageData>(Id.GetStringId());
                 if (!messageDataConditional.HasValue)
                 {
                     _bigBrother.Publish(new WebhookEvent("message was empty"));
@@ -125,9 +118,6 @@ namespace CaptainHook.EventHandlerActor
                 var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type);
 
                 await handler.Call(messageData);
-
-                await StateManager.RemoveStateAsync(messageData.Handle.ToString());
-                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(messageData.Handle);
             }
             catch (Exception e)
             {
@@ -141,15 +131,8 @@ namespace CaptainHook.EventHandlerActor
             }
             finally
             {
-                //restarts the timer in case there are more than one msg in the state, if not then let it be restarted in the standard msg population flow.
-                if ((await StateManager.GetStateNamesAsync()).Any())
-                {
-                    _handleTimer = RegisterTimer(
-                        InternalHandle,
-                        null,
-                        TimeSpan.FromMilliseconds(100),
-                        TimeSpan.MaxValue);
-                }
+                await StateManager.RemoveStateAsync(handle);
+                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(Guid.Parse(handle));
             }
         }
     }

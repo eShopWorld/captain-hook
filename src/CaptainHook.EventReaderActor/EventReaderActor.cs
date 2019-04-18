@@ -31,7 +31,7 @@ namespace CaptainHook.EventReaderActor
     ///  - Volatile: State is kept in memory only and replicated.
     ///  - None: State is kept in memory only and not replicated.
     /// </remarks>
-    [StatePersistence(StatePersistence.Persisted)]
+    [StatePersistence(StatePersistence.Volatile)]
     public class EventReaderActor : Actor, IEventReaderActor, IRemindable
     {
         private const string SubscriptionName = "captain-hook";
@@ -141,31 +141,38 @@ namespace CaptainHook.EventReaderActor
 
         internal async void ReadEvents(object _)
         {
-            lock (_gate)
+            try
             {
-                if (_readingEvents) return;
-                _readingEvents = true;
+                lock (_gate)
+                {
+                    if (_readingEvents) return;
+                    _readingEvents = true;
+                }
+
+                if (_receiver.IsClosedOrClosing) return;
+
+                var messages = _receiver.ReceiveAsync(BatchSize, TimeSpan.FromMilliseconds(50)).Result;
+                if (messages == null) return;
+
+                foreach (var message in messages)
+                {
+                    await _receiver.RenewLockAsync(message);
+
+                    //get a message, sends it to the pool manager and then sends it to an event handler, comes back then with a handle.
+                    var handle = await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
+                    _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
+                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
+                }
             }
-
-            if (_receiver.IsClosedOrClosing) return;
-
-            var messages = _receiver.ReceiveAsync(BatchSize, TimeSpan.FromMilliseconds(50)).Result;
-            if (messages == null)
+            catch (Exception e)
+            {
+                _bigBrother.Publish(e.ToExceptionEvent());
+                throw;
+            }
+            finally
             {
                 _readingEvents = false;
-                return;
             }
-
-            foreach (var message in messages)
-            {
-                await _receiver.RenewLockAsync(message);
-
-                var handle = await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).DoWork(Encoding.UTF8.GetString(message.Body), Id.GetStringId());
-                _messagesInHandlers.Value.Add(handle, message.SystemProperties.LockToken);
-                await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
-            }
-
-            _readingEvents = false;
         }
 
         /// <remarks>
@@ -180,12 +187,15 @@ namespace CaptainHook.EventReaderActor
                 TimeSpan.FromMinutes(15));
         }
 
-        public async Task CompleteMessage(Guid handle)
+        public async Task CompleteMessage(Guid handle, bool messageSuccess)
         {
             //todo NOT HANDLING FAULTS YET - BE CAREFUL HERE!
             try
             {
-                await _receiver.CompleteAsync(_messagesInHandlers.Value[handle]);
+                if (messageSuccess)
+                {
+                    await _receiver.CompleteAsync(_messagesInHandlers.Value[handle]);
+                }
                 _messagesInHandlers.Value.Remove(handle);
                 await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
             }

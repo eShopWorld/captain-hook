@@ -91,7 +91,7 @@ namespace CaptainHook.Tests.Actors
             await actor.InvokeOnActivateAsync();
 
             //create state
-            await actor.DoWork(string.Empty, "test.type1");
+            await Assert.ThrowsAsync<Exception>(async () => await actor.DoWork(string.Empty, "test.type"));
 
             //get state
             var actualBusy = await stateManager.GetStateAsync<Dictionary<Guid, MessageHook>>("_busy");
@@ -178,7 +178,7 @@ namespace CaptainHook.Tests.Actors
                 return Task.FromResult(true);
             }
 
-            public Task CompleteMessage(Guid handle)
+            public Task CompleteMessage(Guid handle, bool messageSuccess)
             {
                 return Task.FromResult(true);
             }

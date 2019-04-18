@@ -123,7 +123,6 @@ namespace CaptainHook.PoolManagerActor
             {
                 _bigBrother.Publish(e.ToExceptionEvent());
                 await ReleaseHandle(handle);
-
                 throw;
             }
         }
@@ -142,9 +141,9 @@ namespace CaptainHook.PoolManagerActor
         /// Releases a handle from the pool manager state.
         /// </summary>
         /// <param name="handle"></param>
-        /// <param name="completeMessage"></param>
+        /// <param name="messageSuccess"></param>
         /// <returns></returns>
-        private async Task ReleaseHandle(Guid handle, bool completeMessage = false)
+        private async Task ReleaseHandle(Guid handle, bool messageSuccess = false)
         {
             try
             {
@@ -157,11 +156,7 @@ namespace CaptainHook.PoolManagerActor
                     await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                     await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                    //don't want to complete message in a failure flow, let it expire and go back to the queue for reprocessing for now.
-                    if (completeMessage)
-                    {
-                        await _actorProxyFactory.CreateActorProxy<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle);
-                    }
+                    await _actorProxyFactory.CreateActorProxy<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle, messageSuccess);
                 }
                 else
                 {
