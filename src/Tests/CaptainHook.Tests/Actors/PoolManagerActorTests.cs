@@ -26,15 +26,15 @@ namespace CaptainHook.Tests.Actors
             //setup the actors
             var bigBrotherMock = new Mock<IBigBrother>().Object;
 
-            var actorProxyFactory = new MockActorProxyFactory();
+            var mockActorProxyFactory = new MockActorProxyFactory();
             var eventHandlerActor = CreateMockEventHandlerActor(new ActorId(1), bigBrotherMock);
-            actorProxyFactory.RegisterActor(eventHandlerActor);
+            mockActorProxyFactory.RegisterActor(eventHandlerActor);
 
             var eventReaderActor = CreateMockEventReaderActor(new ActorId("test.type"), bigBrotherMock);
-            actorProxyFactory.RegisterActor(eventReaderActor);
+            mockActorProxyFactory.RegisterActor(eventReaderActor);
             
 
-            var actor = CreatePoolManagerActor(new ActorId(0), bigBrotherMock, actorProxyFactory);
+            var actor = CreatePoolManagerActor(new ActorId(0), bigBrotherMock, mockActorProxyFactory);
             var stateManager = (MockActorStateManager)actor.StateManager;
             await actor.InvokeOnActivateAsync();
 

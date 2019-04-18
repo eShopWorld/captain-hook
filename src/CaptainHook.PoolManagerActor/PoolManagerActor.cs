@@ -24,7 +24,7 @@ namespace CaptainHook.PoolManagerActor
     public class PoolManagerActor : Actor, IPoolManagerActor
     {
         private readonly IBigBrother _bigBrother;
-        private readonly IActorProxyFactory _mockActorProxyFactory;
+        private readonly IActorProxyFactory _actorProxyFactory;
         private HashSet<int> _free; // free pool resources
         private Dictionary<Guid, MessageHook> _busy; // busy pool resources
 
@@ -36,12 +36,12 @@ namespace CaptainHook.PoolManagerActor
         /// <param name="actorService">The Microsoft.ServiceFabric.Actors.Runtime.ActorService that will host this actor instance.</param>
         /// <param name="actorId">The Microsoft.ServiceFabric.Actors.ActorId for this actor instance.</param>
         /// <param name="bigBrother">The <see cref="IBigBrother"/> instanced used to publish telemetry.</param>
-        /// <param name="mockActorProxyFactory"></param>
-        public PoolManagerActor(ActorService actorService, ActorId actorId, IBigBrother bigBrother, IActorProxyFactory mockActorProxyFactory)
+        /// <param name="actorProxyFactory"></param>
+        public PoolManagerActor(ActorService actorService, ActorId actorId, IBigBrother bigBrother, IActorProxyFactory actorProxyFactory)
             : base(actorService, actorId)
         {
             _bigBrother = bigBrother;
-            _mockActorProxyFactory = mockActorProxyFactory;
+            _actorProxyFactory = actorProxyFactory;
         }
 
         /// <summary>
@@ -64,13 +64,9 @@ namespace CaptainHook.PoolManagerActor
             }
             else
             {
-                _free = new HashSet<int>(NumberOfHandlers);
                 _busy = new Dictionary<Guid, MessageHook>(NumberOfHandlers);
 
-                for (var i = 1; i < NumberOfHandlers + 1; i++)
-                {
-                    _free.Add(i);
-                }
+                _free = Enumerable.Range(1, NumberOfHandlers).ToHashSet();
 
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
@@ -120,7 +116,7 @@ namespace CaptainHook.PoolManagerActor
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                await _mockActorProxyFactory.CreateActorProxy<IEventHandlerActor>(new ActorId(handlerId)).Handle(handle, payload, type);
+                await _actorProxyFactory.CreateActorProxy<IEventHandlerActor>(new ActorId(handlerId)).Handle(handle, payload, type);
 
                 return handle;
             }
@@ -144,7 +140,7 @@ namespace CaptainHook.PoolManagerActor
                     await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                     await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                    await _mockActorProxyFactory.CreateActorProxy<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle);
+                    await _actorProxyFactory.CreateActorProxy<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle);
                 }
                 else
                 {
