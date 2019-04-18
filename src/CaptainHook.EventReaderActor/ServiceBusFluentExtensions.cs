@@ -70,14 +70,18 @@
         /// an Environment.Username, giving you a named queue during debug cycles to avoid queue name clashes.
         /// </summary>
         /// <param name="type">The message <see cref="Type"/> that this topic is for.</param>
+        /// <param name="connectToEnv"></param>
         /// <returns>The final name of the topic.</returns>
-        public static string GetEntityName(string type)
+        public static string GetEntityName(string type, bool connectToEnv = false)
         {
             var name = type;
 #if DEBUG
             if (Debugger.IsAttached)
             {
-                name += $"-{Environment.UserName.Replace("$", "")}";
+                if (!connectToEnv)
+                {
+                    name += $"-{Environment.UserName.Replace("$", "")}";
+                }
             }
 #endif
 

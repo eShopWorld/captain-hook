@@ -1,4 +1,5 @@
 ﻿using CaptainHook.Common.Configuration;
+using Microsoft.ServiceFabric.Actors.Client;
 
 namespace CaptainHook.PoolManagerActor
 {
@@ -43,6 +44,7 @@ namespace CaptainHook.PoolManagerActor
 
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<PoolManagerActor>();
+                builder.RegisterInstance(new ActorProxyFactory()).As<IActorProxyFactory>().SingleInstance();
 
                 using (builder.Build())
                 {

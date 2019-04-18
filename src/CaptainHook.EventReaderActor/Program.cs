@@ -1,4 +1,5 @@
 ﻿using CaptainHook.Common.Configuration;
+using Microsoft.ServiceFabric.Actors.Client;
 
 namespace CaptainHook.EventReaderActor
 {
@@ -46,6 +47,7 @@ namespace CaptainHook.EventReaderActor
 
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<EventReaderActor>();
+                builder.RegisterInstance(new ActorProxyFactory()).As<IActorProxyFactory>().SingleInstance();
 
                 using (builder.Build())
                 {
