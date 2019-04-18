@@ -79,14 +79,14 @@ namespace CaptainHook.Tests.Actors
             //setup the actors
             var bigBrotherMock = new Mock<IBigBrother>().Object;
 
-            var actorProxyFactory = new MockActorProxyFactory();
+            var mockActorProxyFactory = new MockActorProxyFactory();
             var eventHandlerActor1 = CreateMockEventHandlerWithExceptionActor(new ActorId(1), bigBrotherMock);
-            actorProxyFactory.RegisterActor(eventHandlerActor1);
+            mockActorProxyFactory.RegisterActor(eventHandlerActor1);
 
-            var eventHandlerActor2 = CreateMockEventHandlerActor(new ActorId(2), bigBrotherMock);
-            actorProxyFactory.RegisterActor(eventHandlerActor2);
+            var eventReaderActor = CreateMockEventReaderActor(new ActorId("test.type"), bigBrotherMock);
+            mockActorProxyFactory.RegisterActor(eventReaderActor);
 
-            var actor = CreatePoolManagerActor(new ActorId("test.type"), bigBrotherMock, actorProxyFactory);
+            var actor = CreatePoolManagerActor(new ActorId("test.type"), bigBrotherMock, mockActorProxyFactory);
             var stateManager = (MockActorStateManager)actor.StateManager;
             await actor.InvokeOnActivateAsync();
 
@@ -97,7 +97,7 @@ namespace CaptainHook.Tests.Actors
             var actualBusy = await stateManager.GetStateAsync<Dictionary<Guid, MessageHook>>("_busy");
             Assert.Empty(actualBusy);
 
-            var actualFree = await stateManager.GetStateAsync<Dictionary<Guid, MessageHook>>("_free");
+            var actualFree = await stateManager.GetStateAsync<HashSet<int>>("_free");
             Assert.Equal(20, actualFree.Count);
         }
 
