@@ -135,15 +135,16 @@ namespace CaptainHook.PoolManagerActor
         /// <returns></returns>
         public async Task CompleteWork(Guid handle)
         {
-            await ReleaseHandle(handle);
+            await ReleaseHandle(handle, true);
         }
 
         /// <summary>
         /// Releases a handle from the pool manager state.
         /// </summary>
         /// <param name="handle"></param>
+        /// <param name="completeMessage"></param>
         /// <returns></returns>
-        private async Task ReleaseHandle(Guid handle)
+        private async Task ReleaseHandle(Guid handle, bool completeMessage = false)
         {
             try
             {
@@ -156,8 +157,11 @@ namespace CaptainHook.PoolManagerActor
                     await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                     await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
 
-                    await _actorProxyFactory.CreateActorProxy<IEventReaderActor>(new ActorId(msgHook.Type))
-                        .CompleteMessage(handle);
+                    //don't want to complete message in a failure flow, let it expire and go back to the queue for reprocessing for now.
+                    if (completeMessage)
+                    {
+                        await _actorProxyFactory.CreateActorProxy<IEventReaderActor>(new ActorId(msgHook.Type)).CompleteMessage(handle);
+                    }
                 }
                 else
                 {
