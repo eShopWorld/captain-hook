@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Configuration;
-using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
-using Eshopworld.Telemetry;
 using Eshopworld.Tests.Core;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
@@ -32,7 +29,7 @@ namespace CaptainHook.Tests.Actors
 
             var eventReaderActor = CreateMockEventReaderActor(new ActorId("test.type"), bigBrotherMock);
             mockActorProxyFactory.RegisterActor(eventReaderActor);
-            
+
 
             var actor = CreatePoolManagerActor(new ActorId(0), bigBrotherMock, mockActorProxyFactory);
             var stateManager = (MockActorStateManager)actor.StateManager;
@@ -55,14 +52,14 @@ namespace CaptainHook.Tests.Actors
             //setup the actors
             var bigBrotherMock = new Mock<IBigBrother>().Object;
 
-            var mockActorProxyFactory = new MockActorProxyFactory();
+            var actorProxyFactory = new MockActorProxyFactory();
             var eventHandlerActor1 = CreateMockEventHandlerActor(new ActorId(1), bigBrotherMock);
-            mockActorProxyFactory.RegisterActor(eventHandlerActor1);
+            actorProxyFactory.RegisterActor(eventHandlerActor1);
 
             var eventHandlerActor2 = CreateMockEventHandlerActor(new ActorId(2), bigBrotherMock);
-            mockActorProxyFactory.RegisterActor(eventHandlerActor2);
+            actorProxyFactory.RegisterActor(eventHandlerActor2);
 
-            var actor = CreatePoolManagerActor(new ActorId("test.type"), bigBrotherMock, mockActorProxyFactory);
+            var actor = CreatePoolManagerActor(new ActorId("test.type"), bigBrotherMock, actorProxyFactory);
             var stateManager = (MockActorStateManager)actor.StateManager;
             await actor.InvokeOnActivateAsync();
 
