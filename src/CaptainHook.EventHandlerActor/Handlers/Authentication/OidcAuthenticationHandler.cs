@@ -32,17 +32,17 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         public virtual async Task GetToken(HttpClient client)
         {
             //get initial access token and refresh token
-            if (OidcAuthenticationToken.AccessToken == null)
-            {
+            //if (OidcAuthenticationToken.AccessToken == null)
+            //{
                 var response = await GetTokenResponse(client);
 
                 ReportTokenUpdateFailure(response);
                 UpdateToken(response);
-            }
-            else
-            {
-                await RefreshToken(client);
-            }
+            //}
+            //else
+            //{
+            //    await RefreshToken(client);
+            //}
 
             client.SetBearerToken(OidcAuthenticationToken.AccessToken);
         }

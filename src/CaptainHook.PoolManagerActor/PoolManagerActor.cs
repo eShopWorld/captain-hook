@@ -55,18 +55,24 @@ namespace CaptainHook.PoolManagerActor
 
             if (free.HasValue)
             {
-                _free = free.Value;
-                var busy = await StateManager.TryGetStateAsync<Dictionary<Guid, MessageHook>>(nameof(_busy));
-                if (busy.HasValue)
+                //just a hack for now in case the sf is in a bad state with no free handlers and bad messages. A better solution is needed later
+                if (free.Value.Count == default)
                 {
-                    _busy = busy.Value;
+                    Reset();
+                }
+                else
+                {
+                    _free = free.Value;
+                    var busy = await StateManager.TryGetStateAsync<Dictionary<Guid, MessageHook>>(nameof(_busy));
+                    if (busy.HasValue)
+                    {
+                        _busy = busy.Value;
+                    }
                 }
             }
             else
             {
-                _busy = new Dictionary<Guid, MessageHook>(NumberOfHandlers);
-
-                _free = Enumerable.Range(1, NumberOfHandlers).ToHashSet();
+                Reset();
 
                 await StateManager.AddOrUpdateStateAsync(nameof(_free), _free, (s, value) => value);
                 await StateManager.AddOrUpdateStateAsync(nameof(_busy), _busy, (s, value) => value);
@@ -77,6 +83,15 @@ namespace CaptainHook.PoolManagerActor
                 BusyHandlerCount = _busy.Count,
                 FreeHandlerCount = _free.Count
             });
+        }
+
+        /// <summary>
+        /// Rest the free and busy list to default values so msgs can be processed again
+        /// </summary>
+        private void Reset()
+        {
+            _busy = new Dictionary<Guid, MessageHook>(NumberOfHandlers);
+            _free = Enumerable.Range(1, NumberOfHandlers).ToHashSet();
         }
 
         protected override async Task OnDeactivateAsync()
