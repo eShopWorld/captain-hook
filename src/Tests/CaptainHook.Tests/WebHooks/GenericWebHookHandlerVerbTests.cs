@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
@@ -20,6 +21,13 @@ namespace CaptainHook.Tests.WebHooks
     /// </summary>
     public class GenericWebHookHandlerVerbTests
     {
+        private CancellationToken _cancellationToken;
+
+        public GenericWebHookHandlerVerbTests()
+        {
+            _cancellationToken = new CancellationToken();
+        }
+
         [IsLayer0]
         [Theory]
         [MemberData(nameof(CreationData))]
@@ -37,7 +45,7 @@ namespace CaptainHook.Tests.WebHooks
                 mockHttp.ToHttpClient(),
                 config);
 
-            await genericWebhookHandler.Call(new MessageData { Payload = payload });
+            await genericWebhookHandler.CallAsync(new MessageData { Payload = payload }, new Dictionary<string, object>(), _cancellationToken);
             Assert.Equal(1, mockHttp.GetMatchCount(request));
         }
 
@@ -57,7 +65,7 @@ namespace CaptainHook.Tests.WebHooks
                 mockHttp.ToHttpClient(),
                 config);
 
-            await genericWebhookHandler.Call(new MessageData { Payload = payload });
+            await genericWebhookHandler.CallAsync(new MessageData { Payload = payload }, new Dictionary<string, object>(), _cancellationToken);
             Assert.Equal(1, mockHttp.GetMatchCount(request));
         }
 

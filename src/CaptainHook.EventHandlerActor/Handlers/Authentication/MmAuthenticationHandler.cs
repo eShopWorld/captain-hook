@@ -2,8 +2,11 @@
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Telemetry;
+using Eshopworld.Core;
 using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
@@ -13,8 +16,8 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// </summary>
     public class MmAuthenticationHandler : OidcAuthenticationHandler
     {
-        public MmAuthenticationHandler(AuthenticationConfig authenticationConfig) 
-            : base(authenticationConfig)
+        public MmAuthenticationHandler(AuthenticationConfig authenticationConfig, IBigBrother bigBrother) 
+            : base(authenticationConfig, bigBrother)
         {
 
         }
@@ -23,7 +26,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <summary>
         /// </summary>
         /// <returns></returns>
-        public override async Task GetToken(HttpClient client)
+        public override async Task GetTokenAsync(HttpClient client, CancellationToken token)
         {
             if (string.IsNullOrEmpty(OidcAuthenticationConfig.ClientId))
             {
@@ -39,7 +42,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             client.DefaultRequestHeaders.TryAddWithoutValidation("client_id", OidcAuthenticationConfig.ClientId);
             client.DefaultRequestHeaders.TryAddWithoutValidation("client_secret", OidcAuthenticationConfig.ClientSecret);
 
-            var authProviderResponse = await client.PostAsync(OidcAuthenticationConfig.Uri, new StringContent("", Encoding.UTF32, "application/json-patch+json"));
+            var authProviderResponse = await client.PostAsync(OidcAuthenticationConfig.Uri, new StringContent("", Encoding.UTF32, "application/json-patch+json"), token);
 
             if (authProviderResponse.StatusCode != HttpStatusCode.Created || authProviderResponse.Content == null)
             {
@@ -53,6 +56,12 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             client.SetBearerToken(stsResult.AccessToken);
 
             OidcAuthenticationToken = stsResult;
+
+            BigBrother.Publish(new ClientTokenRequest
+            {
+                ClientId = OidcAuthenticationConfig.ClientId,
+                Authority = OidcAuthenticationConfig.Uri
+            });
         }
     }
 }

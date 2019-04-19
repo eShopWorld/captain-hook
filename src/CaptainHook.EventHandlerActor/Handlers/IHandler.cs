@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
-    using System.Threading.Tasks;
-
     public interface IHandler
     {
-        Task Call<TRequest>(TRequest request, IDictionary<string, object> metaData = null);
+        Task CallAsync<TRequest>(TRequest request, IDictionary<string, object> metaData, CancellationToken cancellationToken);
     }
 }

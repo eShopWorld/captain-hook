@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Telemetry;
+using Eshopworld.Core;
 using IdentityModel.Client;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
@@ -16,33 +19,41 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
         protected OidcAuthenticationToken OidcAuthenticationToken = new OidcAuthenticationToken();
         protected readonly OidcAuthenticationConfig OidcAuthenticationConfig;
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        protected readonly IBigBrother BigBrother;
 
-        public OidcAuthenticationHandler(AuthenticationConfig authenticationConfig)
+        public OidcAuthenticationHandler(AuthenticationConfig authenticationConfig, IBigBrother bigBrother)
         {
             var oAuthAuthenticationToken = authenticationConfig as OidcAuthenticationConfig;
             OidcAuthenticationConfig = oAuthAuthenticationToken ?? throw new ArgumentException($"configuration for basic authentication is not of type {typeof(OidcAuthenticationConfig)}", nameof(authenticationConfig));
+            BigBrother = bigBrother;
         }
 
-        /// <summary>
-        /// Gets a token from the STS based on the supplied credentials and scopes using the client grant OIDC 2 Flow
-        /// This method also does token renewal based on requesting a token if the token is set to expire in the next ten seconds.
-        /// </summary>
-        /// <param name="client"></param>
-        /// <returns></returns>
-        public virtual async Task GetToken(HttpClient client)
+        /// <inheritdoc />
+        public virtual async Task GetTokenAsync(HttpClient client, CancellationToken cancellationToken)
         {
             //get initial access token and refresh token
-            //if (OidcAuthenticationToken.AccessToken == null)
-            //{
-                var response = await GetTokenResponse(client);
-
-                ReportTokenUpdateFailure(response);
-                UpdateToken(response);
-            //}
-            //else
-            //{
-            //    await RefreshToken(client);
-            //}
+            if (OidcAuthenticationToken.AccessToken == null)
+            {
+                await EnterSemaphore(cancellationToken, async () =>
+                {
+                    var response = await GetTokenResponseAsync(client, cancellationToken);
+                    ReportTokenUpdateFailure(response);
+                    UpdateToken(response);
+                });
+            }
+            else if (CheckExpired())
+            {
+                await EnterSemaphore(cancellationToken, async () =>
+                {
+                    if (CheckExpired())
+                    {
+                        var response = await GetTokenResponseAsync(client, cancellationToken);
+                        ReportTokenUpdateFailure(response);
+                        UpdateToken(response);
+                    }
+                });
+            }
 
             client.SetBearerToken(OidcAuthenticationToken.AccessToken);
         }
@@ -51,8 +62,9 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// Makes the call to get the token
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<TokenResponse> GetTokenResponse(HttpMessageInvoker client)
+        private async Task<TokenResponse> GetTokenResponseAsync(HttpMessageInvoker client, CancellationToken token)
         {
             var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
@@ -61,7 +73,14 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 ClientSecret = OidcAuthenticationConfig.ClientSecret,
                 GrantType = OidcAuthenticationConfig.GrantType,
                 Scope = string.Join(" ", OidcAuthenticationConfig.Scopes)
+            }, token);
+
+            BigBrother.Publish(new ClientTokenRequest
+            {
+                ClientId = OidcAuthenticationConfig.ClientId,
+                Authority = OidcAuthenticationConfig.Uri
             });
+
             return response;
         }
 
@@ -74,22 +93,29 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             OidcAuthenticationToken.AccessToken = response.AccessToken;
             OidcAuthenticationToken.RefreshToken = response.RefreshToken;
             OidcAuthenticationToken.ExpiresIn = response.ExpiresIn;
+            OidcAuthenticationToken.TimeOfRefresh = ServerDateTime.UtcNow;
         }
 
         /// <summary>
-        /// Gets a new token from the STS
-        /// OIDC refresh flow is not supported in the STS
+        /// Quackulation to determine when to renew the token
         /// </summary>
-        /// <param name="client"></param>
         /// <returns></returns>
-        protected virtual async Task RefreshToken(HttpClient client)
+        private bool CheckExpired()
         {
-            if (OidcAuthenticationToken.ExpireTime.Subtract(TimeSpan.FromSeconds(OidcAuthenticationConfig.RefreshBeforeInSeconds)) <= DateTime.UtcNow)
-            {
-                var response = await GetTokenResponse(client);
+            return ServerDateTime.UtcNow.Subtract(OidcAuthenticationToken.TimeOfRefresh).TotalSeconds >= OidcAuthenticationToken.ExpiresIn - OidcAuthenticationConfig.RefreshBeforeInSeconds;
+        }
 
-                ReportTokenUpdateFailure(response);
-                UpdateToken(response);
+        private async Task EnterSemaphore(CancellationToken cancellationToken, Func<Task> action)
+        {
+            try
+            {
+                await _semaphore.WaitAsync(cancellationToken);
+
+                await action();
+            }
+            finally
+            {
+                _semaphore.Release();
             }
         }
     }

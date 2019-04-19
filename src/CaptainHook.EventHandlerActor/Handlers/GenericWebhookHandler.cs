@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
@@ -42,8 +43,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <typeparam name="TRequest"></typeparam>
         /// <param name="request"></param>
         /// <param name="metadata"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public virtual async Task Call<TRequest>(TRequest request, IDictionary<string, object> metadata = null)
+        public virtual async Task CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
         {
             try
             {
@@ -55,7 +57,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 //make a call to client identity provider
                 if (WebhookConfig.AuthenticationConfig.Type != AuthenticationType.None)
                 {
-                    await AcquireTokenHandler.GetToken(_client);
+                    await AcquireTokenHandler.GetTokenAsync(_client, cancellationToken);
                 }
 
                 var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
@@ -67,7 +69,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, payload, msg));
                 }
 
-                var response = await _client.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent);
+                var response = await _client.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent, token: cancellationToken);
                 
                 BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
             }

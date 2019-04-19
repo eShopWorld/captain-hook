@@ -51,5 +51,10 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// </summary>
         [JsonProperty("token_type")]
         public string TokenType { get; set; }
+
+        /// <summary>
+        /// The time the token was refreshed at
+        /// </summary>
+        public DateTime TimeOfRefresh { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
@@ -17,6 +18,13 @@ namespace CaptainHook.Tests.WebHooks
 {
     public class GenericWebhookHandlerTests
     {
+        private CancellationToken _cancellationToken;
+
+        public GenericWebhookHandlerTests()
+        {
+            _cancellationToken = new CancellationToken();
+        }
+
         [IsLayer0]
         [Fact]
         public async Task ExecuteHappyPath()
@@ -56,7 +64,7 @@ namespace CaptainHook.Tests.WebHooks
                 mockHttp.ToHttpClient(),
                 config);
 
-            await genericWebhookHandler.Call(messageData);
+            await genericWebhookHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             Assert.Equal(1, mockHttp.GetMatchCount(webhookRequest));
         }

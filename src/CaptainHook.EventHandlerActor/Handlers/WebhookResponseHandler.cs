@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
@@ -31,7 +32,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             _eventHandlerConfig = eventHandlerConfig;
         }
 
-        public override async Task Call<TRequest>(TRequest request, IDictionary<string, object> metadata = null)
+        public override async Task CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken token)
         {
             if (!(request is MessageData messageData))
             {
@@ -40,7 +41,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             if (WebhookConfig.AuthenticationConfig.Type != AuthenticationType.None)
             {
-                await AcquireTokenHandler.GetToken(_client);
+                await AcquireTokenHandler.GetTokenAsync(_client, token);
             }
 
             var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
@@ -52,7 +53,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
             }
 
-            var response = await _client.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent);
+            var response = await _client.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent, "application/json", token);
 
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
 
@@ -74,7 +75,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             //call callback
             var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_eventHandlerConfig.CallbackConfig.Name);
 
-            await eswHandler.Call(messageData, metadata);
+            await eswHandler.CallAsync(messageData, metadata, token);
         }
     }
 }

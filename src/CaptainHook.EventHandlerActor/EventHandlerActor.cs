@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Telemetry;
@@ -27,6 +29,7 @@ namespace CaptainHook.EventHandlerActor
         private readonly IEventHandlerFactory _eventHandlerFactory;
         private readonly IBigBrother _bigBrother;
         private IActorTimer _handleTimer;
+        private readonly CancellationTokenSource _cancellationTokenSource;
 
         /// <summary>
         /// Initializes a new instance of EventHandlerActor
@@ -44,6 +47,7 @@ namespace CaptainHook.EventHandlerActor
         {
             _eventHandlerFactory = eventHandlerFactory;
             _bigBrother = bigBrother;
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         /// <summary>
@@ -71,6 +75,7 @@ namespace CaptainHook.EventHandlerActor
             {
                 UnregisterTimer(_handleTimer);
             }
+            _cancellationTokenSource.Cancel();
 
             _bigBrother.Publish(new ActorDeactivated(this));
             return base.OnDeactivateAsync();
@@ -128,7 +133,7 @@ namespace CaptainHook.EventHandlerActor
 
                 var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type);
 
-                await handler.Call(messageData);
+                await handler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationTokenSource.Token);
             }
             catch (Exception e)
             {

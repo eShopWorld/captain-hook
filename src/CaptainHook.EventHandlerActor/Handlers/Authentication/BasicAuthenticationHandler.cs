@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 
@@ -19,12 +20,14 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             BasicAuthenticationConfig = basicAuthenticationConfig ?? throw new ArgumentException($"configuration for basic authentication is not of type {typeof(BasicAuthenticationConfig)}", nameof(authenticationConfig));
         }
 
+        /// <inheritdoc />
         /// <summary>
         /// Gets a token and updates the http client with the authentication header
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public virtual async Task GetToken(HttpClient client)
+        public virtual async Task GetTokenAsync(HttpClient client, CancellationToken cancellationToken)
         {
             if (client == null)
             {

@@ -13,7 +13,7 @@ namespace CaptainHook.Tests.Configuration
 {
     public class KeyVaultProviderTests
     {
-        [Fact(Skip = "just for local testing, should be ignored otherwise.")]
+        [Fact]
         [IsDev]
         public void ConfigNotEmpty()
         {

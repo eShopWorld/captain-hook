@@ -35,11 +35,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 case AuthenticationType.Basic:
                     return new BasicAuthenticationHandler(config.AuthenticationConfig);
                 case AuthenticationType.OIDC:
-                    return new OidcAuthenticationHandler(config.AuthenticationConfig);
+                    return new OidcAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
                 case AuthenticationType.Custom:
                     //todo hack for now until we move this out of here and into an integration layer
                     //todo if this is custom it should be another webhook which calls out to another place, this place gets a token on CH's behalf and then adds this into subsequent webhook requests.
-                    return new MmAuthenticationHandler(config.AuthenticationConfig);
+                    return new MmAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(config.AuthenticationConfig.Type), $"unknown configuration type of {config.AuthenticationConfig.Type}");
             }

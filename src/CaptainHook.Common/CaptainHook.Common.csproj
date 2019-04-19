@@ -12,9 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eshopworld.Core" Version="2.0.5" />
-    <PackageReference Include="IdentityModel" Version="3.10.6" />
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.638" />
+    <PackageReference Include="Eshopworld.Core" Version="2.1.1" />
+    <PackageReference Include="IdentityModel" Version="3.10.7" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.3.654" />
   </ItemGroup>
 
 </Project>

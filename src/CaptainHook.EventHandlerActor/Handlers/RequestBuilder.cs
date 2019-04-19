@@ -70,7 +70,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         }
 
         /// <inheritdoc />
-        public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata = null)
+        public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.Body).ToList();
 
