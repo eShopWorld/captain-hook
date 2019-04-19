@@ -18,7 +18,7 @@ namespace CaptainHook.Tests.Actors
     {
         [Fact]
         [IsLayer0]
-        public async Task CheckFreeHandlers()
+        public async Task CheckFreeHandlersAfterWorkCompletes()
         {
             //setup the actors
             var bigBrotherMock = new Mock<IBigBrother>().Object;
@@ -47,7 +47,7 @@ namespace CaptainHook.Tests.Actors
 
         [Fact]
         [IsLayer0]
-        public async Task CheckBusyHandlers()
+        public async Task CheckBusyHandlersDuringWork()
         {
             //setup the actors
             var bigBrotherMock = new Mock<IBigBrother>().Object;
@@ -74,7 +74,7 @@ namespace CaptainHook.Tests.Actors
 
         [Fact]
         [IsLayer0]
-        public async Task CheckBadHandler()
+        public async Task ChecHandlersAfterException()
         {
             //setup the actors
             var bigBrotherMock = new Mock<IBigBrother>().Object;
