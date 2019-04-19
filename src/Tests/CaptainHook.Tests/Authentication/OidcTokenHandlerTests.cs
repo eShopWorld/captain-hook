@@ -8,7 +8,6 @@ using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Telemetry;
 using Eshopworld.Tests.Core;
-using FluentAssertions;
 using Moq;
 using Newtonsoft.Json;
 using RichardSzalay.MockHttp;

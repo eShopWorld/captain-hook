@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Autofac.Features.Indexed;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
@@ -12,6 +13,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// </summary>
     public class AuthenticationHandlerFactory : IAuthHandlerFactory
     {
+        private Dictionary<string, IAcquireTokenHandler> handlers;
         private readonly IIndex<string, WebhookConfig> _webHookConfigs;
         private readonly IBigBrother _bigBrother;
 
@@ -19,6 +21,8 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         {
             _webHookConfigs = webHookConfigs;
             _bigBrother = bigBrother;
+
+            handlers = new Dictionary<string, IAcquireTokenHandler>();
         }
 
         public IAcquireTokenHandler Get(string name)
@@ -28,21 +32,36 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 throw new Exception($"Authentication Provider {name} not found");
             }
 
+            if (handlers.ContainsKey(name))
+            {
+                return handlers[name];
+            }
+
             switch (config.AuthenticationConfig.Type)
             {
                 case AuthenticationType.None:
                     return null;
+
                 case AuthenticationType.Basic:
-                    return new BasicAuthenticationHandler(config.AuthenticationConfig);
+                    handlers[name] = new BasicAuthenticationHandler(config.AuthenticationConfig);
+                    break;
+
                 case AuthenticationType.OIDC:
-                    return new OidcAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
+                    handlers[name] = new OidcAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
+                    break;
+
                 case AuthenticationType.Custom:
                     //todo hack for now until we move this out of here and into an integration layer
                     //todo if this is custom it should be another webhook which calls out to another place, this place gets a token on CH's behalf and then adds this into subsequent webhook requests.
-                    return new MmAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
+                    handlers[name] = new MmAuthenticationHandler(config.AuthenticationConfig, _bigBrother);
+                    break;
+
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(config.AuthenticationConfig.Type), $"unknown configuration type of {config.AuthenticationConfig.Type}");
+                    throw new ArgumentOutOfRangeException(nameof(config.AuthenticationConfig.Type),
+                        $"unknown configuration type of {config.AuthenticationConfig.Type}");
             }
+
+            return handlers[name];
         }
     }
 }
