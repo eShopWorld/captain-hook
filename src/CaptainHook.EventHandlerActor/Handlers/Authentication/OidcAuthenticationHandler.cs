@@ -35,10 +35,17 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             //get initial access token and refresh token
             if (OidcAuthenticationToken.AccessToken == null)
             {
+                BigBrother.Publish(new ClientTokenRequest
+                {
+                    ClientId = OidcAuthenticationConfig.ClientId,
+                    Authority = OidcAuthenticationConfig.Uri,
+                    Message = "Token is null getting a new one."
+                });
+
                 await EnterSemaphore(cancellationToken, async () =>
                 {
                     var response = await GetTokenResponseAsync(client, cancellationToken);
-                    ReportTokenUpdateFailure(response);
+                    ReportTokenUpdateFailure(OidcAuthenticationConfig, response);
                     UpdateToken(response);
                 });
             }
@@ -49,7 +56,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                     if (CheckExpired())
                     {
                         var response = await GetTokenResponseAsync(client, cancellationToken);
-                        ReportTokenUpdateFailure(response);
+                        ReportTokenUpdateFailure(OidcAuthenticationConfig, response);
                         UpdateToken(response);
                     }
                 });
@@ -78,7 +85,8 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             BigBrother.Publish(new ClientTokenRequest
             {
                 ClientId = OidcAuthenticationConfig.ClientId,
-                Authority = OidcAuthenticationConfig.Uri
+                Authority = OidcAuthenticationConfig.Uri,
+                Message = "Get a new token and updating the http client"
             });
 
             return response;

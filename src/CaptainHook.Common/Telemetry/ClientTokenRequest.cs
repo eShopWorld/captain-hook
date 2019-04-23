@@ -5,6 +5,9 @@ namespace CaptainHook.Common.Telemetry
     public class ClientTokenRequest : TelemetryEvent
     {
         public string ClientId { get; set; }
+
         public string Authority { get; set; }
+
+        public string Message { get; set; }
     }
 }
