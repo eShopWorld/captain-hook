@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -155,9 +157,29 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 return webhookConfig.HttpVerb;
             }
 
-            if (rules.Source.Location != Location.Body)
+            var value = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
+
+            if (string.IsNullOrWhiteSpace(value))
             {
-                return webhookConfig.HttpVerb;
+                throw new ArgumentNullException(nameof(rules.Source.Path), "routing path value in message payload is null or empty");
+            }
+
+            var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
+            if (route == null)
+            {
+                throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
+            }
+            return route.HttpVerb;
+        }
+
+        /// <inheritdoc />
+        public AuthenticationType SelectAuthenticationScheme(WebhookConfig webhookConfig, string payload)
+        {
+            //build the uri from the routes first
+            var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
+            if (rules == null)
+            {
+                return webhookConfig.AuthenticationConfig.Type;
             }
 
             var value = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
@@ -172,7 +194,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
             }
-            return route.HttpVerb;
+            return route.AuthenticationConfig.Type;
         }
     }
 }

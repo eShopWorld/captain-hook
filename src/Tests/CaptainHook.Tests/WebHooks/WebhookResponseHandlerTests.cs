@@ -20,7 +20,7 @@ namespace CaptainHook.Tests.WebHooks
 {
     public class WebhookResponseHandlerTests
     {
-        private CancellationToken _cancellationToken;
+        private readonly CancellationToken _cancellationToken;
 
         public WebhookResponseHandlerTests()
         {
@@ -154,7 +154,7 @@ namespace CaptainHook.Tests.WebHooks
 
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            mockAuthHandler.Verify(e => e.GetTokenAsync(It.IsAny<HttpClient>(), _cancellationToken), Times.Exactly(1));
+            mockAuthHandler.Verify(e => e.GetTokenAsync(It.IsAny<HttpClient>(), _cancellationToken), Times.Never);
             mockHandlerFactory.Verify(e => e.CreateWebhookHandlerAsync(It.IsAny<string>(), CancellationToken.None), Times.AtMostOnce);
 
             Assert.Equal(1, mockHttpHandler.GetMatchCount(multiRouteCall));
@@ -350,16 +350,6 @@ namespace CaptainHook.Tests.WebHooks
             WebHookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
-                HttpVerb = HttpVerb.Post,
-                Uri = "https://blah.blah.eshopworld.com",
-                AuthenticationConfig = new OidcAuthenticationConfig
-                {
-                    Type = AuthenticationType.OIDC,
-                    Uri = "https://blah-blah.sts.eshopworld.com",
-                    ClientId = "ClientId",
-                    ClientSecret = "ClientSecret",
-                    Scopes = new[] { "scope1", "scope2" }
-                },
                 WebhookRequestRules = new List<WebhookRequestRule>
                 {
                     new WebhookRequestRule

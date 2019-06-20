@@ -39,14 +39,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 throw new Exception("injected wrong implementation");
             }
 
-            if (WebhookConfig.AuthenticationConfig.Type != AuthenticationType.None)
-            {
-                await AcquireTokenHandler.GetTokenAsync(_client, cancellationToken);
-            }
-
             var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
             var httpVerb = RequestBuilder.SelectHttpVerb(WebhookConfig, messageData.Payload);
             var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
+            var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
+
+            if (authenticationScheme != AuthenticationType.None)
+            {
+                await AcquireTokenHandler.GetTokenAsync(_client, cancellationToken);
+            }
 
             void TelemetryEvent(string msg)
             {

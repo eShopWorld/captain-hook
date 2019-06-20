@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -29,5 +30,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="payload"></param>
         /// <returns></returns>
         HttpVerb SelectHttpVerb(WebhookConfig webhookConfig, string payload);
+
+        /// <summary>
+        /// Determines the authentication scheme to use in the request.
+        /// </summary>
+        /// <param name="webhookConfig"></param>
+        /// <param name="payload"></param>
+        /// <returns></returns>
+        AuthenticationType SelectAuthenticationScheme(WebhookConfig webhookConfig, string payload);
     }
 }
