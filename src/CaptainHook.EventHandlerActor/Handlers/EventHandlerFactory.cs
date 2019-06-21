@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using Autofac.Features.Indexed;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
@@ -36,21 +34,19 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// Create the custom handler such that we get a mapping from the webhook to the handler selected
         /// </summary>
         /// <param name="eventType"></param>
-        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<IHandler> CreateEventHandlerAsync(string eventType, CancellationToken cancellationToken)
+        public IHandler CreateEventHandler(string eventType)
         {
             if (!_eventHandlerConfig.TryGetValue(eventType.ToLower(), out var eventHandlerConfig))
             {
                 throw new Exception($"Boom, handler event type {eventType} was not found, cannot process the message");
             }
 
-            var authHandler = await _authHandlerFactory.GetAsync($"{eventType}-webhook", cancellationToken);
             if (eventHandlerConfig.CallBackEnabled)
             {
                 return new WebhookResponseHandler(
                     this,
-                    authHandler,
+                    _authHandlerFactory,
                     new RequestBuilder(),
                     _bigBrother,
                     _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
@@ -58,7 +54,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             return new GenericWebhookHandler(
-                authHandler,
+                _authHandlerFactory,
                 new RequestBuilder(),
                 _bigBrother,
                 _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
@@ -70,19 +66,16 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// Need this here for now to select the handler for the callback
         /// </summary>
         /// <param name="webHookName"></param>
-        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<IHandler> CreateWebhookHandlerAsync(string webHookName, CancellationToken cancellationToken)
+        public IHandler CreateWebhookHandler(string webHookName)
         {
             if (!_webHookConfig.TryGetValue(webHookName.ToLower(), out var webhookConfig))
             {
                 throw new Exception("Boom, handler webhook not found cannot process the message");
             }
 
-            var authHandler = await _authHandlerFactory.GetAsync(webHookName, cancellationToken);
-
             return new GenericWebhookHandler(
-                authHandler,
+                _authHandlerFactory,
                 new RequestBuilder(),
                 _bigBrother,
                 _httpClients[webHookName.ToLower()],

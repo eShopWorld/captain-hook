@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
@@ -16,7 +17,7 @@ namespace CaptainHook.Tests.Configuration
         {
             var uri = new RequestBuilder().BuildUri(config, payload);
 
-            Assert.Equal(expectedUri, uri);
+            Assert.Equal(new Uri(expectedUri), uri);
         }
 
         [IsLayer0]

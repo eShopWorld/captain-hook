@@ -39,7 +39,7 @@ namespace CaptainHook.Tests.WebHooks
                 .Respond(expectedResponseCode, "application/json", expectedResponseBody);
 
             var genericWebhookHandler = new GenericWebhookHandler(
-                new Mock<IAcquireTokenHandler>().Object,
+                new Mock<IAuthHandlerFactory>().Object,
                 new RequestBuilder(),
                 new Mock<IBigBrother>().Object,
                 mockHttp.ToHttpClient(),
@@ -59,7 +59,7 @@ namespace CaptainHook.Tests.WebHooks
                 .Respond(expectedResponseCode, "application/json", expectedResponseBody);
 
             var genericWebhookHandler = new GenericWebhookHandler(
-                new Mock<IAcquireTokenHandler>().Object,
+                new Mock<IAuthHandlerFactory>().Object,
                 new RequestBuilder(),
                 new Mock<IBigBrother>().Object,
                 mockHttp.ToHttpClient(),

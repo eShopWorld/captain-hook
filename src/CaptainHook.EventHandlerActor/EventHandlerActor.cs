@@ -131,7 +131,7 @@ namespace CaptainHook.EventHandlerActor
                 var messageData = messageDataConditional.Value;
                 handle = messageData.Handle;
 
-                var handler = await _eventHandlerFactory.CreateEventHandlerAsync(messageData.Type, _cancellationTokenSource.Token);
+                var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type);
 
                 await handler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationTokenSource.Token);
             }

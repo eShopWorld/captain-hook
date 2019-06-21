@@ -21,20 +21,20 @@ namespace CaptainHook.EventHandlerActor.Handlers
         protected readonly IBigBrother BigBrother;
         protected readonly IRequestBuilder RequestBuilder;
         protected readonly WebhookConfig WebhookConfig;
-        protected readonly IAcquireTokenHandler AcquireTokenHandler;
+        protected readonly IAuthHandlerFactory AuthHandlerFactory;
 
         public GenericWebhookHandler(
-            IAcquireTokenHandler acquireTokenHandler,
+            IAuthHandlerFactory authHandlerFactory,
             IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
             HttpClient client,
             WebhookConfig webhookConfig)
         {
             _client = client;
-            AcquireTokenHandler = acquireTokenHandler;
             BigBrother = bigBrother;
             RequestBuilder = requestBuilder;
             WebhookConfig = webhookConfig;
+            this.AuthHandlerFactory = authHandlerFactory;
         }
 
         /// <summary>
@@ -61,7 +61,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 if (authenticationScheme != AuthenticationType.None)
                 {
-                    await AcquireTokenHandler.GetTokenAsync(_client, cancellationToken);
+                    var acquireTokenHandler = await AuthHandlerFactory.GetAsync(uri, cancellationToken);
+                    await acquireTokenHandler.GetTokenAsync(_client, cancellationToken);
                 }
 
                 void TelemetryEvent(string msg)

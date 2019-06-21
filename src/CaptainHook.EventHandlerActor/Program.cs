@@ -71,7 +71,7 @@ namespace CaptainHook.EventHandlerActor
                             eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
                             eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
                         }
-
+                        
                         webhookList.Add(eventHandlerConfig.WebHookConfig);
                     }
 

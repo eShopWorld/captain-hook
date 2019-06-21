@@ -28,7 +28,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         public static async Task<HttpResponseMessage> ExecuteAsJsonReliably(
             this HttpClient client,
             HttpVerb httpVerb,
-            string uri,
+            Uri uri,
             string payload,
             Action<string> telemetryRequest,
             string contentType = "application/json",
@@ -65,7 +65,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public static async Task<HttpResponseMessage> PostAsJsonReliably(
         this HttpClient client,
-        string uri,
+        Uri uri,
         string payload,
         Action<string> telemetryRequest,
         string contentType = "application/json",
@@ -88,7 +88,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public static async Task<HttpResponseMessage> PutAsJsonReliably(
             this HttpClient client,
-            string uri,
+            Uri uri,
             string payload,
             Action<string> telemetryRequest,
             string contentType = "application/json",
@@ -111,7 +111,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public static async Task<HttpResponseMessage> PatchAsJsonReliably(
             this HttpClient client,
-            string uri,
+            Uri uri,
             string payload,
             Action<string> telemetryRequest,
             string contentType = "application/json",
@@ -133,7 +133,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public static async Task<HttpResponseMessage> GetAsJsonReliably(
             this HttpClient client,
-            string uri,
+            Uri uri,
             Action<string> telemetryRequest,
             string contentType = "application/json",
             CancellationToken token = default)

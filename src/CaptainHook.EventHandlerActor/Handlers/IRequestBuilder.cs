@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 
@@ -12,7 +13,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="config"></param>
         /// <param name="payload"></param>
         /// <returns></returns>
-        string BuildUri(WebhookConfig config, string payload);
+        Uri BuildUri(WebhookConfig config, string payload);
 
         /// <summary>
         /// Builds the payload for the http request based on supplied configurations

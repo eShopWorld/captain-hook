@@ -12,7 +12,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class RequestBuilder : IRequestBuilder
     {
         /// <inheritdoc />
-        public string BuildUri(WebhookConfig config, string payload)
+        public Uri BuildUri(WebhookConfig config, string payload)
         {
             var uri = config.Uri;
 
@@ -44,17 +44,17 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var uriRules = config.WebhookRequestRules.FirstOrDefault(l => l.Destination.Location == Location.Uri);
             if (uriRules == null)
             {
-                return uri;
+                return new Uri(uri);
             }
 
             if (uriRules.Source.Location != Location.Body)
             {
-                return uri;
+                return new Uri(uri);
             }
 
             var parameter = ModelParser.ParsePayloadPropertyAsString(uriRules.Source.Path, payload);
             uri = CombineUriAndResourceId(uri, parameter);
-            return uri;
+            return new Uri(uri);
         }
 
         /// <summary>

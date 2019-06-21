@@ -28,6 +28,29 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             _handlers = new ConcurrentDictionary<string, IAcquireTokenHandler>();
         }
 
+        /// <summary>
+        /// Get the token provider based on host
+        /// </summary>
+        /// <param name="uri"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<IAcquireTokenHandler> GetAsync(Uri uri, CancellationToken cancellationToken)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            var host = uri.Host;
+            return await GetAsync(host, cancellationToken);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<IAcquireTokenHandler> GetAsync(string name, CancellationToken cancellationToken)
         {
             if (!_webHookConfigs.TryGetValue(name.ToLower(), out var config))

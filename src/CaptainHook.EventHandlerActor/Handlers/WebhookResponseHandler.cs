@@ -20,12 +20,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public WebhookResponseHandler(
             IEventHandlerFactory eventHandlerFactory,
-            IAcquireTokenHandler acquireTokenHandler,
+            IAuthHandlerFactory authHandlerFactory,
             IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
             HttpClient client,
             EventHandlerConfig eventHandlerConfig)
-            : base(acquireTokenHandler, requestBuilder, bigBrother, client, eventHandlerConfig.WebHookConfig)
+            : base(authHandlerFactory, requestBuilder, bigBrother, client, eventHandlerConfig.WebHookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _client = client;
@@ -46,7 +46,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             if (authenticationScheme != AuthenticationType.None)
             {
-                await AcquireTokenHandler.GetTokenAsync(_client, cancellationToken);
+                var acquireTokenHandler = await AuthHandlerFactory.GetAsync(uri, cancellationToken);
+                await acquireTokenHandler.GetTokenAsync(_client, cancellationToken);
             }
 
             void TelemetryEvent(string msg)
@@ -74,7 +75,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content));
 
             //call callback
-            var eswHandler = await _eventHandlerFactory.CreateWebhookHandlerAsync(_eventHandlerConfig.CallbackConfig.Name, cancellationToken);
+            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_eventHandlerConfig.CallbackConfig.Name);
 
             await eswHandler.CallAsync(messageData, metadata, cancellationToken);
         }
