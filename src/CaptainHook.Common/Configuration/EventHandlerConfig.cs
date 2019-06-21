@@ -38,7 +38,7 @@ namespace CaptainHook.Common.Configuration
     /// </summary>
     public class EventHandlerConfig
     {
-        public WebhookConfig WebHookConfig { get; set; }
+        public WebhookConfig WebhookConfig { get; set; }
 
         public WebhookConfig CallbackConfig { get; set; }
 

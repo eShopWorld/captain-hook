@@ -9,24 +9,24 @@ namespace CaptainHook.EventHandlerActor.Handlers
 {
     public class EventHandlerFactory : IEventHandlerFactory
     {
-        private readonly IIndex<string, HttpClient> _httpClients;
         private readonly IBigBrother _bigBrother;
         private readonly IIndex<string, EventHandlerConfig> _eventHandlerConfig;
         private readonly IIndex<string, WebhookConfig> _webHookConfig;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
 
         public EventHandlerFactory(
-            IIndex<string, HttpClient> httpClients,
             IBigBrother bigBrother,
             IIndex<string, EventHandlerConfig> eventHandlerConfig,
             IIndex<string, WebhookConfig> webHookConfig,
+            IHttpClientFactory httpClientFactory,
             IAuthenticationHandlerFactory authenticationHandlerFactory)
         {
-            _httpClients = httpClients;
             _bigBrother = bigBrother;
             _eventHandlerConfig = eventHandlerConfig;
             _authenticationHandlerFactory = authenticationHandlerFactory;
             _webHookConfig = webHookConfig;
+            _httpClientFactory = httpClientFactory;
         }
 
         /// <inheritdoc />
@@ -49,7 +49,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     _authenticationHandlerFactory,
                     new RequestBuilder(),
                     _bigBrother,
-                    _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
+                    _httpClientFactory,
                     eventHandlerConfig);
             }
 
@@ -57,8 +57,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 _authenticationHandlerFactory,
                 new RequestBuilder(),
                 _bigBrother,
-                _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
-                eventHandlerConfig.WebHookConfig);
+                _httpClientFactory,
+                eventHandlerConfig.WebhookConfig);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 _authenticationHandlerFactory,
                 new RequestBuilder(),
                 _bigBrother,
-                _httpClients[webHookName.ToLower()],
+                _httpClientFactory,
                 webhookConfig);
         }
     }

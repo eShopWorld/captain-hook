@@ -39,34 +39,34 @@ namespace CaptainHook.Tests.Configuration
                 var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                 eventHandlerList.Add(eventHandlerConfig);
 
-                if (eventHandlerConfig.WebHookConfig != null)
+                if (eventHandlerConfig.WebhookConfig != null)
                 {
-                    if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Basic)
+                    if (eventHandlerConfig.WebhookConfig.AuthenticationConfig.Type == AuthenticationType.Basic)
                     {
                         var basicAuthenticationConfig = new BasicAuthenticationConfig
                         {
                             Username = configurationSection["webhookconfig:authenticationconfig:username"],
                             Password = configurationSection["webhookconfig:authenticationconfig:password"]
                         };
-                        eventHandlerConfig.WebHookConfig.AuthenticationConfig = basicAuthenticationConfig;
+                        eventHandlerConfig.WebhookConfig.AuthenticationConfig = basicAuthenticationConfig;
                     }
 
-                    if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.OIDC)
+                    if (eventHandlerConfig.WebhookConfig.AuthenticationConfig.Type == AuthenticationType.OIDC)
                     {
-                        eventHandlerConfig.WebHookConfig.AuthenticationConfig =
+                        eventHandlerConfig.WebhookConfig.AuthenticationConfig =
                             ParseOidcAuthenticationConfig(
                                 configurationSection.GetSection("webhookconfig:authenticationconfig"));
                     }
 
-                    if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
+                    if (eventHandlerConfig.WebhookConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
                     {
-                        eventHandlerConfig.WebHookConfig.AuthenticationConfig =
+                        eventHandlerConfig.WebhookConfig.AuthenticationConfig =
                             ParseOidcAuthenticationConfig(
                                 configurationSection.GetSection("webhookconfig:authenticationconfig"));
-                        eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
+                        eventHandlerConfig.WebhookConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
                     }
 
-                    webhookList.Add(eventHandlerConfig.WebHookConfig);
+                    webhookList.Add(eventHandlerConfig.WebhookConfig);
                 }
 
                 if (eventHandlerConfig.CallBackEnabled)

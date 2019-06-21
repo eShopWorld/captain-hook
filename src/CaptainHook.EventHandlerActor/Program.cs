@@ -43,36 +43,38 @@ namespace CaptainHook.EventHandlerActor
 
                 var eventHandlerList = new List<EventHandlerConfig>();
                 var webhookList = new List<WebhookConfig>(values.Count);
+                var endpointList = new Dictionary<string, WebhookConfig>(values.Count);
                 foreach (var configurationSection in values)
                 {
                     //temp work around until config comes in through the API
                     var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                     eventHandlerList.Add(eventHandlerConfig);
 
-                    if (eventHandlerConfig.WebHookConfig != null)
+                    if (eventHandlerConfig.WebhookConfig != null)
                     {
-                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Basic)
+                        if (eventHandlerConfig.WebhookConfig.AuthenticationConfig.Type == AuthenticationType.Basic)
                         {
                             var basicAuthenticationConfig = new BasicAuthenticationConfig
                             {
                                 Username = configurationSection["webhookconfig:authenticationconfig:username"],
                                 Password = configurationSection["webhookconfig:authenticationconfig:password"]
                             };
-                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = basicAuthenticationConfig;
+                            eventHandlerConfig.WebhookConfig.AuthenticationConfig = basicAuthenticationConfig;
                         }
 
-                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.OIDC)
+                        if (eventHandlerConfig.WebhookConfig.AuthenticationConfig.Type == AuthenticationType.OIDC)
                         {
-                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
+                            eventHandlerConfig.WebhookConfig.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
                         }
 
-                        if (eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
+                        if (eventHandlerConfig.WebhookConfig.AuthenticationConfig.Type == AuthenticationType.Custom)
                         {
-                            eventHandlerConfig.WebHookConfig.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
-                            eventHandlerConfig.WebHookConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
+                            eventHandlerConfig.WebhookConfig.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection("webhookconfig:authenticationconfig"));
+                            eventHandlerConfig.WebhookConfig.AuthenticationConfig.Type = AuthenticationType.Custom;
                         }
-                        
-                        webhookList.Add(eventHandlerConfig.WebHookConfig);
+
+                        webhookList.Add(eventHandlerConfig.WebhookConfig);
+                        AddEndpoints(eventHandlerConfig.WebhookConfig, endpointList);
                     }
 
                     if (eventHandlerConfig.CallBackEnabled)
@@ -99,6 +101,7 @@ namespace CaptainHook.EventHandlerActor
                         }
 
                         webhookList.Add(eventHandlerConfig.CallbackConfig);
+                        AddEndpoints(eventHandlerConfig.CallbackConfig, endpointList);
                     }
                 }
 
@@ -128,9 +131,15 @@ namespace CaptainHook.EventHandlerActor
                 foreach (var webhookConfig in webhookList)
                 {
                     builder.RegisterInstance(webhookConfig).Named<WebhookConfig>(webhookConfig.Name);
+                }
 
-                    var httpClient = new HttpClient { Timeout = webhookConfig.Timeout };
-                    builder.RegisterInstance(httpClient).Named<HttpClient>(webhookConfig.Name).SingleInstance();
+                //todo use http client factory and do not manage it here
+                //creates a list of unique endpoint and the corresponding http client for each
+                foreach (var (key, value) in endpointList)
+                {
+                    var httpClient = new HttpClient { Timeout = value.Timeout };
+                    builder.RegisterInstance(httpClient).Named<HttpClient>(key).SingleInstance();
+                    builder.RegisterInstance(value).Named<WebhookConfig>(key);
                 }
 
                 builder.RegisterServiceFabricSupport();
@@ -145,6 +154,54 @@ namespace CaptainHook.EventHandlerActor
             {
                 BigBrother.Write(e);
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Creates a list of unique endpoints which are used for authentication sharing and pooling
+        /// </summary>
+        /// <param name="webhookConfig"></param>
+        /// <param name="endpointList"></param>
+        private static void AddEndpoints(WebhookConfig webhookConfig, IDictionary<string, WebhookConfig> endpointList)
+        {
+            //creates a list of endpoints so they can be shared for authentication and http pooling
+            if (string.IsNullOrWhiteSpace(webhookConfig.Uri))
+            {
+                if (!webhookConfig.WebhookRequestRules.Any(r => r.Routes.Any()))
+                {
+                    return;
+                }
+
+                foreach (var rules in webhookConfig.WebhookRequestRules)
+                {
+                    foreach (var rule in rules.Routes)
+                    {
+                        if (string.IsNullOrWhiteSpace(rule.Uri))
+                        {
+                            continue;
+                        }
+
+                        SafeAdd(endpointList, rule);
+                    }
+                }
+            }
+            else
+            {
+                SafeAdd(endpointList, webhookConfig);
+            }
+        }
+
+        /// <summary>
+        /// Safe adds to the dictionary if it does not already exist
+        /// </summary>
+        /// <param name="endpointList"></param>
+        /// <param name="rule"></param>
+        private static void SafeAdd(IDictionary<string, WebhookConfig> endpointList, WebhookConfig rule)
+        {
+            var uri = new Uri(rule.Uri);
+            if (!endpointList.ContainsKey(uri.Host))
+            {
+                endpointList.Add(uri.Host, rule);
             }
         }
 

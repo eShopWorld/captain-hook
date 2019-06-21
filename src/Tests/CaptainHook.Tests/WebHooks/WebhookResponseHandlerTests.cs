@@ -259,7 +259,7 @@ namespace CaptainHook.Tests.WebHooks
         {
             Name = "Event 1",
             Type = "blahblah",
-            WebHookConfig = new WebhookConfig
+            WebhookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
                 HttpVerb = HttpVerb.Post,
@@ -354,7 +354,7 @@ namespace CaptainHook.Tests.WebHooks
         {
             Name = "Event 1",
             Type = "blahblah",
-            WebHookConfig = new WebhookConfig
+            WebhookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
                 WebhookRequestRules = new List<WebhookRequestRule>
@@ -462,7 +462,7 @@ namespace CaptainHook.Tests.WebHooks
         {
             Name = "Event 1",
             Type = "blahblah",
-            WebHookConfig = new WebhookConfig
+            WebhookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
                 HttpVerb = HttpVerb.Post,

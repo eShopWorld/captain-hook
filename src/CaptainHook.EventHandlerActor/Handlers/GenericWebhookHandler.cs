@@ -17,8 +17,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
     /// </summary>
     public class GenericWebhookHandler : IHandler
     {
-        private readonly HttpClient _client;
         protected readonly IBigBrother BigBrother;
+        protected readonly IHttpClientFactory HttpClientFactory;
         protected readonly IRequestBuilder RequestBuilder;
         protected readonly WebhookConfig WebhookConfig;
         protected readonly IAuthenticationHandlerFactory AuthenticationHandlerFactory;
@@ -27,11 +27,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
-            HttpClient client,
+            IHttpClientFactory httpClientFactory,
             WebhookConfig webhookConfig)
         {
-            _client = client;
             BigBrother = bigBrother;
+            HttpClientFactory = httpClientFactory;
             RequestBuilder = requestBuilder;
             WebhookConfig = webhookConfig;
             this.AuthenticationHandlerFactory = authenticationHandlerFactory;
@@ -59,10 +59,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var payload = RequestBuilder.BuildPayload(this.WebhookConfig, messageData.Payload, metadata);
                 var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
 
+                var httpClient = HttpClientFactory.CreateClient(uri.Host);
+
                 if (authenticationScheme != AuthenticationType.None)
                 {
                     var acquireTokenHandler = await AuthenticationHandlerFactory.GetAsync(uri, cancellationToken);
-                    await acquireTokenHandler.GetTokenAsync(_client, cancellationToken);
+                    await acquireTokenHandler.GetTokenAsync(httpClient, cancellationToken);
                 }
 
                 void TelemetryEvent(string msg)
@@ -70,7 +72,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, payload, msg));
                 }
 
-                var response = await _client.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent, token: cancellationToken);
+                var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent, token: cancellationToken);
                 
                 BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}"));
             }
