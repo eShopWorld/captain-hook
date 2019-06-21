@@ -58,7 +58,7 @@ namespace CaptainHook.Tests.WebHooks
                 .Respond(HttpStatusCode.OK, "application/json", string.Empty);
 
             var genericWebhookHandler = new GenericWebhookHandler(
-                new Mock<IAuthHandlerFactory>().Object,
+                new Mock<IAuthenticationHandlerFactory>().Object,
                 new RequestBuilder(),
                 new Mock<IBigBrother>().Object,
                 mockHttp.ToHttpClient(),

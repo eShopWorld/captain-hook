@@ -43,8 +43,9 @@ namespace CaptainHook.Tests.WebHooks
 
             var httpClient = mockHttpHandler.ToHttpClient();
 
-            var mockAuthHandlerFactory = new Mock<IAuthHandlerFactory>();
-            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>())).ReturnsAsync(() => new Mock<IAcquireTokenHandler>().Object);
+            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
+            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new Mock<IAcquireTokenHandler>().Object);
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
@@ -90,8 +91,9 @@ namespace CaptainHook.Tests.WebHooks
 
             var httpClient = mockHttpHandler.ToHttpClient();
 
-            var mockAuthHandlerFactory = new Mock<AuthenticationHandlerFactory>();
-            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>())).ReturnsAsync(() => new Mock<IAcquireTokenHandler>().Object);
+            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
+            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => new Mock<IAcquireTokenHandler>().Object);
 
             var mockBigBrother = new Mock<IBigBrother>();
 
@@ -137,7 +139,7 @@ namespace CaptainHook.Tests.WebHooks
 
             var httpClient = mockHttpHandler.ToHttpClient();
 
-            var mockAuthHandlerFactory = new Mock<IAuthHandlerFactory>();
+            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
@@ -181,7 +183,7 @@ namespace CaptainHook.Tests.WebHooks
 
             var httpClient = mockHttpHandler.ToHttpClient();
 
-            var mockAuthHandlerFactory = new Mock<IAuthHandlerFactory>();
+            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();

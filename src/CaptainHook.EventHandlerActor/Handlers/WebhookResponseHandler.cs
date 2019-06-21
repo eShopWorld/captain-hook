@@ -20,12 +20,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public WebhookResponseHandler(
             IEventHandlerFactory eventHandlerFactory,
-            IAuthHandlerFactory authHandlerFactory,
+            IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
             HttpClient client,
             EventHandlerConfig eventHandlerConfig)
-            : base(authHandlerFactory, requestBuilder, bigBrother, client, eventHandlerConfig.WebHookConfig)
+            : base(authenticationHandlerFactory, requestBuilder, bigBrother, client, eventHandlerConfig.WebHookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _client = client;
@@ -46,7 +46,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             if (authenticationScheme != AuthenticationType.None)
             {
-                var acquireTokenHandler = await AuthHandlerFactory.GetAsync(uri, cancellationToken);
+                var acquireTokenHandler = await AuthenticationHandlerFactory.GetAsync(uri, cancellationToken);
                 await acquireTokenHandler.GetTokenAsync(_client, cancellationToken);
             }
 

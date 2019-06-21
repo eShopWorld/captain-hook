@@ -13,19 +13,19 @@ namespace CaptainHook.EventHandlerActor.Handlers
         private readonly IBigBrother _bigBrother;
         private readonly IIndex<string, EventHandlerConfig> _eventHandlerConfig;
         private readonly IIndex<string, WebhookConfig> _webHookConfig;
-        private readonly IAuthHandlerFactory _authHandlerFactory;
+        private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
 
         public EventHandlerFactory(
             IIndex<string, HttpClient> httpClients,
             IBigBrother bigBrother,
             IIndex<string, EventHandlerConfig> eventHandlerConfig,
             IIndex<string, WebhookConfig> webHookConfig,
-            IAuthHandlerFactory authHandlerFactory)
+            IAuthenticationHandlerFactory authenticationHandlerFactory)
         {
             _httpClients = httpClients;
             _bigBrother = bigBrother;
             _eventHandlerConfig = eventHandlerConfig;
-            _authHandlerFactory = authHandlerFactory;
+            _authenticationHandlerFactory = authenticationHandlerFactory;
             _webHookConfig = webHookConfig;
         }
 
@@ -46,7 +46,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 return new WebhookResponseHandler(
                     this,
-                    _authHandlerFactory,
+                    _authenticationHandlerFactory,
                     new RequestBuilder(),
                     _bigBrother,
                     _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
@@ -54,7 +54,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             return new GenericWebhookHandler(
-                _authHandlerFactory,
+                _authenticationHandlerFactory,
                 new RequestBuilder(),
                 _bigBrother,
                 _httpClients[eventHandlerConfig.WebHookConfig.Name.ToLower()],
@@ -75,7 +75,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             return new GenericWebhookHandler(
-                _authHandlerFactory,
+                _authenticationHandlerFactory,
                 new RequestBuilder(),
                 _bigBrother,
                 _httpClients[webHookName.ToLower()],

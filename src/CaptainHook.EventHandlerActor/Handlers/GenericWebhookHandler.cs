@@ -21,10 +21,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
         protected readonly IBigBrother BigBrother;
         protected readonly IRequestBuilder RequestBuilder;
         protected readonly WebhookConfig WebhookConfig;
-        protected readonly IAuthHandlerFactory AuthHandlerFactory;
+        protected readonly IAuthenticationHandlerFactory AuthenticationHandlerFactory;
 
         public GenericWebhookHandler(
-            IAuthHandlerFactory authHandlerFactory,
+            IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
             HttpClient client,
@@ -34,7 +34,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             BigBrother = bigBrother;
             RequestBuilder = requestBuilder;
             WebhookConfig = webhookConfig;
-            this.AuthHandlerFactory = authHandlerFactory;
+            this.AuthenticationHandlerFactory = authenticationHandlerFactory;
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 if (authenticationScheme != AuthenticationType.None)
                 {
-                    var acquireTokenHandler = await AuthHandlerFactory.GetAsync(uri, cancellationToken);
+                    var acquireTokenHandler = await AuthenticationHandlerFactory.GetAsync(uri, cancellationToken);
                     await acquireTokenHandler.GetTokenAsync(_client, cancellationToken);
                 }
 

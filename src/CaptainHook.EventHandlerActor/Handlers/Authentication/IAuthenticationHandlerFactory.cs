@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
-    public interface IAuthHandlerFactory
+    public interface IAuthenticationHandlerFactory
     {
         /// <summary>
         /// Gets the token provider based on key

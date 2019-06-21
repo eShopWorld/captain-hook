@@ -13,7 +13,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// Selects the correct authentication handler based on the type specified by the authentication type.
     /// This implemented both Basic, OIDC and a custom implemented which will be moved to an integration layer.
     /// </summary>
-    public class AuthenticationHandlerFactory : IAuthHandlerFactory
+    public class AuthenticationHandlerFactory : IAuthenticationHandlerFactory
     {
         private readonly ConcurrentDictionary<string, IAcquireTokenHandler> _handlers;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
