@@ -59,13 +59,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var payload = RequestBuilder.BuildPayload(this.WebhookConfig, messageData.Payload, metadata);
                 var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
 
-                var httpClient = HttpClientFactory.CreateClient(uri.Host);
-
-                if (authenticationScheme != AuthenticationType.None)
-                {
-                    var acquireTokenHandler = await AuthenticationHandlerFactory.GetAsync(uri, cancellationToken);
-                    await acquireTokenHandler.GetTokenAsync(httpClient, cancellationToken);
-                }
+                var httpClient = await GetHttpClient(cancellationToken, uri, authenticationScheme);
 
                 void TelemetryEvent(string msg)
                 {
@@ -81,6 +75,29 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 BigBrother.Publish(e.ToExceptionEvent());
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Gets a configured http client for use in a request from the http client factory
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <param name="uri"></param>
+        /// <param name="authenticationScheme"></param>
+        /// <returns></returns>
+        protected async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, Uri uri, AuthenticationType authenticationScheme)
+        {
+            var httpClient = HttpClientFactory.CreateClient(uri.Host);
+            httpClient.Timeout = WebhookConfig.Timeout;
+
+            if (authenticationScheme == AuthenticationType.None)
+            {
+                return httpClient;
+            }
+
+            var acquireTokenHandler = await AuthenticationHandlerFactory.GetAsync(uri, cancellationToken);
+            await acquireTokenHandler.GetTokenAsync(httpClient, cancellationToken);
+
+            return httpClient;
         }
     }
 }

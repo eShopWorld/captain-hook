@@ -9,10 +9,10 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <summary>
         /// Gets the token provider based on key
         /// </summary>
-        /// <param name="hostname"></param>
+        /// <param name="key"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<IAcquireTokenHandler> GetAsync(string hostname, CancellationToken cancellationToken);
+        Task<IAcquireTokenHandler> GetAsync(string key, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the token provider based on host

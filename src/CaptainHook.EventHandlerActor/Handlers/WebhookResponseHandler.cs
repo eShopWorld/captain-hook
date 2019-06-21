@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
@@ -43,13 +42,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
             var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
 
-            var httpClient = HttpClientFactory.CreateClient(uri.Host);
-
-            if (authenticationScheme != AuthenticationType.None)
-            {
-                var acquireTokenHandler = await AuthenticationHandlerFactory.GetAsync(uri, cancellationToken);
-                await acquireTokenHandler.GetTokenAsync(httpClient, cancellationToken);
-            }
+            var httpClient = await GetHttpClient(cancellationToken, uri, authenticationScheme);
 
             void TelemetryEvent(string msg)
             {

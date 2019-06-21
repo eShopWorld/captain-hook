@@ -199,9 +199,9 @@ namespace CaptainHook.EventHandlerActor
         private static void SafeAdd(IDictionary<string, WebhookConfig> endpointList, WebhookConfig rule)
         {
             var uri = new Uri(rule.Uri);
-            if (!endpointList.ContainsKey(uri.Host))
+            if (!endpointList.ContainsKey(uri.Host.ToLower()))
             {
-                endpointList.Add(uri.Host, rule);
+                endpointList.Add(uri.Host.ToLower(), rule);
             }
         }
 

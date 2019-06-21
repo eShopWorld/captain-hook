@@ -48,19 +48,19 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="hostname"></param>
+        /// <param name="key"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<IAcquireTokenHandler> GetAsync(string hostname, CancellationToken cancellationToken)
+        public async Task<IAcquireTokenHandler> GetAsync(string key, CancellationToken cancellationToken)
         {
-            if (_handlers.TryGetValue(hostname, out var handler))
+            if (_handlers.TryGetValue(key.ToLower(), out var handler))
             {
                 return handler;
             }
 
-            if (!_webHookConfigs.TryGetValue(hostname.ToLower(), out var config))
+            if (!_webHookConfigs.TryGetValue(key.ToLower(), out var config))
             {
-                throw new Exception($"Authentication Provider {hostname} not found");
+                throw new Exception($"Authentication Provider {key} not found");
             }
 
             switch (config.AuthenticationConfig.Type)
@@ -71,15 +71,15 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 case AuthenticationType.Basic:
                     await EnterSemaphore(() =>
                     {
-                        _handlers.TryAdd(hostname, new BasicAuthenticationHandler(config.AuthenticationConfig));
-                    }, hostname, cancellationToken);
+                        _handlers.TryAdd(key, new BasicAuthenticationHandler(config.AuthenticationConfig));
+                    }, key, cancellationToken);
                     break;
 
                 case AuthenticationType.OIDC:
                     await EnterSemaphore(() =>
                     {
-                        _handlers.TryAdd(hostname, new OidcAuthenticationHandler(config.AuthenticationConfig, _bigBrother));
-                    }, hostname, cancellationToken);
+                        _handlers.TryAdd(key, new OidcAuthenticationHandler(config.AuthenticationConfig, _bigBrother));
+                    }, key, cancellationToken);
                     break;
 
                 case AuthenticationType.Custom:
@@ -88,8 +88,8 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                     //todo if this is custom it should be another webhook which calls out to another place, this place gets a token on CH's behalf and then adds this into subsequent webhook requests.
                     await EnterSemaphore(() =>
                     {
-                        _handlers.TryAdd(hostname, new MmAuthenticationHandler(config.AuthenticationConfig, _bigBrother));
-                    }, hostname, cancellationToken);
+                        _handlers.TryAdd(key, new MmAuthenticationHandler(config.AuthenticationConfig, _bigBrother));
+                    }, key, cancellationToken);
                     break;
 
                 default:
@@ -97,7 +97,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                         $"unknown configuration type of {config.AuthenticationConfig.Type}");
             }
 
-            _handlers.TryGetValue(hostname, out var newHandler);
+            _handlers.TryGetValue(key, out var newHandler);
             return newHandler;
         }
 
