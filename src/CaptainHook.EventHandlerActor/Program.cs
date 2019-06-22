@@ -51,10 +51,10 @@ namespace CaptainHook.EventHandlerActor
                     var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                     eventHandlerList.Add(eventHandlerConfig);
 
-                    var path = "webhookconfig:authenticationconfig";
+                    var path = "webhookconfig";
                     if (eventHandlerConfig.WebhookConfig != null)
                     {
-                        ParseAuthScheme(eventHandlerConfig.WebhookConfig, configurationSection, path);
+                        ParseAuthScheme(eventHandlerConfig.WebhookConfig, configurationSection, $"{path}:authenticationconfig");
                         webhookList.Add(eventHandlerConfig.WebhookConfig);
                         AddEndpoints(eventHandlerConfig.WebhookConfig, endpointList, configurationSection, path);
                     }
@@ -64,8 +64,8 @@ namespace CaptainHook.EventHandlerActor
                         continue;
                     }
 
-                    path = "callbackconfig:authenticationconfig";
-                    ParseAuthScheme(eventHandlerConfig.CallbackConfig, configurationSection, path);
+                    path = "callbackconfig";
+                    ParseAuthScheme(eventHandlerConfig.CallbackConfig, configurationSection, $"{path}:authenticationconfig");
                     webhookList.Add(eventHandlerConfig.CallbackConfig);
                     AddEndpoints(eventHandlerConfig.CallbackConfig, endpointList, configurationSection, path);
                 }
@@ -138,16 +138,19 @@ namespace CaptainHook.EventHandlerActor
                     return;
                 }
 
-                foreach (var webhookRequestRule in webhookConfig.WebhookRequestRules)
+                for (var i = 0; i < webhookConfig.WebhookRequestRules.Count; i++)
                 {
-                    foreach (var route in webhookRequestRule.Routes)
+                    var webhookRequestRule = webhookConfig.WebhookRequestRules[i];
+                    for (var y = 0; y < webhookRequestRule.Routes.Count; y++)
                     {
+                        var route = webhookRequestRule.Routes[y];
                         if (string.IsNullOrWhiteSpace(route.Uri))
                         {
                             continue;
                         }
 
-                        ParseAuthScheme(route, configurationSection, path);
+                        var authPath = $"{path}:webhookrequestrules:{i + 1}:routes:{y + 1}:authenticationconfig";
+                        ParseAuthScheme(route, configurationSection, authPath);
                         AddToDictionarySafely(endpointList, route);
                     }
                 }
@@ -157,7 +160,7 @@ namespace CaptainHook.EventHandlerActor
                 AddToDictionarySafely(endpointList, webhookConfig);
             }
         }
-        
+
         /// <summary>
         /// Parse the auth scheme from config to concrete type
         /// </summary>
