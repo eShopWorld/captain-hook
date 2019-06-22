@@ -18,10 +18,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class GenericWebhookHandler : IHandler
     {
         protected readonly IBigBrother BigBrother;
-        protected readonly IHttpClientFactory HttpClientFactory;
+        private readonly IHttpClientFactory _httpClientFactory;
         protected readonly IRequestBuilder RequestBuilder;
         protected readonly WebhookConfig WebhookConfig;
-        protected readonly IAuthenticationHandlerFactory AuthenticationHandlerFactory;
+        private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
 
         public GenericWebhookHandler(
             IAuthenticationHandlerFactory authenticationHandlerFactory,
@@ -31,10 +31,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
             WebhookConfig webhookConfig)
         {
             BigBrother = bigBrother;
-            HttpClientFactory = httpClientFactory;
+            _httpClientFactory = httpClientFactory;
             RequestBuilder = requestBuilder;
             WebhookConfig = webhookConfig;
-            this.AuthenticationHandlerFactory = authenticationHandlerFactory;
+            this._authenticationHandlerFactory = authenticationHandlerFactory;
         }
 
         /// <summary>
@@ -84,9 +84,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="uri"></param>
         /// <param name="authenticationScheme"></param>
         /// <returns></returns>
-        protected async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, Uri uri, AuthenticationType authenticationScheme)
+        protected virtual async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, Uri uri, AuthenticationType authenticationScheme)
         {
-            var httpClient = HttpClientFactory.CreateClient(uri.Host);
+            var httpClient = _httpClientFactory.CreateClient(uri.Host);
             httpClient.Timeout = WebhookConfig.Timeout;
 
             if (authenticationScheme == AuthenticationType.None)
@@ -94,7 +94,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 return httpClient;
             }
 
-            var acquireTokenHandler = await AuthenticationHandlerFactory.GetAsync(uri, cancellationToken);
+            var acquireTokenHandler = await _authenticationHandlerFactory.GetAsync(uri, cancellationToken);
             await acquireTokenHandler.GetTokenAsync(httpClient, cancellationToken);
 
             return httpClient;
