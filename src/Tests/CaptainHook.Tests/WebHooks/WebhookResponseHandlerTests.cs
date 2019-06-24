@@ -43,15 +43,15 @@ namespace CaptainHook.Tests.WebHooks
                 .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
             var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
-            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Mock<IAcquireTokenHandler>().Object);
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
-            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.WebhookConfig.Uri).Host)).Returns(
+            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.WebhookConfig.Uri).Host, config.WebhookConfig)).Returns(
                 mockHttpHandler.ToHttpClient());
 
-            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.CallbackConfig.Uri).Host)).Returns(
+            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.CallbackConfig.Uri).Host, config.CallbackConfig)).Returns(
                 mockHttpHandler.ToHttpClient());
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
@@ -73,8 +73,8 @@ namespace CaptainHook.Tests.WebHooks
 
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<string>(), _cancellationToken), Times.Never);
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<Uri>(), _cancellationToken), Times.Once);
+            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<string>(), _cancellationToken), Times.Once);
+            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<Uri>(), _cancellationToken), Times.Never);
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequestWithCallback));
         }
 
@@ -97,14 +97,14 @@ namespace CaptainHook.Tests.WebHooks
 
             var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
 
-            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(expectedWebHookUri).Host)).Returns(
+            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.WebhookConfig.Uri).Host, config.WebhookConfig)).Returns(
                 mockHttpHandler.ToHttpClient());
 
-            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(expectedCallbackUri).Host)).Returns(
+            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.CallbackConfig.Uri).Host, config.CallbackConfig)).Returns(
                 mockHttpHandler.ToHttpClient());
 
             var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
-            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new Mock<IAcquireTokenHandler>().Object);
 
             var mockBigBrother = new Mock<IBigBrother>();
@@ -128,8 +128,8 @@ namespace CaptainHook.Tests.WebHooks
 
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<string>(), _cancellationToken), Times.Never);
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<Uri>(), _cancellationToken), Times.Once);
+            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<string>(), _cancellationToken), Times.Once);
+            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<Uri>(), _cancellationToken), Times.Never);
             mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.IsAny<string>()), Times.AtMostOnce);
 
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequest));
@@ -151,20 +151,15 @@ namespace CaptainHook.Tests.WebHooks
 
             var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
 
-            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.CallbackConfig.Uri).Host)).Returns(
+            mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.CallbackConfig.Uri).Host, config.CallbackConfig)).Returns(
                 mockHttpHandler.ToHttpClient());
 
             //for each route in the path query, we create a mock http client in the factory
-            foreach (var rules in config.WebhookConfig.WebhookRequestRules)
+            foreach (var rules in config.WebhookConfig.WebhookRequestRules.Where(r => r.Routes.Any()))
             {
-                if (!rules.Routes.Any())
+                foreach (var route in rules.Routes)
                 {
-                    continue;
-                }
-                foreach (var routes in rules.Routes)
-                {
-                    mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(routes.Uri).Host)).Returns(
-                        mockHttpHandler.ToHttpClient());
+                    mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(route.Uri).Host, route)).Returns(mockHttpHandler.ToHttpClient());
                 }
             }
 

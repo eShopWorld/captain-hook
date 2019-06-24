@@ -195,5 +195,34 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
             return route.AuthenticationConfig.Type;
         }
+
+        public WebhookConfig SelectWebhookConfig(WebhookConfig webhookConfig, string payload)
+        {
+            var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
+            if (rules == null)
+            {
+                return webhookConfig;
+            }
+            
+            var selector = string.Empty;
+            if (rules.Source.Location == Location.Body)
+            {
+                selector = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
+            }
+
+            if (string.IsNullOrWhiteSpace(selector))
+            {
+                throw new ArgumentNullException(nameof(rules.Source.Path), "routing path value in message payload is null or empty");
+            }
+
+            //selects the route based on the value found in the payload of the message
+            var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(selector, StringComparison.OrdinalIgnoreCase));
+            if (route == null)
+            {
+                throw new Exception("route mapping/selector not found between config and the properties on the domain object");
+            }
+
+            return route;
+        }
     }
 }

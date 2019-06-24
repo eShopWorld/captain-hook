@@ -41,8 +41,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var httpVerb = RequestBuilder.SelectHttpVerb(WebhookConfig, messageData.Payload);
             var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
             var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
+            var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);
 
-            var httpClient = await GetHttpClient(cancellationToken, uri, authenticationScheme);
+            var httpClient = await GetHttpClient(cancellationToken, config, authenticationScheme);
 
             void TelemetryEvent(string msg)
             {

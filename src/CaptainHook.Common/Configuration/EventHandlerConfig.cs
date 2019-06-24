@@ -15,15 +15,29 @@ namespace CaptainHook.Common.Configuration
             WebhookRequestRules = new List<WebhookRequestRule>();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public AuthenticationConfig AuthenticationConfig { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public string Uri { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public string Name { get; set; }
 
-        //todo implement this on the calls to the webhook to select http verb
+        /// <summary>
+        /// 
+        /// </summary>
         public HttpVerb HttpVerb { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public List<WebhookRequestRule> WebhookRequestRules { get; set; }
 
         /// <summary>

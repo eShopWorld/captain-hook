@@ -58,8 +58,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var httpVerb = RequestBuilder.SelectHttpVerb(WebhookConfig, messageData.Payload);
                 var payload = RequestBuilder.BuildPayload(this.WebhookConfig, messageData.Payload, metadata);
                 var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
+                var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);
 
-                var httpClient = await GetHttpClient(cancellationToken, uri, authenticationScheme);
+                var httpClient = await GetHttpClient(cancellationToken, config, authenticationScheme);
 
                 void TelemetryEvent(string msg)
                 {
@@ -81,19 +82,19 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// Gets a configured http client for use in a request from the http client factory
         /// </summary>
         /// <param name="cancellationToken"></param>
-        /// <param name="uri"></param>
+        /// <param name="config"></param>
         /// <param name="authenticationScheme"></param>
         /// <returns></returns>
-        protected virtual async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, Uri uri, AuthenticationType authenticationScheme)
+        protected virtual async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, WebhookConfig config, AuthenticationType authenticationScheme)
         {
-            var httpClient = _httpClientFactory.CreateClient(uri.Host, WebhookConfig);
+            var httpClient = _httpClientFactory.CreateClient(new Uri(config.Uri).Host, config);
 
             if (authenticationScheme == AuthenticationType.None)
             {
                 return httpClient;
             }
 
-            var acquireTokenHandler = await _authenticationHandlerFactory.GetAsync(uri, cancellationToken);
+            var acquireTokenHandler = await _authenticationHandlerFactory.GetAsync(config.Uri, cancellationToken);
             await acquireTokenHandler.GetTokenAsync(httpClient, cancellationToken);
 
             return httpClient;
