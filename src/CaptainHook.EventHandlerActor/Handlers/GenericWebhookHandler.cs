@@ -87,14 +87,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         protected virtual async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, WebhookConfig config, AuthenticationType authenticationScheme)
         {
-            var httpClient = _httpClientFactory.CreateClient(new Uri(config.Uri).Host, config);
+            var uri = new Uri(config.Uri);
+            var httpClient = _httpClientFactory.CreateClient(uri, config);
 
             if (authenticationScheme == AuthenticationType.None)
             {
                 return httpClient;
             }
 
-            var acquireTokenHandler = await _authenticationHandlerFactory.GetAsync(config.Uri, cancellationToken);
+            var acquireTokenHandler = await _authenticationHandlerFactory.GetAsync(uri, cancellationToken);
             await acquireTokenHandler.GetTokenAsync(httpClient, cancellationToken);
 
             return httpClient;

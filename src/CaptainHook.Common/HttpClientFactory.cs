@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Net.Http;
 using CaptainHook.Common.Configuration;
 
@@ -6,7 +7,7 @@ namespace CaptainHook.Common
 {
     public interface IExtendedHttpClientFactory : IHttpClientFactory
     {
-        HttpClient CreateClient(string name, WebhookConfig config);
+        HttpClient CreateClient(Uri uri, WebhookConfig config);
     }
 
     public class HttpClientFactory : IExtendedHttpClientFactory
@@ -30,9 +31,9 @@ namespace CaptainHook.Common
             return httpClient;
         }
 
-        public HttpClient CreateClient(string name, WebhookConfig config)
+        public HttpClient CreateClient(Uri uri, WebhookConfig config)
         {
-            if (_clients.TryGetValue(name.ToLower(), out var client))
+            if (_clients.TryGetValue(uri.Host.ToLower(), out var client))
             {
                 return client;
             }
@@ -41,7 +42,7 @@ namespace CaptainHook.Common
             {
                 Timeout = config.Timeout
             };
-            _clients.TryAdd(name, httpClient);
+            _clients.TryAdd(uri.Host, httpClient);
 
             return httpClient;
         }

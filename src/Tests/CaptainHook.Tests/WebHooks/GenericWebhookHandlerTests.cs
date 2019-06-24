@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -59,7 +60,7 @@ namespace CaptainHook.Tests.WebHooks
                 .Respond(HttpStatusCode.OK, "application/json", string.Empty);
 
             var httpClientFactory = new Mock<IExtendedHttpClientFactory>();
-            httpClientFactory.Setup(s => s.CreateClient(It.IsAny<string>(), config)).Returns(
+            httpClientFactory.Setup(s => s.CreateClient(It.IsAny<Uri>(), config)).Returns(
                 mockHttp.ToHttpClient());
 
             var genericWebhookHandler = new GenericWebhookHandler(
