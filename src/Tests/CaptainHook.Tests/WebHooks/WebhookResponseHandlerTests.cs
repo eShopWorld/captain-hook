@@ -47,7 +47,7 @@ namespace CaptainHook.Tests.WebHooks
                 .ReturnsAsync(() => new Mock<IAcquireTokenHandler>().Object);
             var mockBigBrother = new Mock<IBigBrother>();
 
-            var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+            var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
             mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.WebhookConfig.Uri).Host)).Returns(
                 mockHttpHandler.ToHttpClient());
 
@@ -95,7 +95,7 @@ namespace CaptainHook.Tests.WebHooks
             var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Put, expectedCallbackUri)
                 .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
-            var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+            var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
 
             mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(expectedWebHookUri).Host)).Returns(
                 mockHttpHandler.ToHttpClient());
@@ -149,7 +149,7 @@ namespace CaptainHook.Tests.WebHooks
                 .WithContentType("application/json; charset=utf-8", expectedContent)
                 .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
-            var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+            var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
 
             mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.CallbackConfig.Uri).Host)).Returns(
                 mockHttpHandler.ToHttpClient());
@@ -210,7 +210,7 @@ namespace CaptainHook.Tests.WebHooks
                 .WithContentType("application/json; charset=utf-8", expectedContent)
                 .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
-            var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+            var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
             mockHttpClientFactory.Setup(s => s.CreateClient(new Uri(config.WebhookConfig.Uri).Host)).Returns(
                 mockHttpHandler.ToHttpClient());
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -104,7 +103,7 @@ namespace CaptainHook.EventHandlerActor
                     builder.RegisterInstance(value).Named<WebhookConfig>(key);
                 }
 
-                builder.RegisterType<HttpClientFactory>().As<IHttpClientFactory>().SingleInstance();
+                builder.RegisterType<HttpClientFactory>().As<IExtendedHttpClientFactory>().SingleInstance();
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<EventHandlerActor>();
 

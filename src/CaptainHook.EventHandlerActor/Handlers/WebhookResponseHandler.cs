@@ -21,7 +21,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
-            IHttpClientFactory httpClientFactory,
+            IExtendedHttpClientFactory httpClientFactory,
             EventHandlerConfig eventHandlerConfig)
             : base(authenticationHandlerFactory, requestBuilder, bigBrother, httpClientFactory, eventHandlerConfig.WebhookConfig)
         {

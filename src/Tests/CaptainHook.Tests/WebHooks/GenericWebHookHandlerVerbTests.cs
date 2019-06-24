@@ -38,7 +38,7 @@ namespace CaptainHook.Tests.WebHooks
                 .WithContentType("application/json", payload)
                 .Respond(expectedResponseCode, "application/json", expectedResponseBody);
 
-            var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+            var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
             mockHttpClientFactory.Setup(s => s.CreateClient(It.IsAny<string>())).Returns(
                 mockHttp.ToHttpClient());
 
@@ -62,7 +62,7 @@ namespace CaptainHook.Tests.WebHooks
             var request = mockHttp.When(httpMethod, config.Uri)
                 .Respond(expectedResponseCode, "application/json", expectedResponseBody);
 
-            var mockHttpClientFactory = new Mock<IHttpClientFactory>();
+            var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
             mockHttpClientFactory.Setup(s => s.CreateClient(It.IsAny<string>())).Returns(
                 mockHttp.ToHttpClient());
 

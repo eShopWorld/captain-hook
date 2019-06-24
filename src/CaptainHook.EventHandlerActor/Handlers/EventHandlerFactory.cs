@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Net.Http;
 using Autofac.Features.Indexed;
+using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
@@ -12,14 +12,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
         private readonly IBigBrother _bigBrother;
         private readonly IIndex<string, EventHandlerConfig> _eventHandlerConfig;
         private readonly IIndex<string, WebhookConfig> _webHookConfig;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IExtendedHttpClientFactory _httpClientFactory;
         private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
 
         public EventHandlerFactory(
             IBigBrother bigBrother,
             IIndex<string, EventHandlerConfig> eventHandlerConfig,
             IIndex<string, WebhookConfig> webHookConfig,
-            IHttpClientFactory httpClientFactory,
+            IExtendedHttpClientFactory httpClientFactory,
             IAuthenticationHandlerFactory authenticationHandlerFactory)
         {
             _bigBrother = bigBrother;
