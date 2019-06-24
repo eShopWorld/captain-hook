@@ -67,7 +67,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             metadata.Add("HttpStatusCode", (int)response.StatusCode);
             metadata.Add("HttpResponseContent", content);
 
-            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content));
+            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content, uri.AbsoluteUri));
 
             //call callback
             var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_eventHandlerConfig.CallbackConfig.Name);

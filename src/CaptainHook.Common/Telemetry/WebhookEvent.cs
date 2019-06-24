@@ -11,16 +11,20 @@
             this.State = state;
         }
 
-        public WebhookEvent(Guid handle, string type, string payload, string state = "success")
+        public WebhookEvent(Guid handle, string type, string payload, string uri, string state = "success")
         {
             Handle = handle;
             Payload = payload;
             Type = type;
+            State = state;
+            Uri = uri;
         }
 
         public Guid Handle { get; set; }
 
         public string Type { get; set; }
+
+        public string Uri { get; set; }
 
         public string Payload { get; set; }
 
