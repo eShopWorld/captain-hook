@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac.Features.Indexed;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
@@ -21,13 +22,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
-            IExtendedHttpClientFactory httpClientFactory,
+            IIndex<string, HttpClient> httpClients,
             EventHandlerConfig eventHandlerConfig)
-            : base(authenticationHandlerFactory, requestBuilder, bigBrother, httpClientFactory, eventHandlerConfig.WebhookConfig)
+            : base(authenticationHandlerFactory, requestBuilder, bigBrother, httpClients, eventHandlerConfig.WebhookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _eventHandlerConfig = eventHandlerConfig;
-            httpClientFactory.CreateClient();
         }
 
         public override async Task CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
@@ -52,7 +52,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent, "application/json", cancellationToken);
 
-            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, messageData.Payload, response.IsSuccessStatusCode.ToString()));
+            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, "Webhook event complete", config.Uri, response.IsSuccessStatusCode.ToString()));
 
             if (metadata == null)
             {

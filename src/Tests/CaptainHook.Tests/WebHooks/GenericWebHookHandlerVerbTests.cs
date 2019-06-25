@@ -39,15 +39,13 @@ namespace CaptainHook.Tests.WebHooks
                 .WithContentType("application/json", payload)
                 .Respond(expectedResponseCode, "application/json", expectedResponseBody);
 
-            var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
-            mockHttpClientFactory.Setup(s => s.CreateClient(It.IsAny<Uri>(), config)).Returns(
-                mockHttp.ToHttpClient());
+            var httpClients = new IndexDictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 new Mock<IAuthenticationHandlerFactory>().Object,
                 new RequestBuilder(),
                 new Mock<IBigBrother>().Object,
-                mockHttpClientFactory.Object,
+                httpClients,
                 config);
 
             await genericWebhookHandler.CallAsync(new MessageData { Payload = payload }, new Dictionary<string, object>(), _cancellationToken);
@@ -63,15 +61,13 @@ namespace CaptainHook.Tests.WebHooks
             var request = mockHttp.When(httpMethod, config.Uri)
                 .Respond(expectedResponseCode, "application/json", expectedResponseBody);
 
-            var mockHttpClientFactory = new Mock<IExtendedHttpClientFactory>();
-            mockHttpClientFactory.Setup(s => s.CreateClient(It.IsAny<Uri>(), config)).Returns(
-                mockHttp.ToHttpClient());
+            var httpClients = new IndexDictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 new Mock<IAuthenticationHandlerFactory>().Object,
                 new RequestBuilder(),
                 new Mock<IBigBrother>().Object,
-                mockHttpClientFactory.Object,
+                httpClients,
                 config);
 
             await genericWebhookHandler.CallAsync(new MessageData { Payload = payload }, new Dictionary<string, object>(), _cancellationToken);

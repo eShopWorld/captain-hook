@@ -111,20 +111,20 @@ namespace CaptainHook.EventHandlerActor
                     var result = Guid.TryParse(state.ToString(), out handle);
                     if (!result)
                     {
-                        _bigBrother.Publish(new WebhookEvent($"{state} could not be parsed to a guid so removing it." ));
+                        _bigBrother.Publish(new ActorError($"{state} could not be parsed to a guid so removing it.", this));
                         return;
                     }
                 }
                 else
                 {
-                    _bigBrother.Publish(new WebhookEvent($"Timer state was null so cannot process any message"));
+                    _bigBrother.Publish(new ActorError($"Timer state was null so cannot process any message", this));
                     return;
                 }
 
                 var messageDataConditional = await StateManager.TryGetStateAsync<MessageData>(handle.ToString());
                 if (!messageDataConditional.HasValue)
                 {
-                    _bigBrother.Publish(new WebhookEvent("message was empty"));
+                    _bigBrother.Publish(new ActorError("message from state manager was empty", this));
                     return;
                 }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac.Features.Indexed;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
@@ -18,7 +19,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class GenericWebhookHandler : IHandler
     {
         protected readonly IBigBrother BigBrother;
-        private readonly IExtendedHttpClientFactory _httpClientFactory;
+        private readonly IIndex<string, HttpClient> _httpClients;
         protected readonly IRequestBuilder RequestBuilder;
         protected readonly WebhookConfig WebhookConfig;
         private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
@@ -27,11 +28,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestBuilder requestBuilder,
             IBigBrother bigBrother,
-            IExtendedHttpClientFactory httpClientFactory,
+            IIndex<string, HttpClient> httpClients,
             WebhookConfig webhookConfig)
         {
             BigBrother = bigBrother;
-            _httpClientFactory = httpClientFactory;
+            _httpClients = httpClients;
             RequestBuilder = requestBuilder;
             WebhookConfig = webhookConfig;
             this._authenticationHandlerFactory = authenticationHandlerFactory;
@@ -85,10 +86,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="config"></param>
         /// <param name="authenticationScheme"></param>
         /// <returns></returns>
-        protected virtual async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, WebhookConfig config, AuthenticationType authenticationScheme)
+        protected async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, WebhookConfig config, AuthenticationType authenticationScheme)
         {
             var uri = new Uri(config.Uri);
-            var httpClient = _httpClientFactory.CreateClient(uri, config);
+
+            if (!_httpClients.TryGetValue(uri.Host, out var httpClient))
+            {
+                throw new ArgumentNullException(nameof(httpClient), $"HttpClient for {uri.Host} was not found");
+            }
 
             if (authenticationScheme == AuthenticationType.None)
             {

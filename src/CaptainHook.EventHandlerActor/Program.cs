@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -96,14 +97,14 @@ namespace CaptainHook.EventHandlerActor
                     builder.RegisterInstance(webhookConfig).Named<WebhookConfig>(webhookConfig.Name);
                 }
 
-                //todo use http client factory and do not manage it here
-                //creates a list of unique endpoint and the corresponding http client for each
+                //creates a list of unique endpoint and the corresponding http client for each which can be selected at runtime
                 foreach (var (key, value) in endpointList)
                 {
                     builder.RegisterInstance(value).Named<WebhookConfig>(key);
+                    var httpClient = new HttpClient { Timeout = value.Timeout };
+                    builder.RegisterInstance(httpClient).Named<HttpClient>(key).SingleInstance();
                 }
 
-                builder.RegisterType<HttpClientFactory>().As<IExtendedHttpClientFactory>().SingleInstance();
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<EventHandlerActor>();
 

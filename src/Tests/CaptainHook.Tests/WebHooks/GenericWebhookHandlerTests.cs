@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
@@ -59,15 +58,13 @@ namespace CaptainHook.Tests.WebHooks
                 .WithContentType("application/json", messageData.Payload)
                 .Respond(HttpStatusCode.OK, "application/json", string.Empty);
 
-            var httpClientFactory = new Mock<IExtendedHttpClientFactory>();
-            httpClientFactory.Setup(s => s.CreateClient(It.IsAny<Uri>(), config)).Returns(
-                mockHttp.ToHttpClient());
+            var httpClients = new IndexDictionary<string, HttpClient> {{new Uri(config.Uri).Host, mockHttp.ToHttpClient()}};
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 new Mock<IAuthenticationHandlerFactory>().Object,
                 new RequestBuilder(),
                 new Mock<IBigBrother>().Object,
-                httpClientFactory.Object,
+                httpClients,
                 config);
 
             await genericWebhookHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);

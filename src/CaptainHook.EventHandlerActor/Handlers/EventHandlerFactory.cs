@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Net.Http;
 using Autofac.Features.Indexed;
-using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
@@ -12,21 +12,21 @@ namespace CaptainHook.EventHandlerActor.Handlers
         private readonly IBigBrother _bigBrother;
         private readonly IIndex<string, EventHandlerConfig> _eventHandlerConfig;
         private readonly IIndex<string, WebhookConfig> _webHookConfig;
-        private readonly IExtendedHttpClientFactory _httpClientFactory;
         private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
+        private readonly IIndex<string, HttpClient> _httpClients;
 
         public EventHandlerFactory(
             IBigBrother bigBrother,
             IIndex<string, EventHandlerConfig> eventHandlerConfig,
             IIndex<string, WebhookConfig> webHookConfig,
-            IExtendedHttpClientFactory httpClientFactory,
-            IAuthenticationHandlerFactory authenticationHandlerFactory)
+            IAuthenticationHandlerFactory authenticationHandlerFactory, 
+            IIndex<string, HttpClient> httpClients)
         {
             _bigBrother = bigBrother;
             _eventHandlerConfig = eventHandlerConfig;
             _authenticationHandlerFactory = authenticationHandlerFactory;
+            this._httpClients = httpClients;
             _webHookConfig = webHookConfig;
-            _httpClientFactory = httpClientFactory;
         }
 
         /// <inheritdoc />
@@ -49,7 +49,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     _authenticationHandlerFactory,
                     new RequestBuilder(),
                     _bigBrother,
-                    _httpClientFactory,
+                    _httpClients,
                     eventHandlerConfig);
             }
 
@@ -57,7 +57,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 _authenticationHandlerFactory,
                 new RequestBuilder(),
                 _bigBrother,
-                _httpClientFactory,
+                _httpClients,
                 eventHandlerConfig.WebhookConfig);
         }
 
@@ -78,7 +78,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 _authenticationHandlerFactory,
                 new RequestBuilder(),
                 _bigBrother,
-                _httpClientFactory,
+                _httpClients,
                 webhookConfig);
         }
     }
