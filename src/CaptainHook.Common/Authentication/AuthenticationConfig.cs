@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CaptainHook.Common.Authentication
+﻿namespace CaptainHook.Common.Authentication
 {
     public class AuthenticationConfig
     {

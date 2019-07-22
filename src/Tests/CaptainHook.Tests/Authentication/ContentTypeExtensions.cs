@@ -1,5 +1,4 @@
-﻿using System;
-using RichardSzalay.MockHttp;
+﻿using RichardSzalay.MockHttp;
 
 namespace CaptainHook.Tests.Authentication
 {

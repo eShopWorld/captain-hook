@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
@@ -44,7 +43,6 @@ namespace CaptainHook.EventReaderActor
         private readonly object _gate = new object();
 
         private volatile bool _readingEvents;
-        private Timer _poolTimer;
         private MessageReceiver _receiver;
         private IActorReminder _wakeupReminder;
         private const string WakeUpReminderName = "Wake up";
@@ -71,30 +69,36 @@ namespace CaptainHook.EventReaderActor
             {
                 _bigBrother.Publish(new ActorActivated(this));
 
-                var inHandlers = await StateManager.TryGetStateAsync<Dictionary<Guid, string>>(nameof(_messagesInHandlers));
+                var inHandlers =
+                    await StateManager.TryGetStateAsync<Dictionary<Guid, string>>(nameof(_messagesInHandlers));
                 if (inHandlers.HasValue)
                 {
                     _messagesInHandlers = inHandlers;
                 }
                 else
                 {
-                    _messagesInHandlers = new ConditionalValue<Dictionary<Guid, string>>(true, new Dictionary<Guid, string>());
-                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value, (s, value) => value);
+                    _messagesInHandlers =
+                        new ConditionalValue<Dictionary<Guid, string>>(true, new Dictionary<Guid, string>());
+                    await StateManager.AddOrUpdateStateAsync(nameof(_messagesInHandlers), _messagesInHandlers.Value,
+                        (s, value) => value);
                 }
 
                 await SetupServiceBus();
 
                 _receiver = new MessageReceiver(
                     _settings.ServiceBusConnectionString,
-                    EntityNameHelper.FormatSubscriptionPath(TypeExtensions.GetEntityName(Id.GetStringId()), SubscriptionName),
+                    EntityNameHelper.FormatSubscriptionPath(TypeExtensions.GetEntityName(Id.GetStringId()),
+                        SubscriptionName),
                     ReceiveMode.PeekLock,
                     new RetryExponential(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(500), 3),
                     BatchSize);
 
-                _poolTimer = new Timer(ReadEvents,
+                //registers a timer for the actor to poll the queue
+                RegisterTimer(ReadEventsAsync,
                     null,
                     TimeSpan.FromMilliseconds(1000),
                     TimeSpan.FromMilliseconds(100));
+
             }
             catch (Exception e)
             {
@@ -108,9 +112,6 @@ namespace CaptainHook.EventReaderActor
         protected override Task OnDeactivateAsync()
         {
             _bigBrother.Publish(new ActorDeactivated(this));
-            UnregisterReminderAsync(_wakeupReminder);
-
-            _poolTimer?.Dispose();
             return base.OnDeactivateAsync();
         }
 
@@ -139,7 +140,7 @@ namespace CaptainHook.EventReaderActor
             await azureTopic.CreateSubscriptionIfNotExists(SubscriptionName);
         }
 
-        internal async void ReadEvents(object _)
+        internal async Task ReadEventsAsync(object _)
         {
             try
             {
@@ -206,14 +207,12 @@ namespace CaptainHook.EventReaderActor
             }
         }
 
-        public Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
+        public async Task ReceiveReminderAsync(string reminderName, byte[] state, TimeSpan dueTime, TimeSpan period)
         {
             if (reminderName.Equals(WakeUpReminderName, StringComparison.OrdinalIgnoreCase))
             {
-                ReadEvents(null);
+                await ReadEventsAsync(null);
             }
-
-            return Task.CompletedTask;
         }
     }
 }
