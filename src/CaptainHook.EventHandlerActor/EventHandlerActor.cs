@@ -101,6 +101,7 @@ namespace CaptainHook.EventHandlerActor
 
         private async Task InternalHandle(object state)
         {
+            var correlationId = Guid.NewGuid();
             var handle = Guid.NewGuid();
             try
             {
@@ -130,6 +131,7 @@ namespace CaptainHook.EventHandlerActor
 
                 var messageData = messageDataConditional.Value;
                 handle = messageData.Handle;
+                messageData.CorrelationId = correlationId.ToString();
 
                 var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type);
 

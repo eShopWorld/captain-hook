@@ -10,7 +10,6 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
-
 namespace CaptainHook.EventHandlerActor.Handlers
 {
     /// <summary>
@@ -61,16 +60,20 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
                 var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);
 
-                var httpClient = await GetHttpClient(cancellationToken, config, authenticationScheme);
+                var httpClient = await GetHttpClient(cancellationToken, config, authenticationScheme, messageData.CorrelationId);
 
-                void TelemetryEvent(string msg)
-                {
-                    BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, payload, msg));
-                }
+                var handler = new HttpFailureLogger(BigBrother, messageData, uri.AbsoluteUri, httpVerb);
+                var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, handler, token: cancellationToken);
 
-                var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent, token: cancellationToken);
-                
-                BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}", uri.AbsoluteUri));
+                BigBrother.Publish(
+                    new WebhookEvent(
+                        messageData.Handle, 
+                        messageData.Type, 
+                        $"Response status code {response.StatusCode}", 
+                        uri.AbsoluteUri, 
+                        httpVerb, 
+                        response.StatusCode, 
+                        messageData.CorrelationId));
             }
             catch (Exception e)
             {
@@ -85,8 +88,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="cancellationToken"></param>
         /// <param name="config"></param>
         /// <param name="authenticationScheme"></param>
+        /// <param name="correlationId"></param>
         /// <returns></returns>
-        protected async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, WebhookConfig config, AuthenticationType authenticationScheme)
+        protected async Task<HttpClient> GetHttpClient(CancellationToken cancellationToken, WebhookConfig config, AuthenticationType authenticationScheme, string correlationId)
         {
             var uri = new Uri(config.Uri);
 
@@ -102,6 +106,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             var acquireTokenHandler = await _authenticationHandlerFactory.GetAsync(uri, cancellationToken);
             await acquireTokenHandler.GetTokenAsync(httpClient, cancellationToken);
+
+            httpClient.DefaultRequestHeaders.Add("X-Correlation-ID", correlationId);
 
             return httpClient;
         }
