@@ -21,7 +21,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="httpVerb"></param>
         /// <param name="uri"></param>
         /// <param name="payload"></param>
-        /// <param name="telemetryRequest"></param>
+        /// <param name="logger"></param>
         /// <param name="contentType"></param>
         /// <param name="token"></param>
         /// <returns></returns>
@@ -30,23 +30,23 @@ namespace CaptainHook.EventHandlerActor.Handlers
             HttpVerb httpVerb,
             Uri uri,
             string payload,
-            Action<string> telemetryRequest,
+            HttpFailureLogger logger,
             string contentType = "application/json",
             CancellationToken token = default)
         {
             switch (httpVerb)
             {
                 case HttpVerb.Get:
-                    return await client.GetAsJsonReliably(uri, telemetryRequest, contentType, token);
+                    return await client.GetAsJsonReliably(uri, logger, contentType, token);
 
                 case HttpVerb.Put:
-                    return await client.PutAsJsonReliably(uri, payload, telemetryRequest, contentType, token);
+                    return await client.PutAsJsonReliably(uri, payload, logger, contentType, token);
 
                 case HttpVerb.Post:
-                    return await client.PostAsJsonReliably(uri, payload, telemetryRequest, contentType, token);
+                    return await client.PostAsJsonReliably(uri, payload, logger, contentType, token);
 
                 case HttpVerb.Patch:
-                    return await client.PatchAsJsonReliably(uri, payload, telemetryRequest, contentType, token);
+                    return await client.PatchAsJsonReliably(uri, payload, logger, contentType, token);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(httpVerb), httpVerb, "no valid http verb found");
@@ -59,7 +59,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="client"></param>
         /// <param name="uri"></param>
         /// <param name="payload"></param>
-        /// <param name="telemetryRequest"></param>
+        /// <param name="logger"></param>
         /// <param name="contentType"></param>
         /// <param name="token"></param>
         /// <returns></returns>
@@ -67,11 +67,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
         this HttpClient client,
         Uri uri,
         string payload,
-        Action<string> telemetryRequest,
+        HttpFailureLogger logger,
         string contentType = "application/json",
         CancellationToken token = default)
         {
-            var result = await RetryRequest(() => client.PostAsync(uri, new StringContent(payload, Encoding.UTF8, contentType), token), telemetryRequest);
+            var result = await RetryRequest(() => client.PostAsync(uri, new StringContent(payload, Encoding.UTF8, contentType), token), logger);
 
             return result;
         }
@@ -82,7 +82,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="client"></param>
         /// <param name="uri"></param>
         /// <param name="payload"></param>
-        /// <param name="telemetryRequest"></param>
+        /// <param name="logger"></param>
         /// <param name="contentType"></param>
         /// <param name="token"></param>
         /// <returns></returns>
@@ -90,11 +90,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             this HttpClient client,
             Uri uri,
             string payload,
-            Action<string> telemetryRequest,
+            HttpFailureLogger logger,
             string contentType = "application/json",
             CancellationToken token = default)
         {
-            var result = await RetryRequest(() => client.PutAsync(uri, new StringContent(payload, Encoding.UTF8, contentType), token), telemetryRequest);
+            var result = await RetryRequest(() => client.PutAsync(uri, new StringContent(payload, Encoding.UTF8, contentType), token), logger);
 
             return result;
         }
@@ -105,7 +105,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="client"></param>
         /// <param name="uri"></param>
         /// <param name="payload"></param>
-        /// <param name="telemetryRequest"></param>
+        /// <param name="logger"></param>
         /// <param name="contentType"></param>
         /// <param name="token"></param>
         /// <returns></returns>
@@ -113,11 +113,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             this HttpClient client,
             Uri uri,
             string payload,
-            Action<string> telemetryRequest,
+            HttpFailureLogger logger,
             string contentType = "application/json",
             CancellationToken token = default)
         {
-            var result = await RetryRequest(() => client.PatchAsync(uri, new StringContent(payload, Encoding.UTF8, contentType), token), telemetryRequest);
+            var result = await RetryRequest(() => client.PatchAsync(uri, new StringContent(payload, Encoding.UTF8, contentType), token), logger);
 
             return result;
         }
@@ -127,18 +127,18 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="client"></param>
         /// <param name="uri"></param>
-        /// <param name="telemetryRequest"></param>
+        /// <param name="logger"></param>
         /// <param name="contentType"></param>
         /// <param name="token"></param>
         /// <returns></returns>
         public static async Task<HttpResponseMessage> GetAsJsonReliably(
-            this HttpClient client,
-            Uri uri,
-            Action<string> telemetryRequest,
-            string contentType = "application/json",
-            CancellationToken token = default)
+                this HttpClient client,
+                Uri uri,
+                HttpFailureLogger logger,
+                string contentType = "application/json",
+                CancellationToken token = default)
         {
-            var result = await RetryRequest(() => client.GetAsync(uri, token), telemetryRequest);
+            var result = await RetryRequest(() => client.GetAsync(uri, token), logger);
 
             return result;
         }
@@ -147,16 +147,18 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// Executes the supplied func with reties and reports on it if something goes wrong ideally to BigBrother
         /// </summary>
         /// <param name="makeTheCall"></param>
-        /// <param name="report"></param>
+        /// <param name="logger"></param>
         /// <returns></returns>
         private static async Task<HttpResponseMessage> RetryRequest(
             Func<Task<HttpResponseMessage>> makeTheCall,
-            Action<string> report)
+            HttpFailureLogger logger)
         {
+            //todo the retry statuscodes need to be customisable from the webhook config api
             var response = await Policy.HandleResult<HttpResponseMessage>(
                     message =>
                         message.StatusCode == HttpStatusCode.ServiceUnavailable ||
                         message.StatusCode == HttpStatusCode.TooManyRequests)
+
                 .WaitAndRetryAsync(new[]
                 {
                     //todo config this + jitter
@@ -165,7 +167,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 }, (result, timeSpan, retryCount, context) =>
                 {
-                    report($"retry count {retryCount} of {context.Count}");
+                    logger.Publish($"retry count {retryCount} of {context.Count}", result.Result.StatusCode, context.CorrelationId.ToString());
 
                 }).ExecuteAsync(makeTheCall.Invoke);
 

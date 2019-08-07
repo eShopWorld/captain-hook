@@ -43,16 +43,22 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
             var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);
 
-            var httpClient = await GetHttpClient(cancellationToken, config, authenticationScheme);
+            var httpClient = await GetHttpClient(cancellationToken, config, authenticationScheme, messageData.CorrelationId);
 
-            void TelemetryEvent(string msg)
-            {
-                BigBrother.Publish(new HttpClientFailure(messageData.Handle, messageData.Type, messageData.Payload, msg));
-            }
+            var handler = new HttpFailureLogger(BigBrother, messageData, uri.AbsoluteUri, httpVerb);
 
-            var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, TelemetryEvent, "application/json", cancellationToken);
+            var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, handler, "application/json", cancellationToken);
 
-            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, $"Response status code {response.StatusCode}", uri.AbsoluteUri));
+            BigBrother.Publish(
+                new WebhookEvent(
+                    messageData.Handle, 
+                    messageData.Type, 
+                    $"Response status code {response.StatusCode}", 
+                    uri.AbsoluteUri, 
+                    httpVerb, 
+                    response.StatusCode,
+                    messageData.CorrelationId
+                ));
 
             if (metadata == null)
             {
@@ -66,8 +72,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var content = await response.Content.ReadAsStringAsync();
             metadata.Add("HttpStatusCode", (int)response.StatusCode);
             metadata.Add("HttpResponseContent", content);
-
-            BigBrother.Publish(new WebhookEvent(messageData.Handle, messageData.Type, content, uri.AbsoluteUri));
 
             //call callback
             var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_eventHandlerConfig.CallbackConfig.Name);
