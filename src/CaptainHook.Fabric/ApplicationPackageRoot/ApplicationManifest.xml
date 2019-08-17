@@ -7,9 +7,6 @@
     <Parameter Name="MessagingDirectorActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="MessagingDirectorActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="MessagingDirectorActorService_TargetReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="EndpointDispatcherActorService_PartitionCount" DefaultValue="10" />
-    <Parameter Name="EndpointDispatcherActorService_MinReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="EndpointDispatcherActorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="EventHandlerActorService_PartitionCount" DefaultValue="10" />
     <Parameter Name="EventHandlerActorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="EventHandlerActorService_TargetReplicaSetSize" DefaultValue="3" />
@@ -25,13 +22,6 @@
        ServiceManifest.xml file. -->
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.PoolManagerActorPkg" ServiceManifestVersion="1.0.0" />
-    <EnvironmentOverrides CodePackageRef="Code">
-      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
-      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
-    </EnvironmentOverrides>
-  </ServiceManifestImport>
-  <ServiceManifestImport>
-    <ServiceManifestRef ServiceManifestName="CaptainHook.EndpointDispatcherActorPkg" ServiceManifestVersion="1.0.0" />
     <EnvironmentOverrides CodePackageRef="Code">
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
@@ -55,11 +45,6 @@
     <ServiceManifestRef ServiceManifestName="CaptainHook.MessagingDirectorPkg" ServiceManifestVersion="1.0.0" />
   </ServiceManifestImport>
   <DefaultServices>
-    <Service Name="EndpointDispatcherActorService" GeneratedIdRef="d44d5f9a-5d0d-47f1-a260-0be33fe1c254|Persisted">
-      <StatefulService ServiceTypeName="EndpointDispatcherActorServiceType" TargetReplicaSetSize="[EndpointDispatcherActorService_TargetReplicaSetSize]" MinReplicaSetSize="[EndpointDispatcherActorService_MinReplicaSetSize]">
-        <UniformInt64Partition PartitionCount="[EndpointDispatcherActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
-      </StatefulService>
-    </Service>
     <Service Name="EventHandlerActorService" GeneratedIdRef="5f534f03-abfa-4f36-9fca-c9e0f131fc7a|Persisted">
       <StatefulService ServiceTypeName="EventHandlerActorServiceType" TargetReplicaSetSize="[EventHandlerActorService_TargetReplicaSetSize]" MinReplicaSetSize="[EventHandlerActorService_MinReplicaSetSize]">
         <UniformInt64Partition PartitionCount="[EventHandlerActorService_PartitionCount]" LowKey="-9223372036854775808" HighKey="9223372036854775807" />
