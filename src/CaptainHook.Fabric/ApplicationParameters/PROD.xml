@@ -5,7 +5,6 @@
     <Parameter Name="AspNetCore_Environment" Value="PROD" />
 
     <Parameter Name="MessagingDirectorActorService_PartitionCount" Value="1" />
-    <Parameter Name="EndpointDispatcherActorService_PartitionCount" Value="1" />
     <Parameter Name="EventHandlerActorService_PartitionCount" Value="1" />
     <Parameter Name="EventReaderActorService_PartitionCount" Value="1" />
   </Parameters>
