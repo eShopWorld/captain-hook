@@ -103,6 +103,7 @@ namespace CaptainHook.EventHandlerActor
         {
             var correlationId = Guid.NewGuid();
             var handle = Guid.NewGuid();
+            var messageDelivered = true;
             try
             {
                 UnregisterTimer(_handleTimer);
@@ -134,18 +135,17 @@ namespace CaptainHook.EventHandlerActor
                 messageData.CorrelationId = correlationId.ToString();
 
                 var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type);
-
                 await handler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationTokenSource.Token);
             }
             catch (Exception e)
             {
-                //don't want msg state managed by fabric just yet, let failures be backed by the service bus subscriptions
+                messageDelivered = false;
                 BigBrother.Write(e.ToExceptionEvent());
             }
             finally
             {
                 await StateManager.RemoveStateAsync(handle.ToString());
-                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(handle);
+                await ActorProxy.Create<IPoolManagerActor>(new ActorId(0)).CompleteWork(handle, messageDelivered);
             }
         }
     }

@@ -26,7 +26,7 @@ namespace CaptainHook.Common
 
             if (value == null)
             {
-                throw new ArgumentNullException(nameof(jpath), $"was not found in the model payload with a value of {jpath}. Payload {payload}");
+                throw new ArgumentNullException(nameof(jpath), $"was not found in the model payload with a value of {jpath}. ResponsePayload {payload}");
             }
 
             return value.Type == JTokenType.Object ? value.ToString(Formatting.None) : value.Value<string>();
@@ -76,7 +76,7 @@ namespace CaptainHook.Common
                 return new JValue(payloadAsInt);
             }
 
-            throw new ArgumentException($"Payload could not be parsed as string or int {payload}");
+            throw new ArgumentException($"ResponsePayload could not be parsed as string or int {payload}");
         }
     }
 }

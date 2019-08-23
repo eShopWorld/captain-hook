@@ -18,5 +18,11 @@ namespace CaptainHook.Common.Exceptions
         public string Error { get; set; }
 
         public string HttpErrorReason { get; set; }
+
+        public string Scopes { get; set; }
+
+        public string TokenType { get; set; }
+
+        public string ResponsePayload { get; set; }
     }
 }

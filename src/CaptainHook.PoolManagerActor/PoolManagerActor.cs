@@ -146,10 +146,11 @@ namespace CaptainHook.PoolManagerActor
         /// 
         /// </summary>
         /// <param name="handle"></param>
+        /// <param name="messageDelivered"></param>
         /// <returns></returns>
-        public async Task CompleteWork(Guid handle)
+        public async Task CompleteWork(Guid handle, bool messageDelivered = true)
         {
-            await ReleaseHandle(handle, true);
+            await ReleaseHandle(handle, messageDelivered);
         }
 
         /// <summary>
