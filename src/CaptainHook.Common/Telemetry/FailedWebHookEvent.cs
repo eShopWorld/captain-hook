@@ -11,6 +11,7 @@ namespace CaptainHook.Common.Telemetry
         }
 
         public FailedWebHookEvent(
+            string requestHeaders,
             string requestBody, 
             string responseBody, 
             Guid handle, 
@@ -31,6 +32,8 @@ namespace CaptainHook.Common.Telemetry
             StatusCode = statusCode;
             CorrelationId = correlationId;
         }
+
+        public string RequestHeaders { get; set; }
 
         public string RequestBody { get; set; }
 

@@ -65,7 +65,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var handler = new HttpFailureLogger(BigBrother, messageData, uri.AbsoluteUri, httpVerb);
                 var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, handler, token: cancellationToken);
 
-                LogEvent(messageData, response, uri, httpVerb);
+                await LogEventAsync(httpClient.DefaultRequestHeaders.ToString(), messageData, response, uri, httpVerb);
 
             }
             catch (Exception e)
@@ -75,7 +75,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
         }
 
-        private async Task LogEvent(MessageData messageData, HttpResponseMessage response, Uri uri, HttpVerb httpVerb)
+        private async Task LogEventAsync(string headers, 
+            MessageData messageData,
+            HttpResponseMessage response, 
+            Uri uri, 
+            HttpVerb httpVerb)
         {
             BigBrother.Publish(new WebhookEvent(
                 messageData.Handle,
@@ -92,6 +96,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             BigBrother.Publish(new FailedWebHookEvent(
+                headers,
                 messageData.Payload,
                 await response.Content.ReadAsStringAsync(),
                 messageData.Handle,
