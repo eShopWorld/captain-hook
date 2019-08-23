@@ -38,7 +38,7 @@ namespace CaptainHook.Tests.Actors
             //create state
             var handle = await actor.DoWork(string.Empty, "test.type");
 
-            await actor.CompleteWork(handle);
+            await actor.CompleteWork(handle, true);
 
             //get state
             var actual = await stateManager.GetStateAsync<HashSet<int>>("_free");
