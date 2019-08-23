@@ -75,10 +75,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
         }
 
-        private async Task LogEventAsync(string headers, 
+        private async Task LogEventAsync(string headers,
             MessageData messageData,
-            HttpResponseMessage response, 
-            Uri uri, 
+            HttpResponseMessage response,
+            Uri uri,
             HttpVerb httpVerb)
         {
             BigBrother.Publish(new WebhookEvent(
@@ -96,9 +96,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             BigBrother.Publish(new FailedWebHookEvent(
-                headers,
-                messageData.Payload,
-                await response.Content.ReadAsStringAsync(),
+                headers ?? string.Empty,
+                messageData.Payload ?? string.Empty,
+                await GetPayloadAsync(response),
                 messageData.Handle,
                 messageData.Type,
                 $"Response status code {response.StatusCode}",
@@ -106,6 +106,16 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 httpVerb,
                 response.StatusCode,
                 messageData.CorrelationId));
+        }
+
+        private static async Task<string> GetPayloadAsync(HttpResponseMessage response)
+        {
+            if (response?.Content == null)
+            {
+                return string.Empty;
+            }
+            var result = await response.Content.ReadAsStringAsync();
+            return result;
         }
 
         /// <summary>
