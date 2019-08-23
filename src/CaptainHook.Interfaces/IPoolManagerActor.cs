@@ -12,6 +12,6 @@
     {
         Task<Guid> DoWork(string payload, string type);
 
-        Task CompleteWork(Guid handle, bool messageDelivered);
+        Task CompleteWork(Guid handle, bool messageDelivered);  
     }
 }

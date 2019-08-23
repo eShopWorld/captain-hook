@@ -65,21 +65,42 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var handler = new HttpFailureLogger(BigBrother, messageData, uri.AbsoluteUri, httpVerb);
                 var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, handler, token: cancellationToken);
 
-                BigBrother.Publish(
-                    new WebhookEvent(
-                        messageData.Handle, 
-                        messageData.Type, 
-                        $"Response status code {response.StatusCode}", 
-                        uri.AbsoluteUri, 
-                        httpVerb, 
-                        response.StatusCode, 
-                        messageData.CorrelationId));
+                LogEvent(messageData, response, uri, httpVerb);
+
             }
             catch (Exception e)
             {
                 BigBrother.Publish(e.ToExceptionEvent());
                 throw;
             }
+        }
+
+        private async Task LogEvent(MessageData messageData, HttpResponseMessage response, Uri uri, HttpVerb httpVerb)
+        {
+            BigBrother.Publish(new WebhookEvent(
+                messageData.Handle,
+                messageData.Type,
+                $"Response status code {response.StatusCode}",
+                uri.AbsoluteUri,
+                httpVerb,
+                response.StatusCode,
+                messageData.CorrelationId));
+
+            if (response.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            BigBrother.Publish(new FailedWebHookEvent(
+                messageData.Payload,
+                await response.Content.ReadAsStringAsync(),
+                messageData.Handle,
+                messageData.Type,
+                $"Response status code {response.StatusCode}",
+                uri.AbsoluteUri,
+                httpVerb,
+                response.StatusCode,
+                messageData.CorrelationId));
         }
 
         /// <summary>
