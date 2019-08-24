@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Autofac.Features.Indexed;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Telemetry;
-using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -19,12 +15,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public WebhookResponseHandler(
             IEventHandlerFactory eventHandlerFactory,
-            IAuthenticationHandlerFactory authenticationHandlerFactory,
+            IHttpClientBuilder httpClientBuilder,
             IRequestBuilder requestBuilder,
+            IRequestLogger requestLogger,
             IBigBrother bigBrother,
-            IIndex<string, HttpClient> httpClients,
             EventHandlerConfig eventHandlerConfig)
-            : base(authenticationHandlerFactory, requestBuilder, bigBrother, httpClients, eventHandlerConfig.WebhookConfig)
+            : base(httpClientBuilder, requestBuilder, requestLogger, bigBrother, eventHandlerConfig.WebhookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _eventHandlerConfig = eventHandlerConfig;
@@ -43,22 +39,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
             var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);
 
-            var httpClient = await GetHttpClient(cancellationToken, config, authenticationScheme, messageData.CorrelationId);
+            var httpClient = await HttpClientBuilder.BuildAsync(config, authenticationScheme, messageData.CorrelationId, cancellationToken);
 
             var handler = new HttpFailureLogger(BigBrother, messageData, uri.AbsoluteUri, httpVerb);
-
             var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, handler, "application/json", cancellationToken);
 
-            BigBrother.Publish(
-                new WebhookEvent(
-                    messageData.Handle, 
-                    messageData.Type, 
-                    $"Response status code {response.StatusCode}", 
-                    uri.AbsoluteUri, 
-                    httpVerb, 
-                    response.StatusCode,
-                    messageData.CorrelationId
-                ));
+            await RequestLogger.LogAsync(httpClient, response, messageData, uri, httpVerb);
 
             if (metadata == null)
             {

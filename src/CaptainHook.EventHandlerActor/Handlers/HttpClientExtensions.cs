@@ -153,7 +153,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             Func<Task<HttpResponseMessage>> makeTheCall,
             HttpFailureLogger logger)
         {
-            //todo the retry statuscodes need to be customisable from the webhook config api
+            //todo the retry status codes need to be customisable from the webhook config api
             var response = await Policy.HandleResult<HttpResponseMessage>(
                     message =>
                         message.StatusCode == HttpStatusCode.ServiceUnavailable ||

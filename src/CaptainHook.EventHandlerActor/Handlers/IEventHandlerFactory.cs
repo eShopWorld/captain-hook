@@ -1,5 +1,8 @@
 ﻿namespace CaptainHook.EventHandlerActor.Handlers
 {
+    /// <summary>
+    /// Manages the creation or reuse of specific webhook handler
+    /// </summary>
     public interface IEventHandlerFactory
     {
         /// <summary>

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Net.Http;
 using Autofac.Features.Indexed;
 using CaptainHook.Common.Configuration;
-using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -12,20 +10,23 @@ namespace CaptainHook.EventHandlerActor.Handlers
         private readonly IBigBrother _bigBrother;
         private readonly IIndex<string, EventHandlerConfig> _eventHandlerConfig;
         private readonly IIndex<string, WebhookConfig> _webHookConfig;
-        private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
-        private readonly IIndex<string, HttpClient> _httpClients;
+        private readonly IHttpClientBuilder _httpClientBuilder;
+        private readonly IRequestLogger _requestLogger;
+        private readonly IRequestBuilder _requestBuilder;
 
         public EventHandlerFactory(
             IBigBrother bigBrother,
             IIndex<string, EventHandlerConfig> eventHandlerConfig,
             IIndex<string, WebhookConfig> webHookConfig,
-            IAuthenticationHandlerFactory authenticationHandlerFactory, 
-            IIndex<string, HttpClient> httpClients)
+            IHttpClientBuilder httpClientBuilder, 
+            IRequestLogger requestLogger, 
+            IRequestBuilder requestBuilder)
         {
             _bigBrother = bigBrother;
             _eventHandlerConfig = eventHandlerConfig;
-            _authenticationHandlerFactory = authenticationHandlerFactory;
-            this._httpClients = httpClients;
+            _httpClientBuilder = httpClientBuilder;
+            _requestLogger = requestLogger;
+            _requestBuilder = requestBuilder;
             _webHookConfig = webHookConfig;
         }
 
@@ -46,19 +47,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 return new WebhookResponseHandler(
                     this,
-                    _authenticationHandlerFactory,
-                    new RequestBuilder(),
+                    _httpClientBuilder,
+                    _requestBuilder,
+                    _requestLogger,
                     _bigBrother,
-                    _httpClients,
                     eventHandlerConfig);
             }
 
-            return new GenericWebhookHandler(
-                _authenticationHandlerFactory,
-                new RequestBuilder(),
-                _bigBrother,
-                _httpClients,
-                eventHandlerConfig.WebhookConfig);
+            return CreateWebhookHandler(eventHandlerConfig.WebhookConfig.Name);
         }
 
         /// <summary>
@@ -75,10 +71,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             return new GenericWebhookHandler(
-                _authenticationHandlerFactory,
-                new RequestBuilder(),
-                _bigBrother,
-                _httpClients,
+                _httpClientBuilder,
+                _requestBuilder,
+                _requestLogger,
+                _bigBrother, 
                 webhookConfig);
         }
     }

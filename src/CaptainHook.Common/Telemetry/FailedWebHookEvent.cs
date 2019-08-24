@@ -12,6 +12,7 @@ namespace CaptainHook.Common.Telemetry
 
         public FailedWebHookEvent(
             string requestHeaders,
+            string responseHeaders,
             string requestBody, 
             string responseBody, 
             Guid handle, 
@@ -34,6 +35,8 @@ namespace CaptainHook.Common.Telemetry
         }
 
         public string RequestHeaders { get; set; }
+
+        public string ResponseHeaders { get; set; }
 
         public string RequestBody { get; set; }
 
