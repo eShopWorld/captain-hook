@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Autofac.Features.Indexed;
 
-namespace CaptainHook.Tests.Authentication
+namespace CaptainHook.Tests.Web.Authentication
 {
     /// <summary>
     /// Rather than mocking this just providing an implementation that implements the same interface as IIndex<TK, TV>

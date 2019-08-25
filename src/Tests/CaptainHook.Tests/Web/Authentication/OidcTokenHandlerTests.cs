@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
 using Xunit;
 
-namespace CaptainHook.Tests.Authentication
+namespace CaptainHook.Tests.Web.Authentication
 {
     public class OidcTokenHandlerTests
     {

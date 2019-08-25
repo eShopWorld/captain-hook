@@ -9,7 +9,7 @@ using Eshopworld.Tests.Core;
 using Moq;
 using Xunit;
 
-namespace CaptainHook.Tests.Authentication
+namespace CaptainHook.Tests.Web.Authentication
 {
     public class AuthenticationFactoryTests
     {

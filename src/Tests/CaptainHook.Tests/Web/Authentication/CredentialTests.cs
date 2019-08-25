@@ -5,7 +5,7 @@ using Eshopworld.Tests.Core;
 using IdentityModel.Client;
 using Xunit;
 
-namespace CaptainHook.Tests.Authentication
+namespace CaptainHook.Tests.Web.Authentication
 {
     public class CredentialTests
     {
