@@ -1,8 +1,19 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
+using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.EventHandlerActor.Handlers;
+using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.Tests.Web.Authentication;
+using Eshopworld.Core;
+using Eshopworld.Tests.Core;
+using Moq;
+using RichardSzalay.MockHttp;
+using Xunit;
 
 namespace CaptainHook.Tests.Web.WebHooks
 {
@@ -18,52 +29,62 @@ namespace CaptainHook.Tests.Web.WebHooks
             _cancellationToken = new CancellationToken();
         }
 
+        [IsLayer0]
+        [Theory]
+        [MemberData(nameof(CreationData))]
+        public async Task ChecksHttpCreationVerbs(WebhookConfig config, HttpMethod httpMethod, string payload, HttpStatusCode expectedResponseCode, string expectedResponseBody)
+        {
+            var mockHttp = new MockHttpMessageHandler();
+            var request = mockHttp.When(httpMethod, config.Uri)
+                .WithContentType("application/json", payload)
+                .Respond(expectedResponseCode, "application/json", expectedResponseBody);
 
-        //todo update test
-        //[IsLayer0]
-        //[Theory]
-        //[MemberData(nameof(CreationData))]
-        //public async Task ChecksHttpCreationVerbs(WebhookConfig config, HttpMethod httpMethod, string payload, HttpStatusCode expectedResponseCode, string expectedResponseBody)
-        //{
-        //    var mockHttp = new MockHttpMessageHandler();
-        //    var request = mockHttp.When(httpMethod, config.Uri)
-        //        .WithContentType("application/json", payload)
-        //        .Respond(expectedResponseCode, "application/json", expectedResponseBody);
+            var mockBigBrother = new Mock<IBigBrother>();
+            var httpClients = new IndexDictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
-        //    var httpClients = new IndexDictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
+            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
+            var httpClientBuilder = new HttpClientBuilder(mockAuthHandlerFactory.Object, httpClients);
+            var requestBuilder = new RequestBuilder();
+            var requestLogger = new RequestLogger(mockBigBrother.Object);
 
-        //    var genericWebhookHandler = new GenericWebhookHandler(
-        //        new Mock<IAuthenticationHandlerFactory>().Object,
-        //        new RequestBuilder(),
-        //        new Mock<IBigBrother>().Object,
-        //        httpClients,
-        //        config);
+            var genericWebhookHandler = new GenericWebhookHandler(
+                httpClientBuilder,
+                requestBuilder,
+                requestLogger, 
+                mockBigBrother.Object,
+                config);
 
-        //    await genericWebhookHandler.CallAsync(new MessageData { Payload = payload }, new Dictionary<string, object>(), _cancellationToken);
-        //    Assert.Equal(1, mockHttp.GetMatchCount(request));
-        //}
+            await genericWebhookHandler.CallAsync(new MessageData { Payload = payload }, new Dictionary<string, object>(), _cancellationToken);
+            Assert.Equal(1, mockHttp.GetMatchCount(request));
+        }
 
-        //[IsLayer0]
-        //[Theory]
-        //[MemberData(nameof(GetData))]
-        //public async Task ChecksHttpGetVerb(WebhookConfig config, HttpMethod httpMethod, string payload, HttpStatusCode expectedResponseCode, string expectedResponseBody)
-        //{
-        //    var mockHttp = new MockHttpMessageHandler();
-        //    var request = mockHttp.When(httpMethod, config.Uri)
-        //        .Respond(expectedResponseCode, "application/json", expectedResponseBody);
+        [IsLayer0]
+        [Theory]
+        [MemberData(nameof(GetData))]
+        public async Task ChecksHttpGetVerb(WebhookConfig config, HttpMethod httpMethod, string payload, HttpStatusCode expectedResponseCode, string expectedResponseBody)
+        {
+            var mockHttp = new MockHttpMessageHandler();
+            var request = mockHttp.When(httpMethod, config.Uri)
+                .Respond(expectedResponseCode, "application/json", expectedResponseBody);
 
-        //    var httpClients = new IndexDictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
+            var mockBigBrother = new Mock<IBigBrother>();
+            var httpClients = new IndexDictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
-        //    var genericWebhookHandler = new GenericWebhookHandler(
-        //        new Mock<IAuthenticationHandlerFactory>().Object,
-        //        new RequestBuilder(),
-        //        new Mock<IBigBrother>().Object,
-        //        httpClients,
-        //        config);
+            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
+            var httpClientBuilder = new HttpClientBuilder(mockAuthHandlerFactory.Object, httpClients);
+            var requestBuilder = new RequestBuilder();
+            var requestLogger = new RequestLogger(mockBigBrother.Object);
 
-        //    await genericWebhookHandler.CallAsync(new MessageData { Payload = payload }, new Dictionary<string, object>(), _cancellationToken);
-        //    Assert.Equal(1, mockHttp.GetMatchCount(request));
-        //}
+            var genericWebhookHandler = new GenericWebhookHandler(
+                httpClientBuilder,
+                requestBuilder,
+                requestLogger,
+                mockBigBrother.Object,
+                config);
+
+            await genericWebhookHandler.CallAsync(new MessageData { Payload = payload }, new Dictionary<string, object>(), _cancellationToken);
+            Assert.Equal(1, mockHttp.GetMatchCount(request));
+        }
 
         /// <summary>
         /// CreationData for the theory above

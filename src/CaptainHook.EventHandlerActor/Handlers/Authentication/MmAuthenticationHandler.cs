@@ -38,7 +38,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 throw new ArgumentNullException(nameof(OidcAuthenticationConfig.ClientSecret));
             }
 
-            //todo get the auth handler
+            //todo inject mediaType as config
             client.DefaultRequestHeaders.TryAddWithoutValidation("client_id", OidcAuthenticationConfig.ClientId);
             client.DefaultRequestHeaders.TryAddWithoutValidation("client_secret", OidcAuthenticationConfig.ClientSecret);
 

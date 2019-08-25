@@ -1,4 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
+using System.Threading.Tasks;
+using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Configuration;
+using CaptainHook.EventHandlerActor.Handlers;
+using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.Tests.Web.Authentication;
+using Eshopworld.Core;
+using Eshopworld.Tests.Core;
+using Moq;
+using RichardSzalay.MockHttp;
+using Xunit;
 
 namespace CaptainHook.Tests.Web.WebHooks
 {
@@ -11,51 +26,57 @@ namespace CaptainHook.Tests.Web.WebHooks
             _cancellationToken = new CancellationToken();
         }
 
-        //todo update test
-        //[IsLayer0]
-        //[Fact]
-        //public async Task ExecuteHappyPath()
-        //{
-        //    var (messageData, metaData) = EventHandlerTestHelper.CreateMessageDataPayload();
+        [IsLayer0]
+        [Fact]
+        public async Task ExecuteHappyPath()
+        {
+            var (messageData, metaData) = EventHandlerTestHelper.CreateMessageDataPayload();
 
-        //    var config = new WebhookConfig
-        //    {
-        //        Uri = "http://localhost/webhook",
-        //        HttpVerb = HttpVerb.Put,
-        //        AuthenticationConfig = new AuthenticationConfig(),
-        //        WebhookRequestRules = new List<WebhookRequestRule>
-        //        {
-        //           new WebhookRequestRule
-        //           {
-        //               Source = new ParserLocation
-        //               {
-        //                   Path = "OrderCode"
-        //               },
-        //               Destination = new ParserLocation
-        //               {
-        //                   Location = Location.Uri
-        //               }
-        //           }
-        //        }
-        //    };
+            var config = new WebhookConfig
+            {
+                Uri = "http://localhost/webhook",
+                HttpVerb = HttpVerb.Put,
+                AuthenticationConfig = new AuthenticationConfig(),
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                   new WebhookRequestRule
+                   {
+                       Source = new ParserLocation
+                       {
+                           Path = "OrderCode"
+                       },
+                       Destination = new ParserLocation
+                       {
+                           Location = Location.Uri
+                       }
+                   }
+                }
+            };
 
-        //    var mockHttp = new MockHttpMessageHandler();
-        //    var webhookRequest = mockHttp.When(HttpMethod.Put, $"{config.Uri}/{metaData["OrderCode"]}")
-        //        .WithContentType("application/json", messageData.Payload)
-        //        .Respond(HttpStatusCode.OK, "application/json", string.Empty);
+            var mockHttp = new MockHttpMessageHandler();
+            var webhookRequest = mockHttp.When(HttpMethod.Put, $"{config.Uri}/{metaData["OrderCode"]}")
+                .WithContentType("application/json", messageData.Payload)
+                .Respond(HttpStatusCode.OK, "application/json", string.Empty);
 
-        //    var httpClients = new IndexDictionary<string, HttpClient> {{new Uri(config.Uri).Host, mockHttp.ToHttpClient()}};
+            var mockBigBrother = new Mock<IBigBrother>();
+            var httpClients = new IndexDictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
-        //    var genericWebhookHandler = new GenericWebhookHandler(
-        //        new Mock<IAuthenticationHandlerFactory>().Object,
-        //        new RequestBuilder(),
-        //        new Mock<IBigBrother>().Object,
-        //        httpClients,
-        //        config);
+            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
+            var httpClientBuilder = new HttpClientBuilder(mockAuthHandlerFactory.Object, httpClients);
+            var requestBuilder = new RequestBuilder();
+            var requestLogger = new RequestLogger(mockBigBrother.Object);
 
-        //    await genericWebhookHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
+            var genericWebhookHandler = new GenericWebhookHandler(
+                httpClientBuilder,
+                requestBuilder,
+                requestLogger,
+                mockBigBrother.Object,
+                config);
 
-        //    Assert.Equal(1, mockHttp.GetMatchCount(webhookRequest));
-        //}
+
+            await genericWebhookHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
+
+            Assert.Equal(1, mockHttp.GetMatchCount(webhookRequest));
+        }
     }
 }
