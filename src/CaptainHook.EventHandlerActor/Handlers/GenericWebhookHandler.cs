@@ -50,6 +50,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     throw new Exception("injected wrong implementation");
                 }
 
+                //todo refactor into a single call and a dto
                 var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
                 var httpVerb = RequestBuilder.SelectHttpVerb(WebhookConfig, messageData.Payload);
                 var payload = RequestBuilder.BuildPayload(this.WebhookConfig, messageData.Payload, metadata);
@@ -58,7 +59,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 var httpClient = await HttpClientBuilder.BuildAsync(config, authenticationScheme, messageData.CorrelationId, cancellationToken);
 
-                //don't want to inject bb into every class for the sake of it, passing it around here
                 var handler = new HttpFailureLogger(BigBrother, messageData, uri.AbsoluteUri, httpVerb);
                 var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, handler, token: cancellationToken);
 
