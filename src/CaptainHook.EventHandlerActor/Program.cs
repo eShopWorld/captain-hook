@@ -84,6 +84,9 @@ namespace CaptainHook.EventHandlerActor
 
                 builder.RegisterType<EventHandlerFactory>().As<IEventHandlerFactory>().SingleInstance();
                 builder.RegisterType<AuthenticationHandlerFactory>().As<IAuthenticationHandlerFactory>().SingleInstance();
+                builder.RegisterType<HttpClientBuilder>().As<IHttpClientBuilder>();
+                builder.RegisterType<RequestLogger>().As<IRequestLogger>();
+                builder.RegisterType<RequestBuilder>().As<IRequestBuilder>();
 
                 //Register each webhook authenticationConfig separately for injection
                 foreach (var setting in eventHandlerList)
