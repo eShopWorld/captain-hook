@@ -41,7 +41,8 @@
                     "nike.snkrs.core.events.productrefreshevent",
                     "nike.snkrs.core.events.productupdatedevent",
                     "nike.snkrs.controltowerapi.models.events.nikelaunchdatareceivedevent",
-                    "bullfrog.domainevents.scalechange"
+                    "bullfrog.domainevents.scalechange",
+                    "eshopworld.platform.events.logistics.returnorderevent"
                 });
         }
 
