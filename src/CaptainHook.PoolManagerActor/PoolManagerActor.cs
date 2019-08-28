@@ -28,7 +28,7 @@ namespace CaptainHook.PoolManagerActor
         private HashSet<int> _free; // free pool resources
         private Dictionary<Guid, MessageHook> _busy; // busy pool resources
 
-        private const int NumberOfHandlers = 100; // TODO: TWEAK THIS - HARDCODED FOR NOW
+        private const int NumberOfHandlers = 1000; // TODO: TWEAK THIS - HARDCODED FOR NOW
 
         /// <summary>
         /// Initializes a new instance of PoolManagerActor
