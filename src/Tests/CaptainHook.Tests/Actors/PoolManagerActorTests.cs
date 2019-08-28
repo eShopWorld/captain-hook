@@ -42,7 +42,7 @@ namespace CaptainHook.Tests.Actors
 
             //get state
             var actual = await stateManager.GetStateAsync<HashSet<int>>("_free");
-            Assert.Equal(100, actual.Count);
+            Assert.Equal(1000, actual.Count);
         }
 
         [Fact]
@@ -98,7 +98,7 @@ namespace CaptainHook.Tests.Actors
             Assert.Empty(actualBusy);
 
             var actualFree = await stateManager.GetStateAsync<HashSet<int>>("_free");
-            Assert.Equal(100, actualFree.Count);
+            Assert.Equal(1000, actualFree.Count);
         }
 
         private static PoolManagerActor.PoolManagerActor CreatePoolManagerActor(ActorId id, IBigBrother bb, IActorProxyFactory mockActorProxyFactory)
