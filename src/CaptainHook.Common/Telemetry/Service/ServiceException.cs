@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Fabric;
-using Eshopworld.Core;
 
 namespace CaptainHook.Common.Telemetry.Service
 {
-    public abstract class ServiceTelemetryEvent : TelemetryEvent
+    public abstract class ServiceException : Exception
     {
-        public ServiceTelemetryEvent(StatefulServiceContext context)
+        protected ServiceException(string message, StatefulServiceContext context) : base(message)
         {
             ServiceName = context.ServiceName.AbsoluteUri;
             ServiceType = context.ServiceTypeName;
