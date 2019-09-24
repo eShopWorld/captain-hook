@@ -47,6 +47,7 @@ namespace CaptainHook.EventReaderService
 
         //todo move this to config driven in the code package
         internal int HandlerCount = 10;
+        private readonly TimeSpan _defaultServiceFabricStateOperationTimeout = TimeSpan.FromSeconds(4); // 4 seconds is default defined by state operation methods in service fabric docs
 
         /// <summary>
         /// Default ctor used at runtime
@@ -218,7 +219,7 @@ namespace CaptainHook.EventReaderService
 
                             using (var tx = StateManager.CreateTransaction())
                             {
-                                var result = await _messageHandles.TryAddAsync(tx, handleData.HandlerId, handleData, cancellationToken: _cancellationToken);
+                                var result = await _messageHandles.TryAddAsync(tx, handleData.HandlerId, handleData, _defaultServiceFabricStateOperationTimeout, _cancellationToken);
 
                                 if (!result)
                                 {
@@ -275,7 +276,7 @@ namespace CaptainHook.EventReaderService
             {
                 using (var tx = StateManager.CreateTransaction())
                 {
-                    var handle = await _messageHandles.TryRemoveAsync(tx, messageData.HandlerId, cancellationToken: _cancellationToken);
+                    var handle = await _messageHandles.TryRemoveAsync(tx, messageData.HandlerId, _defaultServiceFabricStateOperationTimeout, _cancellationToken);
                     if (!handle.HasValue)
                     {
                         throw new LockTokenNotFoundException("lock token was not found in reliable state")
