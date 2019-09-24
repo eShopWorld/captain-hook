@@ -37,8 +37,4 @@
     <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
     <ProjectReference Include="..\CaptainHook.Interfaces\CaptainHook.Interfaces.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Handlers\" />
-  </ItemGroup>
 </Project>
