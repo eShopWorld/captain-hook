@@ -147,7 +147,7 @@ namespace CaptainHook.EventReaderService
             {
                 var enumerator = (await _messageHandles.CreateKeyEnumerableAsync(tx)).GetAsyncEnumerator();
 
-                var list = new HashSet<int>();
+                var set = new HashSet<int>();
                 while (await enumerator.MoveNextAsync(_cancellationToken))
                 {
                     if (_cancellationToken.IsCancellationRequested) return;
@@ -155,14 +155,13 @@ namespace CaptainHook.EventReaderService
                     var handleData = await _messageHandles.TryGetValueAsync(tx, enumerator.Current);
                     if (!handleData.HasValue) continue;
 
-                    list.Add(handleData.Value.HandlerId);
+                    set.Add(handleData.Value.HandlerId);
                 }
 
                 await tx.CommitAsync();
 
-                var maxUsedHandlers = list.OrderByDescending(i => i).FirstOrDefault();
-                if (maxUsedHandlers > HandlerCount) HandlerCount = maxUsedHandlers;
-                _freeHandlers = Enumerable.Range(1, HandlerCount).Except(list).ToHashSet();
+                HandlerCount = Math.Max(HandlerCount, set.Count > 0 ? set.Max() : 0);
+                _freeHandlers = Enumerable.Range(1, HandlerCount).Except(set).ToHashSet();
             }
         }
 
@@ -219,8 +218,7 @@ namespace CaptainHook.EventReaderService
 
                             using (var tx = StateManager.CreateTransaction())
                             {
-                                var result = await _messageHandles.TryAddAsync(tx, handleData.HandlerId, handleData,
-                                    TimeSpan.FromSeconds(4), cancellationToken);
+                                var result = await _messageHandles.TryAddAsync(tx, handleData.HandlerId, handleData, cancellationToken: _cancellationToken);
 
                                 if (!result)
                                 {
@@ -229,8 +227,7 @@ namespace CaptainHook.EventReaderService
 
                                 await _proxyFactory.CreateActorProxy<IEventHandlerActor>(
                                         new ActorId(messageData.EventHandlerActorId),
-                                        serviceName:
-                                        $"{Constants.CaptainHookApplication.Services.EventHandlerServiceShortName}")
+                                        serviceName: Constants.CaptainHookApplication.Services.EventHandlerServiceShortName)
                                     .Handle(messageData);
 
                                 await tx.CommitAsync();
@@ -278,7 +275,7 @@ namespace CaptainHook.EventReaderService
             {
                 using (var tx = StateManager.CreateTransaction())
                 {
-                    var handle = await _messageHandles.TryRemoveAsync(tx, messageData.HandlerId, TimeSpan.FromSeconds(4), _cancellationToken);
+                    var handle = await _messageHandles.TryRemoveAsync(tx, messageData.HandlerId, cancellationToken: _cancellationToken);
                     if (!handle.HasValue)
                     {
                         throw new LockTokenNotFoundException("lock token was not found in reliable state")

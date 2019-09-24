@@ -2,7 +2,11 @@
 <Application xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="fabric:/CaptainHook" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
     <Parameter Name="KeyVault_Base_Uri" Value="https://esw-tooling-test-we.vault.azure.net/" />
+<<<<<<< Updated upstream
     <Parameter Name="AspNetCore_Environment" Value="test" />
+=======
+    <Parameter Name="AspNetCore_Environment" Value="Test" />
+>>>>>>> Stashed changes
     <Parameter Name="CaptainHook.DirectorService_PartitionCount" Value="1" />
     <Parameter Name="CaptainHook.DirectorService_MinReplicaSetSize" Value="1" />
     <Parameter Name="CaptainHook.DirectorService_TargetReplicaSetSize" Value="1" />
