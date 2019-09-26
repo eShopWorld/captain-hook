@@ -339,7 +339,7 @@ namespace CaptainHook.Tests.Services.Reliable
             {
                 var innerTask = Task.Run(async () =>
                 {
-                    while (replicaSet.Primary.ServiceInstance.InFlightMessageCount != messageCount)
+                    while (await replicaSet.Primary.ServiceInstance.InFlightMessageCountAsync() != messageCount)
                     {
                         await Task.Delay(100);
                     }
