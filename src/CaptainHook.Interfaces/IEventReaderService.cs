@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using CaptainHook.Common;
 using Microsoft.ServiceFabric.Services.Remoting;
 
@@ -11,7 +12,8 @@ namespace CaptainHook.Interfaces
         /// </summary>
         /// <param name="messageData"></param>
         /// <param name="messageDelivered"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task CompleteMessage(MessageData messageData, bool messageDelivered);
+        Task CompleteMessageAsync(MessageData messageData, bool messageDelivered, CancellationToken cancellationToken = default);
     }
 }

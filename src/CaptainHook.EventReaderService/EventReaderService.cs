@@ -273,14 +273,15 @@ namespace CaptainHook.EventReaderService
         /// </summary>
         /// <param name="messageData"></param>
         /// <param name="messageDelivered"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task CompleteMessage(MessageData messageData, bool messageDelivered)
+        public async Task CompleteMessageAsync(MessageData messageData, bool messageDelivered, CancellationToken cancellationToken = default)
         {
             try
             {
                 using (var tx = StateManager.CreateTransaction())
                 {
-                    var handle = await _messageHandles.TryRemoveAsync(tx, messageData.HandlerId, _defaultServiceFabricStateOperationTimeout, _cancellationToken);
+                    var handle = await _messageHandles.TryRemoveAsync(tx, messageData.HandlerId, _defaultServiceFabricStateOperationTimeout, cancellationToken);
                     if (!handle.HasValue)
                     {
                         throw new LockTokenNotFoundException("lock token was not found in reliable state")
@@ -315,7 +316,7 @@ namespace CaptainHook.EventReaderService
             }
             finally
             {
-                await _freeHandlers.AddAsync(messageData.HandlerId, _cancellationToken);
+                await _freeHandlers.AddAsync(messageData.HandlerId, cancellationToken);
             }
         }
     }

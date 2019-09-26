@@ -205,7 +205,7 @@ namespace CaptainHook.Tests.Services.Reliable
         [Theory]
         [IsLayer0]
         [InlineData("test.type", "test.type-1", 1, 1, true, 0)]
-        [InlineData("test.type", "test.type-1", 1, 1, false, 0)]
+        //[InlineData("test.type", "test.type-1", 1, 1, false, 0)]
         public async Task CanDeleteMessageFromSubscription(
             string eventName,
             string handlerName,
@@ -266,7 +266,7 @@ namespace CaptainHook.Tests.Services.Reliable
                 };
             }
 
-            await service.CompleteMessage(messageData, messageDelivered);
+            await service.CompleteMessageAsync(messageData, messageDelivered, CancellationToken.None);
 
             //Assert that the dictionary contains 1 processing message and associated handle
             dictionary = await _stateManager.GetOrAddAsync<IReliableDictionary2<int, MessageDataHandle>>(nameof(MessageDataHandle));
