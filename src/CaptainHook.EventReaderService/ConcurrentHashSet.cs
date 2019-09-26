@@ -27,14 +27,9 @@ namespace CaptainHook.EventReaderService
             _set = new HashSet<T>(set);
         }
 
-        /// <summary>
-        /// Creates a Hashset from the internal stored HashSet
-        /// </summary>
-        public HashSet<T> ToHashSet => _set.ToHashSet();
-
         public async Task<T> FirstOrDefaultAsync(CancellationToken cancellationToken = default)
         {
-            return await EnterSemaphoreAsync<T>(() => _set.FirstOrDefault(), cancellationToken);
+            return await EnterSemaphoreAsync(() => _set.FirstOrDefault(), cancellationToken);
         }
 
         public async Task AddAsync(T value, CancellationToken cancellationToken = default)
@@ -44,7 +39,7 @@ namespace CaptainHook.EventReaderService
 
         public async Task<int> CountAsync(CancellationToken cancellationToken = default)
         {
-            return await EnterSemaphoreAsync(() => _set.Count(), cancellationToken);
+            return await EnterSemaphoreAsync(() => _set.Count, cancellationToken);
         }
 
         public async Task RemoveAsync(T value, CancellationToken cancellationToken = default)
@@ -66,7 +61,7 @@ namespace CaptainHook.EventReaderService
             }
         }
 
-        private async Task<P> EnterSemaphoreAsync<P>(Func<P> func, CancellationToken cancellationToken)
+        private async Task<TP> EnterSemaphoreAsync<TP>(Func<TP> func, CancellationToken cancellationToken)
         {
             try
             {
