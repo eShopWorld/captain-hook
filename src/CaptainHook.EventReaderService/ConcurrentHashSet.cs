@@ -14,8 +14,8 @@ namespace CaptainHook.EventReaderService
     public class ConcurrentHashSet<T>
     {
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+       
         private readonly HashSet<T> _set;
-
 
         public ConcurrentHashSet()
         {
