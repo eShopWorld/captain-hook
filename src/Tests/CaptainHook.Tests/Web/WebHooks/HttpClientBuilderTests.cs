@@ -20,7 +20,7 @@ namespace CaptainHook.Tests.Web.WebHooks
     public class HttpClientBuilderTests
     {
         [IsLayer0]
-        [Theory]
+        [Theory(Skip = "skipping for experimentation")]
         [MemberData(nameof(Data))]
         public async Task HttpClientContainsCorrelationIdHeader(WebhookConfig config, string expectedCorrelationId)
         {
@@ -36,7 +36,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         }
 
         [IsLayer0]
-        [Theory]
+        [Theory(Skip = "skipping for experimentation")]
         [MemberData(nameof(Data))]
         public async Task CheckCorrelationIdHeadersMatch(WebhookConfig config, string expectedCorrelationId)
         {

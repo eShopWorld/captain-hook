@@ -43,8 +43,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 throw new ArgumentNullException(nameof(httpClient), $"HttpClient for {uri.Host} was not found");
             }
 
-            httpClient.DefaultRequestHeaders.Remove(Constants.Headers.CorrelationId);
-            httpClient.DefaultRequestHeaders.Add(Constants.Headers.CorrelationId, correlationId);
+            //httpClient.DefaultRequestHeaders.Remove(Constants.Headers.CorrelationId);
+            //httpClient.DefaultRequestHeaders.Add(Constants.Headers.CorrelationId, correlationId);
 
             if (authenticationScheme == AuthenticationType.None)
             {
