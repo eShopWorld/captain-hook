@@ -14,6 +14,7 @@ using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Fabric;
 using System.Linq;
@@ -41,7 +42,7 @@ namespace CaptainHook.EventReaderService
         private readonly string _eventType;
 
         private IReliableDictionary2<int, MessageDataHandle> _messageHandles;
-        private ConcurrentHashSet<int> _freeHandlers = new ConcurrentHashSet<int>();
+        private ConcurrentQueue<int> _freeHandlers = new ConcurrentQueue<int>();
         private IMessageReceiver _messageReceiver;
         private CancellationToken _cancellationToken;
 
@@ -111,25 +112,25 @@ namespace CaptainHook.EventReaderService
 
         protected override async Task OnOpenAsync(ReplicaOpenMode openMode, CancellationToken cancellationToken)
         {
-            _bigBrother.Publish(new ServiceActivatedEvent(Context, await InFlightMessageCountAsync()));
+            _bigBrother.Publish(new ServiceActivatedEvent(Context, InFlightMessageCount));
             await base.OnOpenAsync(openMode, cancellationToken);
         }
 
         protected override async Task OnCloseAsync(CancellationToken cancellationToken)
         {
-            _bigBrother.Publish(new ServiceDeactivatedEvent(Context, await InFlightMessageCountAsync()));
+            _bigBrother.Publish(new ServiceDeactivatedEvent(Context, InFlightMessageCount));
             await base.OnCloseAsync(cancellationToken);
         }
 
-        protected override async void OnAbort()
+        protected override void OnAbort()
         {
-            _bigBrother.Publish(new ServiceAbortedEvent(Context, await InFlightMessageCountAsync()));
+            _bigBrother.Publish(new ServiceAbortedEvent(Context, InFlightMessageCount));
             base.OnAbort();
         }
 
         protected override async Task OnChangeRoleAsync(ReplicaRole newRole, CancellationToken cancellationToken)
         {
-            _bigBrother.Publish(new ServiceRoleChangeEvent(Context, newRole, await InFlightMessageCountAsync()));
+            _bigBrother.Publish(new ServiceRoleChangeEvent(Context, newRole, InFlightMessageCount));
             await base.OnChangeRoleAsync(newRole, cancellationToken);
         }
 
@@ -157,7 +158,7 @@ namespace CaptainHook.EventReaderService
                 await tx.CommitAsync();
 
                 HandlerCount = Math.Max(HandlerCount, set.Count > 0 ? set.Max() : 0);
-                _freeHandlers = Enumerable.Range(1, HandlerCount).Except(set.ToHashSet()).ToConcurrentHashSet();
+                _freeHandlers = Enumerable.Range(1, HandlerCount).Except(set.ToHashSet()).ToConcurrentQueue();
             }
         }
 
@@ -165,10 +166,7 @@ namespace CaptainHook.EventReaderService
         /// <summary>
         /// Gets the count of the numbers of messages which are in flight at the moment
         /// </summary>
-        internal async Task<int> InFlightMessageCountAsync()
-        {
-            return  HandlerCount - await _freeHandlers.CountAsync(_cancellationToken);
-        } 
+        internal int InFlightMessageCount => HandlerCount - _freeHandlers.Count;
 
         private async Task SetupServiceBus()
         {
@@ -210,7 +208,7 @@ namespace CaptainHook.EventReaderService
                         {
                             var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), _eventType);
 
-                            var handlerId = await GetFreeHandlerIdAsync();
+                            var handlerId = GetFreeHandlerId();
 
                             messageData.HandlerId = handlerId;
                             messageData.CorrelationId = Guid.NewGuid().ToString();
@@ -256,16 +254,14 @@ namespace CaptainHook.EventReaderService
             }
         }
 
-        internal async Task<int> GetFreeHandlerIdAsync()
+        internal int GetFreeHandlerId()
         {
-            var handlerId = await _freeHandlers.FirstOrDefaultAsync(_cancellationToken);
-            if (handlerId == 0)
+            if (_freeHandlers.TryDequeue(out var handlerId))
             {
-                return ++HandlerCount;
+                return handlerId;
             }
 
-            await _freeHandlers.RemoveAsync(handlerId, _cancellationToken);
-            return handlerId;
+            return ++HandlerCount;
         }
 
         /// <summary>
@@ -316,7 +312,7 @@ namespace CaptainHook.EventReaderService
             }
             finally
             {
-                await _freeHandlers.AddAsync(messageData.HandlerId, cancellationToken);
+                _freeHandlers.Enqueue(messageData.HandlerId);
             }
         }
     }
