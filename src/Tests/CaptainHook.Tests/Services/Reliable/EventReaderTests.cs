@@ -205,7 +205,7 @@ namespace CaptainHook.Tests.Services.Reliable
         [Theory]
         [IsLayer0]
         [InlineData("test.type", "test.type-1", 1, 1, true, 0)]
-        //[InlineData("test.type", "test.type-1", 1, 1, false, 0)]
+        [InlineData("test.type", "test.type-1", 1, 1, false, 0)]
         public async Task CanDeleteMessageFromSubscription(
             string eventName,
             string handlerName,
