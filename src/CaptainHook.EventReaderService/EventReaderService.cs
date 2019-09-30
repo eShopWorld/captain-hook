@@ -158,7 +158,7 @@ namespace CaptainHook.EventReaderService
                 await tx.CommitAsync();
 
                 HandlerCount = Math.Max(HandlerCount, set.Count > 0 ? set.Max() : 0);
-                _freeHandlers = Enumerable.Range(1, HandlerCount).Except(set.ToHashSet()).ToConcurrentQueue();
+                _freeHandlers = Enumerable.Range(1, HandlerCount).Except(set).ToConcurrentQueue();
             }
         }
 
