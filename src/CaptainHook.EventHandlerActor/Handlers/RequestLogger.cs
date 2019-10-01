@@ -37,7 +37,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 uri.AbsoluteUri,
                 httpVerb,
                 response.StatusCode,
-                messageData.CorrelationId));
+                messageData.CorrelationId)
+            {
+                Token = httpClient?.DefaultRequestHeaders?.Authorization?.ToString()
+            });
 
             //only log the failed requests in more depth, need to have a good think about this - debugging v privacy
             if (response.IsSuccessStatusCode)
