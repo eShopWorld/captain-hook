@@ -116,7 +116,7 @@ namespace CaptainHook.EventHandlerActor
             var refresh = configurationSection["refresh"];
             if (string.IsNullOrWhiteSpace(refresh))
             {
-                oauthAuthenticationConfig.RefreshBeforeInSeconds = 10;
+                oauthAuthenticationConfig.RefreshBeforeInSeconds = 50;
             }
             else
             {

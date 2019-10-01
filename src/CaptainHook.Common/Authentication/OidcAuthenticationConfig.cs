@@ -35,6 +35,6 @@
         /// <summary>
         /// Refresh interval before the token expires
         /// </summary>
-        public int RefreshBeforeInSeconds { get; set; } = 10;
+        public int RefreshBeforeInSeconds { get; set; } = 50;
     }
 }
