@@ -34,5 +34,8 @@ namespace CaptainHook.Common.Telemetry.Web
         public HttpStatusCode StatusCode { get; set; }
 
         public string CorrelationId { get; set; }
+
+        //TODO: remove
+        public string Token { get; set; }
     }
 }
