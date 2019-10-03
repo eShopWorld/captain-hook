@@ -35,7 +35,7 @@ namespace CaptainHook.Common.Telemetry.Web
 
         public string CorrelationId { get; set; }
 
-        //TODO: remove
+        //only set for failures, likely to be removed in the future (after 401 stabilization and or auth actor introduced)
         public string Token { get; set; }
     }
 }
