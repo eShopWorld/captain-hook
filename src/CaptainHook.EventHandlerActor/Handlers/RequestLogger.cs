@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -30,6 +31,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
             HttpVerb httpVerb
         )
         {
+            string token = string.Empty;
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                var values = httpClient.DefaultRequestHeaders.GetValues("Authorization");
+                token = string.Join(" ", values);
+            }
+
             _bigBrother.Publish(new WebhookEvent(
                 messageData.EventHandlerActorId,
                 messageData.Type,
@@ -39,7 +48,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 response.StatusCode,
                 messageData.CorrelationId)
             {
-                Token = httpClient?.DefaultRequestHeaders?.Authorization?.ToString()
+                Token = token
             });
 
             //only log the failed requests in more depth, need to have a good think about this - debugging v privacy
