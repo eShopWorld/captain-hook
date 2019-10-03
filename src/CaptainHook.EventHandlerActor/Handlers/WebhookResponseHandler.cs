@@ -55,10 +55,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     httpVerb, 
                     response.StatusCode,
                     messageData.CorrelationId
-                )
-                {
-                    Token = httpClient?.DefaultRequestHeaders?.Authorization?.ToString()
-                });
+                ));
 
             if (metadata == null)
             {
