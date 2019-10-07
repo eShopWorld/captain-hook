@@ -43,6 +43,7 @@ namespace CaptainHook.EventHandlerActor
                 var eventHandlerList = new List<EventHandlerConfig>();
                 var webhookList = new List<WebhookConfig>(values.Count);
                 var endpointList = new Dictionary<string, WebhookConfig>(values.Count);
+
                 foreach (var configurationSection in values)
                 {
                     //temp work around until config comes in through the API
@@ -84,7 +85,7 @@ namespace CaptainHook.EventHandlerActor
 
                 builder.RegisterType<EventHandlerFactory>().As<IEventHandlerFactory>().SingleInstance();
                 builder.RegisterType<AuthenticationHandlerFactory>().As<IAuthenticationHandlerFactory>().SingleInstance();
-                builder.RegisterType<HttpClientBuilder>().As<IHttpClientBuilder>();
+                builder.RegisterType<HttpClientFactory>().As<Handlers.IHttpClientFactory>();
                 builder.RegisterType<RequestLogger>().As<IRequestLogger>();
                 builder.RegisterType<RequestBuilder>().As<IRequestBuilder>();
 
@@ -99,13 +100,11 @@ namespace CaptainHook.EventHandlerActor
                     builder.RegisterInstance(webhookConfig).Named<WebhookConfig>(webhookConfig.Name);
                 }
 
-                //creates a list of unique endpoint and the corresponding http client for each which can be selected at runtime
-                foreach (var (key, value) in endpointList)
-                {
-                    builder.RegisterInstance(value).Named<WebhookConfig>(key);
-                    var httpClient = new HttpClient { Timeout = value.Timeout };
-                    builder.RegisterInstance(httpClient).Named<HttpClient>(key).SingleInstance();
-                }
+                ////creates a list of unique endpoint and the corresponding http client for each which can be selected at runtime
+                //foreach (var (key, value) in endpointList)
+                //{
+                //    builder.RegisterInstance(value).Named<WebhookConfig>(key).SingleInstance();
+                //}
 
                 builder.RegisterServiceFabricSupport();
                 builder.RegisterActor<EventHandlerActor>();

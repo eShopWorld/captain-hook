@@ -44,17 +44,21 @@ namespace CaptainHook.Tests.Web.WebHooks
 
             var mockBigBrother = new Mock<IBigBrother>();
 
-            var httpClients = new IndexDictionary<string, HttpClient>
+            var httpClients = new Dictionary<string, HttpClient>
             {
                 {new Uri(config.WebhookConfig.Uri).Host, mockHttpHandler.ToHttpClient()},
                 {new Uri(config.CallbackConfig.Uri).Host, mockHttpHandler.ToHttpClient()}
             };
 
-            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
-            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Mock<IAcquireTokenHandler>().Object);
+            var mockTokenHandler = new Mock<IAuthenticationHandler>();
+            mockTokenHandler.Setup(s => s.GetTokenAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Guid.NewGuid().ToString);
 
-            var httpClientBuilder = new HttpClientBuilder(mockAuthHandlerFactory.Object, httpClients );
+            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
+            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<WebhookConfig>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => mockTokenHandler.Object);
+
+            var httpClientBuilder = new HttpClientFactory(httpClients);
             var requestBuilder = new RequestBuilder();
             var requestLogger = new RequestLogger(mockBigBrother.Object);
 
@@ -62,6 +66,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
+                    mockAuthHandlerFactory.Object,
                     requestBuilder,
                     requestLogger,
                     mockBigBrother.Object,
@@ -71,14 +76,14 @@ namespace CaptainHook.Tests.Web.WebHooks
                 mockHandlerFactory.Object,
                 httpClientBuilder,
                 requestBuilder,
+                mockAuthHandlerFactory.Object,
                 requestLogger,
                 mockBigBrother.Object,
                 config);
 
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<string>(), _cancellationToken), Times.Never);
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<Uri>(), _cancellationToken), Times.Once);
+            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequestWithCallback));
         }
 
@@ -99,23 +104,27 @@ namespace CaptainHook.Tests.Web.WebHooks
             var mockWebHookRequest = mockHttpHandler.When(HttpMethod.Put, expectedCallbackUri)
                 .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
-            var httpClients = new IndexDictionary<string, HttpClient>
+            var httpClients = new Dictionary<string, HttpClient>
             {
                 {new Uri(config.WebhookConfig.Uri).Host, mockHttpHandler.ToHttpClient()},
                 {new Uri(config.CallbackConfig.Uri).Host, mockHttpHandler.ToHttpClient()}
             };
 
-            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
-            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(() => new Mock<IAcquireTokenHandler>().Object);
+            var mockAuthenticationTokenHandler = new Mock<IAuthenticationHandler>();
+            mockAuthenticationTokenHandler.Setup(s => s.GetTokenAsync(It.IsAny<CancellationToken>())).ReturnsAsync(Guid.NewGuid().ToString);
 
-            var httpClientBuilder = new HttpClientBuilder(mockAuthHandlerFactory.Object, httpClients);
+            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
+            mockAuthHandlerFactory.Setup(s => s.GetAsync(It.IsAny<WebhookConfig>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(() => mockAuthenticationTokenHandler.Object);
+
+            var httpClientBuilder = new HttpClientFactory(httpClients);
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
             mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
+                    new Mock<IAuthenticationHandlerFactory>().Object,
                     new RequestBuilder(),
                     new RequestLogger(mockBigBrother.Object),
                     mockBigBrother.Object,
@@ -125,14 +134,14 @@ namespace CaptainHook.Tests.Web.WebHooks
                 mockHandlerFactory.Object,
                 httpClientBuilder,
                 new RequestBuilder(),
+                mockAuthHandlerFactory.Object,
                 new RequestLogger(mockBigBrother.Object),
                 mockBigBrother.Object,
                 config);
 
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<string>(), _cancellationToken), Times.Never);
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<Uri>(), _cancellationToken), Times.Once);
+            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
             mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.IsAny<string>()), Times.AtMostOnce);
 
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequest));
@@ -152,7 +161,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 .WithContentType("application/json; charset=utf-8", expectedContent)
                 .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
-            var httpClients = new IndexDictionary<string, HttpClient>
+            var httpClients = new Dictionary<string, HttpClient>
             {
                 {new Uri(config.CallbackConfig.Uri).Host, mockHttpHandler.ToHttpClient()}
             };
@@ -167,13 +176,14 @@ namespace CaptainHook.Tests.Web.WebHooks
             }
 
             var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
-            var httpClientBuilder = new HttpClientBuilder(mockAuthHandlerFactory.Object, httpClients);
+            var httpClientBuilder = new HttpClientFactory(httpClients);
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
             mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
+                    new Mock<IAuthenticationHandlerFactory>().Object,
                     new RequestBuilder(),
                     new RequestLogger(mockBigBrother.Object),
                     mockBigBrother.Object,
@@ -183,13 +193,14 @@ namespace CaptainHook.Tests.Web.WebHooks
                 mockHandlerFactory.Object,
                 httpClientBuilder,
                 new RequestBuilder(),
+                new Mock<IAuthenticationHandlerFactory>().Object,
                 new RequestLogger(mockBigBrother.Object),
                 mockBigBrother.Object,
                 config);
 
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<string>(), _cancellationToken), Times.AtMostOnce);
+            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.AtMostOnce);
             mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.IsAny<string>()), Times.AtMostOnce);
 
             Assert.Equal(1, mockHttpHandler.GetMatchCount(multiRouteCall));
@@ -209,20 +220,20 @@ namespace CaptainHook.Tests.Web.WebHooks
                 .WithContentType("application/json; charset=utf-8", expectedContent)
                 .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
 
-            var httpClients = new IndexDictionary<string, HttpClient>
+            var httpClients = new Dictionary<string, HttpClient>
             {
                 {new Uri(config.WebhookConfig.Uri).Host, mockHttpHandler.ToHttpClient()},
                 {new Uri(config.CallbackConfig.Uri).Host, mockHttpHandler.ToHttpClient()}
             };
 
-            var mockAuthHandlerFactory = new Mock<IAuthenticationHandlerFactory>();
-            var httpClientBuilder = new HttpClientBuilder(mockAuthHandlerFactory.Object, httpClients);
+            var httpClientBuilder = new HttpClientFactory(httpClients);
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
             mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.CallbackConfig.Name)).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
+                    new Mock<IAuthenticationHandlerFactory>().Object,
                     new RequestBuilder(),
                     new RequestLogger(mockBigBrother.Object),
                     mockBigBrother.Object,
@@ -232,6 +243,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 mockHandlerFactory.Object,
                 httpClientBuilder,
                 new RequestBuilder(),
+                new Mock<IAuthenticationHandlerFactory>().Object,
                 new RequestLogger(mockBigBrother.Object),
                 mockBigBrother.Object,
                 config);
@@ -295,7 +307,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             WebhookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
-                HttpVerb = HttpVerb.Post,
+                HttpMethod = HttpMethod.Post,
                 Uri = "https://blah.blah.eshopworld.com",
                 AuthenticationConfig = new OidcAuthenticationConfig
                 {
@@ -336,7 +348,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             CallbackConfig = new WebhookConfig
             {
                 Name = "PutOrderConfirmationEvent",
-                HttpVerb = HttpVerb.Put,
+                HttpMethod = HttpMethod.Put,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig
                 {
@@ -418,7 +430,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                             new WebhookConfigRoute
                             {
                                 Uri = "https://blah.blah.multiroute.eshopworld.com",
-                                HttpVerb = HttpVerb.Post,
+                                HttpMethod = HttpMethod.Post,
                                 Selector = "Good",
                                 AuthenticationConfig = new AuthenticationConfig
                                 {
@@ -445,7 +457,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             CallbackConfig = new WebhookConfig
             {
                 Name = "PutOrderConfirmationEvent",
-                HttpVerb = HttpVerb.Post,
+                HttpMethod = HttpMethod.Post,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig
                 {
@@ -498,7 +510,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             WebhookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
-                HttpVerb = HttpVerb.Post,
+                HttpMethod = HttpMethod.Post,
                 Uri = "https://blah.blah.eshopworld.com",
                 AuthenticationConfig = new OidcAuthenticationConfig
                 {
@@ -536,7 +548,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                             new WebhookConfigRoute
                             {
                                 Uri = "https://blah.blah.multiroute.eshopworld.com",
-                                HttpVerb = HttpVerb.Post,
+                                HttpMethod = HttpMethod.Post,
                                 Selector = "Bad",
                                 AuthenticationConfig = new AuthenticationConfig
                                 {
@@ -563,7 +575,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             CallbackConfig = new WebhookConfig
             {
                 Name = "PutOrderConfirmationEvent",
-                HttpVerb = HttpVerb.Post,
+                HttpMethod = HttpMethod.Post,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig
                 {

@@ -5,6 +5,16 @@
         public struct Headers
         {
             public const string CorrelationId = "X-Correlation-ID";
+
+            public const string ContentType = "Content-Type";
+
+            public const string EventType = "Esw-Event-Type";
+
+            public const string EventDeliveryId = "Esw-Delivery";
+
+            public const string Authorization = "Authorization";
+
+            public const string DefaultContentType = "application/json";
         }
 
         public struct CaptainHookApplication

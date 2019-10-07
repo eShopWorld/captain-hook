@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Common.Configuration;
+using CaptainHook.Common;
 using Polly;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -18,127 +18,39 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// Entry point for a generic http request which reports on the request and tries with exponential back-off for transient failure.
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="httpVerb"></param>
+        /// <param name="httpMethod"></param>
         /// <param name="uri"></param>
+        /// <param name="webHookHeaders"></param>
         /// <param name="payload"></param>
-        /// <param name="logger"></param>
-        /// <param name="contentType"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public static async Task<HttpResponseMessage> ExecuteAsJsonReliably(
+        public static async Task<HttpResponseMessage> SendRequestReliablyAsync(
             this HttpClient client,
-            HttpVerb httpVerb,
+            HttpMethod httpMethod,
             Uri uri,
+            WebHookHeaders webHookHeaders,
             string payload,
-            HttpFailureLogger logger,
-            string contentType = "application/json",
             CancellationToken token = default)
         {
-            switch (httpVerb)
+            var request = new HttpRequestMessage(httpMethod, uri);
+
+            if (httpMethod != HttpMethod.Get)
             {
-                case HttpVerb.Get:
-                    return await client.GetAsJsonReliably(uri, logger, contentType, token);
-
-                case HttpVerb.Put:
-                    return await client.PutAsJsonReliably(uri, payload, logger, contentType, token);
-
-                case HttpVerb.Post:
-                    return await client.PostAsJsonReliably(uri, payload, logger, contentType, token);
-
-                case HttpVerb.Patch:
-                    return await client.PatchAsJsonReliably(uri, payload, logger, contentType, token);
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(httpVerb), httpVerb, "no valid http verb found");
+                request.Content = new StringContent(payload, Encoding.UTF8, webHookHeaders.ContentHeaders[Constants.Headers.ContentType]);
             }
-        }
 
-        /// <summary>
-        /// Post content to the endpoint
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="uri"></param>
-        /// <param name="payload"></param>
-        /// <param name="logger"></param>
-        /// <param name="contentType"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public static async Task<HttpResponseMessage> PostAsJsonReliably(
-        this HttpClient client,
-        Uri uri,
-        string payload,
-        HttpFailureLogger logger,
-        string contentType = "application/json",
-        CancellationToken token = default)
-        {
-            var result = await RetryRequest(() => client.PostAsync(uri, new StringContent(payload, Encoding.UTF8, contentType), token), logger);
+            foreach (var key in webHookHeaders.RequestHeaders.Keys)
+            {
+                //todo is this the correct thing to do when there is a CorrelationVector with multiple Children.
+                if (request.Headers.Contains(key))
+                {
+                    request.Headers.Remove(key);
+                }
 
-            return result;
-        }
+                request.Headers.Add(key, webHookHeaders.RequestHeaders[key]);
+            }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="uri"></param>
-        /// <param name="payload"></param>
-        /// <param name="logger"></param>
-        /// <param name="contentType"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public static async Task<HttpResponseMessage> PutAsJsonReliably(
-            this HttpClient client,
-            Uri uri,
-            string payload,
-            HttpFailureLogger logger,
-            string contentType = "application/json",
-            CancellationToken token = default)
-        {
-            var result = await RetryRequest(() => client.PutAsync(uri, new StringContent(payload, Encoding.UTF8, contentType), token), logger);
-
-            return result;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="uri"></param>
-        /// <param name="payload"></param>
-        /// <param name="logger"></param>
-        /// <param name="contentType"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public static async Task<HttpResponseMessage> PatchAsJsonReliably(
-            this HttpClient client,
-            Uri uri,
-            string payload,
-            HttpFailureLogger logger,
-            string contentType = "application/json",
-            CancellationToken token = default)
-        {
-            var result = await RetryRequest(() => client.PatchAsync(uri, new StringContent(payload, Encoding.UTF8, contentType), token), logger);
-
-            return result;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="client"></param>
-        /// <param name="uri"></param>
-        /// <param name="logger"></param>
-        /// <param name="contentType"></param>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public static async Task<HttpResponseMessage> GetAsJsonReliably(
-                this HttpClient client,
-                Uri uri,
-                HttpFailureLogger logger,
-                string contentType = "application/json",
-                CancellationToken token = default)
-        {
-            var result = await RetryRequest(() => client.GetAsync(uri, token), logger);
+            var result = await RetryRequest(() => client.SendAsync(request, token));
 
             return result;
         }
@@ -147,11 +59,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// Executes the supplied func with reties and reports on it if something goes wrong ideally to BigBrother
         /// </summary>
         /// <param name="makeTheCall"></param>
-        /// <param name="logger"></param>
         /// <returns></returns>
         private static async Task<HttpResponseMessage> RetryRequest(
-            Func<Task<HttpResponseMessage>> makeTheCall,
-            HttpFailureLogger logger)
+            Func<Task<HttpResponseMessage>> makeTheCall)
         {
             //todo the retry status codes need to be customisable from the webhook config api
             var response = await Policy.HandleResult<HttpResponseMessage>(
@@ -164,10 +74,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     //todo config this + jitter
                     TimeSpan.FromSeconds(20),
                     TimeSpan.FromSeconds(30)
-
-                }, (result, timeSpan, retryCount, context) =>
-                {
-                    logger.Publish($"retry count {retryCount} of {context.Count}", result.Result.StatusCode, context.CorrelationId.ToString());
 
                 }).ExecuteAsync(makeTheCall.Invoke);
 

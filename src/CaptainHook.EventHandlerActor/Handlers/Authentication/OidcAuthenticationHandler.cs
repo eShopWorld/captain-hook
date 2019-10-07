@@ -14,23 +14,25 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// Gets a token from the supplied STS details included the supplied scopes.
     /// Requests token once
     /// </summary>
-    public class OidcAuthenticationHandler : AuthenticationHandler, IAcquireTokenHandler
+    public class OidcAuthenticationHandler : AuthenticationHandler, IAuthenticationHandler
     {
         //todo cache and make it thread safe, ideally should have one per each auth domain and have the expiry set correctly
         protected OidcAuthenticationToken OidcAuthenticationToken = new OidcAuthenticationToken();
         protected readonly OidcAuthenticationConfig OidcAuthenticationConfig;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        protected readonly IHttpClientFactory HttpClientFactory;
         protected readonly IBigBrother BigBrother;
 
-        public OidcAuthenticationHandler(AuthenticationConfig authenticationConfig, IBigBrother bigBrother)
+        public OidcAuthenticationHandler(IHttpClientFactory httpClientFactory, AuthenticationConfig authenticationConfig, IBigBrother bigBrother)
         {
             var oAuthAuthenticationToken = authenticationConfig as OidcAuthenticationConfig;
             OidcAuthenticationConfig = oAuthAuthenticationToken ?? throw new ArgumentException($"configuration for basic authentication is not of type {typeof(OidcAuthenticationConfig)}", nameof(authenticationConfig));
+            HttpClientFactory = httpClientFactory;
             BigBrother = bigBrother;
         }
 
         /// <inheritdoc />
-        public virtual async Task GetTokenAsync(HttpClient client, CancellationToken cancellationToken)
+        public virtual async Task<string> GetTokenAsync(CancellationToken cancellationToken)
         {
             //get initial access token and refresh token
             if (OidcAuthenticationToken.AccessToken == null)
@@ -44,10 +46,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 
                 await EnterSemaphore(cancellationToken, async () =>
                 {
-                    var response = await GetTokenResponseAsync(client, cancellationToken);
+                    var httpClient = HttpClientFactory.Get(OidcAuthenticationConfig.Uri);
+                    var response = await GetTokenResponseAsync(httpClient, cancellationToken);
                     ReportTokenUpdateFailure(OidcAuthenticationConfig, response);
                     UpdateToken(response);
-                    
+
                     BigBrother.Publish(new ClientTokenRequest
                     {
                         ClientId = OidcAuthenticationConfig.ClientId,
@@ -62,7 +65,8 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 {
                     if (CheckExpired())
                     {
-                        var response = await GetTokenResponseAsync(client, cancellationToken);
+                        var httpClient = HttpClientFactory.Get(OidcAuthenticationConfig.Uri);
+                        var response = await GetTokenResponseAsync(httpClient, cancellationToken);
                         ReportTokenUpdateFailure(OidcAuthenticationConfig, response);
                         UpdateToken(response);
 
@@ -76,7 +80,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 });
             }
 
-            client.SetBearerToken(OidcAuthenticationToken.AccessToken);
+            return $"Bearer {OidcAuthenticationToken.AccessToken}";
         }
 
         /// <summary>

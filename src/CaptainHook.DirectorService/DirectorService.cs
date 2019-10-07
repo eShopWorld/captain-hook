@@ -70,7 +70,8 @@ namespace CaptainHook.DirectorService
                     "Nike.Snkrs.Core.Events.ProductRefreshEvent",
                     "Nike.Snkrs.Core.Events.ProductUpdatedEvent",
                     "Nike.Snkrs.ControlTowerApi.Models.Events.NikeLaunchDataReceivedEvent",
-                    "Bullfrog.DomainEvents.ScaleChange"
+                    "Bullfrog.DomainEvents.ScaleChange",
+                    "Eshopworld.Platform.Events.Logistics.ReturnOrderEvent"
                 };
 
                 var serviceList = (await _fabricClient.QueryManager.GetServiceListAsync(new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}")))

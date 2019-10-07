@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using CaptainHook.Common;
@@ -30,7 +31,7 @@ namespace CaptainHook.Benchmark
             _config = new WebhookConfig
             {
                 Name = "Webhook2",
-                HttpVerb = HttpVerb.Post,
+                HttpMethod = HttpMethod.Post,
                 Uri = "https://blah.blah.eshopworld.com/webhook/",
                 WebhookRequestRules = new List<WebhookRequestRule>
                 {
@@ -51,7 +52,7 @@ namespace CaptainHook.Benchmark
                             new WebhookConfigRoute
                             {
                                 Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                HttpVerb = HttpVerb.Post,
+                                HttpMethod = HttpMethod.Post,
                                 Selector = "Brand1",
                                 AuthenticationConfig = new AuthenticationConfig
                                 {
@@ -61,7 +62,7 @@ namespace CaptainHook.Benchmark
                             new WebhookConfigRoute
                             {
                                 Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                HttpVerb = HttpVerb.Put,
+                                HttpMethod = HttpMethod.Post,
                                 Selector = "Brand2",
                                 AuthenticationConfig = new AuthenticationConfig
                                 {
@@ -229,7 +230,7 @@ namespace CaptainHook.Benchmark
 
         /// <inheritdoc />
 
-        public HttpVerb SelectHttpVerb(WebhookConfig webhookConfig, string payload)
+        public HttpMethod SelectHttpVerb(WebhookConfig webhookConfig, string payload)
         {
             //build the uri from the routes first
             var routingRules = webhookConfig.WebhookRequestRules.FirstOrDefault(l => l.Routes.Any());
@@ -251,13 +252,13 @@ namespace CaptainHook.Benchmark
                         var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
                         if (route != null)
                         {
-                            return route.HttpVerb;
+                            return route.HttpMethod;
                         }
                         throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
                     }
                 }
             }
-            return webhookConfig.HttpVerb;
+            return webhookConfig.HttpMethod;
         }
     }
 }

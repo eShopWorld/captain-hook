@@ -1,8 +1,11 @@
-﻿using System.Net;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
+using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Telemetry;
@@ -39,23 +42,26 @@ namespace CaptainHook.Tests.Web.Authentication
             {
                 ClientId = "bob",
                 ClientSecret = "bobsecret",
-                Uri = "http://localhost/authendpoint"
+                Uri = "https://localhost/authendpoint"
             };
 
             var mockHttp = new MockHttpMessageHandler();
             mockHttp.When(HttpMethod.Post, config.Uri)
                 .WithHeaders("client_id", config.ClientId)
                 .WithHeaders("client_secret", config.ClientSecret)
-                .WithContentType("application/json-patch+json", string.Empty)
+                .WithContentType("application/json-patch+json; charset=utf-8", string.Empty)
                 .Respond(HttpStatusCode.Created, "application/json-patch+json", expectedResponse);
 
-            var handler = new MmAuthenticationHandler(config, _bigBrother);
-            var httpClient = mockHttp.ToHttpClient();
-            await handler.GetTokenAsync(httpClient, _cancellationToken);
+            var httpClientFactory = new HttpClientFactory(new Dictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } });
 
-            Assert.NotNull(httpClient.DefaultRequestHeaders.Authorization);
-            Assert.Equal(expectedAccessToken, httpClient.DefaultRequestHeaders.Authorization.Parameter);
-            Assert.Equal("Bearer", httpClient.DefaultRequestHeaders.Authorization.Scheme);
+
+            var handler = new MmAuthenticationHandler(httpClientFactory, config, _bigBrother);
+            var httpClient = mockHttp.ToHttpClient();
+            var token = await handler.GetTokenAsync(_cancellationToken);
+
+            Assert.NotNull(token);
+            Assert.NotEmpty(token);
+            Assert.StartsWith("Bearer ", token);
         }
     }
 }

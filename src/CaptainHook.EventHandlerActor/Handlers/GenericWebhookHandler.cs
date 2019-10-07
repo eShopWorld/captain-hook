@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
+using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -14,13 +16,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class GenericWebhookHandler : IHandler
     {
         protected readonly IBigBrother BigBrother;
-        protected readonly IHttpClientBuilder HttpClientBuilder;
+        protected readonly IHttpClientFactory HttpClientFactory;
         protected readonly IRequestBuilder RequestBuilder;
-        protected readonly IRequestLogger RequestLogger;
         protected readonly WebhookConfig WebhookConfig;
+        private readonly IRequestLogger _requestLogger;
+        private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
 
         public GenericWebhookHandler(
-            IHttpClientBuilder httpClientBuilder,
+            IHttpClientFactory httpClientFactory,
+            IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestBuilder requestBuilder,
             IRequestLogger requestLogger,
             IBigBrother bigBrother,
@@ -28,9 +32,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
         {
             BigBrother = bigBrother;
             RequestBuilder = requestBuilder;
-            RequestLogger = requestLogger;
+            _requestLogger = requestLogger;
             WebhookConfig = webhookConfig;
-            HttpClientBuilder = httpClientBuilder;
+            _authenticationHandlerFactory = authenticationHandlerFactory;
+            HttpClientFactory = httpClientFactory;
         }
 
         /// <summary>
@@ -52,22 +57,34 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 //todo refactor into a single call and a dto
                 var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
-                var httpVerb = RequestBuilder.SelectHttpVerb(WebhookConfig, messageData.Payload);
+                var httpMethod = RequestBuilder.SelectHttpMethod(WebhookConfig, messageData.Payload);
                 var payload = RequestBuilder.BuildPayload(this.WebhookConfig, messageData.Payload, metadata);
-                var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
                 var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);
+                var headers = RequestBuilder.GetHeaders(WebhookConfig, messageData);
+                var authenticationConfig = RequestBuilder.GetAuthenticationConfig(WebhookConfig, messageData.Payload);
 
-                var httpClient = await HttpClientBuilder.BuildAsync(config, authenticationScheme, messageData.CorrelationId, cancellationToken);
+                var httpClient = HttpClientFactory.Get(config);
+                
+                await AddAuthenticationHeaderAsync(cancellationToken, authenticationConfig, headers);
+                
+                var response = await httpClient.SendRequestReliablyAsync(httpMethod, uri, headers, payload, cancellationToken);
 
-                var handler = new HttpFailureLogger(BigBrother, messageData, uri.AbsoluteUri, httpVerb);
-                var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, handler, token: cancellationToken);
-
-                await RequestLogger.LogAsync(httpClient, response, messageData, uri, httpVerb);
+                await _requestLogger.LogAsync(httpClient, response, messageData, uri, httpMethod);
             }
             catch (Exception e)
             {
                 BigBrother.Publish(e.ToExceptionEvent());
                 throw;
+            }
+        }
+
+        protected async Task AddAuthenticationHeaderAsync(CancellationToken cancellationToken, WebhookConfig config, WebHookHeaders webHookHeaders)
+        {
+            if (config.AuthenticationConfig.Type != AuthenticationType.None)
+            {
+                var acquireTokenHandler = await _authenticationHandlerFactory.GetAsync(config, cancellationToken);
+                var result = await acquireTokenHandler.GetTokenAsync(cancellationToken);
+                webHookHeaders.AddRequestHeader(Constants.Headers.Authorization, result);
             }
         }
     }

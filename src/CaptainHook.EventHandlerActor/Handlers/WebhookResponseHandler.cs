@@ -17,12 +17,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public WebhookResponseHandler(
             IEventHandlerFactory eventHandlerFactory,
-            IHttpClientBuilder httpClientBuilder,
+            IHttpClientFactory httpClientFactory,
             IRequestBuilder requestBuilder,
+            IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestLogger requestLogger,
             IBigBrother bigBrother,
             EventHandlerConfig eventHandlerConfig)
-            : base(httpClientBuilder, requestBuilder, requestLogger, bigBrother, eventHandlerConfig.WebhookConfig)
+            : base(httpClientFactory, authenticationHandlerFactory, requestBuilder, requestLogger, bigBrother, eventHandlerConfig.WebhookConfig)
         {
             _eventHandlerFactory = eventHandlerFactory;
             _eventHandlerConfig = eventHandlerConfig;
@@ -36,23 +37,25 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
-            var httpVerb = RequestBuilder.SelectHttpVerb(WebhookConfig, messageData.Payload);
-            var payload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
-            var authenticationScheme = RequestBuilder.SelectAuthenticationScheme(WebhookConfig, messageData.Payload);
+            var httpMethod = RequestBuilder.SelectHttpMethod(WebhookConfig, messageData.Payload);
+            var payload = RequestBuilder.BuildPayload(this.WebhookConfig, messageData.Payload, metadata);
             var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);
+            var headers = RequestBuilder.GetHeaders(WebhookConfig, messageData);
+            var authenticationConfig = RequestBuilder.GetAuthenticationConfig(WebhookConfig, messageData.Payload);
 
-            var httpClient = await HttpClientBuilder.BuildAsync(config, authenticationScheme, messageData.CorrelationId, cancellationToken);
+            var httpClient = HttpClientFactory.Get(config);
 
-            var handler = new HttpFailureLogger(BigBrother, messageData, uri.AbsoluteUri, httpVerb);
-            var response = await httpClient.ExecuteAsJsonReliably(httpVerb, uri, payload, handler, "application/json", cancellationToken);
+            await AddAuthenticationHeaderAsync(cancellationToken, authenticationConfig, headers);
+
+            var response = await httpClient.SendRequestReliablyAsync(httpMethod, uri, headers, payload, cancellationToken);
 
             BigBrother.Publish(
                 new WebhookEvent(
                     messageData.EventHandlerActorId, 
                     messageData.Type, 
                     $"Response status code {response.StatusCode}", 
-                    uri.AbsoluteUri, 
-                    httpVerb, 
+                    uri.AbsoluteUri,
+                    httpMethod, 
                     response.StatusCode,
                     messageData.CorrelationId
                 ));

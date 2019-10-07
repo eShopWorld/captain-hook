@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
@@ -28,7 +27,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             HttpResponseMessage response,
             MessageData messageData,
             Uri uri,
-            HttpVerb httpVerb
+            HttpMethod httpMethod
         )
         {
             string token = string.Empty;
@@ -44,7 +43,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 messageData.Type,
                 $"Response status code {response.StatusCode}",
                 uri.AbsoluteUri,
-                httpVerb,
+                httpMethod,
                 response.StatusCode,
                 messageData.CorrelationId)
             {
@@ -66,7 +65,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 messageData.Type,
                 $"Response status code {response.StatusCode}",
                 uri.AbsoluteUri,
-                httpVerb,
+                httpMethod,
                 response.StatusCode,
                 messageData.CorrelationId));
         }

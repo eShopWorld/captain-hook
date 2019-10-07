@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using CaptainHook.Common.Authentication;
 
 namespace CaptainHook.Common.Configuration
@@ -33,7 +34,9 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// 
         /// </summary>
-        public HttpVerb HttpVerb { get; set; }
+        public HttpMethod HttpMethod { get; set; } = HttpMethod.Post;
+
+        public string ContentType { get; set; } = Constants.Headers.DefaultContentType;
 
         /// <summary>
         /// 
@@ -120,6 +123,7 @@ namespace CaptainHook.Common.Configuration
         public DataType Type { get; set; } = DataType.Property;
     }
 
+    [Obsolete]
     public enum HttpVerb
     {
         Get = 1,

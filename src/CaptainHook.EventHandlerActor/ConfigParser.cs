@@ -92,9 +92,9 @@ namespace CaptainHook.EventHandlerActor
         public static void AddToDictionarySafely(IDictionary<string, WebhookConfig> endpointList, WebhookConfig rule)
         {
             var uri = new Uri(rule.Uri);
-            if (!endpointList.ContainsKey(uri.Host.ToLower()))
+            if (!endpointList.ContainsKey(uri.Host.ToLowerInvariant()))
             {
-                endpointList.Add(uri.Host.ToLower(), rule);
+                endpointList.Add(uri.Host.ToLowerInvariant(), rule);
             }
         }
 

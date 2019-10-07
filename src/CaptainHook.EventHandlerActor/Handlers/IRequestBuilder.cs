@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using CaptainHook.Common.Authentication;
+using System.Net.Http;
+using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -30,7 +31,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="webhookConfig"></param>
         /// <param name="payload"></param>
         /// <returns></returns>
-        HttpVerb SelectHttpVerb(WebhookConfig webhookConfig, string payload);
+        HttpMethod SelectHttpMethod(WebhookConfig webhookConfig, string payload);
 
         /// <summary>
         /// Determines the authentication scheme to use in the request.
@@ -38,7 +39,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="webhookConfig"></param>
         /// <param name="payload"></param>
         /// <returns></returns>
-        AuthenticationType SelectAuthenticationScheme(WebhookConfig webhookConfig, string payload);
+        WebhookConfig GetAuthenticationConfig(WebhookConfig webhookConfig, string payload);
 
         /// <summary>
         /// Selects the webhook config to use for the endpoint for which the request is destined based on supplied webhook rules and configs
@@ -47,5 +48,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="payload"></param>
         /// <returns></returns>
         WebhookConfig SelectWebhookConfig(WebhookConfig webhookConfig, string payload);
+
+        /// <summary>
+        /// Creates a dictionary of requests which are needed per request
+        /// </summary>
+        /// <returns></returns>
+        WebHookHeaders GetHeaders(WebhookConfig webhookConfig, MessageData messageData);
     }
 }

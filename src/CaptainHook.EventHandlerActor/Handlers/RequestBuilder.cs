@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using CaptainHook.Common;
-using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -147,13 +147,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         /// <inheritdoc />
 
-        public HttpVerb SelectHttpVerb(WebhookConfig webhookConfig, string payload)
+        public HttpMethod SelectHttpMethod(WebhookConfig webhookConfig, string payload)
         {
             //build the uri from the routes first
             var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
             if (rules == null)
             {
-                return webhookConfig.HttpVerb;
+                return webhookConfig.HttpMethod;
             }
 
             var value = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
@@ -168,17 +168,18 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
             }
-            return route.HttpVerb;
+
+            return route.HttpMethod;
         }
 
         /// <inheritdoc />
-        public AuthenticationType SelectAuthenticationScheme(WebhookConfig webhookConfig, string payload)
+        public WebhookConfig GetAuthenticationConfig(WebhookConfig webhookConfig, string payload)
         {
             //build the uri from the routes first
             var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
             if (rules == null)
             {
-                return webhookConfig.AuthenticationConfig.Type;
+                return webhookConfig;
             }
 
             var value = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
@@ -193,9 +194,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
             }
-            return route.AuthenticationConfig.Type;
+            return route;
         }
 
+        /// <inheritdoc />
         public WebhookConfig SelectWebhookConfig(WebhookConfig webhookConfig, string payload)
         {
             var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
@@ -203,7 +205,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 return webhookConfig;
             }
-            
+
             var selector = string.Empty;
             if (rules.Source.Location == Location.Body)
             {
@@ -223,6 +225,19 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             return route;
+        }
+
+        /// <inheritdoc />
+        public WebHookHeaders GetHeaders(WebhookConfig webhookConfig, MessageData messageData)
+        {
+            var headers = new WebHookHeaders();
+
+            headers.AddContentHeader(Constants.Headers.ContentType, webhookConfig.ContentType);
+            headers.AddRequestHeader(Constants.Headers.CorrelationId, messageData.CorrelationId);
+            headers.AddRequestHeader(Constants.Headers.EventDeliveryId, messageData.CorrelationId);
+            headers.AddRequestHeader(Constants.Headers.EventType, webhookConfig.Name);
+
+            return headers;
         }
     }
 }
