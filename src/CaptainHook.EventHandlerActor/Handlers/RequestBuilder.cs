@@ -73,7 +73,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         }
 
         /// <inheritdoc />
-        public string BuildPayload( WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata)
+        public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata)
         {
             if (config == null) throw new ArgumentNullException(nameof(config));
 
