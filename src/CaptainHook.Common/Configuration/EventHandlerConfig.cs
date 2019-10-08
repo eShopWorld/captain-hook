@@ -29,6 +29,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// 
         /// </summary>
+        [Obsolete("temp used - but should be removed when moving to api - event type should be the identifier")]
         public string Name { get; set; }
 
         /// <summary>
@@ -36,6 +37,14 @@ namespace CaptainHook.Common.Configuration
         /// </summary>
         public HttpMethod HttpMethod { get; set; } = HttpMethod.Post;
 
+        /// <summary>
+        /// The event type of this event
+        /// </summary>
+        public string EventType { get; set; }
+
+        /// <summary>
+        /// The default http content type used for events
+        /// </summary>
         public string ContentType { get; set; } = Constants.Headers.DefaultContentType;
 
         /// <summary>
