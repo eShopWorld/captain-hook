@@ -60,7 +60,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public HttpClient Get([NotNull] string endpoint)
+        public HttpClient Get(string endpoint)
         {
             if (string.IsNullOrWhiteSpace(endpoint)) throw new ArgumentNullException(nameof(endpoint));
 
