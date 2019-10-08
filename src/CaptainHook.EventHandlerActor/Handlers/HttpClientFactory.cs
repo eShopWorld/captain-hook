@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net.Http;
 using CaptainHook.Common.Configuration;
+using JetBrains.Annotations;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -35,6 +36,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public HttpClient Get(WebhookConfig config)
         {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+
             var uri = new Uri(config.Uri);
 
             if (_httpClients.TryGetValue(uri.Host.ToLowerInvariant(), out var httpClient))
@@ -57,8 +60,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="endpoint"></param>
         /// <returns></returns>
-        public HttpClient Get(string endpoint)
+        public HttpClient Get([NotNull] string endpoint)
         {
+            if (string.IsNullOrWhiteSpace(endpoint)) throw new ArgumentNullException(nameof(endpoint));
+
             var uri = new Uri(endpoint);
             if (_httpClients.TryGetValue(uri.Host.ToLowerInvariant(), out var httpClient))
             {

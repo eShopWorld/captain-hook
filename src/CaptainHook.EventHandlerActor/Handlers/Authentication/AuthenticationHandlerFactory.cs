@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using Eshopworld.Core;
+using JetBrains.Annotations;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
@@ -37,6 +38,8 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <returns></returns>
         public async Task<IAuthenticationHandler> GetAsync(WebhookConfig config, CancellationToken cancellationToken)
         {
+            if (config == null) throw new ArgumentNullException(nameof(config));
+
             var key = config.Uri;
 
             switch (config.AuthenticationConfig.Type)

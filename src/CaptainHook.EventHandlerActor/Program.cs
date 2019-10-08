@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -54,6 +53,7 @@ namespace CaptainHook.EventHandlerActor
                     if (eventHandlerConfig.WebhookConfig != null)
                     {
                         ConfigParser.ParseAuthScheme(eventHandlerConfig.WebhookConfig, configurationSection, $"{path}:authenticationconfig");
+                        eventHandlerConfig.WebhookConfig.EventType = eventHandlerConfig.Type;
                         webhookList.Add(eventHandlerConfig.WebhookConfig);
                         ConfigParser.AddEndpoints(eventHandlerConfig.WebhookConfig, endpointList, configurationSection, path);
                     }
@@ -65,6 +65,7 @@ namespace CaptainHook.EventHandlerActor
 
                     path = "callbackconfig";
                     ConfigParser.ParseAuthScheme(eventHandlerConfig.CallbackConfig, configurationSection, $"{path}:authenticationconfig");
+                    eventHandlerConfig.CallbackConfig.EventType = eventHandlerConfig.Type;
                     webhookList.Add(eventHandlerConfig.CallbackConfig);
                     ConfigParser.AddEndpoints(eventHandlerConfig.CallbackConfig, endpointList, configurationSection, path);
                 }
