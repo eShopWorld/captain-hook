@@ -50,9 +50,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
         WebhookConfig SelectWebhookConfig(WebhookConfig webhookConfig, string payload);
 
         /// <summary>
-        /// Creates a dictionary of requests headers which are needed per request
+        /// Creates a dictionary of requests which are needed per request
         /// </summary>
         /// <returns></returns>
-        WebHookHeaders GetHttpHeaders(WebhookConfig webhookConfig, MessageData messageData);
+        WebHookHeaders GetHeaders(WebhookConfig webhookConfig, MessageData messageData);
     }
 }

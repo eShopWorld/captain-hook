@@ -21,10 +21,6 @@ namespace CaptainHook.EventHandlerActor
         /// <param name="path"></param>
         public static void AddEndpoints(WebhookConfig webhookConfig, IDictionary<string, WebhookConfig> endpointList, IConfiguration configurationSection, string path)
         {
-            if (webhookConfig == null) throw new ArgumentNullException(nameof(webhookConfig));
-            if (endpointList == null) throw new ArgumentNullException(nameof(endpointList));
-            if (configurationSection == null) throw new ArgumentNullException(nameof(configurationSection));
-
             //creates a list of endpoints so they can be shared for authentication and http pooling
             if (string.IsNullOrWhiteSpace(webhookConfig.Uri))
             {

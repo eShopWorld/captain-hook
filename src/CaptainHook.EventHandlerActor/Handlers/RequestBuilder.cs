@@ -14,8 +14,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <inheritdoc />
         public Uri BuildUri(WebhookConfig config, string payload)
         {
-            if (config == null) throw new ArgumentNullException(nameof(config));
-
             var uri = config.Uri;
 
             //build the uri from the routes first
@@ -73,10 +71,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
         }
 
         /// <inheritdoc />
-        public string BuildPayload( WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata)
+        public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata)
         {
-            if (config == null) throw new ArgumentNullException(nameof(config));
-
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.Body).ToList();
 
             if (!rules.Any())
@@ -153,8 +149,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public HttpMethod SelectHttpMethod(WebhookConfig webhookConfig, string payload)
         {
-            if (webhookConfig == null) throw new ArgumentNullException(nameof(webhookConfig));
-
             //build the uri from the routes first
             var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
             if (rules == null)
@@ -181,8 +175,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <inheritdoc />
         public WebhookConfig GetAuthenticationConfig(WebhookConfig webhookConfig, string payload)
         {
-            if (webhookConfig == null) throw new ArgumentNullException(nameof(webhookConfig));
-
             //build the uri from the routes first
             var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
             if (rules == null)
@@ -208,8 +200,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <inheritdoc />
         public WebhookConfig SelectWebhookConfig(WebhookConfig webhookConfig, string payload)
         {
-            if (webhookConfig == null) throw new ArgumentNullException(nameof(webhookConfig));
-
             var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
             if (rules == null)
             {
@@ -238,17 +228,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
         }
 
         /// <inheritdoc />
-        public WebHookHeaders GetHttpHeaders(WebhookConfig webhookConfig, MessageData messageData)
+        public WebHookHeaders GetHeaders(WebhookConfig webhookConfig, MessageData messageData)
         {
-            if (webhookConfig == null) throw new ArgumentNullException(nameof(webhookConfig));
-            if (messageData == null) throw new ArgumentNullException(nameof(messageData));
-
             var headers = new WebHookHeaders();
 
             headers.AddContentHeader(Constants.Headers.ContentType, webhookConfig.ContentType);
             headers.AddRequestHeader(Constants.Headers.CorrelationId, messageData.CorrelationId);
             headers.AddRequestHeader(Constants.Headers.EventDeliveryId, messageData.CorrelationId);
-            headers.AddRequestHeader(Constants.Headers.EventType, webhookConfig.EventType);
+            headers.AddRequestHeader(Constants.Headers.EventType, webhookConfig.Name);
 
             return headers;
         }

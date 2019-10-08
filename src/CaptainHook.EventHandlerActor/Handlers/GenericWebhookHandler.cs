@@ -60,7 +60,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var httpMethod = RequestBuilder.SelectHttpMethod(WebhookConfig, messageData.Payload);
                 var payload = RequestBuilder.BuildPayload(this.WebhookConfig, messageData.Payload, metadata);
                 var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);
-                var headers = RequestBuilder.GetHttpHeaders(WebhookConfig, messageData);
+                var headers = RequestBuilder.GetHeaders(WebhookConfig, messageData);
                 var authenticationConfig = RequestBuilder.GetAuthenticationConfig(WebhookConfig, messageData.Payload);
 
                 var httpClient = HttpClientFactory.Get(config);
