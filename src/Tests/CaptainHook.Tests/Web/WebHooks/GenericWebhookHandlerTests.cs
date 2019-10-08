@@ -36,6 +36,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             {
                 Uri = "http://localhost/webhook",
                 HttpMethod = HttpMethod.Put,
+                EventType = "Event1",
                 AuthenticationConfig = new AuthenticationConfig(),
                 WebhookRequestRules = new List<WebhookRequestRule>
                 {
@@ -72,7 +73,6 @@ namespace CaptainHook.Tests.Web.WebHooks
                 requestLogger,
                 mockBigBrother.Object,
                 config);
-
 
             await genericWebhookHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 

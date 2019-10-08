@@ -57,7 +57,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 mockBigBrother.Object,
                 config);
 
-            await genericWebhookHandler.CallAsync(new MessageData(payload, "TestType"), new Dictionary<string, object>(), _cancellationToken);
+            await genericWebhookHandler.CallAsync(new MessageData(payload, "TestType"){CorrelationId = Guid.NewGuid().ToString()}, new Dictionary<string, object>(), _cancellationToken);
             Assert.Equal(1, mockHttp.GetMatchCount(request));
         }
 
@@ -85,7 +85,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 mockBigBrother.Object,
                 config);
 
-            await genericWebhookHandler.CallAsync(new MessageData(payload, "TestType"), new Dictionary<string, object>(), _cancellationToken);
+            await genericWebhookHandler.CallAsync(new MessageData(payload, "TestType") { CorrelationId = Guid.NewGuid().ToString() }, new Dictionary<string, object>(), _cancellationToken);
             Assert.Equal(1, mockHttp.GetMatchCount(request));
         }
 
@@ -95,9 +95,9 @@ namespace CaptainHook.Tests.Web.WebHooks
         public static IEnumerable<object[]> CreationData =>
             new List<object[]>
             {
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/post", HttpMethod = HttpMethod.Post, }, HttpMethod.Post, "{\"Message\":\"Hello World Post\"}", HttpStatusCode.Created, string.Empty  },
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/put", HttpMethod = HttpMethod.Put }, HttpMethod.Put, "{\"Message\":\"Hello World Put\"}", HttpStatusCode.NoContent, string.Empty  },
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/patch", HttpMethod = HttpMethod.Patch }, HttpMethod.Patch, "{\"Message\":\"Hello World Patch\"}", HttpStatusCode.NoContent, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/post", HttpMethod = HttpMethod.Post, EventType = "Event1"}, HttpMethod.Post, "{\"Message\":\"Hello World Post\"}", HttpStatusCode.Created, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/put", HttpMethod = HttpMethod.Put, EventType = "Event2"}, HttpMethod.Put, "{\"Message\":\"Hello World Put\"}", HttpStatusCode.NoContent, string.Empty  },
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/patch", HttpMethod = HttpMethod.Patch, EventType = "Event3"}, HttpMethod.Patch, "{\"Message\":\"Hello World Patch\"}", HttpStatusCode.NoContent, string.Empty  },
             };
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         public static IEnumerable<object[]> GetData =>
             new List<object[]>
             {
-                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/get", HttpMethod = HttpMethod.Get }, HttpMethod.Get, null, HttpStatusCode.OK, string.Empty}
+                new object[] { new WebhookConfig{Uri = "http://localhost/webhook/get", HttpMethod = HttpMethod.Get, EventType = "Event1" }, HttpMethod.Get, null, HttpStatusCode.OK, string.Empty}
             };
     }
 }

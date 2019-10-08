@@ -309,6 +309,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 Name = "Webhook1",
                 HttpMethod = HttpMethod.Post,
                 Uri = "https://blah.blah.eshopworld.com",
+                EventType = "Event1Webhook",
                 AuthenticationConfig = new OidcAuthenticationConfig
                 {
                     Type = AuthenticationType.OIDC,
@@ -350,6 +351,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 Name = "PutOrderConfirmationEvent",
                 HttpMethod = HttpMethod.Put,
                 Uri = "https://callback.eshopworld.com",
+                EventType = "Event1Callback",
                 AuthenticationConfig = new AuthenticationConfig
                 {
                     Type = AuthenticationType.None
@@ -402,6 +404,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             WebhookConfig = new WebhookConfig
             {
                 Name = "Webhook1",
+                EventType = "Event1Webhook",
                 WebhookRequestRules = new List<WebhookRequestRule>
                 {
                     new WebhookRequestRule
@@ -457,6 +460,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             CallbackConfig = new WebhookConfig
             {
                 Name = "PutOrderConfirmationEvent",
+                EventType = "PutOrderConfirmationEvent",
                 HttpMethod = HttpMethod.Post,
                 Uri = "https://callback.eshopworld.com",
                 AuthenticationConfig = new AuthenticationConfig
@@ -511,6 +515,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             {
                 Name = "Webhook1",
                 HttpMethod = HttpMethod.Post,
+                EventType = "Event1",
                 Uri = "https://blah.blah.eshopworld.com",
                 AuthenticationConfig = new OidcAuthenticationConfig
                 {
@@ -577,6 +582,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 Name = "PutOrderConfirmationEvent",
                 HttpMethod = HttpMethod.Post,
                 Uri = "https://callback.eshopworld.com",
+                EventType = "Event1Callback",
                 AuthenticationConfig = new AuthenticationConfig
                 {
                     Type = AuthenticationType.None

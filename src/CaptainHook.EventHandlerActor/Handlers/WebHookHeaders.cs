@@ -33,7 +33,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         public void AddContentHeader(string name, string value)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
-            if (string.IsNullOrWhiteSpace(value)) throw new ArgumentNullException(nameof(value));
+            if (string.IsNullOrWhiteSpace(value)) throw new ArgumentNullException($"the value of {name}");
 
             ContentHeaders.Add(name, value);
         }
@@ -59,7 +59,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         public void AddRequestHeader(string name, string value)
         {
             if (string.IsNullOrWhiteSpace(name)) throw new ArgumentNullException(nameof(name));
-            if (string.IsNullOrWhiteSpace(value)) throw new ArgumentNullException(nameof(value));
+            if (string.IsNullOrWhiteSpace(value)) throw new ArgumentNullException($"the value of {name}");
 
             RequestHeaders.Add(name, value);
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CaptainHook.Common;
 
@@ -14,7 +15,10 @@ namespace CaptainHook.Tests
                 {"TransportModel", new { Name = "Hello World" }}
             };
 
-            var messageData = new MessageData(dictionary.ToJson(), "TestType");
+            var messageData = new MessageData(dictionary.ToJson(), "TestType")
+            {
+                CorrelationId = Guid.NewGuid().ToString()
+            };
 
             return (messageData, dictionary);
         }
