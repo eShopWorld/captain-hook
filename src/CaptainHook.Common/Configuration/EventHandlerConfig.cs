@@ -148,6 +148,24 @@ namespace CaptainHook.Common.Configuration
                 IsMainConfiguration = true,
             };
         }
+
+        internal int CollectionIndex { get; set; }
+
+        public string WebHookConfigPath
+        {
+            get
+            {
+                return IsMainConfiguration ? "webhookconfig" : $"subscribers:{CollectionIndex+1}"; //convention is 1-based index
+            }
+        }
+
+        public string CallbackConfigPath
+        {
+            get
+            {
+                return IsMainConfiguration ? "callbackconfig" : $"subscribers:{CollectionIndex+1}:callbackconfig"; //convention is 1-based index
+            }
+        }
     }
 
     /// <summary>
@@ -170,7 +188,10 @@ namespace CaptainHook.Common.Configuration
                 if (WebhookConfig != null)
                     yield return SubscriberConfiguration.FromWebhookConfig(WebhookConfig, CallbackConfig);
                 foreach (var conf in Subscribers)
+                {
+                    conf.CollectionIndex = Subscribers.IndexOf(conf);
                     yield return conf;
+                }
             }
         }
 

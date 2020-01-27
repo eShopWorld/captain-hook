@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using Eshopworld.Platform.Messages;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -248,7 +249,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             headers.AddContentHeader(Constants.Headers.ContentType, webhookConfig.ContentType);
             headers.AddRequestHeader(Constants.Headers.CorrelationId, messageData.CorrelationId);
             headers.AddRequestHeader(Constants.Headers.EventDeliveryId, messageData.CorrelationId);
-            headers.AddRequestHeader(Constants.Headers.EventType, webhookConfig.EventType);
+            headers.AddRequestHeader(Constants.Headers.EventType, webhookConfig.PayloadTransformation==PayloadContractTypeEnum.WrapperContract ? typeof(NewtonsoftDeliveryStatusMessage).FullName.ToLowerInvariant(): webhookConfig.EventType);
 
             return headers;
         }

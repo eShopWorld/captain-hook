@@ -53,7 +53,7 @@ namespace CaptainHook.EventHandlerActor
                             SubscriberConfiguration.Key(eventHandlerConfig.Type, subscriber.SubscriberName),
                             subscriber);
 
-                        var path = "webhookconfig";
+                        var path = subscriber.WebHookConfigPath;
                         ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
                         subscriber.EventType = eventHandlerConfig.Type;
                         subscriber.PayloadTransformation = subscriber.DLQMode != null ? PayloadContractTypeEnum.WrapperContract : PayloadContractTypeEnum.Raw;
@@ -63,7 +63,7 @@ namespace CaptainHook.EventHandlerActor
 
                         if (subscriber.Callback != null)
                         {
-                            path = "callbackconfig";
+                            path = subscriber.CallbackConfigPath;
                             ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
                             subscriber.Callback.EventType = eventHandlerConfig.Type;
                             webhookList.Add(subscriber.Callback);

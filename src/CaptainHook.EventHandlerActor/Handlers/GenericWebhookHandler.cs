@@ -8,6 +8,8 @@ using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
+using Eshopworld.Platform.Messages;
+using Eshopworld.Platform.Messages.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -87,14 +89,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         private string WrapPayload(string originalPayload, WebhookConfig webhookConfig, MessageData messageData)
         {
-            var source = new WrapperPayloadContract
+            var source = new NewtonsoftDeliveryStatusMessage
             {
                 CallbackType = messageData.IsDlq ? CallbackTypeEnum.DeliveryFailure : CallbackTypeEnum.Callback,
                 EventType = webhookConfig.EventType,
                 MessageId = messageData.CorrelationId,
                 StatusCode = null, //this is never specified for non callback
                 Payload = JObject.Parse(originalPayload),
-                StatusUri = null //for now
+                TelemetryUri = null //for now
             };
 
             using (var sw = new StringWriter())

@@ -12,7 +12,10 @@ using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using CaptainHook.Tests.Web.Authentication;
 using Eshopworld.Core;
+using Eshopworld.Platform.Messages;
+using Eshopworld.Platform.Messages.Enums;
 using Eshopworld.Tests.Core;
+using FluentAssertions;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -119,12 +122,17 @@ namespace CaptainHook.Tests.Web.WebHooks
             var webhookRequest = mockHttp.Expect(HttpMethod.Put, $"{config.Uri}/{metaData["OrderCode"]}")
                 .With((m) =>
                 {
+                //check event type header
+                    IEnumerable<string> evTypeValues = new List<string>();
+                    var evType = m.Headers.TryGetValues(Constants.Headers.EventType, out evTypeValues);
+                    evTypeValues.Should().Contain(typeof(NewtonsoftDeliveryStatusMessage).FullName.ToLowerInvariant());
+                    //check content to match the DLQ contract
                     var str = m.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
                     using (var sr = new StringReader(str))
                     {
                         using (var jr = new JsonTextReader(sr))
                         {
-                            var wrapperObj = JsonSerializer.CreateDefault().Deserialize<WrapperPayloadContract>(jr);
+                            var wrapperObj = JsonSerializer.CreateDefault().Deserialize<NewtonsoftDeliveryStatusMessage>(jr);
                             return JToken.DeepEquals(wrapperObj.Payload, JObject.Parse(messageData.Payload)) && wrapperObj.CallbackType == CallbackTypeEnum.DeliveryFailure;
                         }
                     }
