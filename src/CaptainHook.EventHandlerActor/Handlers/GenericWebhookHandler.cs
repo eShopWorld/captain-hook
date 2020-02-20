@@ -51,7 +51,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="metadata"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public virtual async Task CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
+        public virtual async Task<bool> CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
         {
             try
             {
@@ -79,6 +79,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var response = await httpClient.SendRequestReliablyAsync(httpMethod, uri, headers, payload, cancellationToken);
 
                 await _requestLogger.LogAsync(httpClient, response, messageData, uri, httpMethod, headers);
+
+                return !response.IsDeliveryFailure();
             }
             catch (Exception e)
             {

@@ -66,21 +66,21 @@ namespace CaptainHook.EventHandlerActor.Handlers
         private static async Task<HttpResponseMessage> RetryRequest(
             Func<Task<HttpResponseMessage>> makeTheCall)
         {
+            
             //todo the retry status codes need to be customisable from the webhook config api
             var response = await Policy.HandleResult<HttpResponseMessage>(
-                    message =>
-                        message.StatusCode == HttpStatusCode.ServiceUnavailable ||
-                        message.StatusCode == HttpStatusCode.TooManyRequests)
+                    message => message.IsDeliveryFailure())                      
 
                 .WaitAndRetryAsync(new[]
                 {
                     //todo config this + jitter
                     TimeSpan.FromSeconds(20),
                     TimeSpan.FromSeconds(30)
-
                 }).ExecuteAsync(makeTheCall.Invoke);
-
+        
             return response;
         }
+
+       
     }
 }
