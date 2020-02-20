@@ -29,7 +29,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             _subscriberConfiguration = subscriberConfiguration;
         }
 
-        public override async Task CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
+        public override async Task<bool> CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
         {
             if (!(request is MessageData messageData))
             {
@@ -60,6 +60,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     messageData.CorrelationId
                 ));
 
+            //do not proceed to callback if response indicates "delivery failure"
+            if (response.IsDeliveryFailure())
+            {
+                return false;
+            }
+
             if (metadata == null)
             {
                 metadata = new Dictionary<string, object>();
@@ -76,7 +82,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             //call callback
             var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_subscriberConfiguration.Callback.Name);
 
-            await eswHandler.CallAsync(messageData, metadata, cancellationToken);
+            return await eswHandler.CallAsync(messageData, metadata, cancellationToken);
         }
     }
 }
