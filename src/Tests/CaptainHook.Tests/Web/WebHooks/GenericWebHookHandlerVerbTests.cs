@@ -57,7 +57,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 mockBigBrother.Object,
                 config);
 
-            await genericWebhookHandler.CallAsync(new MessageData(payload, "TestType", "subA", "service") {CorrelationId = Guid.NewGuid().ToString()}, new Dictionary<string, object>(), _cancellationToken);
+            await genericWebhookHandler.CallAsync(new MessageData(payload, "TestType", "subA", "service") {ServiceBusMessageId = Guid.NewGuid().ToString(), CorrelationId = Guid.NewGuid().ToString()}, new Dictionary<string, object>(), _cancellationToken);
             Assert.Equal(1, mockHttp.GetMatchCount(request));
         }
 
