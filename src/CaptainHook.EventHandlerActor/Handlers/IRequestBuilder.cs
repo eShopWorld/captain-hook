@@ -52,7 +52,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <summary>
         /// Creates a dictionary of requests headers which are needed per request
         /// </summary>
-        /// <returns></returns>
+        /// <param name="messageData">message wrapper</param>
+        /// <param name="webhookConfig">config to use</param>
+        /// <returns>list of headers</returns>
         WebHookHeaders GetHttpHeaders(WebhookConfig webhookConfig, MessageData messageData);
     }
 }
