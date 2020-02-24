@@ -6,7 +6,6 @@ using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using Eshopworld.Tests.Core;
-using FluentAssertions;
 using Xunit;
 
 namespace CaptainHook.Tests.Configuration
@@ -50,15 +49,6 @@ namespace CaptainHook.Tests.Configuration
 
             var headers = new RequestBuilder().GetHttpHeaders(config, messageData);
             Assert.Equal(headerExpected, headers.RequestHeaders.ContainsKey(Constants.Headers.IdempotencyKey));
-        }
-
-        [IsLayer0]
-        [Theory]
-        [MemberData(nameof(HeaderDataPost))]
-        public void IdempotencyKeyHeaderTests_Post(WebhookConfig config, MessageData data)
-        {
-            var headers = new RequestBuilder().GetHttpHeaders(config, data);
-            headers.RequestHeaders.Should().ContainKey(Constants.Headers.CorrelationId);
         }
 
         [IsLayer0]
@@ -723,67 +713,6 @@ namespace CaptainHook.Tests.Configuration
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     AuthenticationType.None
                 }
-            };
-
-        public static IEnumerable<object[]> HeaderDataPost =>
-           new List<object[]>
-           {
-                new object[]
-                {
-                      new WebhookConfig
-                    {
-                        Name = "Webhook2",
-                        HttpMethod = HttpMethod.Post,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        AuthenticationConfig = new OidcAuthenticationConfig(),
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new ParserLocation
-                                {
-                                    Path = "OrderCode"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Location = Location.Uri,
-
-                                }
-                            }
-                        }
-                    },
-                    new MessageData("blah", "blahtype", "blahsubscriber", "blahReplyTo", false) {ServiceBusMessageId = Guid.NewGuid().ToString(), CorrelationId = Guid.NewGuid().ToString()}
-                }
-           };
-        public static IEnumerable<object[]> HeaderDataGet =>
-           new List<object[]>
-           {
-                new object[]
-                {
-                      new WebhookConfig
-                    {
-                        Name = "Webhook2",
-                        HttpMethod = HttpMethod.Get,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        AuthenticationConfig = new OidcAuthenticationConfig(),
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new ParserLocation
-                                {
-                                    Path = "OrderCode"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Location = Location.Uri,
-
-                                }
-                            }
-                        }
-                    },
-                    new MessageData("blah", "blahtype", "blahsubscriber", "blahReplyTo", false) {ServiceBusMessageId = Guid.NewGuid().ToString(), CorrelationId = Guid.NewGuid().ToString()}
-                }
-           };
+            };   
     }
 }
