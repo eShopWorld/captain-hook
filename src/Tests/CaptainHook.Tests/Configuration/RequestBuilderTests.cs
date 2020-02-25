@@ -14,11 +14,11 @@ namespace CaptainHook.Tests.Configuration
     {
         [IsLayer0]
         [Theory]
-        [InlineData("GET", false)]
-        [InlineData("POST", true)]
-        [InlineData("PUT", true)]
-        [InlineData("DELETE", true)]
-        public void IdempotencyKeyHeaderTests_Get(string method, bool headerExpected)
+        [InlineData("GET")]
+        [InlineData("POST")]
+        [InlineData("PUT")]
+        [InlineData("DELETE")]
+        public void IdempotencyKeyHeaderTests_Get(string method)
         {
             var config = new WebhookConfig
             {
@@ -48,7 +48,7 @@ namespace CaptainHook.Tests.Configuration
             var messageData = new MessageData("blah", "blahtype", "blahsubscriber", "blahReplyTo", false) { ServiceBusMessageId = Guid.NewGuid().ToString(), CorrelationId = Guid.NewGuid().ToString() };
 
             var headers = new RequestBuilder().GetHttpHeaders(config, messageData);
-            Assert.Equal(headerExpected, headers.RequestHeaders.ContainsKey(Constants.Headers.IdempotencyKey));
+            Assert.True(headers.RequestHeaders.ContainsKey(Constants.Headers.IdempotencyKey));
         }
 
         [IsLayer0]
