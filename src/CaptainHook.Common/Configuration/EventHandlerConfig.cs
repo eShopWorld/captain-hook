@@ -42,7 +42,11 @@ namespace CaptainHook.Common.Configuration
         public string HttpVerb
         {
             get => HttpMethod.Method;
-            set => HttpMethod = new HttpMethod(value);
+            set
+            {
+                if (!string.IsNullOrWhiteSpace(value))
+                    HttpMethod = new HttpMethod(value);
+            }
         }
 
         /// <summary>
