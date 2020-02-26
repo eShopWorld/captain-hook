@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
@@ -11,6 +12,45 @@ namespace CaptainHook.Tests.Configuration
 {
     public class RequestBuilderTests
     {
+        [IsLayer0]
+        [Theory]
+        [InlineData("GET")]
+        [InlineData("POST")]
+        [InlineData("PUT")]
+        [InlineData("DELETE")]
+        public void IdempotencyKeyHeaderTests_Get(string method)
+        {
+            var config = new WebhookConfig
+            {
+                Name = "Webhook2",
+                EventType =  "eventType",
+                HttpMethod = HttpMethod.Get,
+                Uri = "https://blah.blah.eshopworld.com/webhook/",
+                AuthenticationConfig = new OidcAuthenticationConfig(),
+                WebhookRequestRules = new List<WebhookRequestRule>
+                        {
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
+                                    Path = "OrderCode"
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    Location = Location.Uri,
+
+                                }
+                            }
+                        }
+            };
+            config.HttpMethod = new HttpMethod(method);
+
+            var messageData = new MessageData("blah", "blahtype", "blahsubscriber", "blahReplyTo", false) { ServiceBusMessageId = Guid.NewGuid().ToString(), CorrelationId = Guid.NewGuid().ToString() };
+
+            var headers = new RequestBuilder().GetHttpHeaders(config, messageData);
+            Assert.True(headers.RequestHeaders.ContainsKey(Constants.Headers.IdempotencyKey));
+        }
+
         [IsLayer0]
         [Theory]
         [MemberData(nameof(UriData))]
@@ -673,6 +713,6 @@ namespace CaptainHook.Tests.Configuration
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     AuthenticationType.None
                 }
-            };
+            };   
     }
 }

@@ -231,6 +231,7 @@ namespace CaptainHook.EventReaderService
 
                             messageData.HandlerId = handlerId;
                             messageData.CorrelationId = Guid.NewGuid().ToString();
+                            messageData.ServiceBusMessageId = message.MessageId;
 
                             var handleData = new MessageDataHandle
                             {

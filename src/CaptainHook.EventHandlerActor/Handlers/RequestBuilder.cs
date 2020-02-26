@@ -250,6 +250,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             headers.AddRequestHeader(Constants.Headers.CorrelationId, messageData.CorrelationId);
             headers.AddRequestHeader(Constants.Headers.EventDeliveryId, messageData.CorrelationId);
             headers.AddRequestHeader(Constants.Headers.EventType, webhookConfig.PayloadTransformation==PayloadContractTypeEnum.WrapperContract ? typeof(NewtonsoftDeliveryStatusMessage).FullName.ToLowerInvariant(): webhookConfig.EventType);
+            headers.AddRequestHeader(Constants.Headers.IdempotencyKey, messageData.ServiceBusMessageId);
 
             return headers;
         }

@@ -95,7 +95,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 CallbackType = messageData.IsDlq ? CallbackTypeEnum.DeliveryFailure : CallbackTypeEnum.Callback,
                 EventType = webhookConfig.EventType,
-                MessageId = messageData.CorrelationId,
+                MessageId = messageData.ServiceBusMessageId,
                 StatusCode = null, //this is never specified for non callback
                 Payload = JObject.Parse(originalPayload),
                 TelemetryUri = null //for now

@@ -44,6 +44,11 @@
         /// </remarks>
         public string SubscriberName { get; set; }
 
+        /// <summary>
+        /// message id as driven natively by Service Bus
+        /// </summary>
+        public string ServiceBusMessageId { get; set; }
+
         public string EventHandlerActorId => $"{Type}-{SubscriberName}-{HandlerId}";
 
     }

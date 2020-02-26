@@ -15,6 +15,8 @@
             public const string Authorization = "Authorization";
 
             public const string DefaultContentType = "application/json";
+
+            public const string IdempotencyKey = "Idempotency-Key";
         }
 
         public struct CaptainHookApplication

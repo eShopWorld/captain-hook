@@ -17,7 +17,8 @@ namespace CaptainHook.Tests
 
             var messageData = new MessageData(dictionary.ToJson(), "TestType", "subA", "service")
             {
-                CorrelationId = Guid.NewGuid().ToString()
+                CorrelationId = Guid.NewGuid().ToString(),
+                ServiceBusMessageId = Guid.NewGuid().ToString()
             };
 
             return (messageData, dictionary);
