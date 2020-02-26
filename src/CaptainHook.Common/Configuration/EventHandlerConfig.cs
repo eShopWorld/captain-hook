@@ -37,6 +37,15 @@ namespace CaptainHook.Common.Configuration
         public HttpMethod HttpMethod { get; set; } = HttpMethod.Post;
 
         /// <summary>
+        /// due to limitations of binder (simple POCOs), route the config through this property
+        /// </summary>
+        public string HttpVerb
+        {
+            get => HttpMethod.Method;
+            set => HttpMethod = new HttpMethod(value);
+        }
+
+        /// <summary>
         /// The event type of this event
         /// </summary>
         public string EventType { get; set; }
