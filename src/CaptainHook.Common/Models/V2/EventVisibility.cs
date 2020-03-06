@@ -3,7 +3,7 @@
     /// <summary>
     /// defines types of visibility of <see cref="Event"/>
     /// </summary>
-    public enum EventVisibilityEnum
+    public enum EventVisibility
     {
         Internal,
         Public

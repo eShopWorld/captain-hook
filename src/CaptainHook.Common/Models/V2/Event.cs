@@ -18,7 +18,7 @@ namespace CaptainHook.Common.Models.V2
         /// <summary>
         /// scope of visibility for the event instance
         /// </summary>
-        public EventVisibilityEnum Visibility { get; set; } = EventVisibilityEnum.Internal;
+        public EventVisibility Visibility { get; set; } = EventVisibility.Internal;
         /// <summary>
         /// list of tenant codes to constraint the event visibility (if applicable)
         /// </summary>
