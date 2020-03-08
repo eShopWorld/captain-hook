@@ -26,7 +26,7 @@ namespace CaptainHook.Database.CosmosDB
     }
 
     /// <summary>
-    /// Defines basic ineterface for cosmos db-based repository
+    /// Defines basic interface for cosmos db-based repository
     /// </summary>
     public interface ICosmosDbRepository
     {
@@ -36,7 +36,7 @@ namespace CaptainHook.Database.CosmosDB
         IDocumentClient DbClient { get; }
 
         /// <summary>
-        /// Defines the collection (and from which databsae) that should be used by the repository.
+        /// Defines the collection (and from which database) that should be used by the repository.
         /// </summary>
         /// <exception cref="ArgumentException">When the collection name or database id is incorrect</exception>
         void UseCollection (string collectionName, string databaseId = null);
