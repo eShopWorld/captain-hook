@@ -14,15 +14,11 @@ namespace CaptainHook.Database.Setup
     public static class DbSettingsParser
     {
         private const string ConnectionStringKey = "CosmosDB:Tooling:ConnectionString";
+
         private const string EndPointKey = "AccountEndpoint";
+
         private const string AccountKey = "AccountKey";
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="configuration"></param>
-        /// <exception cref="CosmosDbConfigurationException"></exception>
-        /// <returns></returns>
         public static (string dbEndpoint, string dbKey) GetDbSettings(IConfiguration configuration)
         {
             var connectionString = configuration[ConnectionStringKey];
@@ -34,9 +30,9 @@ namespace CaptainHook.Database.Setup
             var connectionStringBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
 
             var dbEndpoint = GetDbEndpoint(connectionStringBuilder);
-            var databaseKey = GetDatabaseKey(connectionStringBuilder);
+            var dbKey = GetDatabaseKey(connectionStringBuilder);
 
-            return (dbEndpoint: dbEndpoint, dbKey: databaseKey);
+            return (dbEndpoint, dbKey);
         }
 
         private static string GetDatabaseKey(DbConnectionStringBuilder connectionStringBuilder)
