@@ -20,6 +20,7 @@
     <EnvironmentVariables>
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="N/A" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="N/A" />
+      <EnvironmentVariable Name="CosmosDB:Tooling:ConnectionString" Value="" />
     </EnvironmentVariables>
   </CodePackage>
 
