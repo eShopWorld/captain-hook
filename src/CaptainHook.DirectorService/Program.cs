@@ -54,12 +54,6 @@ namespace CaptainHook.DirectorService
 
                 builder.RegisterInstance(config.GetSection("event").Get<IEnumerable<EventHandlerConfig>>());
 
-                // CosmosDB support is under development
-                if (false)
-                {
-                    builder.ConfigureCosmosDb(config);
-                }
-
                 builder.RegisterInstance(settings)
                        .SingleInstance();
 
@@ -69,23 +63,10 @@ namespace CaptainHook.DirectorService
                 builder.RegisterType<FabricClient>().SingleInstance();
 
                 var featureFlags = ConfigureFeatureFlags(config, builder);
-                //if (featureFlags.GetFlag<CosmosDbFeatureFlag>().IsEnabled)
-                //{
-                //    // do something
-                //}
-
-                //todo cosmos config and rules stuff - come back to this later
-                // - we need to ensure rules which are in the db are created
-                // - rules which are updated are updated in the handlers and dispatchers
-                // - rules which are deleted can only be soft deleted - cosmos change feed does not support hard deletes
-                //var cosmosClient = new CosmosClient(settings.CosmosConnectionString);
-                //builder.RegisterInstance(cosmosClient);
-
-                //var database = (await cosmosClient.Databases.CreateDatabaseIfNotExistsAsync("captain-hook", 400)).Database;
-                //builder.RegisterInstance(database);
-
-                //var ruleContainer = (await database.Containers.CreateContainerIfNotExistsAsync(nameof(RoutingRule), RoutingRule.PartitionKeyPath)).Container;
-                //builder.RegisterInstance(ruleContainer).SingleInstance();
+                if (featureFlags.GetFlag<CosmosDbFeatureFlag>().IsEnabled)
+                {
+                    builder.ConfigureCosmosDb(config);
+                }
 
                 builder.SetupFullTelemetry(settings.InstrumentationKey);
                 builder.RegisterStatefulService<DirectorService>(ServiceNaming.DirectorServiceType);
