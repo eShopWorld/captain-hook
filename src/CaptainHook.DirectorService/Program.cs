@@ -8,6 +8,7 @@ using Autofac;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Database.Setup;
 using Eshopworld.Telemetry;
@@ -20,6 +21,8 @@ namespace CaptainHook.DirectorService
 {
     internal static class Program
     {
+        private const string CaptainHookConfigSection = "CaptainHook";
+
         /// <summary>
         /// This is the entry point of the service host process.
         /// </summary>
@@ -51,12 +54,6 @@ namespace CaptainHook.DirectorService
 
                 builder.RegisterInstance(config.GetSection("event").Get<IEnumerable<EventHandlerConfig>>());
 
-                // CosmosDB support is under development
-                if (false)
-                {
-                    builder.ConfigureCosmosDb(config);
-                }
-
                 builder.RegisterInstance(settings)
                        .SingleInstance();
 
@@ -65,18 +62,11 @@ namespace CaptainHook.DirectorService
 
                 builder.RegisterType<FabricClient>().SingleInstance();
 
-                //todo cosmos config and rules stuff - come back to this later
-                // - we need to ensure rules which are in the db are created
-                // - rules which are updated are updated in the handlers and dispatchers
-                // - rules which are deleted can only be soft deleted - cosmos change feed does not support hard deletes
-                //var cosmosClient = new CosmosClient(settings.CosmosConnectionString);
-                //builder.RegisterInstance(cosmosClient);
-
-                //var database = (await cosmosClient.Databases.CreateDatabaseIfNotExistsAsync("captain-hook", 400)).Database;
-                //builder.RegisterInstance(database);
-
-                //var ruleContainer = (await database.Containers.CreateContainerIfNotExistsAsync(nameof(RoutingRule), RoutingRule.PartitionKeyPath)).Container;
-                //builder.RegisterInstance(ruleContainer).SingleInstance();
+                var featureFlags = ConfigureFeatureFlags(config, builder);
+                if (featureFlags.GetFlag<CosmosDbFeatureFlag>().IsEnabled)
+                {
+                    builder.ConfigureCosmosDb(config);
+                }
 
                 builder.SetupFullTelemetry(settings.InstrumentationKey);
                 builder.RegisterStatefulService<DirectorService>(ServiceNaming.DirectorServiceType);
@@ -94,6 +84,18 @@ namespace CaptainHook.DirectorService
                 BigBrother.Write(e);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Configures Feature Flags based on input configuration and register the instance with the container.
+        /// </summary>
+        private static FeatureFlagsConfiguration ConfigureFeatureFlags(IConfiguration config, ContainerBuilder builder)
+        {
+            var featureFlags = new FeatureFlagsConfiguration();
+            config.GetSection(CaptainHookConfigSection).Bind(featureFlags);
+            builder.RegisterInstance(featureFlags);
+
+            return featureFlags;
         }
 
         /// <summary>
