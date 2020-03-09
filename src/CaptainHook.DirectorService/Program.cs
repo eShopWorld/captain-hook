@@ -9,6 +9,7 @@ using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
+using CaptainHook.Database.Setup;
 using Eshopworld.Telemetry;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
@@ -28,11 +29,13 @@ namespace CaptainHook.DirectorService
             {
                 var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
 
-                var config = new ConfigurationBuilder().AddAzureKeyVault(
-                                                           kvUri,
-                                                           new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                                                           new DefaultKeyVaultSecretManager())
-                                                       .Build();
+                var config = new ConfigurationBuilder()
+                    .AddAzureKeyVault(
+                        kvUri,
+                        new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
+                        new DefaultKeyVaultSecretManager())
+                    .AddEnvironmentVariables()
+                    .Build();
 
                 var settings = new ConfigurationSettings();
                 config.Bind(settings);
@@ -48,6 +51,11 @@ namespace CaptainHook.DirectorService
 
                 builder.RegisterInstance(config.GetSection("event").Get<IEnumerable<EventHandlerConfig>>());
 
+                // CosmosDB support is under development
+                if (false)
+                {
+                    builder.ConfigureCosmosDb(config);
+                }
 
                 builder.RegisterInstance(settings)
                        .SingleInstance();
