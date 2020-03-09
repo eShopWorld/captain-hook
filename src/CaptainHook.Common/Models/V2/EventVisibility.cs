@@ -5,7 +5,7 @@
     /// </summary>
     public enum EventVisibility
     {
-        Internal,
+        Internal = 0,
         Public
     }
 }

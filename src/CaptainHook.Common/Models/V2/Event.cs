@@ -8,17 +8,13 @@ namespace CaptainHook.Common.Models.V2
     public class Event
     {
         /// <summary>
-        /// name of the event
-        /// </summary>
-        public string Name { get; set; }
-        /// <summary>
         /// underlying event (or message) full type name
         /// </summary>
         public string Type { get; set; }
         /// <summary>
         /// scope of visibility for the event instance
         /// </summary>
-        public EventVisibility Visibility { get; set; } = EventVisibility.Internal;
+        public EventVisibility Visibility { get; set; }
         /// <summary>
         /// list of tenant codes to constraint the event visibility (if applicable)
         /// </summary>
