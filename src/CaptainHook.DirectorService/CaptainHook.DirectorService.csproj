@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
+    <ProjectReference Include="..\CaptainHook.Database\CaptainHook.Database.csproj" />
   </ItemGroup>
 
 </Project>
