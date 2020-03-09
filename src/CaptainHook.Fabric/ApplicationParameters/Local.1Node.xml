@@ -10,6 +10,6 @@
     <Parameter Name="CaptainHook.DirectorService_DefaultTargetReplicaSetSize" Value="1"/>
     <Parameter Name="CaptainHook.DirectorService_DefaultPartitionCount" Value="1"/>
     <Parameter Name="CaptainHook.DirectorService_DefaultPartitionCount" Value="1"/>
-    <Parameter Name="EDA_CosmosDb_ConnectionString" Value=""/>
+    <Parameter Name="CosmosDb_Tooling_ConnectionString" Value=""/>
   </Parameters>
 </Application>

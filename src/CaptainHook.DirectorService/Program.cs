@@ -34,7 +34,7 @@ namespace CaptainHook.DirectorService
                         kvUri,
                         new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                         new DefaultKeyVaultSecretManager())
-                    .AddEnvironmentVariables("EDA_")
+                    .AddEnvironmentVariables()
                     .Build();
 
                 var settings = new ConfigurationSettings();

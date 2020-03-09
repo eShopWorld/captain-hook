@@ -10,7 +10,7 @@
     <Parameter Name="CaptainHook.DirectorService_MinReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CaptainHook.DirectorService_PartitionCount" DefaultValue="1" />
     <Parameter Name="CaptainHook.DirectorService_TargetReplicaSetSize" DefaultValue="3" />
-    <Parameter Name="EDA_CosmosDb_ConnectionString" DefaultValue="" />
+    <Parameter Name="CosmosDb_Tooling_ConnectionString" DefaultValue="" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
@@ -46,7 +46,7 @@
     <EnvironmentOverrides CodePackageRef="Code">
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
-      <EnvironmentVariable Name="EDA_CosmosDB:Tooling:ConnectionString" Value="[EDA_CosmosDb_ConnectionString]" />
+      <EnvironmentVariable Name="CosmosDB:Tooling:ConnectionString" Value="[CosmosDb_Tooling_ConnectionString]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <DefaultServices>
