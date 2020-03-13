@@ -15,6 +15,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Common.Telemetry.Message;
 using Xunit;
 
 namespace CaptainHook.Tests.Web.WebHooks
@@ -59,7 +60,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 .ReturnsAsync(() => mockTokenHandler.Object);
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
-            var requestBuilder = new RequestBuilder();
+            var requestBuilder = new RequestBuilder(Mock.Of<IBigBrother>());
             var requestLogger = new RequestLogger(mockBigBrother.Object);
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
@@ -125,7 +126,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
-                    new RequestBuilder(),
+                    new RequestBuilder(Mock.Of<IBigBrother>()),
                     new RequestLogger(mockBigBrother.Object),
                     mockBigBrother.Object,
                     config.Callback));
@@ -133,7 +134,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var webhookResponseHandler = new WebhookResponseHandler(
                 mockHandlerFactory.Object,
                 httpClientBuilder,
-                new RequestBuilder(),
+                new RequestBuilder(Mock.Of<IBigBrother>()),
                 mockAuthHandlerFactory.Object,
                 new RequestLogger(mockBigBrother.Object),
                 mockBigBrother.Object,
@@ -186,7 +187,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
-                    new RequestBuilder(),
+                    new RequestBuilder(Mock.Of<IBigBrother>()),
                     new RequestLogger(mockBigBrother.Object),
                     mockBigBrother.Object,
                     config.Callback));
@@ -194,7 +195,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var webhookResponseHandler = new WebhookResponseHandler(
                 mockHandlerFactory.Object,
                 httpClientBuilder,
-                new RequestBuilder(),
+                new RequestBuilder(Mock.Of<IBigBrother>()),
                 mockAuthHandlerFactory.Object,
                 new RequestLogger(mockBigBrother.Object),
                 mockBigBrother.Object,
@@ -248,7 +249,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
-                    new RequestBuilder(),
+                    new RequestBuilder(Mock.Of<IBigBrother>()),
                     new RequestLogger(mockBigBrother.Object),
                     mockBigBrother.Object,
                     config.Callback));
@@ -256,7 +257,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var webhookResponseHandler = new WebhookResponseHandler(
                 mockHandlerFactory.Object,
                 httpClientBuilder,
-                new RequestBuilder(),
+                new RequestBuilder(Mock.Of<IBigBrother>()),
                 mockAuthHandlerFactory.Object,
                 new RequestLogger(mockBigBrother.Object),
                 mockBigBrother.Object,
@@ -309,7 +310,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
-                    new RequestBuilder(),
+                    new RequestBuilder(Mock.Of<IBigBrother>()),
                     new RequestLogger(mockBigBrother.Object),
                     mockBigBrother.Object,
                     config.Callback));
@@ -317,7 +318,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var webhookResponseHandler = new WebhookResponseHandler(
                 mockHandlerFactory.Object,
                 httpClientBuilder,
-                new RequestBuilder(),
+                new RequestBuilder(Mock.Of<IBigBrother>()),
                 new Mock<IAuthenticationHandlerFactory>().Object,
                 new RequestLogger(mockBigBrother.Object),
                 mockBigBrother.Object,
@@ -359,21 +360,76 @@ namespace CaptainHook.Tests.Web.WebHooks
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
-                    new RequestBuilder(),
+                    new RequestBuilder(Mock.Of<IBigBrother>()),
                     new RequestLogger(mockBigBrother.Object),
                     mockBigBrother.Object,
                     config.Callback));
 
+            var bbMock = new Mock<IBigBrother>();
+            bbMock.Setup(b => b.Publish(It.Is<UnroutableMessageEvent>(e=>e.Message== "route mapping/selector not found between config and the properties on the domain object"), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()));
+
             var webhookResponseHandler = new WebhookResponseHandler(
                 mockHandlerFactory.Object,
                 httpClientBuilder,
-                new RequestBuilder(),
+                new RequestBuilder(bbMock.Object),
                 new Mock<IAuthenticationHandlerFactory>().Object,
                 new RequestLogger(mockBigBrother.Object),
                 mockBigBrother.Object,
                 config);
 
-            await Assert.ThrowsAsync<Exception>(async () => await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken));
+            var result= await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
+            Assert.True(result);
+            bbMock.VerifyAll();
+        }
+
+        /// <summary>
+        /// Tests the whole flow for a webhook handler with a callback
+        /// </summary>
+        /// <returns></returns>
+        [IsLayer0]
+        [Theory]
+       [MemberData(nameof(BadMultiRouteCallDataNoSelector))]
+        public async Task BadCheckMultiRouteSelectionNoSelector(SubscriberConfiguration config, MessageData messageData, string expectedWebHookUri, string expectedContent)
+        {
+            var mockHttpHandler = new MockHttpMessageHandler();
+            mockHttpHandler.When(HttpMethod.Post, expectedWebHookUri)
+                .WithContentType("application/json; charset=utf-8", expectedContent)
+                .Respond(HttpStatusCode.OK, "application/json", "{\"msg\":\"Hello World\"}");
+
+            var httpClients = new Dictionary<string, HttpClient>
+            {
+                {new Uri(config.Uri).Host, mockHttpHandler.ToHttpClient()},
+                {new Uri(config.Callback.Uri).Host, mockHttpHandler.ToHttpClient()}
+            };
+
+            var httpClientBuilder = new HttpClientFactory(httpClients);
+            var mockBigBrother = new Mock<IBigBrother>();
+
+            var mockHandlerFactory = new Mock<IEventHandlerFactory>();
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(config.Callback.Name)).Returns(
+                new GenericWebhookHandler(
+                    httpClientBuilder,
+                    new Mock<IAuthenticationHandlerFactory>().Object,
+                    new RequestBuilder(Mock.Of<IBigBrother>()),
+                    new RequestLogger(mockBigBrother.Object),
+                    mockBigBrother.Object,
+                    config.Callback));
+
+            var bbMock = new Mock<IBigBrother>();
+            bbMock.Setup(b => b.Publish(It.Is<UnroutableMessageEvent>(e=>e.Message== "routing path value in message payload is null or empty"), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()));
+
+            var webhookResponseHandler = new WebhookResponseHandler(
+                mockHandlerFactory.Object,
+                httpClientBuilder,
+                new RequestBuilder(bbMock.Object),
+                new Mock<IAuthenticationHandlerFactory>().Object,
+                new RequestLogger(mockBigBrother.Object),
+                mockBigBrother.Object,
+                config);
+
+            var result = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
+            Assert.True(result);
+            bbMock.VerifyAll();
         }
 
         public static IEnumerable<object[]> WebHookCallData =>
@@ -420,6 +476,18 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     EventHandlerConfigWithBadMultiRoute,
                     EventHandlerTestHelper.CreateMessageDataPayload().data,
+                    "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
+                    "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
+                }
+            };
+
+        public static IEnumerable<object[]> BadMultiRouteCallDataNoSelector =>
+            new List<object[]>
+            {
+                new object[]
+                {
+                    EventHandlerConfigWithBadMultiRoute,
+                    EventHandlerTestHelper.CreateMessageDataPayload("").data,
                     "https://blah.blah.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E",
                     "{\"TransportModel\":{\"Name\":\"Hello World\"}}"
                 }

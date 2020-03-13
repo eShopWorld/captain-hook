@@ -70,7 +70,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClients = new Dictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
-            var requestBuilder = new RequestBuilder();
+            var requestBuilder = new RequestBuilder(Mock.Of<IBigBrother>());
             var requestLogger = new RequestLogger(mockBigBrother.Object);
 
             var genericWebhookHandler = new GenericWebhookHandler(
@@ -124,7 +124,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClients = new Dictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
-            var requestBuilder = new RequestBuilder();
+            var requestBuilder = new RequestBuilder(Mock.Of<IBigBrother>());
             var requestLogger = new RequestLogger(mockBigBrother.Object);
 
             var genericWebhookHandler = new GenericWebhookHandler(
@@ -198,7 +198,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClients = new Dictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
-            var requestBuilder = new RequestBuilder();
+            var requestBuilder = new RequestBuilder(Mock.Of<IBigBrother>());
             var requestLogger = new RequestLogger(mockBigBrother.Object);
 
             var genericWebhookHandler = new GenericWebhookHandler(

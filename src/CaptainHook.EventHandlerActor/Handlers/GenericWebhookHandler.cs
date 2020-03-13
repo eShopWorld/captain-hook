@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -62,6 +63,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 //todo refactor into a single call and a dto
                 var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
+                if (uri == null)
+                {
+                    return true; //consider successful delivery
+                }
                 var httpMethod = RequestBuilder.SelectHttpMethod(WebhookConfig, messageData.Payload);
                 var originalPayload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
                 var payload = WebhookConfig.PayloadTransformation == PayloadContractTypeEnum.WrapperContract 

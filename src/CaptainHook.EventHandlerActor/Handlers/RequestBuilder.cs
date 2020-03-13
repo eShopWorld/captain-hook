@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net.Http;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Telemetry.Message;
+using Eshopworld.Core;
 using Eshopworld.Platform.Messages;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,6 +14,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
 {
     public class RequestBuilder : IRequestBuilder
     {
+        private readonly IBigBrother bb;
+
+        public RequestBuilder(IBigBrother _bb)
+        {
+            bb = _bb;
+        }
+
         /// <inheritdoc />
         public Uri BuildUri(WebhookConfig config, string payload)
         {
@@ -29,16 +38,22 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     selector = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
                 }
 
+                void PublishUnrouatableEvent(string message)
+                {
+                    bb.Publish(new UnroutableMessageEvent { EventType = config.EventType, Selector = selector, SubscriberName = config.Name, Message = message });
+                }
                 if (string.IsNullOrWhiteSpace(selector))
                 {
-                    throw new ArgumentNullException(nameof(rules.Source.Path), "routing path value in message payload is null or empty");
+                    PublishUnrouatableEvent("routing path value in message payload is null or empty" );
+                    return null;
                 }
 
                 //selects the route based on the value found in the payload of the message
                 var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(selector, StringComparison.OrdinalIgnoreCase));
                 if (route == null)
                 {
-                    throw new Exception("route mapping/selector not found between config and the properties on the domain object");
+                    PublishUnrouatableEvent("route mapping/selector not found between config and the properties on the domain object");
+                    return null;
                 }
                 uri = route.Uri;
             }
