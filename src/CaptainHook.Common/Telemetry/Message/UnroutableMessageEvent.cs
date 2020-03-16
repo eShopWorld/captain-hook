@@ -1,9 +1,11 @@
-﻿namespace CaptainHook.Common.Telemetry.Message
+﻿using Eshopworld.Core;
+
+namespace CaptainHook.Common.Telemetry.Message
 {
     /// <summary>
     /// Custom event emitted when message seen that cannot be routed
     /// </summary>
-    public class UnroutableMessageEvent
+    public class UnroutableMessageEvent : TelemetryEvent
     {
         /// <summary>
         /// type of the event
