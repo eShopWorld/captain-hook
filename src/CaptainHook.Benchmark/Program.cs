@@ -8,6 +8,7 @@ using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
+using Eshopworld.Telemetry;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -87,8 +88,8 @@ namespace CaptainHook.Benchmark
         [Benchmark]
         public void BenchmarkBuildUriV2()
         {
-            var builder = new RequestBuilder();
-            builder.BuildUri(_config, _data);
+            //var builder = new RequestBuilder(new BigBrother("", "")); //this requires AI key to be populated by dev before running a benchmark
+            //builder.BuildUri(_config, _data);
         }
 
         /// <inheritdoc />

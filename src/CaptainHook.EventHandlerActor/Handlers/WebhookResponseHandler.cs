@@ -37,6 +37,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
+            if (uri == null)
+            {
+                return true; //consider successful delivery
+            }
             var httpMethod = RequestBuilder.SelectHttpMethod(WebhookConfig, messageData.Payload);
             var payload = RequestBuilder.BuildPayload(this.WebhookConfig, messageData.Payload, metadata);
             var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);

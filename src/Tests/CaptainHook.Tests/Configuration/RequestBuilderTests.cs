@@ -5,7 +5,9 @@ using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
+using Eshopworld.Core;
 using Eshopworld.Tests.Core;
+using Moq;
 using Xunit;
 
 namespace CaptainHook.Tests.Configuration
@@ -47,7 +49,7 @@ namespace CaptainHook.Tests.Configuration
 
             var messageData = new MessageData("blah", "blahtype", "blahsubscriber", "blahReplyTo", false) { ServiceBusMessageId = Guid.NewGuid().ToString(), CorrelationId = Guid.NewGuid().ToString() };
 
-            var headers = new RequestBuilder().GetHttpHeaders(config, messageData);
+            var headers = new RequestBuilder(Mock.Of<IBigBrother>()).GetHttpHeaders(config, messageData);
             Assert.True(headers.RequestHeaders.ContainsKey(Constants.Headers.IdempotencyKey));
         }
 
@@ -56,7 +58,7 @@ namespace CaptainHook.Tests.Configuration
         [MemberData(nameof(UriData))]
         public void UriConstructionTests(WebhookConfig config, string payload, string expectedUri)
         {
-            var uri = new RequestBuilder().BuildUri(config, payload);
+            var uri = new RequestBuilder(Mock.Of<IBigBrother>()).BuildUri(config, payload);
 
             Assert.Equal(new Uri(expectedUri), uri);
         }
@@ -70,7 +72,7 @@ namespace CaptainHook.Tests.Configuration
             Dictionary<string, object> data,
             string expectedPayload)
         {
-            var requestPayload = new RequestBuilder().BuildPayload(config, sourcePayload, data);
+            var requestPayload = new RequestBuilder(Mock.Of<IBigBrother>()).BuildPayload(config, sourcePayload, data);
 
             Assert.Equal(expectedPayload, requestPayload);
         }
@@ -83,7 +85,7 @@ namespace CaptainHook.Tests.Configuration
             string sourcePayload,
             HttpMethod expectedVerb)
         {
-            var selectedVerb = new RequestBuilder().SelectHttpMethod(config, sourcePayload);
+            var selectedVerb = new RequestBuilder(Mock.Of<IBigBrother>()).SelectHttpMethod(config, sourcePayload);
 
             Assert.Equal(expectedVerb, selectedVerb);
         }
@@ -96,7 +98,7 @@ namespace CaptainHook.Tests.Configuration
             string sourcePayload,
             AuthenticationType expectedAuthenticationType)
         {
-            var authenticationConfig = new RequestBuilder().GetAuthenticationConfig(config, sourcePayload);
+            var authenticationConfig = new RequestBuilder(Mock.Of<IBigBrother>()).GetAuthenticationConfig(config, sourcePayload);
 
             Assert.Equal(expectedAuthenticationType, authenticationConfig.AuthenticationConfig.Type);
         }
