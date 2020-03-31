@@ -18,7 +18,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         public async Task BasicFlow()
         {
             await _fixture.RunMessageFlow(new HookFlowTestEvent(),
-                builder => builder.CheckOidcAuthScopes("eda.peterpan.webhook.api.all").CheckUrl());
+                builder => builder.CheckOidcAuthScopes("eda.peterpan.delivery.api.all").CheckUrl());
         }
     }
 }

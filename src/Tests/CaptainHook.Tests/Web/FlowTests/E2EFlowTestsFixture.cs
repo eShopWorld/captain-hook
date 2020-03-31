@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Eshopworld.Core;
 using Eshopworld.Messaging;
 using Eshopworld.Telemetry;
 using FluentAssertions;
+using IdentityModel.Client;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
@@ -26,7 +28,9 @@ namespace CaptainHook.Tests.Web.FlowTests
     public class E2EFlowTestsFixture
     {
         private IBigBrother _bb;
-        private string peterPanUrlBase { get; set; }
+        private string PeterPanUrlBase { get; set; }
+        private string StsClientId { get; set; }
+        private string StsClientSecret { get; set; }
 
         public E2EFlowTestsFixture()
         {
@@ -37,7 +41,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         {
 #if (!LOCAL)
             var config = new ConfigurationBuilder().AddAzureKeyVault(
-                "https://esw-tooling-ci-we.vault.azure.net/",
+                "https://esw-tooling-testing-ci.vault.azure.net/",
                 new KeyVaultClient(
                     new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider()
                         .KeyVaultTokenCallback)),
@@ -47,14 +51,18 @@ namespace CaptainHook.Tests.Web.FlowTests
             var sbConnString = config["SB:eda:ConnectionString"];
             var subId = config["Environment:SubscriptionId"];
             
-            peterPanUrlBase = config["Platform:PlatformPeterpanApi:Cluster"];
+            PeterPanUrlBase = config["Platform:PlatformPeterpanApi:Cluster"];
+            StsClientSecret = config["STS:EDA:ClientSecret"];
+            StsClientId = config["STS:EDA:ClientId"];
 #else
             //for local testing to bypass KV load
 
             var instrKey = "";
             var sbConnString = "";
             var subId = "";
-            peterPanUrlBase = "";
+            PeterPanUrlBase = "";
+            StsClientId = "";
+            StsClientSecret = "";
 #endif
 
             _bb = new BigBrother(instrKey, instrKey);
@@ -81,12 +89,14 @@ namespace CaptainHook.Tests.Web.FlowTests
 
             var policy = timeout.WrapAsync(retry);
 
-            var result = await policy.ExecuteAsync(() =>
+            var token = await ObtainSTSToken();
+            var result = await policy.ExecuteAsync(async () =>
             {
-                var httpClient = new HttpClient();
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                return httpClient.GetAsync(
-                    $"{peterPanUrlBase}/api/v1/inttest/check/{payloadId}");
+                return await httpClient.GetAsync(
+                    $"{PeterPanUrlBase}/api/v1/inttest/check/{payloadId}");
             });
 
             result.EnsureSuccessStatusCode();
@@ -107,6 +117,30 @@ namespace CaptainHook.Tests.Web.FlowTests
 
             processedEvents.Should().OnlyContain(m => predicate.Build().Invoke(m));
         }
+
+        private async Task<string> ObtainSTSToken()
+        {
+            using var client = new HttpClient();
+
+            var response = await GetTokenResponseAsync(client);
+
+            return response.AccessToken;
+        }
+
+        private async Task<TokenResponse> GetTokenResponseAsync(HttpMessageInvoker client)
+        {
+            var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+            {
+                Address = "https://security-sts.ci.eshopworld.net/connect/token",
+                ClientId = StsClientId,
+                ClientSecret = StsClientSecret,
+                GrantType = "client_credentials",
+                Scope = "eda.peterpan.delivery.api.all"
+            });
+
+            return response;
+        }
+
     }
 
     [CollectionDefinition(nameof(E2EFlowTestsCollection))]
