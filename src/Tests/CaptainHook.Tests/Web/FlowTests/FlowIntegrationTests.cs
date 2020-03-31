@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Eshopworld.Tests.Core;
-using FluentAssertions;
 using Xunit;
 
 namespace CaptainHook.Tests.Web.FlowTests
@@ -18,11 +17,8 @@ namespace CaptainHook.Tests.Web.FlowTests
         [Fact, IsLayer1]
         public async Task BasicFlow()
         {
-
-            //var payloadId = _fixture.PublishModel(new HookFlowTestEvent());
-            var processedEvents = await _fixture.GetProcessedEvents("blah");
-
-            processedEvents.Should().OnlyContain((m) => m.Verb == "POST" && m.Url.EndsWith("intake"));
+            await _fixture.RunMessageFlow(new HookFlowTestEvent(),
+                builder => builder.CheckOidcAuthScopes("eda.peterpan.webhook.api.all").CheckUrl());
         }
     }
 }

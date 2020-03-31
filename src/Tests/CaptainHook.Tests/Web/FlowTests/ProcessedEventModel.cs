@@ -19,6 +19,9 @@ namespace CaptainHook.Tests.Web.FlowTests
 
         public Uri Uri => new Uri(Url);
 
+        [JsonProperty("Authorization")]
+        public string Authorization { get; set; }
+
         [JsonProperty("payloadId")]
         public string PayloadId { get; set; }
     }

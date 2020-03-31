@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 using Eshopworld.Core;
 using Eshopworld.Messaging;
 using Eshopworld.Telemetry;
+using FluentAssertions;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Newtonsoft.Json;
 using Polly;
 using Xunit;
@@ -21,6 +26,8 @@ namespace CaptainHook.Tests.Web.FlowTests
     public class E2EFlowTestsFixture
     {
         private IBigBrother _bb;
+        private string peterPanUrlBase { get; set; }
+
         public E2EFlowTestsFixture()
         {
             SetupFixture();
@@ -28,16 +35,28 @@ namespace CaptainHook.Tests.Web.FlowTests
 
         private void SetupFixture()
         {
-            //var config = new ConfigurationBuilder().AddAzureKeyVault(
-            //    "https://esw-tooling-ci-we.vault.azure.net/",
-            //    new KeyVaultClient(
-            //        new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider()
-            //            .KeyVaultTokenCallback)),
-            //    new DefaultKeyVaultSecretManager()).Build();
+#if (!LOCAL)
+            var config = new ConfigurationBuilder().AddAzureKeyVault(
+                "https://esw-tooling-ci-we.vault.azure.net/",
+                new KeyVaultClient(
+                    new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider()
+                        .KeyVaultTokenCallback)),
+                new DefaultKeyVaultSecretManager()).Build();
 
-            var instrKey = "blah";
-            var sbConnString = "TBA";
-            var subId = "TBA";
+            var instrKey = config["ApplicationInsights:InstrumentationKey"];
+            var sbConnString = config["SB:eda:ConnectionString"];
+            var subId = config["Environment:SubscriptionId"];
+            
+            peterPanUrlBase = config["Platform:PlatformPeterpanApi:Cluster"];
+#else
+            //for local testing to bypass KV load
+
+            var instrKey = "";
+            var sbConnString = "";
+            var subId = "";
+            peterPanUrlBase = "";
+#endif
+
             _bb = new BigBrother(instrKey, instrKey);
             _bb.PublishEventsToTopics(new Messenger(sbConnString, subId));
         }
@@ -58,7 +77,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             var retry = Policy
                 .HandleResult<HttpResponseMessage>(msg => msg.StatusCode == HttpStatusCode.NoContent)
                 .Or<Exception>()
-                .RetryAsync(3);
+                .WaitAndRetryForeverAsync((i, context) => TimeSpan.FromMilliseconds(100));
 
             var policy = timeout.WrapAsync(retry);
 
@@ -66,7 +85,8 @@ namespace CaptainHook.Tests.Web.FlowTests
             {
                 var httpClient = new HttpClient();
 
-                return httpClient.GetAsync($"http://localhost:64320/api/v1/inttest/check/{payloadId}");
+                return httpClient.GetAsync(
+                    $"{peterPanUrlBase}/api/v1/inttest/check/{payloadId}");
             });
 
             result.EnsureSuccessStatusCode();
@@ -75,6 +95,17 @@ namespace CaptainHook.Tests.Web.FlowTests
                 .Deserialize<ProcessedEventModel[]>(new JsonTextReader(new StringReader(content)));
 
             return items;
+        }
+
+        public async Task RunMessageFlow<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilder)
+        {
+            var payloadId = PublishModel(new HookFlowTestEvent());
+            var processedEvents = await GetProcessedEvents(payloadId);
+
+            var predicate = new FlowTestPredicateBuilder();
+            predicate = configTestBuilder.Invoke(predicate);
+
+            processedEvents.Should().OnlyContain(m => predicate.Build().Invoke(m));
         }
     }
 
