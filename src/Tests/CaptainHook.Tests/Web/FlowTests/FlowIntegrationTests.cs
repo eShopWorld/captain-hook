@@ -14,7 +14,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             _fixture = fixture;
         }
 
-        [Fact, IsLayer1]
+        [Fact, IsLayer2]
         public async Task BasicFlow()
         {
             await _fixture.RunMessageFlow(new HookFlowTestEvent(),
