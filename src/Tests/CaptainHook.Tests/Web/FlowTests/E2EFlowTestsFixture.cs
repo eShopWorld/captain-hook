@@ -81,7 +81,7 @@ namespace CaptainHook.Tests.Web.FlowTests
 
         public async Task<IEnumerable<ProcessedEventModel>> GetProcessedEvents(string payloadId)
         {
-            var timeout = Policy.TimeoutAsync(TimeSpan.FromSeconds(60));
+            var timeout = Policy.TimeoutAsync(TimeSpan.FromMinutes(5));
             var retry = Policy
                 .HandleResult<HttpResponseMessage>(msg => msg.StatusCode == HttpStatusCode.NoContent)
                 .Or<Exception>()
