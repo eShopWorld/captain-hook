@@ -109,7 +109,7 @@ namespace CaptainHook.Tests.Web.FlowTests
 
         public async Task RunMessageFlow<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilder)
         {
-            var payloadId = PublishModel(new HookFlowTestEvent());
+            var payloadId = PublishModel(new WebHookFlowTestEvent());
             var processedEvents = await GetProcessedEvents(payloadId);
 
             var predicate = new FlowTestPredicateBuilder();

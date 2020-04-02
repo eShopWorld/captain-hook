@@ -17,6 +17,12 @@ namespace CaptainHook.Tests.Web.FlowTests
             return this;
         }
 
+
+        /// <summary>
+        /// check specific verb seen for the tracked event
+        /// </summary>
+        /// <param name="expectedVerb">the verb expected</param>
+        /// <returns>builder chain instance</returns>
         public FlowTestPredicateBuilder CheckVerb(HttpMethod expectedVerb)
         {
             _subPredicates.Add(m=>
@@ -25,7 +31,12 @@ namespace CaptainHook.Tests.Web.FlowTests
             return this;
         }
 
-        public FlowTestPredicateBuilder CheckUrl(bool endsWithId = false)
+        /// <summary>
+        /// check whether URL was suffixed with id (as extracted from payload based on config) or not
+        /// </summary>
+        /// <param name="endsWithId">flag to drive the positive or negative check</param>
+        /// <returns>builder chain instance</returns>
+        public FlowTestPredicateBuilder CheckUrlIdSuffixPresent(bool endsWithId)
         {
             _subPredicates.Add(m=> 
                 m.Url.EndsWith("/intake", StringComparison.OrdinalIgnoreCase) ^ endsWithId ); //XOR
@@ -33,6 +44,11 @@ namespace CaptainHook.Tests.Web.FlowTests
             return this;
         }
 
+        /// <summary>
+        /// check OIDC scope being present in the tracked event
+        /// </summary>
+        /// <param name="requiredScopes">list of scopes required</param>
+        /// <returns>builder chain instance</returns>
         public FlowTestPredicateBuilder CheckOidcAuthScopes(params string[] requiredScopes)
         {
             _subPredicates.Add(m =>
@@ -60,6 +76,10 @@ namespace CaptainHook.Tests.Web.FlowTests
             return (JwtSecurityToken)tokenDecoder.ReadToken(tokenItself);
         }
 
+        /// <summary>
+        /// build overall check delegate (used in fluent assertions)
+        /// </summary>
+        /// <returns>test delegate</returns>
         public Func<ProcessedEventModel, bool> Build() => model =>
         {
             return _subPredicates.All(i => i.Invoke(model));
