@@ -12,9 +12,14 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Eshopworld.Telemetry" Version="2.3.0-telemetry-beta4" />
     <PackageReference Include="Eshopworld.Tests.Core" Version="1.1.1" />
+    <PackageReference Include="IdentityModel" Version="3.10.10" />
     <PackageReference Include="JetBrains.DotMemoryUnit" Version="3.0.20171219.105559" />
     <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.25.0" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.0" />
