@@ -16,7 +16,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Newtonsoft.Json;
 using Polly;
-using Xunit;
 
 namespace CaptainHook.Tests.Web.FlowTests
 {
@@ -27,17 +26,17 @@ namespace CaptainHook.Tests.Web.FlowTests
     /// </summary>
     public class E2EFlowTestsFixture
     {
-        private IBigBrother _bb;
-        private string PeterPanUrlBase { get; set; }
-        private string StsClientId { get; set; }
-        private string StsClientSecret { get; set; }
+        public static IBigBrother _bb;
+        public static string PeterPanUrlBase { get; set; }
+        public static string StsClientId { get; set; }
+        public static string StsClientSecret { get; set; }
 
-        public E2EFlowTestsFixture()
+        static E2EFlowTestsFixture()
         {
             SetupFixture();
         }
 
-        private void SetupFixture()
+        private static void SetupFixture()
         {
 #if (!LOCAL)
             var config = new ConfigurationBuilder().AddAzureKeyVault(
@@ -69,7 +68,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             _bb.PublishEventsToTopics(new Messenger(sbConnString, subId));
         }
 
-        public string PublishModel<T>(T raw) where T : FlowTestEventBase
+        private string PublishModel<T>(T raw) where T : FlowTestEventBase
         {
             var payloadId = Guid.NewGuid().ToString();
             raw.PayloadId = payloadId;
@@ -79,9 +78,9 @@ namespace CaptainHook.Tests.Web.FlowTests
             return payloadId;
         }
 
-        public async Task<IEnumerable<ProcessedEventModel>> GetProcessedEvents(string payloadId)
+        private async Task<IEnumerable<ProcessedEventModel>> GetProcessedEvents(string payloadId, TimeSpan timeoutTimeSpan=default)
         {
-            var timeout = Policy.TimeoutAsync(TimeSpan.FromMinutes(5));
+            var timeout = Policy.TimeoutAsync(timeoutTimeSpan==default ? TimeSpan.FromMinutes(5): timeoutTimeSpan);
             var retry = Policy
                 .HandleResult<HttpResponseMessage>(msg => msg.StatusCode == HttpStatusCode.NoContent)
                 .Or<Exception>()
@@ -89,7 +88,7 @@ namespace CaptainHook.Tests.Web.FlowTests
 
             var policy = timeout.WrapAsync(retry);
 
-            var token = await ObtainSTSToken();
+            var token = await ObtainStsToken();
             var result = await policy.ExecuteAsync(async () =>
             {
                 using var httpClient = new HttpClient();
@@ -107,10 +106,33 @@ namespace CaptainHook.Tests.Web.FlowTests
             return items;
         }
 
-        public async Task RunMessageFlow<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilder)
+        /// <summary>
+        /// run a flow and test that no actual tracked event is registered
+        ///
+        /// please note that due to its nature, this will use up the full timeout and there is risk of false positive - that is no tracked event registered due to CH "bug"
+        /// </summary>
+        /// <typeparam name="T">type of triggering event</typeparam>
+        /// <param name="instance">instance of triggering event</param>
+        /// <param name="waitTimespan">(optional) timeout to be used</param>
+        /// <returns>async task</returns>
+        public async Task ExpectNoTrackedEvent<T>(T instance, TimeSpan waitTimespan = default) where T : FlowTestEventBase
         {
-            var payloadId = PublishModel(new WebHookFlowTestEvent());
-            var processedEvents = await GetProcessedEvents(payloadId);
+            var processedEvents = await PublishAndPoll<T>(instance, waitTimespan);
+
+            processedEvents.Should().BeNullOrEmpty();
+        }
+
+        /// <summary>
+        /// run a flow, expect actual events being tracked @ PeterPan and check the tracked event data
+        /// </summary>
+        /// <typeparam name="T">type of triggering event</typeparam>
+        /// <param name="instance">instance of triggering event</param>
+        /// <param name="configTestBuilder">builder for test predicate</param>
+        /// <param name="waitTimespan">(optional) timeout to be used</param>
+        /// <returns>async task</returns>
+        public async Task ExpectTrackedEvent<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilder, TimeSpan waitTimespan=default) where T: FlowTestEventBase
+        {
+            var processedEvents = await PublishAndPoll<T>(instance, waitTimespan);
 
             var predicate = new FlowTestPredicateBuilder();
             predicate = configTestBuilder.Invoke(predicate);
@@ -118,7 +140,14 @@ namespace CaptainHook.Tests.Web.FlowTests
             processedEvents.Should().OnlyContain(m => predicate.Build().Invoke(m));
         }
 
-        private async Task<string> ObtainSTSToken()
+        private async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan) where T : FlowTestEventBase
+        {
+            var payloadId = PublishModel(instance);
+            var processedEvents = await GetProcessedEvents(payloadId, waitTimespan);
+            return processedEvents;
+        }
+
+        private async Task<string> ObtainStsToken()
         {
             using var client = new HttpClient();
 
@@ -142,9 +171,4 @@ namespace CaptainHook.Tests.Web.FlowTests
         }
 
     }
-
-    [CollectionDefinition(nameof(E2EFlowTestsCollection))]
-    // ReSharper disable once InconsistentNaming
-    public class E2EFlowTestsCollection : ICollectionFixture<E2EFlowTestsFixture>
-    { }
 }
