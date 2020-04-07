@@ -87,7 +87,7 @@ namespace CaptainHook.EventReaderService
             _settings = settings;
             ParseOutInitData(context.InitializationData);
 
-            _additionalData = File.ReadAllText(@".\100k.txt");
+            _additionalData = new string('a', 100 * 1024);
         }
 
         private void ParseOutInitData(byte[] initializationData)

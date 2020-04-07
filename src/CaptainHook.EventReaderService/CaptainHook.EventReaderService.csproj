@@ -34,10 +34,4 @@
     <ProjectReference Include="..\CaptainHook.Interfaces\CaptainHook.Interfaces.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="100k.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
