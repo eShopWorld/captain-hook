@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Core.Events.Test;
 using Eshopworld.Tests.Core;
 using Xunit;
 
@@ -8,10 +9,7 @@ namespace CaptainHook.Tests.Web.FlowTests
 {
     /**
      * E2E integration tests for various identified flows - using peter pan
-     *
      */
-    
-    
     public class BasicWebHookFlowAuthNoRoutePostVerb : IntegrationTestBase
     {
         public BasicWebHookFlowAuthNoRoutePostVerb(E2EFlowTestsFixture fixture):base(fixture)

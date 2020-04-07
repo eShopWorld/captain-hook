@@ -1,4 +1,7 @@
-﻿namespace CaptainHook.Tests.Web.FlowTests
+﻿using CaptainHook.Tests.Web.FlowTests;
+
+// ReSharper disable once CheckNamespace
+namespace Core.Events.Test /*this is synced to tracking event to keep these grouped together at SB topic level*/
 {
     /// <summary>
     /// this event represents the flow of
