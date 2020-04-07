@@ -63,6 +63,7 @@ namespace CaptainHook.EventReaderService
         internal MessageReceiverWrapper _activeMessageReader;
 
 
+        private readonly string _additionalData;
 
         /// <summary>
         /// Default ctor used at runtime
@@ -85,6 +86,8 @@ namespace CaptainHook.EventReaderService
             _proxyFactory = proxyFactory;
             _settings = settings;
             ParseOutInitData(context.InitializationData);
+
+            _additionalData = File.ReadAllText(@".\100k.txt");
         }
 
         private void ParseOutInitData(byte[] initializationData)
@@ -225,7 +228,10 @@ namespace CaptainHook.EventReaderService
 
                         foreach (var message in messages)
                         {
-                            var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), _initData.EventType, _initData.SubscriberName, Context.ServiceName.ToString(), _initData.DlqMode!=null);
+                            var payload = Encoding.UTF8.GetString(message.Body) + _additionalData;
+
+                            var messageData = new MessageData(payload, _initData.EventType, _initData.SubscriberName, Context.ServiceName.ToString(), _initData.DlqMode!=null);
+
 
                             var handlerId = GetFreeHandlerId();
 
