@@ -1,21 +1,19 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Threading.Tasks;
+using Core.Events.Test;
 using Eshopworld.Tests.Core;
 using Xunit;
 
 namespace CaptainHook.Tests.Web.FlowTests
 {
-    /// <summary>
-    /// E2E integration tests for various identified flows - using peter pan
-    /// </summary>
-    [Collection(nameof(E2EFlowTestsCollection))]
-    public class FlowIntegrationTests
+    /**
+     * E2E integration tests for various identified flows - using peter pan
+     */
+    public class BasicWebHookFlowAuthNoRoutePostVerb : IntegrationTestBase
     {
-        private readonly E2EFlowTestsFixture _fixture;
-
-        public FlowIntegrationTests(E2EFlowTestsFixture fixture)
+        public BasicWebHookFlowAuthNoRoutePostVerb(E2EFlowTestsFixture fixture):base(fixture)
         {
-            _fixture = fixture;
         }
 
         /// <summary>
@@ -26,13 +24,57 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// </summary>
         /// <returns>task</returns>
         [Fact, IsLayer2]
-        public async Task BasicWebHookFlowAuthNoRulesPostVerb()
+        public async Task BasicWebHookFlowAuthNoRoutePostVerbTest()
         {
-            await _fixture.RunMessageFlow(new WebHookFlowTestEvent(),
+            await _fixture.ExpectTrackedEvent(new WebHookFlowTestEvent(),
                 builder => builder
                     .CheckOidcAuthScopes("eda.peterpan.delivery.api.all")
                     .CheckUrlIdSuffixPresent(false)
                     .CheckVerb(HttpMethod.Post));
+        }
+    }
+
+    public class BasicWebHookFlowAuthMatchedRoutePostVerb : IntegrationTestBase
+    {
+        public BasicWebHookFlowAuthMatchedRoutePostVerb(E2EFlowTestsFixture fixture) : base(fixture)
+        {
+        }
+
+        /// <summary>
+        /// Web Hook
+        /// POST verb
+        /// with routing rules - matched
+        /// no model transformation
+        /// </summary>
+        /// <returns>task</returns>
+        [Fact, IsLayer2]
+        public async Task BasicWebHookFlowAuthMatchedRoutePostVerbTest()
+        {
+            await _fixture.ExpectTrackedEvent(new WebHookFlowRoutedTestEvent() {TenantCode = "GOCAS"},
+                builder => builder
+                    .CheckOidcAuthScopes("eda.peterpan.delivery.api.all")
+                    .CheckUrlIdSuffixPresent(false)
+                    .CheckVerb(HttpMethod.Post));
+        }
+    }
+
+    public class BasicWebHookFlowAuthUnmatchedRoutePostVerb : IntegrationTestBase
+    {
+        public BasicWebHookFlowAuthUnmatchedRoutePostVerb(E2EFlowTestsFixture fixture) : base(fixture)
+        {
+        }
+        /// <summary>
+        /// Web Hook
+        /// POST verb
+        /// with routing rules - NOT matched
+        /// no model transformation
+        /// </summary>
+        /// <returns>task</returns>
+        [Fact, IsLayer2]
+        public async Task BasicWebHookFlowAuthUnmatchedRoutePostVerbTest()
+        {
+            await _fixture.ExpectNoTrackedEvent(new WebHookFlowRoutedTestEvent() { TenantCode = "OTHER" },
+                TimeSpan.FromMinutes(3));
         }
     }
 }
