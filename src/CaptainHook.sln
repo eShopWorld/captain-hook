@@ -28,6 +28,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EventHandlerAct
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Database", "CaptainHook.Database\CaptainHook.Database.csproj", "{A04E141E-91D4-42C5-8D12-6A8E15377ED3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaptainHook.Cli", "CaptainHook.Cli\CaptainHook.Cli.csproj", "{1EE4E72E-3909-467D-BC7D-23B52BC9B3BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,6 +98,14 @@ Global
 		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Release|x64.ActiveCfg = Release|Any CPU
 		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Release|x64.Build.0 = Release|Any CPU
+		{1EE4E72E-3909-467D-BC7D-23B52BC9B3BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EE4E72E-3909-467D-BC7D-23B52BC9B3BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EE4E72E-3909-467D-BC7D-23B52BC9B3BB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1EE4E72E-3909-467D-BC7D-23B52BC9B3BB}.Debug|x64.Build.0 = Debug|Any CPU
+		{1EE4E72E-3909-467D-BC7D-23B52BC9B3BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EE4E72E-3909-467D-BC7D-23B52BC9B3BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EE4E72E-3909-467D-BC7D-23B52BC9B3BB}.Release|x64.ActiveCfg = Release|Any CPU
+		{1EE4E72E-3909-467D-BC7D-23B52BC9B3BB}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
