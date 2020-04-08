@@ -17,6 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Eshopworld.Messaging" Version="2.1.2" />
     <PackageReference Include="Eshopworld.Telemetry" Version="3.1.2" />
     <PackageReference Include="Eshopworld.Tests.Core" Version="2.0.3" />
     <PackageReference Include="IdentityModel" Version="4.2.0" />
