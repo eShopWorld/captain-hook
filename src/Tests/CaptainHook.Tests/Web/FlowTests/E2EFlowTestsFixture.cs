@@ -1,4 +1,11 @@
-﻿using Eshopworld.Core;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
+using Eshopworld.Core;
 using Eshopworld.Messaging;
 using Eshopworld.Telemetry;
 using FluentAssertions;
@@ -10,13 +17,6 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Timeout;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
 
 namespace CaptainHook.Tests.Web.FlowTests
 {
@@ -68,7 +68,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             StsClientSecret = "";
 #endif
 
-            Bb = new BigBrother(instrKey, instrKey);
+            Bb = BigBrother.CreateDefault(instrKey, instrKey);
             Bb.PublishEventsToTopics(new Messenger(sbConnString, subId));
         }
 

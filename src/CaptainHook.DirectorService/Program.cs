@@ -47,7 +47,7 @@ namespace CaptainHook.DirectorService
                 var activationContext = FabricRuntime.GetActivationContext();
                 var defaultServicesSettings = ConfigFabricCodePackage(activationContext);
 
-                var bb = new BigBrother(settings.InstrumentationKey, settings.InstrumentationKey);
+                var bb = BigBrother.CreateDefault(settings.InstrumentationKey, settings.InstrumentationKey);
                 bb.UseEventSourceSink().ForExceptions();
 
                 var builder = new ContainerBuilder();

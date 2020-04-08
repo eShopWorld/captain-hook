@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <TargetLatestRuntimePatch>True</TargetLatestRuntimePatch>
 
     <LangVersion>latest</LangVersion>
@@ -12,15 +12,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac.ServiceFabric" Version="2.2.0" />
-    <PackageReference Include="Eshopworld.Telemetry" Version="2.3.0-telemetry-beta4" />
-    <PackageReference Include="IdentityModel" Version="3.10.10" />
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="3.4.677" />
+    <PackageReference Include="Autofac.ServiceFabric" Version="3.0.0" />
+    <PackageReference Include="Eshopworld.Telemetry" Version="3.1.2" />
+    <PackageReference Include="IdentityModel" Version="4.2.0" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.0.470" />
   </ItemGroup>
 
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
       <_Parameter1>CaptainHook.Tests</_Parameter1>
     </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Telemetry\CaptainHook.Telemetry.csproj" />
   </ItemGroup>
 </Project>
