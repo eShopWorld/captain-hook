@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -65,7 +65,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             StsClientSecret = "";
 #endif
 
-            _bb = new BigBrother(instrKey, instrKey);
+            _bb = BigBrother.CreateDefault(instrKey, instrKey);
             _bb.PublishEventsToTopics(new Messenger(sbConnString, subId));
         }
 

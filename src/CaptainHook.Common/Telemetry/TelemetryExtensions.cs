@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using CaptainHook.Telemetry;
 using Eshopworld.Telemetry;
 using Eshopworld.Telemetry.Configuration;
 
