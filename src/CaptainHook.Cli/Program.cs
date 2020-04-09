@@ -19,7 +19,6 @@ namespace CaptainHook.Cli
     [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
     public class Program
     {
-        private static IBigBrother bigBrother;
         private static IConsole console;
 
         /// <summary>
@@ -56,7 +55,6 @@ namespace CaptainHook.Cli
 
             try
             {
-                bigBrother = app.GetService<IBigBrother>();
                 console = app.GetService<IConsole>();
                 int returnCode;
                 if ((returnCode = app.Execute(args)) != 0)
@@ -72,20 +70,11 @@ namespace CaptainHook.Cli
             catch (Exception exception)
             {
                 console.EmitException(
-                    bigBrother,
                     exception,
                     commandParsed?.GetType() ?? app.GetType(),
                     commandParsed?.Options);
 
                 return -1;
-            }
-            finally
-            {
-                if (timedEvent != null)
-                {
-                    bigBrother?.Publish(timedEvent);
-                    bigBrother?.Flush();
-                }
             }
         }
 

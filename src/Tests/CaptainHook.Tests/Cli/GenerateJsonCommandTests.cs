@@ -1,16 +1,29 @@
-﻿using Eshopworld.Tests.Core;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using CaptainHook.Cli.Commands.GenerateJson;
+using CaptainHook.Cli.Services;
+using Eshopworld.Core;
+using Eshopworld.Tests.Core;
+using Moq;
 using Xunit;
 
 namespace CaptainHook.Tests.Cli
 {
-    public class GenerateJsonCommandTest
+    public class GenerateJsonCommandTests: CliTestBase
     {
         [Fact, IsLayer0]
         [Trait("Command", "GenerateJson")]
-        public void Test_SourceWithMore_ThanTarget()
+        public void Test_EmptySource()
+        {
+            //const string source = @"";
+            //var result = new GenerateJsonCommand(Mock.Of<IBigBrother>(), new PathService())
+            //{
+            //    InputFilePath = string.Empty,
+            //    OutputFolderPath = string.Empty
+            //}.ConvertToModels(source);
+        }
+
+        [Fact, IsLayer0]
+        [Trait("Command", "GenerateJson")]
+        public void Test_ValidSource()
         {
             const string source = @"
                 function setConfig ([string]$Name, [string]$Value, [string]$VaultName) {

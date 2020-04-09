@@ -44,18 +44,15 @@ namespace CaptainHook.Cli.Extensions
         /// emit error to console and BigBrother
         /// </summary>
         /// <param name="console">console instance</param>
-        /// <param name="bb"><see cref="IBigBrother"/></param>
+        /// <param name="bigBrother"><see cref="IBigBrother"/></param>
         /// <param name="exception">exception</param>
         /// <param name="command">command type</param>
         /// <param name="args">command arguments</param>
-        public static void EmitException(this IConsole console, IBigBrother bb, Exception exception, Type command, List<CommandOption> args)
+        public static void EmitException(this IConsole console, Exception exception, Type command, List<CommandOption> args)
         {
             var @event = exception.ToExceptionEvent<CaptainHookExceptionEvent>();
             @event.CommandType = command.ToString();
             @event.Arguments = args.ToConsoleString();
-
-            bb?.Publish(@event);
-            bb?.Flush();
 
             var argsMessage = string.IsNullOrWhiteSpace(@event.Arguments) ? "" : $",Arguments '{@event.Arguments}'";
             console.EmitMessage(console.Error, $"ERROR - Command {@event.CommandType}{argsMessage} - {exception.GetType().FullName} - {exception.Message}");
