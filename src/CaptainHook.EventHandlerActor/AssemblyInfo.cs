@@ -1,3 +1,1 @@
-﻿using Eshopworld.Telemetry;
-
-[assembly: FabricTransportActorRemotingProviderWithTelemetry()]
+﻿[assembly: CaptainHook.Telemetry.FabricTransportActorRemotingProviderWithTelemetry()]
