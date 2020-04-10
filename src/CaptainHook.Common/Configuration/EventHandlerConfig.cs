@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Net.Http;
 using CaptainHook.Common.Authentication;
 using Newtonsoft.Json;
@@ -20,7 +21,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// authentication config for this instance of webhook
         /// </summary>
-        [JsonProperty(Order = 3)]
+        [JsonProperty(Order = 4)]
         public AuthenticationConfig AuthenticationConfig { get; set; }
 
         /// <summary>
@@ -44,7 +45,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// due to limitations of binder (simple POCOs), route the config through this property
         /// </summary>
-        [JsonProperty(Order = 4)]
+        [JsonProperty(Order = 5)]
         public string HttpVerb
         {
             get => HttpMethod.Method;
@@ -75,7 +76,7 @@ namespace CaptainHook.Common.Configuration
         /// Request duration maximum timeout in seconds
         /// Left at 100 seconds as the default value for the http client timeout
         /// </summary>
-        [JsonProperty(Order = 5)]
+        [JsonProperty(Order = 6)]
         public TimeSpan Timeout { get; set; } = new TimeSpan(0, 0, 100);
 
         /// <summary>
@@ -267,6 +268,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// A selector that is used in the payload to determine where the request should be routed to in the config
         /// </summary>
+        [JsonProperty(Order = 3)]
         public string Selector { get; set; }
     }
 
@@ -281,16 +283,19 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The location of the parsed parameter or the location it should go
         /// </summary>
+        [DefaultValue(Location.Body)]
         public Location Location { get; set; } = Location.Body;
 
         /// <summary>
         /// 
         /// </summary>
+        [DefaultValue(RuleAction.Add)]
         public RuleAction RuleAction { get; set; } = RuleAction.Add;
 
         /// <summary>
         /// The data type of the property
         /// </summary>
+        [DefaultValue(DataType.Property)]
         public DataType Type { get; set; } = DataType.Property;
     }
 

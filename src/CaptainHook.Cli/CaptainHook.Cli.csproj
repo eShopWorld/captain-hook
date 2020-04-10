@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
+    <ProjectReference Include="..\CaptainHook.EventHandlerActor\CaptainHook.EventHandlerActor.csproj" />
   </ItemGroup>
 
 </Project>

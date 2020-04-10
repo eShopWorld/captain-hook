@@ -10,6 +10,9 @@ using CaptainHook.Cli.Common;
 using Newtonsoft.Json;
 using System.IO.Abstractions;
 using CaptainHook.Cli.Providers;
+using Newtonsoft.Json.Converters;
+using System.Linq;
+using CaptainHook.EventHandlerActor;
 
 namespace CaptainHook.Cli.Commands.GenerateJson
 {
@@ -28,6 +31,7 @@ namespace CaptainHook.Cli.Commands.GenerateJson
             DefaultValueHandling = DefaultValueHandling.Ignore,
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             ContractResolver = ShouldSerializeContractResolver.Instance,
+            Converters = new List<JsonConverter> { new StringEnumConverter() }
         };
 
         public GenerateJsonCommand(IFileSystem fileSystem)
@@ -66,7 +70,6 @@ namespace CaptainHook.Cli.Commands.GenerateJson
         public Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
             var sourceFile = Path.GetFullPath(InputFilePath);
-
             string outputFolder;
 
             if (string.IsNullOrWhiteSpace(OutputFolderPath))
@@ -86,18 +89,41 @@ namespace CaptainHook.Cli.Commands.GenerateJson
             }
 
             fileSystem.Directory.CreateDirectory(outputFolder);
-            
-            var result = new ConfigurationBuilder()
-                .AddEswPsFile(fileSystem, sourceFile)
-                .Build()
-                .GetSection("event")
-                .Get<IEnumerable<EventHandlerConfig>>();
 
-            foreach(var (@event, index) in result.WithIndex())
+            var config = new ConfigurationBuilder()
+                .AddEswPsFile(fileSystem, sourceFile)
+                .Build();
+
+            var values = config.GetSection("event").GetChildren().ToList();
+
+            var endpointList = new Dictionary<string, WebhookConfig>(values.Count);
+
+            foreach (var (configurationSection, index) in values.WithIndex())
             {
-                var jsonString = JsonConvert.SerializeObject(@event, jsonSettings);
-                var filename = $"event-{1+index}-{@event.Name}.json";
+                var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
+
+                foreach (var subscriber in eventHandlerConfig.AllSubscribers)
+                {
+                    var path = subscriber.WebHookConfigPath;
+                    ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
+                    subscriber.EventType = eventHandlerConfig.Type;
+                    subscriber.PayloadTransformation = subscriber.DLQMode != null ? PayloadContractTypeEnum.WrapperContract : PayloadContractTypeEnum.Raw;
+
+                    ConfigParser.AddEndpoints(subscriber, endpointList, configurationSection, path);
+
+                    if (subscriber.Callback != null)
+                    {
+                        path = subscriber.CallbackConfigPath;
+                        ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
+                        subscriber.Callback.EventType = eventHandlerConfig.Type;
+                        ConfigParser.AddEndpoints(subscriber.Callback, endpointList, configurationSection, path);
+                    }
+                }
+
+                var jsonString = JsonConvert.SerializeObject(eventHandlerConfig, jsonSettings);
+                var filename = $"event-{1 + index}-{eventHandlerConfig.Name}.json";
                 fileSystem.File.WriteAllText(Path.Combine(outputFolder, filename), jsonString);
+
             }
 
             return Task.FromResult(0);

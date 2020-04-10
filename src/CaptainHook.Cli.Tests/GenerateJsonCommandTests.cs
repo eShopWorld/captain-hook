@@ -17,11 +17,9 @@ namespace CaptainHook.Cli.Tests
     {
         private readonly CommandLineApplication application;
         private readonly Mock<IFileSystem> fileSystem;
-        private readonly Fixture fixture;
 
         public GenerateJsonCommandTests(ITestOutputHelper output) : base(output)
         {
-            fixture = new Fixture();
             fileSystem = new Mock<IFileSystem>();
             
             fileSystem.Setup(f => f.Directory.CreateDirectory(It.IsAny<String>()));
@@ -29,9 +27,15 @@ namespace CaptainHook.Cli.Tests
             fileSystem.Setup(f => f.File.WriteAllText(It.IsAny<String>(), It.IsAny<String>())).Verifiable();
             fileSystem.Setup(f => f.File.Exists(It.Is<string>(x => x.EndsWith("NonExistentFile")))).Returns(false);
 
-            fileSystem.Setup(f => f.File.Exists(It.Is<string>(x => x.EndsWith("ValidFileContentNoHeader")))).Returns(true);
-            fileSystem.Setup(f => f.File.ReadAllText(It.Is<string>(x => x.EndsWith("ValidFileContentNoHeader")))).Returns(Resources.ValidFileContentNoHeader);
+            fileSystem.Setup(f => f.File.Exists(It.Is<string>(x => x.EndsWith("ValidFileNoHeaderContent")))).Returns(true);
+            fileSystem.Setup(f => f.File.ReadAllText(It.Is<string>(x => x.EndsWith("ValidFileNoHeaderContent")))).Returns(Resources.ValidFileNoHeaderContent);
 
+            fileSystem.Setup(f => f.File.Exists(It.Is<string>(x => x.EndsWith("SingleRouteFileContent")))).Returns(true);
+            fileSystem.Setup(f => f.File.ReadAllText(It.Is<string>(x => x.EndsWith("SingleRouteFileContent")))).Returns(Resources.SingleRouteFileContent);
+
+            fileSystem.Setup(f => f.File.Exists(It.Is<string>(x => x.EndsWith("AuthFileContent")))).Returns(true);
+            fileSystem.Setup(f => f.File.ReadAllText(It.Is<string>(x => x.EndsWith("AuthFileContent")))).Returns(Resources.AuthFileContent);
+            
             application = new CommandLineApplication<Program>(Console);
         }
 
@@ -69,14 +73,37 @@ namespace CaptainHook.Cli.Tests
         }
 
         [Fact, IsLayer0]
-        public async Task ValidFileContentNoHeader()
+        public async Task ValidFileNoHeaderContent()
         {
             var command = new GenerateJsonCommand(fileSystem.Object);
-            command.InputFilePath = @"ValidFileContentNoHeader";
+            command.InputFilePath = @"ValidFileNoHeaderContent";
 
             var result = await command.OnExecuteAsync(application, Console);
 
             result.Should().Be(0);
         }
+
+        [Fact, IsLayer0]
+        public async Task SingleRouteFileContent()
+        {
+            var command = new GenerateJsonCommand(fileSystem.Object);
+            command.InputFilePath = @"SingleRouteFileContent";
+
+            var result = await command.OnExecuteAsync(application, Console);
+
+            result.Should().Be(0);
+        }
+
+        [Fact, IsLayer0]
+        public async Task AuthFileContent()
+        {
+            var command = new GenerateJsonCommand(fileSystem.Object);
+            command.InputFilePath = @"AuthFileContent";
+
+            var result = await command.OnExecuteAsync(application, Console);
+
+            result.Should().Be(0);
+        }
+
     }
 }
