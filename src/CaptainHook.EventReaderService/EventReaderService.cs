@@ -87,7 +87,7 @@ namespace CaptainHook.EventReaderService
             _settings = settings;
             ParseOutInitData(context.InitializationData);
 
-            _additionalData = new string('a', 100 * 1024);
+            _additionalData = new string('a', 5 * 1024);
         }
 
         private void ParseOutInitData(byte[] initializationData)
