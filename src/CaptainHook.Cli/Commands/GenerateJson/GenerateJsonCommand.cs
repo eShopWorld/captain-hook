@@ -1,13 +1,15 @@
 ﻿using CaptainHook.Cli.Extensions;
 using CaptainHook.Cli.Services;
-using CaptainHook.Cli.Telemetry;
-using Eshopworld.Core;
 using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.Reflection;
-using System.Text.Json;
 using System.Threading.Tasks;
+using CaptainHook.Cli.ConfigurationProvider;
+using System.Collections.Generic;
+using CaptainHook.Common.Configuration;
+using CaptainHook.Cli.Common;
+using Newtonsoft.Json;
 
 namespace CaptainHook.Cli.Commands.GenerateJson
 {
@@ -15,12 +17,16 @@ namespace CaptainHook.Cli.Commands.GenerateJson
     /// A command to generate a set of JSON files from a Captain Hook setup powershell script
     /// </summary>
     [Command("generateJson", Description = "generates JSON files from a Captain Hook setup powershell script"), HelpOption]
-    public class GenerateJsonCommand: GenerateJsonBase
+    public class GenerateJsonCommand : GenerateJsonBase
     {
         private readonly PathService pathService;
-        private JsonSerializerOptions serializerOptions = new JsonSerializerOptions
+        private static JsonSerializerSettings jsonSettings = new JsonSerializerSettings
         {
-            IgnoreNullValues = true
+            Formatting = Formatting.Indented,
+            NullValueHandling = NullValueHandling.Ignore,
+            DefaultValueHandling = DefaultValueHandling.Ignore,
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            ContractResolver = ShouldSerializeContractResolver.Instance,
         };
 
         public GenerateJsonCommand(PathService pathService)
@@ -60,7 +66,8 @@ namespace CaptainHook.Cli.Commands.GenerateJson
         {
             var sourceFile = Path.GetFullPath(InputFilePath);
 
-            string outputFolder = string.Empty;
+            string outputFolder;
+
             if (string.IsNullOrWhiteSpace(OutputFolderPath))
             {
                 outputFolder = Path.GetDirectoryName(GetType().Assembly.Location);
@@ -79,19 +86,16 @@ namespace CaptainHook.Cli.Commands.GenerateJson
 
             pathService.CreateDirectory(outputFolder);
 
-            var inputFileContent = ReadText(sourceFile);
+            var result = new ConfigurationBuilder()
+                .AddEswPsFile(sourceFile)
+                .Build()
+                .GetSection("event")
+                .Get<IEnumerable<EventHandlerConfig>>();
 
-            var models = ConvertToModels(inputFileContent);
-
-            string jsonString = string.Empty;
-            string filename = string.Empty;
-
-            foreach(var (i, model) in models)
+            foreach(var (@event, index) in result.WithIndex())
             {
-                jsonString = JsonSerializer.Serialize(model, serializerOptions);
-                
-                filename = $"event-{i}-{model.Name}.json";
-
+                var jsonString = JsonConvert.SerializeObject(@event, jsonSettings);
+                var filename = $"event-{1+index}-{@event.Name}.json";
                 File.WriteAllText(Path.Combine(outputFolder, filename), jsonString);
             }
 
