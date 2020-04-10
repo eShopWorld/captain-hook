@@ -1,10 +1,5 @@
 ﻿using Autofac;
 using CaptainHook.Cli.Services;
-using Eshopworld.DevOps;
-using Eshopworld.Telemetry;
-using Eshopworld.Telemetry.Configuration;
-using Microsoft.ApplicationInsights;
-using System;
 
 namespace CaptainHook.Cli
 {

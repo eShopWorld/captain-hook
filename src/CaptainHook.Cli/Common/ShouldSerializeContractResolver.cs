@@ -7,6 +7,9 @@ using System.Reflection;
 
 namespace CaptainHook.Cli.Common
 {
+    /// <summary>
+    /// Don't serialize empty collections
+    /// </summary>
     public class ShouldSerializeContractResolver : DefaultContractResolver
     {
         public static readonly ShouldSerializeContractResolver Instance = new ShouldSerializeContractResolver();

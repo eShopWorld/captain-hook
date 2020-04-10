@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,7 +8,7 @@ namespace CaptainHook.Cli.ConfigurationProvider
 {
     public class EswPsFileConfigurationProvider : FileConfigurationProvider
     {
-        private static Regex parseFileRegex = new Regex(@"setConfig\s+'(event--\d+--.*?)'\s+(?:'(.*?)'|(\d))\s+\$KeyVault", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex parseFileRegex = new Regex(@"setConfig\s+'(?<key>event--\d+--.*?)'\s+(?:'(?<value>.*?)'|(?<value>\d))\s+\$KeyVault", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Initializes a new instance with the specified source.
@@ -32,15 +31,16 @@ namespace CaptainHook.Cli.ConfigurationProvider
                 
                 foreach(Match match in matches)
                 {
-                    var key = match.Groups[1].Value.Replace("--", ConfigurationPath.KeyDelimiter);
-                    var value = match.Groups[2].Success ? match.Groups[2].Value : match.Groups[3].Value;
+                    var key = match.Groups["key"].Value;
+                    var value = match.Groups["value"].Value;
 
-                    if (data.ContainsKey(key))
+                    var replacedKey = key.Replace("--", ConfigurationPath.KeyDelimiter);
+                    if (data.ContainsKey(replacedKey))
                     {
                         throw new FormatException($"Key '{key}' is duplicated");
                     }
 
-                    data.Add(key, value);
+                    data.Add(replacedKey, value);
                 }
             }
 

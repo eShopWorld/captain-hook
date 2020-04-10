@@ -17,10 +17,10 @@ namespace CaptainHook.Cli.Commands.GenerateJson
     /// A command to generate a set of JSON files from a Captain Hook setup powershell script
     /// </summary>
     [Command("generateJson", Description = "generates JSON files from a Captain Hook setup powershell script"), HelpOption]
-    public class GenerateJsonCommand : GenerateJsonBase
+    public class GenerateJsonCommand
     {
         private readonly PathService pathService;
-        private static JsonSerializerSettings jsonSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
         {
             Formatting = Formatting.Indented,
             NullValueHandling = NullValueHandling.Ignore,

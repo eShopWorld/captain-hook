@@ -1,19 +1,31 @@
-﻿using CaptainHook.Cli;
+﻿using CaptainHook.Tests.Cli.Utilities;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using McMaster.Extensions.CommandLineUtils;
 using System;
 using Xunit;
+using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace CaptainHook.Tests.Cli
 {
-    public class VersionTest : CliTestBase
+    public class VersionTest
     {
+        private readonly ITestOutputHelper output;
+
+        public VersionTest(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
         [Fact, IsLayer2]
         public void CheckVersionMatch()
         {
-            var console = GetStandardOutput("--version");
-            // check we are getting the expected version of CLI when invoking the command
-            console.TrimEnd().Should().Be(typeof(Program).Assembly.GetName().Version.ToString(3));
+            CommandLineApplication app = new CommandLineApplication<CaptainHook.Cli.Program>(new TestConsole(output));
+            app.Conventions.UseDefaultConventions();
+            app.Execute("--version");
+            (output as TestOutputHelper).Output.TrimEnd('\r','\n')
+                .Should().Be(typeof(CaptainHook.Cli.Program).Assembly.GetName().Version.ToString(3));
         }
     }
 }

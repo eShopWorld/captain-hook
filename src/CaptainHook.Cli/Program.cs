@@ -2,8 +2,6 @@
 using Autofac.Extensions.DependencyInjection;
 using CaptainHook.Cli.Commands.GenerateJson;
 using CaptainHook.Cli.Extensions;
-using CaptainHook.Cli.Telemetry;
-using Eshopworld.Core;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -38,15 +36,9 @@ namespace CaptainHook.Cli
 
             CommandLineApplication commandParsed = null;
 
-            CaptainHookCliCommandExecutionTimedEvent timedEvent = null;
             app.OnParsingComplete(result =>
             {
                 commandParsed = result.SelectedCommand;
-                timedEvent = new CaptainHookCliCommandExecutionTimedEvent
-                {
-                    CommandType = commandParsed?.GetType().FullName ?? app.GetType().FullName,
-                    Arguments = commandParsed?.Options.ToConsoleString()
-                };
             });
 
             app.Conventions
