@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Cli.Common;
 using Newtonsoft.Json;
+using System.IO.Abstractions;
+using Microsoft.Extensions.FileProviders;
 
 namespace CaptainHook.Cli.Commands.GenerateJson
 {
@@ -19,7 +21,9 @@ namespace CaptainHook.Cli.Commands.GenerateJson
     [Command("generateJson", Description = "generates JSON files from a Captain Hook setup powershell script"), HelpOption]
     public class GenerateJsonCommand
     {
-        private readonly PathService pathService;
+        private readonly IFileSystem fileSystem;
+        private readonly IFileProvider fileProvider;
+
         private static readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
         {
             Formatting = Formatting.Indented,
@@ -29,9 +33,10 @@ namespace CaptainHook.Cli.Commands.GenerateJson
             ContractResolver = ShouldSerializeContractResolver.Instance,
         };
 
-        public GenerateJsonCommand(PathService pathService)
+        public GenerateJsonCommand(IFileSystem fileSystem, IFileProvider fileProvider)
         {
-            this.pathService = pathService;
+            this.fileSystem = fileSystem;
+            this.fileProvider = fileProvider;
         }
 
         /// <summary>
@@ -84,10 +89,10 @@ namespace CaptainHook.Cli.Commands.GenerateJson
                 return Task.FromResult(1);
             }
 
-            pathService.CreateDirectory(outputFolder);
-
+            fileSystem.Directory.CreateDirectory(outputFolder);
+            
             var result = new ConfigurationBuilder()
-                .AddEswPsFile(sourceFile)
+                .AddEswPsFile(fileProvider, sourceFile, false, false)
                 .Build()
                 .GetSection("event")
                 .Get<IEnumerable<EventHandlerConfig>>();
@@ -96,7 +101,7 @@ namespace CaptainHook.Cli.Commands.GenerateJson
             {
                 var jsonString = JsonConvert.SerializeObject(@event, jsonSettings);
                 var filename = $"event-{1+index}-{@event.Name}.json";
-                File.WriteAllText(Path.Combine(outputFolder, filename), jsonString);
+                fileSystem.File.WriteAllText(Path.Combine(outputFolder, filename), jsonString);
             }
 
             return Task.FromResult(0);

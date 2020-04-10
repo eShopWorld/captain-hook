@@ -1,5 +1,7 @@
 ﻿using Autofac;
 using CaptainHook.Cli.Services;
+using Microsoft.Extensions.FileProviders;
+using System.IO.Abstractions;
 
 namespace CaptainHook.Cli
 {
@@ -7,11 +9,8 @@ namespace CaptainHook.Cli
     {
         protected override void Load(ContainerBuilder builder)
         {
-            //var config = EswDevOpsSdk.BuildConfiguration();
-            //builder.ConfigureTelemetryKeys(config["BBInstrumentationKey"], config["BBInstrumentationKey"]);
-            //builder.RegisterModule<TelemetryModule>();
-            //builder.RegisterType<TelemetryClient>().SingleInstance();
-            builder.RegisterType<PathService>().SingleInstance();
+            builder.RegisterType<PhysicalFileProvider>().As<IFileProvider>();
+            builder.RegisterType<FileSystem>().As<IFileSystem>();
         }
     }
 }

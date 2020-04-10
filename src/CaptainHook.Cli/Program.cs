@@ -4,7 +4,9 @@ using CaptainHook.Cli.Commands.GenerateJson;
 using CaptainHook.Cli.Extensions;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using System;
+using System.IO.Abstractions;
 using System.Reflection;
 
 namespace CaptainHook.Cli

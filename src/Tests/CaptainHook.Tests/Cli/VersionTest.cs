@@ -9,23 +9,19 @@ using Xunit.Sdk;
 
 namespace CaptainHook.Tests.Cli
 {
-    public class VersionTest
+    public class VersionTest : CliTestBase
     {
-        private readonly ITestOutputHelper output;
-
-        public VersionTest(ITestOutputHelper output)
+        public VersionTest(ITestOutputHelper output) : base(output)
         {
-            this.output = output;
         }
 
         [Fact, IsLayer2]
         public void CheckVersionMatch()
         {
-            CommandLineApplication app = new CommandLineApplication<CaptainHook.Cli.Program>(new TestConsole(output));
+            CommandLineApplication app = new CommandLineApplication<CaptainHook.Cli.Program>(Console);
             app.Conventions.UseDefaultConventions();
             app.Execute("--version");
-            (output as TestOutputHelper).Output.TrimEnd('\r','\n')
-                .Should().Be(typeof(CaptainHook.Cli.Program).Assembly.GetName().Version.ToString(3));
+            Output.Should().Be(typeof(CaptainHook.Cli.Program).Assembly.GetName().Version.ToString(3));
         }
     }
 }
