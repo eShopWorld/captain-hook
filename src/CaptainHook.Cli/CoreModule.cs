@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using CaptainHook.Cli.Services;
 using Microsoft.Extensions.FileProviders;
 using System.IO.Abstractions;
 

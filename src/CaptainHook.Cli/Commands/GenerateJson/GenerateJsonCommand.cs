@@ -1,5 +1,4 @@
 ﻿using CaptainHook.Cli.Extensions;
-using CaptainHook.Cli.Services;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
