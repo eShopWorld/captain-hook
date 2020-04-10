@@ -1,13 +1,10 @@
-﻿using CaptainHook.Tests.Cli.Utilities;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using McMaster.Extensions.CommandLineUtils;
-using System;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
-namespace CaptainHook.Tests.Cli
+namespace CaptainHook.Cli.Tests
 {
     public class VersionTest : CliTestBase
     {

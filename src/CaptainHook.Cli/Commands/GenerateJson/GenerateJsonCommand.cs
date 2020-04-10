@@ -4,13 +4,12 @@ using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Threading.Tasks;
-using CaptainHook.Cli.ConfigurationProvider;
 using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Cli.Common;
 using Newtonsoft.Json;
 using System.IO.Abstractions;
-using Microsoft.Extensions.FileProviders;
+using CaptainHook.Cli.Providers;
 
 namespace CaptainHook.Cli.Commands.GenerateJson
 {
@@ -21,7 +20,6 @@ namespace CaptainHook.Cli.Commands.GenerateJson
     public class GenerateJsonCommand
     {
         private readonly IFileSystem fileSystem;
-        private readonly IFileProvider fileProvider;
 
         private static readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
         {
@@ -32,10 +30,9 @@ namespace CaptainHook.Cli.Commands.GenerateJson
             ContractResolver = ShouldSerializeContractResolver.Instance,
         };
 
-        public GenerateJsonCommand(IFileSystem fileSystem, IFileProvider fileProvider)
+        public GenerateJsonCommand(IFileSystem fileSystem)
         {
             this.fileSystem = fileSystem;
-            this.fileProvider = fileProvider;
         }
 
         /// <summary>
@@ -81,7 +78,7 @@ namespace CaptainHook.Cli.Commands.GenerateJson
                 outputFolder = Path.GetFullPath(OutputFolderPath);
             }
 
-            if(!File.Exists(sourceFile))
+            if(!fileSystem.File.Exists(sourceFile))
             {
                 console.EmitWarning(GetType(), app.Options, $"Cannot open {InputFilePath}");
 
@@ -91,7 +88,7 @@ namespace CaptainHook.Cli.Commands.GenerateJson
             fileSystem.Directory.CreateDirectory(outputFolder);
             
             var result = new ConfigurationBuilder()
-                .AddEswPsFile(fileProvider, sourceFile, false, false)
+                .AddEswPsFile(fileSystem, sourceFile)
                 .Build()
                 .GetSection("event")
                 .Get<IEnumerable<EventHandlerConfig>>();

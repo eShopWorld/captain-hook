@@ -1,8 +1,8 @@
-﻿using CaptainHook.Tests.Cli.Utilities;
+﻿using CaptainHook.Cli.Tests.Utilities;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace CaptainHook.Tests.Cli
+namespace CaptainHook.Cli.Tests
 {
     public abstract class CliTestBase
     {

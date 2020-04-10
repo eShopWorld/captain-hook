@@ -2,7 +2,7 @@
 using System.Text;
 using Xunit.Abstractions;
 
-namespace CaptainHook.Tests.Cli.Utilities
+namespace CaptainHook.Cli.Tests.Utilities
 {
     public class XunitTextWriter : TextWriter
     {
