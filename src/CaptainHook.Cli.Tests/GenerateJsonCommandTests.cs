@@ -1,109 +1,101 @@
-﻿using AutoFixture;
-using CaptainHook.Cli.Commands.GenerateJson;
+﻿using CaptainHook.Cli.Commands.GenerateJson;
 using CaptainHook.Cli.Tests.Utilities;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using McMaster.Extensions.CommandLineUtils;
-using Moq;
+using Newtonsoft.Json.Linq;
 using System;
-using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace CaptainHook.Cli.Tests
 {
-    public class GenerateJsonCommandTests : CliTestBase
-    {
-        private readonly CommandLineApplication application;
-        private readonly Mock<IFileSystem> fileSystem;
+    //public class GenerateJsonCommandTests : CliTestBase
+    //{
+    //    private readonly CommandLineApplication application;
+    //    private readonly MockFileSystem fileSystem = new MockFileSystem();
+    //    private const string aFilePath = @"c:\input.ps1";
 
-        public GenerateJsonCommandTests(ITestOutputHelper output) : base(output)
-        {
-            fileSystem = new Mock<IFileSystem>();
-            
-            fileSystem.Setup(f => f.Directory.CreateDirectory(It.IsAny<String>()));
+    //    private JObject Output() => JObject.Parse(fileSystem.GetFile(aFilePath).TextContents);
+ 
+    //    public GenerateJsonCommandTests(ITestOutputHelper output) : base(output)
+    //    {
+    //        application = new CommandLineApplication<Program>(Console);
+    //    }
 
-            fileSystem.Setup(f => f.File.WriteAllText(It.IsAny<String>(), It.IsAny<String>())).Verifiable();
-            fileSystem.Setup(f => f.File.Exists(It.Is<string>(x => x.EndsWith("NonExistentFile")))).Returns(false);
+    //    [Fact, IsLayer0]
+    //    public async Task NullInputFilePathThrowsError()
+    //    {
+    //        var command = new GenerateJsonCommand(fileSystem);
+    //        command.InputFilePath = null;
 
-            fileSystem.Setup(f => f.File.Exists(It.Is<string>(x => x.EndsWith("ValidFileNoHeaderContent")))).Returns(true);
-            fileSystem.Setup(f => f.File.ReadAllText(It.Is<string>(x => x.EndsWith("ValidFileNoHeaderContent")))).Returns(Resources.ValidFileNoHeaderContent);
+    //        Task result() => command.OnExecuteAsync(application, Console);
 
-            fileSystem.Setup(f => f.File.Exists(It.Is<string>(x => x.EndsWith("SingleRouteFileContent")))).Returns(true);
-            fileSystem.Setup(f => f.File.ReadAllText(It.Is<string>(x => x.EndsWith("SingleRouteFileContent")))).Returns(Resources.SingleRouteFileContent);
+    //        await Assert.ThrowsAsync<ArgumentNullException>(result);
+    //    }
 
-            fileSystem.Setup(f => f.File.Exists(It.Is<string>(x => x.EndsWith("AuthFileContent")))).Returns(true);
-            fileSystem.Setup(f => f.File.ReadAllText(It.Is<string>(x => x.EndsWith("AuthFileContent")))).Returns(Resources.AuthFileContent);
-            
-            application = new CommandLineApplication<Program>(Console);
-        }
+    //    [Fact, IsLayer0]
+    //    public async Task EmptyInputFilePathThrowsError()
+    //    {
+    //        var command = new GenerateJsonCommand(fileSystem);
+    //        command.InputFilePath = string.Empty;
 
-        [Fact, IsLayer0]
-        public async Task NullInputFilePathThrowsError()
-        {
-            var command = new GenerateJsonCommand(fileSystem.Object);
-            command.InputFilePath = null;
+    //        Task result() => command.OnExecuteAsync(application, Console);
 
-            Task result() => command.OnExecuteAsync(application, Console);
+    //        await Assert.ThrowsAsync<ArgumentException>(result);
+    //    }
 
-            await Assert.ThrowsAsync<ArgumentNullException>(result);
-        }
+    //    [Fact, IsLayer0]
+    //    public async Task FileNotFoundReturnsError()
+    //    {
+    //        var command = new GenerateJsonCommand(fileSystem);
+    //        command.InputFilePath = @"NonExistentFile";
 
-        [Fact, IsLayer0]
-        public async Task EmptyInputFilePathThrowsError()
-        {
-            var command = new GenerateJsonCommand(fileSystem.Object);
-            command.InputFilePath = string.Empty;
+    //        var result = await command.OnExecuteAsync(application, Console);
 
-            Task result() => command.OnExecuteAsync(application, Console);
+    //        result.Should().Be(1);
+    //    }
 
-            await Assert.ThrowsAsync<ArgumentException>(result);
-        }
+    //    [Fact, IsLayer0]
+    //    public async Task ValidFileNoHeaderContent()
+    //    {
+    //        fileSystem.AddFile(aFilePath, Resources.ValidFileNoHeaderContent);
 
-        [Fact, IsLayer0]
-        public async Task FileNotFoundReturnsError()
-        {
-            var command = new GenerateJsonCommand(fileSystem.Object);
-            command.InputFilePath = @"NonExistentFile";
+    //        var command = new GenerateJsonCommand(fileSystem);
+    //        command.InputFilePath = aFilePath;
 
-            var result = await command.OnExecuteAsync(application, Console);
+    //        var result = await command.OnExecuteAsync(application, Console);
 
-            result.Should().Be(1);
-        }
+    //        result.Should().Be(0);
+    //    }
 
-        [Fact, IsLayer0]
-        public async Task ValidFileNoHeaderContent()
-        {
-            var command = new GenerateJsonCommand(fileSystem.Object);
-            command.InputFilePath = @"ValidFileNoHeaderContent";
+    //    [Fact, IsLayer0]
+    //    public async Task SingleRouteFileContent()
+    //    {
+    //        fileSystem.AddFile(aFilePath, Resources.SingleRouteFileContent);
 
-            var result = await command.OnExecuteAsync(application, Console);
+    //        var command = new GenerateJsonCommand(fileSystem);
+    //        command.InputFilePath = aFilePath;
 
-            result.Should().Be(0);
-        }
+    //        var result = await command.OnExecuteAsync(application, Console);
 
-        [Fact, IsLayer0]
-        public async Task SingleRouteFileContent()
-        {
-            var command = new GenerateJsonCommand(fileSystem.Object);
-            command.InputFilePath = @"SingleRouteFileContent";
+    //        result.Should().Be(0);
+    //    }
 
-            var result = await command.OnExecuteAsync(application, Console);
+    //    [Fact, IsLayer0]
+    //    public async Task AuthFileContent()
+    //    {
+    //        fileSystem.AddFile(aFilePath, Resources.AuthFileContent);
 
-            result.Should().Be(0);
-        }
+    //        var command = new GenerateJsonCommand(fileSystem);
+    //        command.InputFilePath = aFilePath;
 
-        [Fact, IsLayer0]
-        public async Task AuthFileContent()
-        {
-            var command = new GenerateJsonCommand(fileSystem.Object);
-            command.InputFilePath = @"AuthFileContent";
+    //        var result = await command.OnExecuteAsync(application, Console);
 
-            var result = await command.OnExecuteAsync(application, Console);
+    //        result.Should().Be(0);
+    //    }
 
-            result.Should().Be(0);
-        }
-
-    }
+    //}
 }
