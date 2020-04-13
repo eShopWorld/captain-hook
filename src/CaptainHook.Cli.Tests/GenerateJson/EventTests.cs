@@ -1,7 +1,6 @@
-﻿using CaptainHook.Cli.Commands.GenerateJson;
-using Eshopworld.Tests.Core;
+﻿using Eshopworld.Tests.Core;
 using FluentAssertions;
-using System.Linq;
+using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -15,20 +14,39 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         }
 
         [Fact, IsLayer0]
-        public async Task GeneratesTwoEventFiles()
+        public async Task NameIsCorrect()
         {
-            Prepare();
+            PrepareCommand();
             await Command.OnExecuteAsync(Application, Console);
-            FileSystem.Directory.GetFiles(OutputFolderPath).Count().Should().Be(2);
+            JsonResult["Name"].ToString()
+                .Should().Be("activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent");
         }
 
         [Fact, IsLayer0]
-        public async Task FileNamesAreCorrect()
+        public async Task TypeIsCorrect()
         {
-            Prepare();
+            PrepareCommand();
             await Command.OnExecuteAsync(Application, Console);
-            FileSystem.FileExists(@"C:\output\event-1-activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent.json").Should().BeTrue();
-            FileSystem.FileExists(@"C:\output\event-2-activity1.domain.infrastructure.domainevents.platformactivitycreatedomainevent.json").Should().BeTrue();
+            JsonResult["Type"].ToString()
+                .Should().Be("activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent");
+        }
+
+        [Fact, IsLayer0]
+        public async Task HasWebhookConfigSection()
+        {
+            PrepareCommand();
+            await Command.OnExecuteAsync(Application, Console);
+            JsonResult["WebhookConfig"]
+                .Should().BeOfType<JObject>();
+        }
+
+        [Fact, IsLayer0]
+        public async Task HasCallbackConfigSection()
+        {
+            PrepareCommand();
+            await Command.OnExecuteAsync(Application, Console);
+            JsonResult["CallbackConfig"]
+                .Should().BeOfType<JObject>();
         }
     }
 }
