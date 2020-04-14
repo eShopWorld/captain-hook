@@ -14,8 +14,6 @@ namespace CaptainHook.Cli.Common
     /// </summary>
     public class ShouldSerializeContractResolver : DefaultContractResolver
     {
-        public static readonly ShouldSerializeContractResolver Instance = new ShouldSerializeContractResolver();
-
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             JsonProperty property = base.CreateProperty(member, memberSerialization);
