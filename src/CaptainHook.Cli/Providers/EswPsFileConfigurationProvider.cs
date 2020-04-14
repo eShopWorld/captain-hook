@@ -8,7 +8,7 @@ namespace CaptainHook.Cli.Providers
 {
     public class EswPsFileConfigurationProvider : ConfigurationProvider
     {
-        private static readonly Regex parseFileRegex = new Regex(@"setConfig\s+'(?<key>event--\d+--.*?)'\s+(?:'(?<value>.*?)'|(?<value>\d))\s+\$KeyVault", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static readonly Regex parseFileRegex = new Regex(@"^setConfig\s+'(?<key>event--\d+--.*?)'\s+(?:'(?<value>.*?)'|(?<value>\d))\s+\$KeyVault", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Multiline);
         private readonly string path;
         private readonly IFileSystem fileSystem;
 
