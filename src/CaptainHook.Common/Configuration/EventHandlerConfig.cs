@@ -128,11 +128,13 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// intended name for the subscriber(and therefore subscription)
         /// </summary>
+        [JsonProperty(Order = 3)]
         public string SubscriberName { get; set; }
 
         /// <summary>
         /// signals that subscriber is in DLQ mode and what processing mode is used for incoming message
         /// </summary>
+        [JsonProperty(Order = 5)]
         public SubscriberDlqMode? DLQMode { get; set; }
 
         /// <summary>
@@ -140,6 +142,7 @@ namespace CaptainHook.Common.Configuration
         /// 
         /// in DLQ mode this is the source subscription to hook DLQ under
         /// </summary>
+        [JsonProperty(Order = 4)]
         public string SourceSubscriptionName { get; set; }
 
         /// <summary>
@@ -176,6 +179,7 @@ namespace CaptainHook.Common.Configuration
 
         internal int CollectionIndex { get; set; }
 
+        [JsonIgnore]
         public string WebHookConfigPath
         {
             get
@@ -184,6 +188,7 @@ namespace CaptainHook.Common.Configuration
             }
         }
 
+        [JsonIgnore]
         public string CallbackConfigPath
         {
             get
@@ -201,7 +206,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The list of all subscibers of the topic handling the event type.
         /// </summary>
-        [JsonIgnore]
+        [JsonProperty(Order = 5)]
         public List<SubscriberConfiguration> Subscribers { get; } = new List<SubscriberConfiguration>();
 
         /// <summary>
