@@ -101,6 +101,7 @@ namespace CaptainHook.Cli.Commands.GenerateJson
             foreach (var (configurationSection, index) in values.WithIndex())
             {
                 var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
+                ConfigParser.ParseAuthScheme(eventHandlerConfig.WebhookConfig, configurationSection, "webhookconfig:authenticationconfig");
 
                 foreach (var subscriber in eventHandlerConfig.AllSubscribers)
                 {

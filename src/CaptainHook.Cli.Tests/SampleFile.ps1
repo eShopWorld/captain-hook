@@ -47,6 +47,13 @@ setConfig 'CaptainHook--RequiredScopes--1' 'aaa.bbb.ccc' $KeyVault
 setConfig 'event--1--type' 'activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent' $KeyVault
 setConfig 'event--1--name' 'activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent' $KeyVault
 setConfig 'event--1--webhookconfig--name' 'activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent-webhook' $KeyVault
+setConfig 'event--1--webhookconfig--uri' 'https://ct.site.com/api/v1/WebHook/Update' $KeyVault
+setConfig 'event--1--webhookconfig--authenticationconfig--type' 2 $KeyVault
+setConfig 'event--1--webhookconfig--authenticationconfig--uri' 'https://security.site.com/connect/token' $KeyVault
+setConfig 'event--1--webhookconfig--authenticationconfig--clientid' 't.abc.client' $KeyVault
+setConfig 'event--1--webhookconfig--authenticationconfig--clientsecret' 'verylongsecuresecret' $KeyVault
+setConfig 'event--1--webhookconfig--authenticationconfig--scopes' 't.abc.client.api.all' $KeyVault
+setConfig 'event--1--webhookconfig--httpverb' 'POST' $KeyVault
 
 # Rules
 setConfig 'event--1--webhookconfig--webhookrequestrules--1--Source--path' 'ActivityConfirmationRequestDto' $KeyVault
