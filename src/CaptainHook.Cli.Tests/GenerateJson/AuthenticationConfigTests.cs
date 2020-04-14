@@ -41,5 +41,17 @@ namespace CaptainHook.Cli.Tests.GenerateJson
                     x.Value<string>("ClientSecret").Length > 0 &&
                     x["Scopes"] is JArray);
         }
+
+        [Fact]
+        [IsLayer0]
+        public async Task EmptyAuthConfigIsNotSerialized()
+        {
+            PrepareCommand();
+            await Command.OnExecuteAsync(Application, Console);
+            AllAuthConfigSections
+                .Where(x => x.Value<string>("Type") == "None")
+                .Should()
+                .BeEmpty();
+        }
     }
 }

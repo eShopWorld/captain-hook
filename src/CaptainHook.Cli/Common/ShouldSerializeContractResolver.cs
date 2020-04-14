@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CaptainHook.Common.Authentication;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections;
@@ -21,16 +22,25 @@ namespace CaptainHook.Cli.Common
 
             if (property.PropertyType != typeof(string))
             {
+                // don't serialize empty collections
                 if (property.PropertyType.GetInterface(nameof(IEnumerable)) != null)
                 {
                     property.ShouldSerialize =
                         instance => (instance?.GetType().GetProperty(property.PropertyName).GetValue(instance) as IEnumerable<object>)?.Count() > 0;
                 }
 
+                // don't serialize default timeout value of 100 seconds
                 if (property.PropertyType == typeof(TimeSpan) && property.PropertyName.Equals("Timeout", StringComparison.InvariantCulture))
                 {
                     property.ShouldSerialize =
                         instance => ((TimeSpan)instance.GetType().GetProperty(property.PropertyName).GetValue(instance)).TotalSeconds != 100;
+                }
+
+                // don't serialize empty AuthenticationConfig objects
+                if(property.PropertyType == typeof(AuthenticationConfig) && property.PropertyName.Equals("AuthenticationConfig", StringComparison.InvariantCulture))
+                {
+                    property.ShouldSerialize =
+                        instance => ((AuthenticationConfig)instance.GetType().GetProperty(property.PropertyName).GetValue(instance)).Type != AuthenticationType.None;
                 }
             }
             return property;
