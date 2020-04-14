@@ -9,8 +9,8 @@ namespace CaptainHook.Cli.Tests.GenerateJson
     public abstract class GenerateJsonCommandBase : CliTestBase
     {
         protected readonly MockFileSystem FileSystem = new MockFileSystem();
-        protected readonly string InputFilePath = @"C:\input\input.ps1";
-        protected readonly string OutputFolderPath = @"C:\output";
+        protected const string InputFilePath = @"C:\input\input.ps1";
+        protected const string OutputFolderPath = @"C:\output";
         protected GenerateJsonCommand Command;
 
         public GenerateJsonCommandBase(ITestOutputHelper output) : base(output)
@@ -28,16 +28,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             return JObject.Parse(fileContent.TextContents);
         }
 
-        protected void PrepareCommand()
-        {
-            Command = new GenerateJsonCommand(FileSystem)
-            {
-                InputFilePath = InputFilePath,
-                OutputFolderPath = OutputFolderPath
-            };
-        }
-
-        protected void PrepareCommand(string inputFilePath, string outputFolderPath)
+        protected void PrepareCommand(string inputFilePath = InputFilePath, string outputFolderPath = OutputFolderPath)
         {
             Command = new GenerateJsonCommand(FileSystem)
             {
