@@ -77,4 +77,32 @@ namespace CaptainHook.Tests.Web.FlowTests
                 TimeSpan.FromMinutes(3));
         }
     }
+
+    public class BasicCallbackFlowAuthNoRoutePostVerb : IntegrationTestBase
+    {
+        public BasicCallbackFlowAuthNoRoutePostVerb(E2EFlowTestsFixture fixture) : base(fixture)
+        {
+        }
+        /// <summary>
+        /// Web Hook + callback
+        /// POST verb
+        /// with no route
+        /// no model transformation
+        /// </summary>
+        /// <returns>task</returns>
+        [Fact, IsLayer2]
+        public async Task BasicWebHookFlowAuthUnmatchedRoutePostVerbTest()
+        {
+            await _fixture.ExpectTrackedEventWithCallback(new CallbackFlowTestEvent(), checks=> checks
+                    .CheckOidcAuthScopes("eda.peterpan.delivery.api.all")
+                    .CheckUrlIdSuffixPresent(false)
+                    .CheckVerb(HttpMethod.Post),
+                callbackChecks=> callbackChecks
+                    .CheckOidcAuthScopes("eda.peterpan.delivery.api.all")
+                    .CheckUrlIdSuffixPresent(false, true)
+                    .CheckIsCallback()
+                    .CheckVerb(HttpMethod.Post),
+                TimeSpan.FromMinutes(3));
+        }
+    }
 }

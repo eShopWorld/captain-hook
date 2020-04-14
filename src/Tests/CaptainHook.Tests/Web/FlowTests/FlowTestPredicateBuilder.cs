@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
+using Newtonsoft.Json.Linq;
 
 namespace CaptainHook.Tests.Web.FlowTests
 {
@@ -35,11 +36,12 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// check whether URL was suffixed with id (as extracted from payload based on config) or not
         /// </summary>
         /// <param name="endsWithId">flag to drive the positive or negative check</param>
+        /// <param name="callbackMode">flag to signify that this should expect callback url</param>
         /// <returns>builder chain instance</returns>
-        public FlowTestPredicateBuilder CheckUrlIdSuffixPresent(bool endsWithId)
+        public FlowTestPredicateBuilder CheckUrlIdSuffixPresent(bool endsWithId, bool callbackMode = false)
         {
             _subPredicates.Add(m=> 
-                m.Url.EndsWith("/intake", StringComparison.OrdinalIgnoreCase) ^ endsWithId ); //XOR
+                m.Url.EndsWith(callbackMode? PeterPanConsts.IntakeCallbackRouteToken : PeterPanConsts.IntakeHookRouteToken, StringComparison.OrdinalIgnoreCase) ^ endsWithId ); //XOR
 
             return this;
         }
@@ -63,6 +65,29 @@ namespace CaptainHook.Tests.Web.FlowTests
             return this;
         }
 
+        /// <summary>
+        /// check that the tracked request was callback
+        /// </summary>
+        /// <returns>predicate builder</returns>
+        public FlowTestPredicateBuilder CheckIsCallback(bool expectStatusCode=true, string statusCodeName ="StatusCode", bool expectContent=true, string httpContentName = "Content")
+        {
+            _subPredicates.Add(m =>
+                {
+                    var payload = JObject.Parse(m.Payload);
+
+                    var statusCode = expectStatusCode? payload[statusCodeName]: new JObject();
+                    var content = expectContent? payload[httpContentName] : new JObject();
+
+                    return !string.IsNullOrWhiteSpace(m.Url) &&
+                           m.Url.Contains(PeterPanConsts.IntakeCallbackRouteToken, StringComparison.OrdinalIgnoreCase) &&
+                           statusCode != null &&
+                           content != null;
+                }
+            );
+
+            return this;
+        }
+
         private static JwtSecurityToken ParseJwt(ProcessedEventModel m)
         {
             //check this is "bearer" token
@@ -77,12 +102,21 @@ namespace CaptainHook.Tests.Web.FlowTests
         }
 
         /// <summary>
-        /// build overall check delegate (used in fluent assertions)
+        /// build overall check delegate (used in fluent assertions) - check "all" match the predicate
         /// </summary>
         /// <returns>test delegate</returns>
-        public Func<ProcessedEventModel, bool> Build() => model =>
+        public Func<ProcessedEventModel, bool> BuildAll() => model =>
         {
             return _subPredicates.All(i => i.Invoke(model));
+        };
+
+        /// <summary>
+        /// build overall check delegate (used in fluent assertions), check "any" exists
+        /// </summary>
+        /// <returns>test delegate</returns>
+        public Func<ProcessedEventModel, bool> BuildAny() => model =>
+        {
+            return _subPredicates.Exists(i => i.Invoke(model));
         };
     }
 }

@@ -20,4 +20,13 @@ namespace Core.Events.Test /*this is synced to tracking event to keep these grou
     public class WebHookFlowRoutedTestEvent : FlowTestEventBase
     {
     }
+
+    /// <summary>
+    /// this event represents the flow of
+    ///
+    /// basic callback flow with no route
+    /// </summary>
+    public class CallbackFlowTestEvent : FlowTestEventBase
+    {
+    }
 }
