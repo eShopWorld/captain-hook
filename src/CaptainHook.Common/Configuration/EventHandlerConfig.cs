@@ -59,6 +59,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The event type of this event
         /// </summary>
+        [JsonIgnore]
         public string EventType { get; set; }
 
         /// <summary>
@@ -70,6 +71,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// associated rules for the callback
         /// </summary>
+        [JsonProperty(Order = 7)]
         public List<WebhookRequestRule> WebhookRequestRules { get; set; }
 
         /// <summary>
@@ -84,6 +86,7 @@ namespace CaptainHook.Common.Configuration
         /// 
         /// pertains to new callback/DLQ contract designed
         /// </summary>
+        [JsonIgnore]
         public PayloadContractTypeEnum PayloadTransformation { get; set; } = PayloadContractTypeEnum.Raw;
     }
 
