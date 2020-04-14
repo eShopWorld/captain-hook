@@ -59,7 +59,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         public async Task FileContainsJson()
         {
             PrepareCommand();
-            var result = await Command.OnExecuteAsync(Application, Console);
+            await Command.OnExecuteAsync(Application, Console);
             var exception = Record.Exception(() => JsonResult);
             Assert.Null(exception);
         }
