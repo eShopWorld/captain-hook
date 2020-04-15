@@ -101,8 +101,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                     .CheckOidcAuthScopes("eda.peterpan.delivery.api.all")
                     .CheckUrlIdSuffixPresent(false)
                     .CheckIsCallback()
-                    .CheckVerb(HttpMethod.Post),
-                TimeSpan.FromMinutes(3));
+                    .CheckVerb(HttpMethod.Post));
         }
     }
 }
