@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Net.Http;
 using CaptainHook.Common.Authentication;
+using Newtonsoft.Json;
 
 namespace CaptainHook.Common.Configuration
 {
@@ -19,26 +21,31 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// authentication config for this instance of webhook
         /// </summary>
+        [JsonProperty(Order = 4)]
         public AuthenticationConfig AuthenticationConfig { get; set; }
 
         /// <summary>
         /// target URL
         /// </summary>
+        [JsonProperty(Order = 2)]
         public string Uri { get; set; }
 
         /// <summary>
         /// webhook name
         /// </summary>
+        [JsonProperty(Order = 1)]
         public string Name { get; set; }
 
         /// <summary>
         /// HTTP method to use when executing the call
         /// </summary>
+        [JsonIgnore]
         public HttpMethod HttpMethod { get; set; } = HttpMethod.Post;
 
         /// <summary>
         /// due to limitations of binder (simple POCOs), route the config through this property
         /// </summary>
+        [JsonProperty(Order = 5)]
         public string HttpVerb
         {
             get => HttpMethod.Method;
@@ -52,22 +59,26 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The event type of this event
         /// </summary>
+        [JsonIgnore]
         public string EventType { get; set; }
 
         /// <summary>
         /// The default http content type used for events
         /// </summary>
+        [JsonIgnore]
         public string ContentType { get; set; } = Constants.Headers.DefaultContentType;
 
         /// <summary>
         /// associated rules for the callback
         /// </summary>
+        [JsonProperty(Order = 7)]
         public List<WebhookRequestRule> WebhookRequestRules { get; set; }
 
         /// <summary>
         /// Request duration maximum timeout in seconds
         /// Left at 100 seconds as the default value for the http client timeout
         /// </summary>
+        [JsonProperty(Order = 6)]
         public TimeSpan Timeout { get; set; } = new TimeSpan(0, 0, 100);
 
         /// <summary>
@@ -75,6 +86,7 @@ namespace CaptainHook.Common.Configuration
         /// 
         /// pertains to new callback/DLQ contract designed
         /// </summary>
+        [JsonIgnore]
         public PayloadContractTypeEnum PayloadTransformation { get; set; } = PayloadContractTypeEnum.Raw;
     }
 
@@ -111,16 +123,19 @@ namespace CaptainHook.Common.Configuration
         /// The configuration of the webhook which should receive the response message from
         /// the main webhook.
         /// </summary>
+        [JsonProperty(Order = 8)]
         public WebhookConfig Callback { get; set; }
 
         /// <summary>
         /// intended name for the subscriber(and therefore subscription)
         /// </summary>
+        [JsonProperty(Order = 3)]
         public string SubscriberName { get; set; }
 
         /// <summary>
         /// signals that subscriber is in DLQ mode and what processing mode is used for incoming message
         /// </summary>
+        [JsonProperty(Order = 5)]
         public SubscriberDlqMode? DLQMode { get; set; }
 
         /// <summary>
@@ -128,6 +143,7 @@ namespace CaptainHook.Common.Configuration
         /// 
         /// in DLQ mode this is the source subscription to hook DLQ under
         /// </summary>
+        [JsonProperty(Order = 4)]
         public string SourceSubscriptionName { get; set; }
 
         /// <summary>
@@ -164,6 +180,7 @@ namespace CaptainHook.Common.Configuration
 
         internal int CollectionIndex { get; set; }
 
+        [JsonIgnore]
         public string WebHookConfigPath
         {
             get
@@ -172,6 +189,7 @@ namespace CaptainHook.Common.Configuration
             }
         }
 
+        [JsonIgnore]
         public string CallbackConfigPath
         {
             get
@@ -189,11 +207,13 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The list of all subscibers of the topic handling the event type.
         /// </summary>
+        [JsonProperty(Order = 5)]
         public List<SubscriberConfiguration> Subscribers { get; } = new List<SubscriberConfiguration>();
 
         /// <summary>
         /// Returns all subscribers defined in the old and new configuration schemas.
         /// </summary>
+        [JsonIgnore]
         public IEnumerable<SubscriberConfiguration> AllSubscribers
         {
             get
@@ -211,15 +231,19 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The webhook definition using the old schema of configuration.
         /// </summary>
+        [JsonProperty(Order = 3)]
         public WebhookConfig WebhookConfig { get; set; }
 
         /// <summary>
         /// The callback of associated with <see cref="WebhookConfig"/> using the old schema of configuration.
         /// </summary>
+        [JsonProperty(Order = 4)]
         public WebhookConfig CallbackConfig { get; set; }
 
+        [JsonProperty(Order = 1)]
         public string Name { get; set; }
 
+        [JsonProperty(Order = 2)]
         public string Type { get; set; }
     }
 
@@ -253,6 +277,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// A selector that is used in the payload to determine where the request should be routed to in the config
         /// </summary>
+        [JsonProperty(Order = 3)]
         public string Selector { get; set; }
     }
 
@@ -267,16 +292,19 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The location of the parsed parameter or the location it should go
         /// </summary>
+        [DefaultValue(Location.Body)]
         public Location Location { get; set; } = Location.Body;
 
         /// <summary>
         /// 
         /// </summary>
+        [DefaultValue(RuleAction.Add)]
         public RuleAction RuleAction { get; set; } = RuleAction.Add;
 
         /// <summary>
         /// The data type of the property
         /// </summary>
+        [DefaultValue(DataType.Property)]
         public DataType Type { get; set; } = DataType.Property;
     }
 
