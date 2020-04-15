@@ -32,14 +32,5 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             JsonToken["WebhookRequestRules"]
                 .Should().BeOfType<JArray>().And.NotBeEmpty();
         }
-
-        [Fact, IsLayer0]
-        public async Task HasHttpVerb()
-        {
-            PrepareCommand();
-            await Command.OnExecuteAsync(Application, Console);
-            JsonToken["HttpVerb"].ToString()
-                .Should().NotBeNullOrWhiteSpace();
-        }
     }
 }
