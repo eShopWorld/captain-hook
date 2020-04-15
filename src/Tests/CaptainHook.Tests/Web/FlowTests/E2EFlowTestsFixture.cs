@@ -160,7 +160,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             var predicate = new FlowTestPredicateBuilder();
             predicate = configTestBuilder.Invoke(predicate);
 
-            processedEvents.Should().OnlyContain(m => predicate.BuildAll().Invoke(m));
+            processedEvents.Should().OnlyContain(m => predicate.BuildMatchesAll().Invoke(m));
         }
 
         /// <summary>
@@ -184,8 +184,8 @@ namespace CaptainHook.Tests.Web.FlowTests
 
             var processedEventModels = processedEvents as ProcessedEventModel[] ?? processedEvents.ToArray();
 
-            processedEventModels.Where(m=> !m.Url.Contains(PeterPanConsts.IntakeCallbackRouteToken, StringComparison.OrdinalIgnoreCase)).Should().Contain(m => predicate.BuildAll().Invoke(m));
-            processedEventModels.Where(m => m.Url.Contains(PeterPanConsts.IntakeCallbackRouteToken, StringComparison.OrdinalIgnoreCase)).Should().Contain(m => callbackPredicate.BuildAll().Invoke(m));
+            processedEventModels.Where(m=> !m.IsCallback).Should().Contain(m => predicate.BuildMatchesAll().Invoke(m));
+            processedEventModels.Where(m => m.IsCallback).Should().Contain(m => callbackPredicate.BuildMatchesAll().Invoke(m));
         }
 
         private async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan, bool expectMessages = true, bool waitForCallback=false) where T : FlowTestEventBase

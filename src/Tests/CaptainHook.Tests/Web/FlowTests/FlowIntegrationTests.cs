@@ -99,7 +99,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                     .CheckVerb(HttpMethod.Post),
                 callbackChecks=> callbackChecks
                     .CheckOidcAuthScopes("eda.peterpan.delivery.api.all")
-                    .CheckUrlIdSuffixPresent(false, true)
+                    .CheckUrlIdSuffixPresent(false)
                     .CheckIsCallback()
                     .CheckVerb(HttpMethod.Post),
                 TimeSpan.FromMinutes(3));

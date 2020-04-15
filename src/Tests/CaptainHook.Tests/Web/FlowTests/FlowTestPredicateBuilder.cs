@@ -10,6 +10,7 @@ namespace CaptainHook.Tests.Web.FlowTests
     public class FlowTestPredicateBuilder
     {
         private List<Func<ProcessedEventModel, bool>> _subPredicates = new List<Func<ProcessedEventModel, bool>>();
+        private bool _callbackMode;
 
         public FlowTestPredicateBuilder Reset()
         {
@@ -36,12 +37,11 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// check whether URL was suffixed with id (as extracted from payload based on config) or not
         /// </summary>
         /// <param name="endsWithId">flag to drive the positive or negative check</param>
-        /// <param name="callbackMode">flag to signify that this should expect callback url</param>
         /// <returns>builder chain instance</returns>
-        public FlowTestPredicateBuilder CheckUrlIdSuffixPresent(bool endsWithId, bool callbackMode = false)
+        public FlowTestPredicateBuilder CheckUrlIdSuffixPresent(bool endsWithId)
         {
             _subPredicates.Add(m=> 
-                m.Url.EndsWith(callbackMode? PeterPanConsts.IntakeCallbackRouteToken : PeterPanConsts.IntakeHookRouteToken, StringComparison.OrdinalIgnoreCase) ^ endsWithId ); //XOR
+                _callbackMode==m.IsCallback ^ endsWithId ); //XOR
 
             return this;
         }
@@ -71,6 +71,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// <returns>predicate builder</returns>
         public FlowTestPredicateBuilder CheckIsCallback(bool expectStatusCode=true, string statusCodeName ="StatusCode", bool expectContent=true, string httpContentName = "Content")
         {
+            _callbackMode = true;
             _subPredicates.Add(m =>
                 {
                     var payload = JObject.Parse(m.Payload);
@@ -78,8 +79,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                     var statusCode = expectStatusCode? payload[statusCodeName]: new JObject();
                     var content = expectContent? payload[httpContentName] : new JObject();
 
-                    return !string.IsNullOrWhiteSpace(m.Url) &&
-                           m.Url.Contains(PeterPanConsts.IntakeCallbackRouteToken, StringComparison.OrdinalIgnoreCase) &&
+                    return m.IsCallback &&
                            statusCode != null &&
                            content != null;
                 }
@@ -105,7 +105,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// build overall check delegate (used in fluent assertions) - check "all" match the predicate
         /// </summary>
         /// <returns>test delegate</returns>
-        public Func<ProcessedEventModel, bool> BuildAll() => model =>
+        public Func<ProcessedEventModel, bool> BuildMatchesAll() => model =>
         {
             return _subPredicates.All(i => i.Invoke(model));
         };
@@ -114,7 +114,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// build overall check delegate (used in fluent assertions), check "any" exists
         /// </summary>
         /// <returns>test delegate</returns>
-        public Func<ProcessedEventModel, bool> BuildAny() => model =>
+        public Func<ProcessedEventModel, bool> BuildMatchesAny() => model =>
         {
             return _subPredicates.Exists(i => i.Invoke(model));
         };
