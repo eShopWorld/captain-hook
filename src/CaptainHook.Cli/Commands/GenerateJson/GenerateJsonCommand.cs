@@ -19,7 +19,7 @@ namespace CaptainHook.Cli.Commands.GenerateJson
     /// <summary>
     /// A command to generate a set of JSON files from a Captain Hook setup powershell script
     /// </summary>
-    [Command("generateJson", Description = "generates JSON files from a Captain Hook setup powershell script"), HelpOption]
+    [Command("generate-json", Description = "generates JSON files from a Captain Hook setup powershell script"), HelpOption]
     public class GenerateJsonCommand
     {
         private readonly IFileSystem fileSystem;
