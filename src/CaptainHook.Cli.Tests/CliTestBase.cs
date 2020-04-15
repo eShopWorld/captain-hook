@@ -12,7 +12,7 @@ namespace CaptainHook.Cli.Tests
         protected string Output => (output as TestOutputHelper)?.Output?.TrimEnd('\r', '\n');
         protected readonly CommandLineApplication Application;
 
-        public CliTestBase(ITestOutputHelper output)
+        protected CliTestBase(ITestOutputHelper output)
         {
             this.output = output;
             Console = new TestConsole(output);

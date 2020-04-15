@@ -13,7 +13,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         protected const string OutputFolderPath = @"C:\output";
         protected GenerateJsonCommand Command;
 
-        public GenerateJsonCommandBase(ITestOutputHelper output) : base(output)
+        protected GenerateJsonCommandBase(ITestOutputHelper output) : base(output)
         {
             FileSystem.AddFile(InputFilePath, File.ReadAllText("SampleFile.ps1"));
         }
