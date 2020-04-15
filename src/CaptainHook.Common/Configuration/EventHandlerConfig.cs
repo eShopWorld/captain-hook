@@ -123,6 +123,7 @@ namespace CaptainHook.Common.Configuration
         /// The configuration of the webhook which should receive the response message from
         /// the main webhook.
         /// </summary>
+        [JsonProperty(Order = 8)]
         public WebhookConfig Callback { get; set; }
 
         /// <summary>
