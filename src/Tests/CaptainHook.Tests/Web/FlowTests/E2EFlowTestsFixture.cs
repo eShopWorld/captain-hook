@@ -93,7 +93,7 @@ namespace CaptainHook.Tests.Web.FlowTests
 
                 var retry = Policy
                 .HandleResult<HttpResponseMessage>(msg =>
-                    !expectMessages || msg.StatusCode == HttpStatusCode.NoContent || (!expectCallback ||  modelReceived == null || !modelReceived.Any(m => !string.IsNullOrWhiteSpace(m.Url) && m.Url.Contains(PeterPanConsts.IntakeCallbackRouteToken, StringComparison.OrdinalIgnoreCase))) /* keep polling */ )
+                    !expectMessages || msg.StatusCode == HttpStatusCode.NoContent || (!expectCallback ||  modelReceived == null || !modelReceived.Any(m => m.IsCallback)) /* keep polling */ )
                 .Or<Exception>()
                 .WaitAndRetryForeverAsync((i, context) => _defaultPollAttemptRetryTimeSpan);
 
