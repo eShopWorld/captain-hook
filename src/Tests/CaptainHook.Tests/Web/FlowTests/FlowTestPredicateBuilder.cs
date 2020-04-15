@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
+using Newtonsoft.Json.Linq;
 
 namespace CaptainHook.Tests.Web.FlowTests
 {
     public class FlowTestPredicateBuilder
     {
         private List<Func<ProcessedEventModel, bool>> _subPredicates = new List<Func<ProcessedEventModel, bool>>();
+        private bool _callbackMode;
 
         public FlowTestPredicateBuilder Reset()
         {
@@ -39,7 +41,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         public FlowTestPredicateBuilder CheckUrlIdSuffixPresent(bool endsWithId)
         {
             _subPredicates.Add(m=> 
-                m.Url.EndsWith("/intake", StringComparison.OrdinalIgnoreCase) ^ endsWithId ); //XOR
+                _callbackMode==m.IsCallback ^ endsWithId ); //XOR
 
             return this;
         }
@@ -63,6 +65,29 @@ namespace CaptainHook.Tests.Web.FlowTests
             return this;
         }
 
+        /// <summary>
+        /// check that the tracked request was callback
+        /// </summary>
+        /// <returns>predicate builder</returns>
+        public FlowTestPredicateBuilder CheckIsCallback(bool expectStatusCode=true, string statusCodeName ="StatusCode", bool expectContent=true, string httpContentName = "Content")
+        {
+            _callbackMode = true;
+            _subPredicates.Add(m =>
+                {
+                    var payload = JObject.Parse(m.Payload);
+
+                    var statusCode = expectStatusCode? payload[statusCodeName]: new JObject();
+                    var content = expectContent? payload[httpContentName] : new JObject();
+
+                    return m.IsCallback &&
+                           statusCode != null &&
+                           content != null;
+                }
+            );
+
+            return this;
+        }
+
         private static JwtSecurityToken ParseJwt(ProcessedEventModel m)
         {
             //check this is "bearer" token
@@ -77,12 +102,21 @@ namespace CaptainHook.Tests.Web.FlowTests
         }
 
         /// <summary>
-        /// build overall check delegate (used in fluent assertions)
+        /// build overall check delegate (used in fluent assertions) - check "all" match the predicate
         /// </summary>
         /// <returns>test delegate</returns>
-        public Func<ProcessedEventModel, bool> Build() => model =>
+        public Func<ProcessedEventModel, bool> BuildMatchesAll() => model =>
         {
             return _subPredicates.All(i => i.Invoke(model));
+        };
+
+        /// <summary>
+        /// build overall check delegate (used in fluent assertions), check "any" exists
+        /// </summary>
+        /// <returns>test delegate</returns>
+        public Func<ProcessedEventModel, bool> BuildMatchesAny() => model =>
+        {
+            return _subPredicates.Exists(i => i.Invoke(model));
         };
     }
 }

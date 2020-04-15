@@ -17,6 +17,9 @@ namespace CaptainHook.Tests.Web.FlowTests
         [JsonProperty("url")]
         public string Url { get; set; }
 
+        internal bool IsCallback =>
+            !string.IsNullOrWhiteSpace(Url) && Url.Contains(PeterPanConsts.IntakeCallbackRouteToken, StringComparison.OrdinalIgnoreCase);
+
         public Uri Uri => new Uri(Url);
 
         [JsonProperty("Authorization")]

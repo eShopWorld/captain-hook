@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
 using Eshopworld.Core;
 using Eshopworld.Messaging;
 using Eshopworld.Telemetry;
@@ -17,6 +10,14 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Timeout;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace CaptainHook.Tests.Web.FlowTests
 {
@@ -43,7 +44,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         private static void SetupFixture()
         {
 #if (!LOCAL)
-            var config = new ConfigurationBuilder().AddAzureKeyVault(
+                var config = new ConfigurationBuilder().AddAzureKeyVault(
                 "https://esw-tooling-testing-ci.vault.azure.net/",
                 new KeyVaultClient(
                     new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider()
@@ -82,38 +83,43 @@ namespace CaptainHook.Tests.Web.FlowTests
             return payloadId;
         }
 
-        private async Task<IEnumerable<ProcessedEventModel>> GetProcessedEvents(string payloadId, TimeSpan timeoutTimeSpan = default, bool expectMessages = true)
+        private async Task<IEnumerable<ProcessedEventModel>> GetProcessedEvents(string payloadId, TimeSpan timeoutTimeSpan = default, bool expectMessages = true, bool expectCallback = false)
         {
             try
             {
-
+                ProcessedEventModel[] modelReceived = null;
+                var jsonSerializer = JsonSerializer.CreateDefault();
                 var timeout = Policy.TimeoutAsync(timeoutTimeSpan == default ? _defaultPollTimeSpan : timeoutTimeSpan);
 
                 var retry = Policy
-                .HandleResult<HttpResponseMessage>(msg => !expectMessages || msg.StatusCode == HttpStatusCode.NoContent /* keep polling */)
+                .HandleResult<HttpResponseMessage>(msg =>
+                    !expectMessages || msg.StatusCode == HttpStatusCode.NoContent || (!expectCallback ||  modelReceived == null || !modelReceived.Any(m => m.IsCallback)) /* keep polling */ )
                 .Or<Exception>()
                 .WaitAndRetryForeverAsync((i, context) => _defaultPollAttemptRetryTimeSpan);
 
                 var policy = timeout.WrapAsync(retry);
 
                 var token = await ObtainStsToken();
-
                 var result = await policy.ExecuteAsync(async () =>
                 {
                     using var httpClient = new HttpClient();
                     httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                    return await httpClient.GetAsync(
+                    var response = await httpClient.GetAsync(
                         $"{PeterPanUrlBase}/api/v1/inttest/check/{payloadId}");
-                });
 
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        modelReceived = jsonSerializer.Deserialize<ProcessedEventModel[]>(new JsonTextReader(new StringReader(content)));
+                    }
+
+                    return response;
+                });
 
                 result.EnsureSuccessStatusCode();
 
-
-                var content = await result.Content.ReadAsStringAsync();
-                return JsonSerializer.CreateDefault()
-                    .Deserialize<ProcessedEventModel[]>(new JsonTextReader(new StringReader(content)));
+                return modelReceived;
             }
             catch (TimeoutRejectedException)
             {
@@ -121,7 +127,6 @@ namespace CaptainHook.Tests.Web.FlowTests
 
                 throw;
             }
-
         }
 
         /// <summary>
@@ -155,13 +160,38 @@ namespace CaptainHook.Tests.Web.FlowTests
             var predicate = new FlowTestPredicateBuilder();
             predicate = configTestBuilder.Invoke(predicate);
 
-            processedEvents.Should().OnlyContain(m => predicate.Build().Invoke(m));
+            processedEvents.Should().OnlyContain(m => predicate.BuildMatchesAll().Invoke(m));
         }
 
-        private async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan, bool expectMessages = true) where T : FlowTestEventBase
+        /// <summary>
+        /// run a flow, expect actual events being tracked @ PeterPan and check the tracked event data for webhook and callback
+        /// </summary>
+        /// <typeparam name="T">type of triggering event</typeparam>
+        /// <param name="instance">instance of triggering event</param>
+        /// <param name="configTestBuilderHook">builder for test predicate for webhook part</param>
+        /// <param name="configTestBuilderCallback">builder for test predicate for callback part</param>
+        /// <param name="waitTimespan">(optional) timeout to be used</param>
+        /// <returns>async task</returns>
+        public async Task ExpectTrackedEventWithCallback<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderHook, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderCallback, TimeSpan waitTimespan = default) where T : FlowTestEventBase
+        {
+            var processedEvents = await PublishAndPoll(instance, waitTimespan, waitForCallback:true);
+
+            var predicate = new FlowTestPredicateBuilder();
+            predicate = configTestBuilderHook.Invoke(predicate);
+
+            var callbackPredicate = new FlowTestPredicateBuilder();
+            callbackPredicate = configTestBuilderCallback.Invoke(callbackPredicate);
+
+            var processedEventModels = processedEvents as ProcessedEventModel[] ?? processedEvents.ToArray();
+
+            processedEventModels.Where(m=> !m.IsCallback).Should().Contain(m => predicate.BuildMatchesAll().Invoke(m));
+            processedEventModels.Where(m => m.IsCallback).Should().Contain(m => callbackPredicate.BuildMatchesAll().Invoke(m));
+        }
+
+        private async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan, bool expectMessages = true, bool waitForCallback=false) where T : FlowTestEventBase
         {
             var payloadId = PublishModel(instance);
-            var processedEvents = await GetProcessedEvents(payloadId, waitTimespan, expectMessages);
+            var processedEvents = await GetProcessedEvents(payloadId, waitTimespan, expectMessages, waitForCallback);
             return processedEvents;
         }
 
