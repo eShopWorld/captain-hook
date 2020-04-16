@@ -27,13 +27,13 @@ namespace CaptainHook.Tests.Web.FlowTests
         [Fact, IsLayer2]
         public async Task BasicWebHookFlowAuthNoRoutePostVerbTest()
         {
-            _testOutputHelper.WriteLine("starting BasicWebHookFlowAuthNoRoutePostVerbTest");
-            await _fixture.ExpectTrackedEvent(new WebHookFlowTestEvent(),
+            TestOutputHelper.WriteLine("starting BasicWebHookFlowAuthNoRoutePostVerbTest");
+            await Fixture.ExpectTrackedEvent(new WebHookFlowTestEvent(),
                 builder => builder
                     .CheckOidcAuthScopes("eda.peterpan.delivery.api.all")
                     .CheckUrlIdSuffixPresent(false)
                     .CheckVerb(HttpMethod.Post));
-            _testOutputHelper.WriteLine("BasicWebHookFlowAuthNoRoutePostVerbTest finished");
+            TestOutputHelper.WriteLine("BasicWebHookFlowAuthNoRoutePostVerbTest finished");
         }
     }
 
@@ -53,13 +53,13 @@ namespace CaptainHook.Tests.Web.FlowTests
         [Fact, IsLayer2]
         public async Task BasicWebHookFlowAuthMatchedRoutePostVerbTest()
         {
-            _testOutputHelper.WriteLine("starting BasicWebHookFlowAuthMatchedRoutePostVerbTest");
-            await _fixture.ExpectTrackedEvent(new WebHookFlowRoutedTestEvent() {TenantCode = "GOCAS"},
+            TestOutputHelper.WriteLine("starting BasicWebHookFlowAuthMatchedRoutePostVerbTest");
+            await Fixture.ExpectTrackedEvent(new WebHookFlowRoutedTestEvent() {TenantCode = "GOCAS"},
                 builder => builder
                     .CheckOidcAuthScopes("eda.peterpan.delivery.api.all")
                     .CheckUrlIdSuffixPresent(false)
                     .CheckVerb(HttpMethod.Post));
-            _testOutputHelper.WriteLine("BasicWebHookFlowAuthMatchedRoutePostVerbTest finished");
+            TestOutputHelper.WriteLine("BasicWebHookFlowAuthMatchedRoutePostVerbTest finished");
         }
     }
 
@@ -78,10 +78,10 @@ namespace CaptainHook.Tests.Web.FlowTests
         [Fact, IsLayer2]
         public async Task BasicWebHookFlowAuthUnmatchedRoutePostVerbTest()
         {
-            _testOutputHelper.WriteLine("starting BasicWebHookFlowAuthUnmatchedRoutePostVerbTest");
-            await _fixture.ExpectNoTrackedEvent(new WebHookFlowRoutedTestEvent() { TenantCode = "OTHER" },
+            TestOutputHelper.WriteLine("starting BasicWebHookFlowAuthUnmatchedRoutePostVerbTest");
+            await Fixture.ExpectNoTrackedEvent(new WebHookFlowRoutedTestEvent() { TenantCode = "OTHER" },
                 TimeSpan.FromMinutes(3));
-            _testOutputHelper.WriteLine("BasicWebHookFlowAuthUnmatchedRoutePostVerbTest finished");
+            TestOutputHelper.WriteLine("BasicWebHookFlowAuthUnmatchedRoutePostVerbTest finished");
         }
     }
 
@@ -100,8 +100,8 @@ namespace CaptainHook.Tests.Web.FlowTests
         [Fact, IsLayer2]
         public async Task BasicCallbackFlowAuthNoRoutePostVerbTest()
         {
-            _testOutputHelper.WriteLine("starting BasicCallbackFlowAuthNoRoutePostVerbTest");
-            await _fixture.ExpectTrackedEventWithCallback(new CallbackFlowTestEvent(), checks=> checks
+            TestOutputHelper.WriteLine("starting BasicCallbackFlowAuthNoRoutePostVerbTest");
+            await Fixture.ExpectTrackedEventWithCallback(new CallbackFlowTestEvent(), checks=> checks
                     .CheckOidcAuthScopes("eda.peterpan.delivery.api.all")
                     .CheckUrlIdSuffixPresent(false)
                     .CheckVerb(HttpMethod.Post),
@@ -110,7 +110,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                     .CheckUrlIdSuffixPresent(false)
                     .CheckIsCallback()
                     .CheckVerb(HttpMethod.Post));
-            _testOutputHelper.WriteLine("BasicCallbackFlowAuthNoRoutePostVerbTest finished");
+            TestOutputHelper.WriteLine("BasicCallbackFlowAuthNoRoutePostVerbTest finished");
         }
     }
 }

@@ -34,7 +34,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         public static string StsClientSecret { get; set; }
 
         private readonly TimeSpan _defaultPollTimeSpan = TimeSpan.FromMinutes(5);
-        private readonly TimeSpan _defaultPollAttemptRetryTimeSpan = TimeSpan.FromMilliseconds(100);
+        private readonly TimeSpan _defaultPollAttemptRetryTimeSpan = TimeSpan.FromMilliseconds(200);
 
         static E2EFlowTestsFixture()
         {
@@ -98,7 +98,7 @@ namespace CaptainHook.Tests.Web.FlowTests
 
                 var retry = Policy
                 .HandleResult<HttpResponseMessage>(msg =>
-                    !expectMessages || msg.StatusCode == HttpStatusCode.NoContent || (!expectCallback ||  modelReceived == null || !modelReceived.Any(m => m.IsCallback)) /* keep polling */ )
+                    !expectMessages || msg.StatusCode == HttpStatusCode.NoContent || (expectCallback && (modelReceived == null || !modelReceived.Any(m => m.IsCallback))) /* keep polling */ )
                 .Or<Exception>()
                 .WaitAndRetryForeverAsync((i, context) => _defaultPollAttemptRetryTimeSpan);
 
