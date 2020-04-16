@@ -28,25 +28,20 @@ namespace CaptainHook.Tests.Web.FlowTests
     /// </summary>
     public class E2EFlowTestsFixture
     {
-        public static IBigBrother Bb;
-        public static string PeterPanUrlBase { get; set; }
-        public static string StsClientId { get; set; }
-        public static string StsClientSecret { get; set; }
+        public IBigBrother Bb;
+        public string PeterPanUrlBase { get; set; }
+        public string StsClientId { get; set; }
+        public string StsClientSecret { get; set; }
 
         private readonly TimeSpan _defaultPollTimeSpan = TimeSpan.FromMinutes(5);
         private readonly TimeSpan _defaultPollAttemptRetryTimeSpan = TimeSpan.FromMilliseconds(200);
 
-        static E2EFlowTestsFixture()
+        public E2EFlowTestsFixture()
         {
             SetupFixture();
         }
 
-        public E2EFlowTestsFixture()
-        {
-            
-        }
-
-        private static void SetupFixture()
+        public  void SetupFixture()
         {
 #if (!LOCAL)
                 var config = new ConfigurationBuilder().AddAzureKeyVault(
@@ -216,7 +211,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                 ClientId = StsClientId,
                 ClientSecret = StsClientSecret,
                 GrantType = "client_credentials",
-                Scope = "eda.peterpan.delivery.api.all"
+                Scope = PeterPanConsts.PeterPanDeliveryScope
             });
 
             return response;

@@ -11,12 +11,10 @@ namespace CaptainHook.Tests.Web.FlowTests
     public abstract class IntegrationTestBase : IClassFixture<E2EFlowTestsFixture>
     {
         protected readonly E2EFlowTestsFixture Fixture;
-        protected readonly ITestOutputHelper TestOutputHelper;
 
-        protected IntegrationTestBase(E2EFlowTestsFixture fixture, ITestOutputHelper testOutputHelper)
+        protected IntegrationTestBase(E2EFlowTestsFixture fixture)
         {
             Fixture = fixture;
-            TestOutputHelper = testOutputHelper;
         }
     }
 }
