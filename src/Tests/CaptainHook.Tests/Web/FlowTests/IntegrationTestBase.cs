@@ -1,4 +1,5 @@
 ﻿using Xunit;
+using Xunit.Abstractions;
 
 namespace CaptainHook.Tests.Web.FlowTests
 {
@@ -9,11 +10,11 @@ namespace CaptainHook.Tests.Web.FlowTests
     /// </summary>
     public abstract class IntegrationTestBase : IClassFixture<E2EFlowTestsFixture>
     {
-        protected readonly E2EFlowTestsFixture _fixture;
+        protected readonly E2EFlowTestsFixture Fixture;
 
         protected IntegrationTestBase(E2EFlowTestsFixture fixture)
         {
-            _fixture = fixture;
+            Fixture = fixture;
         }
     }
 }

@@ -28,20 +28,20 @@ namespace CaptainHook.Tests.Web.FlowTests
     /// </summary>
     public class E2EFlowTestsFixture
     {
-        public static IBigBrother Bb;
-        public static string PeterPanUrlBase { get; set; }
-        public static string StsClientId { get; set; }
-        public static string StsClientSecret { get; set; }
+        public IBigBrother Bb;
+        public string PeterPanUrlBase { get; set; }
+        public string StsClientId { get; set; }
+        public string StsClientSecret { get; set; }
 
         private readonly TimeSpan _defaultPollTimeSpan = TimeSpan.FromMinutes(5);
-        private readonly TimeSpan _defaultPollAttemptRetryTimeSpan = TimeSpan.FromMilliseconds(100);
+        private readonly TimeSpan _defaultPollAttemptRetryTimeSpan = TimeSpan.FromMilliseconds(200);
 
-        static E2EFlowTestsFixture()
+        public E2EFlowTestsFixture()
         {
             SetupFixture();
         }
 
-        private static void SetupFixture()
+        public  void SetupFixture()
         {
 #if (!LOCAL)
                 var config = new ConfigurationBuilder().AddAzureKeyVault(
@@ -93,26 +93,25 @@ namespace CaptainHook.Tests.Web.FlowTests
 
                 var retry = Policy
                 .HandleResult<HttpResponseMessage>(msg =>
-                    !expectMessages || msg.StatusCode == HttpStatusCode.NoContent || (!expectCallback ||  modelReceived == null || !modelReceived.Any(m => m.IsCallback)) /* keep polling */ )
+                    !expectMessages || msg.StatusCode == HttpStatusCode.NoContent || (expectCallback && (modelReceived == null || !modelReceived.Any(m => m.IsCallback))) /* keep polling */ )
                 .Or<Exception>()
                 .WaitAndRetryForeverAsync((i, context) => _defaultPollAttemptRetryTimeSpan);
 
                 var policy = timeout.WrapAsync(retry);
 
                 var token = await ObtainStsToken();
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
                 var result = await policy.ExecuteAsync(async () =>
                 {
-                    using var httpClient = new HttpClient();
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
                     var response = await httpClient.GetAsync(
                         $"{PeterPanUrlBase}/api/v1/inttest/check/{payloadId}");
 
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        modelReceived = jsonSerializer.Deserialize<ProcessedEventModel[]>(new JsonTextReader(new StringReader(content)));
-                    }
+                    if (response.StatusCode != HttpStatusCode.OK) return response;
+
+                    var content = await response.Content.ReadAsStringAsync();
+                    modelReceived = jsonSerializer.Deserialize<ProcessedEventModel[]>(new JsonTextReader(new StringReader(content)));
 
                     return response;
                 });
@@ -212,7 +211,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                 ClientId = StsClientId,
                 ClientSecret = StsClientSecret,
                 GrantType = "client_credentials",
-                Scope = "eda.peterpan.delivery.api.all"
+                Scope = PeterPanConsts.PeterPanDeliveryScope
             });
 
             return response;
