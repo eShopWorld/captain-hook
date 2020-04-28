@@ -6,6 +6,7 @@ using System.Fabric;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -27,6 +28,7 @@ using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Newtonsoft.Json;
+using Polly;
 
 namespace CaptainHook.EventReaderService
 {
@@ -62,7 +64,7 @@ namespace CaptainHook.EventReaderService
         internal ConcurrentDictionary<Guid, MessageReceiverWrapper> _messageReceivers = new ConcurrentDictionary<Guid, MessageReceiverWrapper>();
         internal MessageReceiverWrapper _activeMessageReader;
 
-
+        private Func<int, TimeSpan> exponentialBackoff = x => TimeSpan.FromSeconds(Math.Pow(2, x));
 
         /// <summary>
         /// Default ctor used at runtime
@@ -250,7 +252,17 @@ namespace CaptainHook.EventReaderService
                     catch (ServiceBusCommunicationException sbCommunicationException)
                     {
                         BigBrother.Write(sbCommunicationException.ToExceptionEvent());
-                        await SetupServiceBus();
+
+                        await Policy.Handle<HttpRequestException>()
+                            .WaitAndRetryForeverAsync(exponentialBackoff,
+                                (exception, retryCount, timeSpan) =>
+                                {
+                                    _bigBrother.Publish(new ServiceBusReconnectionAttemptEvent
+                                    {
+                                        RetryCount = retryCount
+                                    });
+                                }
+                            ).ExecuteAsync(SetupServiceBus);
                     }
                     catch (Exception e)
                     {
@@ -259,10 +271,10 @@ namespace CaptainHook.EventReaderService
                 }
 
                 _bigBrother.Publish(new Common.Telemetry.CancellationRequestedEvent { FabricId = $"{Context.ServiceName}:{Context.ReplicaId}" });
-             
             }
             catch (Exception e)
             {
+                // HttpRequestException
                 BigBrother.Write(e.ToExceptionEvent());
             }
         }
