@@ -64,12 +64,9 @@ namespace CaptainHook.EventReaderService
         internal ConcurrentDictionary<Guid, MessageReceiverWrapper> _messageReceivers = new ConcurrentDictionary<Guid, MessageReceiverWrapper>();
         internal MessageReceiverWrapper _activeMessageReader;
 
-        private static TimeSpan retryCeiling = TimeSpan.FromSeconds(60);
-        private readonly Func<int, TimeSpan> exponentialBackoff = x =>
-        {
-            var value = TimeSpan.FromSeconds(Math.Pow(2, x));
-            return retryCeiling > value ? retryCeiling : value;
-        };
+        private static int retryCeilingSeconds = 60;
+        private readonly Func<int, TimeSpan> exponentialBackoff = x => 
+            TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, retryCeilingSeconds));
 
         /// <summary>
         /// Default ctor used at runtime
