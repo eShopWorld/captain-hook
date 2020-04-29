@@ -253,22 +253,25 @@ namespace CaptainHook.EventReaderService
                     }
                     catch (ServiceBusCommunicationException sbCommunicationException)
                     {
-                        BigBrother.Write(sbCommunicationException.ToExceptionEvent());
+                        BigBrother.Write(sbCommunicationException);
 
-                        await Policy.Handle<HttpRequestException>()
+                        await Policy.Handle<Exception>()
                             .WaitAndRetryForeverAsync(exponentialBackoff,
                                 (exception, retryCount, timeSpan) =>
                                 {
+                                    BigBrother.Write(exception);
+
                                     _bigBrother.Publish(new ServiceBusReconnectionAttemptEvent
                                     {
-                                        RetryCount = retryCount
+                                        RetryCount = retryCount,
+                                        FabricId = $"{this.Context.ServiceName}:{this.Context.ReplicaId}"
                                     });
                                 }
                             ).ExecuteAsync(SetupServiceBus);
                     }
-                    catch (Exception e)
+                    catch (Exception exception)
                     {
-                        BigBrother.Write(e.ToExceptionEvent());
+                        BigBrother.Write(exception);
                     }
                 }
 
