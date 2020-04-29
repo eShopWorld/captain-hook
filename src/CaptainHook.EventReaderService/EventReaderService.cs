@@ -264,7 +264,8 @@ namespace CaptainHook.EventReaderService
                                     _bigBrother.Publish(new ServiceBusReconnectionAttemptEvent
                                     {
                                         RetryCount = retryCount,
-                                        FabricId = $"{this.Context.ServiceName}:{this.Context.ReplicaId}"
+                                        SubscriptionName = _initData.SubscriptionName,
+                                        EventType = _initData.EventType
                                     });
                                 }
                             ).ExecuteAsync(SetupServiceBus);
