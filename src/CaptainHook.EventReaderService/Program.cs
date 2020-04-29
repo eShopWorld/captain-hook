@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -10,11 +8,7 @@ using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using Eshopworld.Telemetry;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.ServiceFabric.Actors.Client;
 
 namespace CaptainHook.EventReaderService
@@ -28,26 +22,21 @@ namespace CaptainHook.EventReaderService
         {
             try
             {
-                var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
-
-                var config = new ConfigurationBuilder().AddAzureKeyVault(
-                    kvUri,
-                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new DefaultKeyVaultSecretManager()).Build();
-
-                var settings = new ConfigurationSettings();
-                config.Bind(settings);
+                var configuration = Configuration.Load();
+                
+                var configurationSettings = new ConfigurationSettings();
+                configuration.Settings.Bind(configurationSettings);
 
 
                 var builder = new ContainerBuilder();
-                builder.RegisterInstance(settings).SingleInstance();
+                builder.RegisterInstance(configurationSettings).SingleInstance();
                 builder.RegisterType<MessageProviderFactory>().As<IMessageProviderFactory>().SingleInstance();
                 builder.RegisterType<ServiceBusManager>().As<IServiceBusManager>();
 
                 //SF Deps
                 builder.Register<IActorProxyFactory>(_ => new ActorProxyFactory());
 
-                builder.SetupFullTelemetry(settings.InstrumentationKey);
+                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
                 builder.RegisterStatefulService<EventReaderService>(ServiceNaming.EventReaderServiceType);
 
                 using (var container = builder.Build())

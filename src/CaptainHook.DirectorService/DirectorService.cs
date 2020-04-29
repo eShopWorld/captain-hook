@@ -19,7 +19,7 @@ namespace CaptainHook.DirectorService
         private readonly IBigBrother _bigBrother;
         private readonly FabricClient _fabricClient;
         private readonly DefaultServiceSettings _defaultServiceSettings;
-        private IEnumerable<EventHandlerConfig> _eventHandlersConfig { get; }
+        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations { get; }
 
 
         /// <summary>
@@ -34,13 +34,13 @@ namespace CaptainHook.DirectorService
             IBigBrother bigBrother,
             FabricClient fabricClient,
             DefaultServiceSettings defaultServiceSettings,
-            IEnumerable<EventHandlerConfig> eventHandlersConfig)
+            IDictionary<string, SubscriberConfiguration> subscriberConfigurations)
             : base(context)
         {
             _bigBrother = bigBrother;
             _fabricClient = fabricClient;
             _defaultServiceSettings = defaultServiceSettings;
-            _eventHandlersConfig = eventHandlersConfig;
+            _subscriberConfigurations = subscriberConfigurations;
         }
 
         /// <summary>
@@ -77,32 +77,28 @@ namespace CaptainHook.DirectorService
                         cancellationToken);
                 }
 
-                foreach (var @event in _eventHandlersConfig)
+                foreach (var (key, sub) in _subscriberConfigurations)
                 {
-                    foreach (var sub in @event.AllSubscribers)
-                    {
-                        sub.EventType = @event.Type;
-                        if (cancellationToken.IsCancellationRequested) return;
+                    if (cancellationToken.IsCancellationRequested) return;
 
-                        var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(@event.Type, sub.SubscriberName, sub.DLQMode != null);
-                        if (!serviceList.Contains(readerServiceNameUri))
-                        {
-                            await _fabricClient.ServiceManager.CreateServiceAsync(
-                                new StatefulServiceDescription
-                                {
-                                    ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
-                                    HasPersistedState = true,
-                                    MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
-                                    TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
-                                    PartitionSchemeDescription = new SingletonPartitionSchemeDescription(),
-                                    ServiceTypeName = ServiceNaming.EventReaderServiceType,
-                                    ServiceName = new Uri(readerServiceNameUri),
-                                    InitializationData = Encoding.UTF8.GetBytes(EventReaderInitData.GetReaderInitDataAsString(sub)),
-                                    PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
-                                },
-                                TimeSpan.FromSeconds(30),
-                                cancellationToken);
-                        }
+                    var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(sub.EventType, sub.SubscriberName, sub.DLQMode != null);
+                    if (!serviceList.Contains(readerServiceNameUri))
+                    {
+                        await _fabricClient.ServiceManager.CreateServiceAsync(
+                            new StatefulServiceDescription
+                            {
+                                ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
+                                HasPersistedState = true,
+                                MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
+                                TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
+                                PartitionSchemeDescription = new SingletonPartitionSchemeDescription(),
+                                ServiceTypeName = ServiceNaming.EventReaderServiceType,
+                                ServiceName = new Uri(readerServiceNameUri),
+                                InitializationData = Encoding.UTF8.GetBytes(EventReaderInitData.GetReaderInitDataAsString(sub)),
+                                PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
+                            },
+                            TimeSpan.FromSeconds(30),
+                            cancellationToken);
                     }
                 }
 

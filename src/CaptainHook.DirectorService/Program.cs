@@ -40,7 +40,7 @@ namespace CaptainHook.DirectorService
 
                 var builder = new ContainerBuilder();
 
-                builder.RegisterInstance(configuration.EventHandlers);
+                builder.RegisterInstance(configuration.SubscriberConfigurations);
 
                 builder.RegisterInstance(configurationSettings)
                        .SingleInstance();
