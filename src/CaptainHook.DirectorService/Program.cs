@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Fabric;
 using System.Threading;
@@ -12,10 +11,7 @@ using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Database.Setup;
 using Eshopworld.Telemetry;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace CaptainHook.DirectorService
 {
@@ -30,31 +26,23 @@ namespace CaptainHook.DirectorService
         {
             try
             {
-                var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
+                var configuration = Configuration.Load();
 
-                var config = new ConfigurationBuilder()
-                    .AddAzureKeyVault(
-                        kvUri,
-                        new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                        new DefaultKeyVaultSecretManager())
-                    .AddEnvironmentVariables()
-                    .Build();
-
-                var settings = new ConfigurationSettings();
-                config.Bind(settings);
+                var configurationSettings = new ConfigurationSettings();
+                configuration.Settings.Bind(configurationSettings);
                 
                 //Get configs from the Config Package
                 var activationContext = FabricRuntime.GetActivationContext();
                 var defaultServicesSettings = ConfigFabricCodePackage(activationContext);
 
-                var bb = BigBrother.CreateDefault(settings.InstrumentationKey, settings.InstrumentationKey);
+                var bb = BigBrother.CreateDefault(configurationSettings.InstrumentationKey, configurationSettings.InstrumentationKey);
                 bb.UseEventSourceSink().ForExceptions();
 
                 var builder = new ContainerBuilder();
 
-                builder.RegisterInstance(config.GetSection("event").Get<IEnumerable<EventHandlerConfig>>());
+                builder.RegisterInstance(configuration.EventHandlers);
 
-                builder.RegisterInstance(settings)
+                builder.RegisterInstance(configurationSettings)
                        .SingleInstance();
 
                 builder.RegisterInstance(defaultServicesSettings)
@@ -62,13 +50,13 @@ namespace CaptainHook.DirectorService
 
                 builder.RegisterType<FabricClient>().SingleInstance();
 
-                var featureFlags = ConfigureFeatureFlags(config, builder);
+                var featureFlags = ConfigureFeatureFlags(configuration.Settings, builder);
                 if (featureFlags.GetFlag<CosmosDbFeatureFlag>().IsEnabled)
                 {
-                    builder.ConfigureCosmosDb(config);
+                    builder.ConfigureCosmosDb(configuration.Settings);
                 }
 
-                builder.SetupFullTelemetry(settings.InstrumentationKey);
+                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
                 builder.RegisterStatefulService<DirectorService>(ServiceNaming.DirectorServiceType);
 
                 using (builder.Build())
