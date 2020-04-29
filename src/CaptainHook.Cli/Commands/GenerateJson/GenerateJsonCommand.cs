@@ -12,7 +12,6 @@ using System.IO.Abstractions;
 using CaptainHook.Cli.Providers;
 using Newtonsoft.Json.Converters;
 using System.Linq;
-using CaptainHook.EventHandlerActor;
 
 namespace CaptainHook.Cli.Commands.GenerateJson
 {
