@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CaptainHook.Common.Configuration;
-using CaptainHook.EventHandlerActor;
 using Eshopworld.Tests.Core;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;

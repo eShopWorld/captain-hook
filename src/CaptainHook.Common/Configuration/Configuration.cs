@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CaptainHook.Common.Configuration
 {
