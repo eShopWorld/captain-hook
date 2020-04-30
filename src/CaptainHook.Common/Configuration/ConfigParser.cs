@@ -1,11 +1,10 @@
+﻿using CaptainHook.Common.Authentication;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CaptainHook.Common.Authentication;
-using CaptainHook.Common.Configuration;
-using Microsoft.Extensions.Configuration;
 
-namespace CaptainHook.EventHandlerActor
+namespace CaptainHook.Common.Configuration
 {
     /// <summary>
     /// <remarks>Won't be needed in V2 has configs are stored in Cosmos and CRD through the API</remarks>
