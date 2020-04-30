@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.1.409" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.0.470" />
   </ItemGroup>
 
   <ItemGroup>
