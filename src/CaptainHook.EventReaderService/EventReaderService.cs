@@ -6,6 +6,7 @@ using System.Fabric;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -27,6 +28,7 @@ using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Newtonsoft.Json;
+using Polly;
 
 namespace CaptainHook.EventReaderService
 {
@@ -62,7 +64,9 @@ namespace CaptainHook.EventReaderService
         internal ConcurrentDictionary<Guid, MessageReceiverWrapper> _messageReceivers = new ConcurrentDictionary<Guid, MessageReceiverWrapper>();
         internal MessageReceiverWrapper _activeMessageReader;
 
-
+        private static int retryCeilingSeconds = 60;
+        private readonly Func<int, TimeSpan> exponentialBackoff = x => 
+            TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, retryCeilingSeconds));
 
         /// <summary>
         /// Default ctor used at runtime
@@ -249,17 +253,30 @@ namespace CaptainHook.EventReaderService
                     }
                     catch (ServiceBusCommunicationException sbCommunicationException)
                     {
-                        BigBrother.Write(sbCommunicationException.ToExceptionEvent());
-                        await SetupServiceBus();
+                        BigBrother.Write(sbCommunicationException);
+
+                        await Policy.Handle<Exception>()
+                            .WaitAndRetryForeverAsync(exponentialBackoff,
+                                (exception, retryCount, timeSpan) =>
+                                {
+                                    BigBrother.Write(exception);
+
+                                    _bigBrother.Publish(new ServiceBusReconnectionAttemptEvent
+                                    {
+                                        RetryCount = retryCount,
+                                        SubscriptionName = _initData.SubscriptionName,
+                                        EventType = _initData.EventType
+                                    });
+                                }
+                            ).ExecuteAsync(SetupServiceBus);
                     }
-                    catch (Exception e)
+                    catch (Exception exception)
                     {
-                        BigBrother.Write(e.ToExceptionEvent());
+                        BigBrother.Write(exception);
                     }
                 }
 
                 _bigBrother.Publish(new Common.Telemetry.CancellationRequestedEvent { FabricId = $"{Context.ServiceName}:{Context.ReplicaId}" });
-             
             }
             catch (Exception e)
             {
