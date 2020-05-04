@@ -94,15 +94,4 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
             //read files, deserialize these, call to build string, add to string build, save output file
         }
     }
-
-    public class EventHandlerConfigToPowerShellConverter
-    {
-        public async Task<string> Convert(EventHandlerConfig config)
-        {
-            // take input object and convert to string 
-            // probably can be static
-
-            return await Task.FromResult(string.Empty);
-        }
-    } 
 }
