@@ -497,6 +497,167 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Contain(fullExpectedOutput);
         }
 
+        [Fact, IsLayer0]
+        public async Task ShouldBuildSubscriberConfigDetails()
+        {
+            var eventHandlerConfig = new EventHandlerConfig
+            {
+                Subscribers = new List<SubscriberConfiguration>
+                {
+                    new SubscriberConfiguration
+                    {
+                        Name = "subscriber1name",
+                        EventType = "event1type",
+                        SubscriberName = "subscriber1",
+                        SourceSubscriptionName = "subscription1",
+                        DLQMode = SubscriberDlqMode.WebHookMode,
+                    }
+                }
+            };
+
+            var result = await CallConverter(eventHandlerConfig);
+
+            var expected = new[]
+            {
+                "setConfig 'event--1--subscribers--1--type' 'event1type' $KeyVault",
+                "setConfig 'event--1--subscribers--1--name' 'subscriber1name' $KeyVault",
+                "setConfig 'event--1--subscribers--1--subscribername' 'subscriber1' $KeyVault",
+                "setConfig 'event--1--subscribers--1--SourceSubscriptionName' 'subscription1' $KeyVault",
+                "setConfig 'event--1--subscribers--1--dlqmode' '1' $KeyVault",
+            };
+
+            result.Should().Contain(expected);
+        }
+
+        [Fact, IsLayer0]
+        public async Task ShouldBuildSubscriberConfigWebhookRequestRules()
+        {
+            var eventHandlerConfig = new EventHandlerConfig
+            {
+                Subscribers = new List<SubscriberConfiguration>
+                {
+                    new SubscriberConfiguration
+                    {
+                        WebhookRequestRules = new List<WebhookRequestRule>
+                        {
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
+                                    Path = "path1",
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    RuleAction = RuleAction.Route
+                                }
+                            },
+                            new WebhookRequestRule
+                            {
+                                Source = new ParserLocation
+                                {
+                                    Path = "path2",
+                                    Type = DataType.Model
+                                },
+                                Destination = new ParserLocation
+                                {
+                                    Type = DataType.Model
+                                },
+                            }
+                        }
+                    }
+                }
+            };
+
+            var result = await CallConverter(eventHandlerConfig);
+
+            var expected = new[]
+            {
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--destination--ruleaction' 'route' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--source--path' 'path1' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--source--path' 'path2' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--source--type' 'Model' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--destination--type' 'Model' $KeyVault",
+            };
+
+            result.Should().Contain(expected);
+        }
+
+        [Fact, IsLayer0]
+        public async Task ShouldBuildSubscriberConfigRequestRoutes()
+        {
+            var eventHandlerConfig = new EventHandlerConfig
+            {
+                Subscribers = new List<SubscriberConfiguration>
+                {
+                    new SubscriberConfiguration
+                    {
+                        WebhookRequestRules = new List<WebhookRequestRule>
+                        {
+                            new WebhookRequestRule
+                            {
+                                Routes = new List<WebhookConfigRoute>
+                                {
+                                    new WebhookConfigRoute
+                                    {
+                                        Uri = "https://route1.api.com/endpoint",
+                                        Selector = "selector1",
+                                        HttpVerb = "POST",
+                                        AuthenticationConfig = new OidcAuthenticationConfig
+                                        {
+                                            Type = AuthenticationType.OIDC,
+                                            ClientId = "client1.test.client",
+                                            Uri = "https://security.test.company1.com/connect/token",
+                                            ClientSecret = "verylongandsecuresecret1",
+                                            Scopes = new[] {"activity1.webhook.api"}
+                                        }
+                                    },
+                                    new WebhookConfigRoute
+                                    {
+                                        Uri = "https://route2.api.com/endpoint",
+                                        Selector = "selector2",
+                                        HttpVerb = "POST",
+                                        AuthenticationConfig = new OidcAuthenticationConfig
+                                        {
+                                            Type = AuthenticationType.OIDC,
+                                            ClientId = "client2.test.client",
+                                            Uri = "https://security.test.company2.com/connect/token",
+                                            ClientSecret = "verylongandsecuresecret2",
+                                            Scopes = new[] {"activity2.webhook.api"}
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    }
+                }
+            };
+
+            var result = await CallConverter(eventHandlerConfig);
+
+            var expected = new[]
+            {
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--1--uri' 'https://route1.api.com/endpoint' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--1--selector' 'selector1' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--1--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--1--authenticationconfig--clientid' 'client1.test.client' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--1--authenticationconfig--uri' 'https://security.test.company1.com/connect/token' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--1--authenticationconfig--clientsecret' 'verylongandsecuresecret1' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--1--authenticationconfig--scopes' 'activity1.webhook.api' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--1--httpverb' 'POST' $KeyVault",
+
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--2--uri' 'https://route2.api.com/endpoint' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--2--selector' 'selector2' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--2--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--2--authenticationconfig--clientid' 'client2.test.client' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--2--authenticationconfig--uri' 'https://security.test.company2.com/connect/token' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--2--authenticationconfig--clientsecret' 'verylongandsecuresecret2' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--2--authenticationconfig--scopes' 'activity2.webhook.api' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--routes--2--httpverb' 'POST' $KeyVault",
+            };
+
+            result.Should().Contain(expected);
+        }
+
         private static readonly EventHandlerConfig eventHandlerConfig = new EventHandlerConfig
         {
             Name = "activity1.domain.event1",
@@ -785,6 +946,5 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             "setConfig 'event--1--callbackconfig--webhookrequestrules--4--source--path' 'OrderCode' $KeyVault",
             "setConfig 'event--1--callbackconfig--webhookrequestrules--4--destination--location' 'Uri' $KeyVault"
         };
-
     }
 }

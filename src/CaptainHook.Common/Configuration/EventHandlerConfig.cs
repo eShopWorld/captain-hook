@@ -208,7 +208,7 @@ namespace CaptainHook.Common.Configuration
         /// The list of all subscibers of the topic handling the event type.
         /// </summary>
         [JsonProperty(Order = 5)]
-        public List<SubscriberConfiguration> Subscribers { get; } = new List<SubscriberConfiguration>();
+        public List<SubscriberConfiguration> Subscribers { get; set; } = new List<SubscriberConfiguration>();
 
         /// <summary>
         /// Returns all subscribers defined in the old and new configuration schemas.

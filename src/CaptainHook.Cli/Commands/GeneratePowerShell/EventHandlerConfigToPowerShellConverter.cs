@@ -27,6 +27,8 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                 AddAuthenticationConfigLines(eventConfig.CallbackConfig?.AuthenticationConfig, callbackPrefix);
                 AddWebHookRules(eventConfig.CallbackConfig?.WebhookRequestRules, callbackPrefix);
 
+                AddSubscribers(eventConfig.Subscribers, $"setConfig 'event--{eventId}--subscribers");
+
                 eventId++;
             }
 
@@ -45,6 +47,38 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
             lines.Add($"{calbackPrefix}--name' '{callbackConfig?.Name}' $KeyVault");
         }
 
+        private void AddSubscribers(List<SubscriberConfiguration> subscribers, string subscriberPrefix)
+        {
+            int subscriberId = 1;
+            foreach (var subscriber in subscribers)
+            {
+                AddSubscriberDetails(subscriber, $"{subscriberPrefix}--{subscriberId}");
+                subscriberId++;
+            }
+        }
+
+        private void AddSubscriberDetails(SubscriberConfiguration subscriber, string subscriberPrefix)
+        {
+            lines.Add($"{subscriberPrefix}--type' '{subscriber.EventType}' $KeyVault");
+            lines.Add($"{subscriberPrefix}--name' '{subscriber.Name}' $KeyVault");
+            lines.Add($"{subscriberPrefix}--subscribername' '{subscriber.SubscriberName}' $KeyVault");
+            lines.Add($"{subscriberPrefix}--SourceSubscriptionName' '{subscriber.SourceSubscriptionName}' $KeyVault");
+            lines.Add($"{subscriberPrefix}--dlqmode' '{ConvertDlqMode(subscriber.DLQMode)}' $KeyVault");
+
+            AddWebHookRules(subscriber.WebhookRequestRules, subscriberPrefix);
+        }
+
+        private static string ConvertDlqMode(SubscriberDlqMode? dlqMode)
+        {
+            if (dlqMode.HasValue)
+            {
+                var t = (int)dlqMode.Value;
+                return t.ToString();
+            }
+
+            return string.Empty;
+        }
+
         private void AddWebHookRules(List<WebhookRequestRule> rules, string prefix)
         {
             if (rules == null)
@@ -54,7 +88,6 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
             foreach (var rule in rules)
             {
                 string rulePrefix = $"{prefix}--webhookrequestrules--{ruleId}";
-
 
                 // source--path: just a string
                 // source--type: Model, HttpContent, HttpStatusCode, property
