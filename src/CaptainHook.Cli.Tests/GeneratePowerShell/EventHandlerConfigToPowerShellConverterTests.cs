@@ -14,14 +14,14 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 {
     public class EventHandlerConfigToPowerShellConverterTests
     {
-        private static async Task<IEnumerable<string>> CallConverter(params EventHandlerConfig[] eventHandlerConfig)
+        private static IEnumerable<string> CallConverter(params EventHandlerConfig[] eventHandlerConfig)
         {
-            var result = await new EventHandlerConfigToPowerShellConverter().Convert(eventHandlerConfig);
+            var result = new EventHandlerConfigToPowerShellConverter().Convert(eventHandlerConfig);
             return result;
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildEventHandlerTypeAndName()
+        public void ShouldBuildEventHandlerTypeAndName()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -29,7 +29,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 Type = "type1",
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
@@ -41,7 +41,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildEventHandlerTypeAndNameForMultipleEvents()
+        public void ShouldBuildEventHandlerTypeAndNameForMultipleEvents()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -54,7 +54,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 Type = "type2",
             };
 
-            var result = await CallConverter(eventHandlerConfig, secondEventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig, secondEventHandlerConfig);
 
             var expected = new[]
             {
@@ -68,7 +68,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildWebHookConfigNameAndUrl()
+        public void ShouldBuildWebHookConfigNameAndUrl()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -80,7 +80,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
@@ -93,7 +93,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildWebHookConfigOidcAuthenticationConfig()
+        public void ShouldBuildWebHookConfigOidcAuthenticationConfig()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -113,7 +113,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
@@ -128,7 +128,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildWebHookConfigWebhookRequestRule()
+        public void ShouldBuildWebHookConfigWebhookRequestRule()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -163,14 +163,14 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
-                "setConfig 'event--1--webhookconfig--webhookrequestrules--1--source--path' 'path1' $KeyVault",
-                "setConfig 'event--1--webhookconfig--webhookrequestrules--1--source--type' 'Model' $KeyVault",
+                "setConfig 'event--1--webhookconfig--webhookrequestrules--1--Source--path' 'path1' $KeyVault",
+                "setConfig 'event--1--webhookconfig--webhookrequestrules--1--Source--type' 'Model' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--1--destination--type' 'Model' $KeyVault",
-                "setConfig 'event--1--webhookconfig--webhookrequestrules--2--source--path' 'path2' $KeyVault",
+                "setConfig 'event--1--webhookconfig--webhookrequestrules--2--Source--path' 'path2' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--destination--ruleaction' 'route' $KeyVault"
             };
 
@@ -178,7 +178,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildWebHookConfigWebhookConfigRoutes()
+        public void ShouldBuildWebHookConfigWebhookConfigRoutes()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -241,7 +241,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
@@ -277,7 +277,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildCallbackConfigName()
+        public void ShouldBuildCallbackConfigName()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -287,7 +287,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
@@ -298,7 +298,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildCallbackConfigOidcAuthenticationConfig()
+        public void ShouldBuildCallbackConfigOidcAuthenticationConfig()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -318,7 +318,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
@@ -333,7 +333,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildCallbackConfigWebhookRequestRule()
+        public void ShouldBuildCallbackConfigWebhookRequestRule()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -369,14 +369,14 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
-                "setConfig 'event--1--callbackconfig--webhookrequestrules--1--source--path' 'path1' $KeyVault",
-                "setConfig 'event--1--callbackconfig--webhookrequestrules--1--source--type' 'Model' $KeyVault",
+                "setConfig 'event--1--callbackconfig--webhookrequestrules--1--Source--path' 'path1' $KeyVault",
+                "setConfig 'event--1--callbackconfig--webhookrequestrules--1--Source--type' 'Model' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--1--destination--type' 'Model' $KeyVault",
-                "setConfig 'event--1--callbackconfig--webhookrequestrules--2--source--path' 'path2' $KeyVault",
+                "setConfig 'event--1--callbackconfig--webhookrequestrules--2--Source--path' 'path2' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--destination--location' 'Uri' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--destination--ruleaction' 'route' $KeyVault"
             };
@@ -385,7 +385,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildCallbackConfigWebhookConfigRoutes()
+        public void ShouldBuildCallbackConfigWebhookConfigRoutes()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -448,7 +448,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
@@ -484,11 +484,11 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildWholeEventHandlerConfig()
+        public void ShouldBuildWholeEventHandlerConfig()
         {
             var converter = new EventHandlerConfigToPowerShellConverter();
 
-            var result = await converter.Convert(new[] { eventHandlerConfig });
+            var result = converter.Convert(new[] { eventHandlerConfig });
 
             var missing = fullExpectedOutput.Except(result).ToList();
 
@@ -498,7 +498,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildSubscriberConfigDetails()
+        public void ShouldBuildSubscriberConfigDetails()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -515,7 +515,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
@@ -530,7 +530,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildSubscriberConfigWebhookRequestRules()
+        public void ShouldBuildSubscriberConfigWebhookRequestRules()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -568,14 +568,14 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--1--destination--ruleaction' 'route' $KeyVault",
-                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--source--path' 'path1' $KeyVault",
-                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--source--path' 'path2' $KeyVault",
-                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--source--type' 'Model' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--Source--path' 'path1' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--Source--path' 'path2' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--Source--type' 'Model' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--destination--type' 'Model' $KeyVault",
             };
 
@@ -583,7 +583,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
-        public async Task ShouldBuildSubscriberConfigRequestRoutes()
+        public void ShouldBuildSubscriberConfigRequestRoutes()
         {
             var eventHandlerConfig = new EventHandlerConfig
             {
@@ -632,7 +632,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 }
             };
 
-            var result = await CallConverter(eventHandlerConfig);
+            var result = CallConverter(eventHandlerConfig);
 
             var expected = new[]
             {
@@ -873,10 +873,10 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             "setConfig 'event--1--webhookconfig--authenticationconfig--scopes' 't.abc.client.api.all' $KeyVault",
             "setConfig 'event--1--webhookconfig--httpverb' 'POST' $KeyVault",
 
-            "setConfig 'event--1--webhookconfig--webhookrequestrules--1--source--path' 'ActivityConfirmationRequestDto' $KeyVault",
-            "setConfig 'event--1--webhookconfig--webhookrequestrules--1--source--type' 'Model' $KeyVault",
+            "setConfig 'event--1--webhookconfig--webhookrequestrules--1--Source--path' 'ActivityConfirmationRequestDto' $KeyVault",
+            "setConfig 'event--1--webhookconfig--webhookrequestrules--1--Source--type' 'Model' $KeyVault",
             "setConfig 'event--1--webhookconfig--webhookrequestrules--1--destination--type' 'Model' $KeyVault",
-            "setConfig 'event--1--webhookconfig--webhookrequestrules--2--source--path' 'TenantCode' $KeyVault",
+            "setConfig 'event--1--webhookconfig--webhookrequestrules--2--Source--path' 'TenantCode' $KeyVault",
             "setConfig 'event--1--webhookconfig--webhookrequestrules--2--destination--ruleaction' 'route' $KeyVault",
 
             "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--1--uri' 'https://activity1-selector1-api.com/endpoint' $KeyVault",
@@ -908,7 +908,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
             "setConfig 'event--1--callbackconfig--name' 'activity1.domain.event1-callback' $KeyVault",
 
-            "setConfig 'event--1--callbackconfig--webhookrequestrules--1--source--path' 'TenantCode' $KeyVault",
+            "setConfig 'event--1--callbackconfig--webhookrequestrules--1--Source--path' 'TenantCode' $KeyVault",
             "setConfig 'event--1--callbackconfig--webhookrequestrules--1--destination--ruleaction' 'route' $KeyVault",
 
             "setConfig 'event--1--callbackconfig--webhookrequestrules--1--routes--1--uri' 'https://activity1-selector1-api.com/callback' $KeyVault",
@@ -938,12 +938,12 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             "setConfig 'event--1--callbackconfig--webhookrequestrules--1--routes--3--authenticationconfig--scopes' 'activity1.webhook.api.all' $KeyVault",
             "setConfig 'event--1--callbackconfig--webhookrequestrules--1--routes--3--httpverb' 'POST' $KeyVault",
 
-            "setConfig 'event--1--callbackconfig--webhookrequestrules--2--source--type' 'HttpStatusCode' $KeyVault",
+            "setConfig 'event--1--callbackconfig--webhookrequestrules--2--Source--type' 'HttpStatusCode' $KeyVault",
             "setConfig 'event--1--callbackconfig--webhookrequestrules--2--destination--path' 'StatusCode' $KeyVault",
-            "setConfig 'event--1--callbackconfig--webhookrequestrules--3--source--type' 'HttpContent' $KeyVault",
+            "setConfig 'event--1--callbackconfig--webhookrequestrules--3--Source--type' 'HttpContent' $KeyVault",
             "setConfig 'event--1--callbackconfig--webhookrequestrules--3--destination--path' 'Content' $KeyVault",
             "setConfig 'event--1--callbackconfig--webhookrequestrules--3--destination--type' 'String' $KeyVault",
-            "setConfig 'event--1--callbackconfig--webhookrequestrules--4--source--path' 'OrderCode' $KeyVault",
+            "setConfig 'event--1--callbackconfig--webhookrequestrules--4--Source--path' 'OrderCode' $KeyVault",
             "setConfig 'event--1--callbackconfig--webhookrequestrules--4--destination--location' 'Uri' $KeyVault"
         };
     }

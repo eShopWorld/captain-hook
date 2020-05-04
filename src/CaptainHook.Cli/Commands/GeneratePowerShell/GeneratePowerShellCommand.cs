@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.IO.Abstractions;
@@ -9,8 +8,11 @@ using CaptainHook.Cli.Common;
 using CaptainHook.Cli.Extensions;
 using CaptainHook.Common.Configuration;
 using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Azure.Amqp.Serialization;
+using Microsoft.Rest.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 
 namespace CaptainHook.Cli.Commands.GeneratePowerShell
 {
@@ -18,16 +20,6 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
     public class GeneratePowerShellCommand
     {
         private readonly IFileSystem fileSystem;
-
-        private static readonly JsonSerializerSettings jsonSettings = new JsonSerializerSettings
-        {
-            Formatting = Formatting.Indented,
-            NullValueHandling = NullValueHandling.Ignore,
-            DefaultValueHandling = DefaultValueHandling.Ignore,
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            ContractResolver = new ShouldSerializeContractResolver(),
-            Converters = new List<JsonConverter> { new StringEnumConverter() }
-        };
 
         public GeneratePowerShellCommand(IFileSystem fileSystem)
         {
@@ -63,35 +55,16 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
         /// <returns>Return code</returns>
         public Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
-            var sourceFolderPath = Path.GetFullPath(InputFolderPath);
-            if (!fileSystem.Directory.Exists(sourceFolderPath))
+            var directoryProcessor = new ConfigDirectoryProcessor(this.fileSystem);
+            var result = directoryProcessor.ProcessDirectory(InputFolderPath, OutputFilePath);
+
+            if (result != ConfigDirectoryProcessor.Result.Valid)
             {
-                console.EmitWarning(GetType(), app.Options, $"Cannot open {InputFolderPath}");
+                console.EmitWarning(GetType(), app.Options, result.Message);
                 return Task.FromResult(1);
             }
 
-            var files = fileSystem.Directory.GetFiles(sourceFolderPath);
-            foreach (var file in files)
-            {
-                console.WriteLine(file);
-            }
-
             return Task.FromResult(0);
-        }
-    }
-
-    public class JsonDirectoryProcessor
-    {
-        private IFileSystem fileSystem;
-
-        public JsonDirectoryProcessor(IFileSystem fileSystem)
-        {
-            this.fileSystem = fileSystem;
-        }
-
-        public void ProcessDirectory(string inputPath)
-        {
-            //read files, deserialize these, call to build string, add to string build, save output file
         }
     }
 }

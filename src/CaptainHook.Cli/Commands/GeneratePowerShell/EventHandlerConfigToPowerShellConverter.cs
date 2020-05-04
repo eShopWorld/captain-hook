@@ -9,7 +9,7 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
     {
         private readonly List<string> lines = new List<string>();
 
-        public async Task<IEnumerable<string>> Convert(IEnumerable<EventHandlerConfig> events)
+        public IEnumerable<string> Convert(IEnumerable<EventHandlerConfig> events)
         {
             int eventId = 1;
             foreach (var eventConfig in events)
@@ -19,7 +19,6 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
 
                 var webhookPrefix = $"setConfig 'event--{eventId}--webhookconfig";
                 AddWebhookDetails(eventConfig.WebhookConfig, webhookPrefix);
-                AddAuthenticationConfigLines(eventConfig.WebhookConfig?.AuthenticationConfig, webhookPrefix);
                 AddWebHookRules(eventConfig.WebhookConfig?.WebhookRequestRules, webhookPrefix);
 
                 var callbackPrefix = $"setConfig 'event--{eventId}--callbackconfig";
@@ -32,13 +31,14 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                 eventId++;
             }
 
-            return await Task.FromResult(lines);
+            return lines;
         }
 
         private void AddWebhookDetails(WebhookConfig webhookConfig, string webhookPrefix)
         {
             lines.Add($"{webhookPrefix}--name' '{webhookConfig?.Name}' $KeyVault");
             lines.Add($"{webhookPrefix}--uri' '{webhookConfig?.Uri}' $KeyVault");
+            AddAuthenticationConfigLines(webhookConfig?.AuthenticationConfig, webhookPrefix);
             lines.Add($"{webhookPrefix}--httpverb' '{webhookConfig?.HttpVerb}' $KeyVault");
         }
 
@@ -98,10 +98,10 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                 // destination--location: Uri
                 // destination--ruleaction: route
 
-                lines.Add($"{rulePrefix}--source--path' '{rule.Source.Path}' $KeyVault");
-                lines.Add($"{rulePrefix}--source--type' '{rule.Source.Type}' $KeyVault");
-                lines.Add($"{rulePrefix}--destination--path' '{rule.Destination.Path}' $KeyVault");
+                lines.Add($"{rulePrefix}--Source--path' '{rule.Source.Path}' $KeyVault");
+                lines.Add($"{rulePrefix}--Source--type' '{rule.Source.Type}' $KeyVault");
                 lines.Add($"{rulePrefix}--destination--type' '{rule.Destination.Type}' $KeyVault");
+                lines.Add($"{rulePrefix}--destination--path' '{rule.Destination.Path}' $KeyVault");
                 lines.Add($"{rulePrefix}--destination--ruleaction' '{rule.Destination.RuleAction.ToString().ToLower()}' $KeyVault");
                 lines.Add($"{rulePrefix}--destination--location' '{rule.Destination.Location}' $KeyVault");
 
@@ -140,8 +140,16 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                 lines.Add($"{prefix}--authenticationconfig--uri' '{oidcAuthConfig.Uri}' $KeyVault");
                 lines.Add($"{prefix}--authenticationconfig--clientid' '{oidcAuthConfig.ClientId}' $KeyVault");
                 lines.Add($"{prefix}--authenticationconfig--clientsecret' '{oidcAuthConfig.ClientSecret}' $KeyVault");
-                lines.Add($"{prefix}--authenticationconfig--scopes' '{string.Join(',', oidcAuthConfig.Scopes)}' $KeyVault");
+                lines.Add($"{prefix}--authenticationconfig--scopes' '{AddScopes(oidcAuthConfig.Scopes)}' $KeyVault");
             }
+        }
+
+        private static string AddScopes(string[] scopes)
+        {
+            if (scopes == null || scopes.Length == 0)
+                return string.Empty;
+
+            return string.Join(',', scopes);
         }
     }
 }
