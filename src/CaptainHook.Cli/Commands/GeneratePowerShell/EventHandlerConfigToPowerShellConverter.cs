@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+using CaptainHook.Cli.Commands.GeneratePowerShell.Internal;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 
@@ -7,44 +7,44 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
 {
     public class EventHandlerConfigToPowerShellConverter
     {
-        private readonly List<string> lines = new List<string>();
+        private readonly PsCommandList commands = new PsCommandList();
 
         public IEnumerable<string> Convert(IEnumerable<EventHandlerConfig> events)
         {
             int eventId = 1;
             foreach (var eventConfig in events)
             {
-                lines.Add($"setConfig 'event--{eventId}--type' '{eventConfig.Type}' $KeyVault");
-                lines.Add($"setConfig 'event--{eventId}--name' '{eventConfig.Name}' $KeyVault");
+                commands.Add($"event--{eventId}--type", eventConfig.Type);
+                commands.Add($"event--{eventId}--name", eventConfig.Name);
 
-                var webhookPrefix = $"setConfig 'event--{eventId}--webhookconfig";
+                var webhookPrefix = $"event--{eventId}--webhookconfig";
                 AddWebhookDetails(eventConfig.WebhookConfig, webhookPrefix);
                 AddWebHookRules(eventConfig.WebhookConfig?.WebhookRequestRules, webhookPrefix);
 
-                var callbackPrefix = $"setConfig 'event--{eventId}--callbackconfig";
+                var callbackPrefix = $"event--{eventId}--callbackconfig";
                 AddCallbackDetails(eventConfig.CallbackConfig, callbackPrefix);
                 AddAuthenticationConfigLines(eventConfig.CallbackConfig?.AuthenticationConfig, callbackPrefix);
                 AddWebHookRules(eventConfig.CallbackConfig?.WebhookRequestRules, callbackPrefix);
 
-                AddSubscribers(eventConfig.Subscribers, $"setConfig 'event--{eventId}--subscribers");
+                AddSubscribers(eventConfig.Subscribers, $"event--{eventId}--subscribers");
 
                 eventId++;
             }
 
-            return lines;
+            return commands.ToCommandLines();
         }
 
         private void AddWebhookDetails(WebhookConfig webhookConfig, string webhookPrefix)
         {
-            lines.Add($"{webhookPrefix}--name' '{webhookConfig?.Name}' $KeyVault");
-            lines.Add($"{webhookPrefix}--uri' '{webhookConfig?.Uri}' $KeyVault");
+            commands.Add($"{webhookPrefix}--name", webhookConfig?.Name);
+            commands.Add($"{webhookPrefix}--uri", webhookConfig?.Uri);
             AddAuthenticationConfigLines(webhookConfig?.AuthenticationConfig, webhookPrefix);
-            lines.Add($"{webhookPrefix}--httpverb' '{webhookConfig?.HttpVerb}' $KeyVault");
+            commands.Add($"{webhookPrefix}--httpverb", webhookConfig?.HttpVerb);
         }
 
         private void AddCallbackDetails(WebhookConfig callbackConfig, string calbackPrefix)
         {
-            lines.Add($"{calbackPrefix}--name' '{callbackConfig?.Name}' $KeyVault");
+            commands.Add($"{calbackPrefix}--name", callbackConfig?.Name);
         }
 
         private void AddSubscribers(List<SubscriberConfiguration> subscribers, string subscriberPrefix)
@@ -59,24 +59,13 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
 
         private void AddSubscriberDetails(SubscriberConfiguration subscriber, string subscriberPrefix)
         {
-            lines.Add($"{subscriberPrefix}--type' '{subscriber.EventType}' $KeyVault");
-            lines.Add($"{subscriberPrefix}--name' '{subscriber.Name}' $KeyVault");
-            lines.Add($"{subscriberPrefix}--subscribername' '{subscriber.SubscriberName}' $KeyVault");
-            lines.Add($"{subscriberPrefix}--SourceSubscriptionName' '{subscriber.SourceSubscriptionName}' $KeyVault");
-            lines.Add($"{subscriberPrefix}--dlqmode' '{ConvertDlqMode(subscriber.DLQMode)}' $KeyVault");
+            commands.Add($"{subscriberPrefix}--type", subscriber.EventType);
+            commands.Add($"{subscriberPrefix}--name", subscriber.Name);
+            commands.Add($"{subscriberPrefix}--subscribername", subscriber.SubscriberName);
+            commands.Add($"{subscriberPrefix}--SourceSubscriptionName", subscriber.SourceSubscriptionName);
+            commands.Add($"{subscriberPrefix}--dlqmode", subscriber.DLQMode);
 
             AddWebHookRules(subscriber.WebhookRequestRules, subscriberPrefix);
-        }
-
-        private static string ConvertDlqMode(SubscriberDlqMode? dlqMode)
-        {
-            if (dlqMode.HasValue)
-            {
-                var t = (int)dlqMode.Value;
-                return t.ToString();
-            }
-
-            return string.Empty;
         }
 
         private void AddWebHookRules(List<WebhookRequestRule> rules, string prefix)
@@ -89,21 +78,12 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
             {
                 string rulePrefix = $"{prefix}--webhookrequestrules--{ruleId}";
 
-                // source--path: just a string
-                // source--type: Model, HttpContent, HttpStatusCode, property
-                // source--ruleaction: not used
-                // source--location: not used
-                // destination--path: Content, StatusCode
-                // destination--type: Model, String
-                // destination--location: Uri
-                // destination--ruleaction: route
-
-                lines.Add($"{rulePrefix}--Source--path' '{rule.Source.Path}' $KeyVault");
-                lines.Add($"{rulePrefix}--Source--type' '{rule.Source.Type}' $KeyVault");
-                lines.Add($"{rulePrefix}--destination--type' '{rule.Destination.Type}' $KeyVault");
-                lines.Add($"{rulePrefix}--destination--path' '{rule.Destination.Path}' $KeyVault");
-                lines.Add($"{rulePrefix}--destination--ruleaction' '{rule.Destination.RuleAction.ToString().ToLower()}' $KeyVault");
-                lines.Add($"{rulePrefix}--destination--location' '{rule.Destination.Location}' $KeyVault");
+                commands.Add($"{rulePrefix}--Source--path", rule.Source.Path);
+                commands.Add($"{rulePrefix}--Source--type", rule.Source.Type);
+                commands.Add($"{rulePrefix}--destination--type", rule.Destination.Type);
+                commands.Add($"{rulePrefix}--destination--path", rule.Destination.Path);
+                commands.Add($"{rulePrefix}--destination--ruleaction", rule.Destination.RuleAction.ToString().ToLower());
+                commands.Add($"{rulePrefix}--destination--location", rule.Destination.Location);
 
                 AddRoutes(rule.Routes, rulePrefix);
 
@@ -121,10 +101,9 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
             {
                 string routePrefix = $"{rulePrefix}--routes--{routeId}";
 
-                lines.Add($"{routePrefix}--uri' '{route.Uri}' $KeyVault");
-                lines.Add($"{routePrefix}--selector' '{route.Selector}' $KeyVault");
-                lines.Add($"{routePrefix}--uri' '{route.Uri}' $KeyVault");
-                lines.Add($"{routePrefix}--httpverb' '{route.HttpVerb}' $KeyVault");
+                commands.Add($"{routePrefix}--uri", route.Uri);
+                commands.Add($"{routePrefix}--selector", route.Selector);
+                commands.Add($"{routePrefix}--httpverb", route.HttpVerb);
 
                 AddAuthenticationConfigLines(route.AuthenticationConfig, routePrefix);
 
@@ -136,20 +115,12 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
         {
             if (authenticationConfig is OidcAuthenticationConfig oidcAuthConfig)
             {
-                lines.Add($"{prefix}--authenticationconfig--type' {(int)oidcAuthConfig.Type} $KeyVault");
-                lines.Add($"{prefix}--authenticationconfig--uri' '{oidcAuthConfig.Uri}' $KeyVault");
-                lines.Add($"{prefix}--authenticationconfig--clientid' '{oidcAuthConfig.ClientId}' $KeyVault");
-                lines.Add($"{prefix}--authenticationconfig--clientsecret' '{oidcAuthConfig.ClientSecret}' $KeyVault");
-                lines.Add($"{prefix}--authenticationconfig--scopes' '{AddScopes(oidcAuthConfig.Scopes)}' $KeyVault");
+                commands.Add($"{prefix}--authenticationconfig--type", (int)oidcAuthConfig.Type, true);
+                commands.Add($"{prefix}--authenticationconfig--uri", oidcAuthConfig.Uri);
+                commands.Add($"{prefix}--authenticationconfig--clientid", oidcAuthConfig.ClientId);
+                commands.Add($"{prefix}--authenticationconfig--clientsecret", oidcAuthConfig.ClientSecret);
+                commands.Add($"{prefix}--authenticationconfig--scopes", oidcAuthConfig.Scopes);
             }
-        }
-
-        private static string AddScopes(string[] scopes)
-        {
-            if (scopes == null || scopes.Length == 0)
-                return string.Empty;
-
-            return string.Join(',', scopes);
         }
     }
 }
