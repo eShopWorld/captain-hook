@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Abstractions;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Json;
 using Newtonsoft.Json;
 
 namespace CaptainHook.Cli.Commands.GeneratePowerShell

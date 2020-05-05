@@ -1,18 +1,8 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.IO;
+﻿using System.ComponentModel.DataAnnotations;
 using System.IO.Abstractions;
-using System.Text;
 using System.Threading.Tasks;
-using CaptainHook.Cli.Common;
 using CaptainHook.Cli.Extensions;
-using CaptainHook.Common.Configuration;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Azure.Amqp.Serialization;
-using Microsoft.Rest.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 
 namespace CaptainHook.Cli.Commands.GeneratePowerShell
 {
