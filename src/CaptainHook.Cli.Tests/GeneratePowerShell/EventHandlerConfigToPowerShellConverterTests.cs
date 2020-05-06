@@ -103,7 +103,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
             var expected = new[]
             {
-                "setConfig 'event--1--webhookconfig--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--webhookconfig--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--webhookconfig--authenticationconfig--uri' 'https://security.site.com/connect/token' $KeyVault",
                 "setConfig 'event--1--webhookconfig--authenticationconfig--clientid' 't.abc.client' $KeyVault",
                 "setConfig 'event--1--webhookconfig--authenticationconfig--clientsecret' 'verylongsecuresecret' $KeyVault",
@@ -208,7 +208,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             {
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--1--uri' 'https://company1.com/api/' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--1--selector' 'selector1' $KeyVault",
-                "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--1--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--1--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--1--authenticationconfig--clientid' 'client1.test.client' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--1--authenticationconfig--uri' 'https://security.test.company1.com/connect/token' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--1--authenticationconfig--clientsecret' 'verylongandsecuresecret1' $KeyVault",
@@ -217,7 +217,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--2--uri' 'https://company2.com/api/' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--2--selector' 'selector2' $KeyVault",
-                "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--2--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--2--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--2--authenticationconfig--clientid' 'client2.test.client' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--2--authenticationconfig--uri' 'https://security.test.company2.com/connect/token' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--2--authenticationconfig--clientsecret' 'verylongandsecuresecret2' $KeyVault",
@@ -226,7 +226,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--3--uri' 'https://company3.com/api/' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--3--selector' 'selector3' $KeyVault",
-                "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--3--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--3--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--3--authenticationconfig--clientid' 'client3.test.client' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--3--authenticationconfig--uri' 'https://security.test.company3.com/connect/token' $KeyVault",
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--3--authenticationconfig--clientsecret' 'verylongandsecuresecret3' $KeyVault",
@@ -277,7 +277,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
             var expected = new[]
             {
-                "setConfig 'event--1--callbackconfig--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--callbackconfig--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--callbackconfig--authenticationconfig--uri' 'https://security.site.com/connect/token' $KeyVault",
                 "setConfig 'event--1--callbackconfig--authenticationconfig--clientid' 't.abc.client' $KeyVault",
                 "setConfig 'event--1--callbackconfig--authenticationconfig--clientsecret' 'verylongsecuresecret' $KeyVault",
@@ -384,7 +384,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             {
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--1--uri' 'https://company1.com/api/' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--1--selector' 'selector1' $KeyVault",
-                "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--1--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--1--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--1--authenticationconfig--clientid' 'client1.test.client' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--1--authenticationconfig--uri' 'https://security.test.company1.com/connect/token' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--1--authenticationconfig--clientsecret' 'verylongandsecuresecret1' $KeyVault",
@@ -393,7 +393,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--2--uri' 'https://company2.com/api/' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--2--selector' 'selector2' $KeyVault",
-                "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--2--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--2--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--2--authenticationconfig--clientid' 'client2.test.client' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--2--authenticationconfig--uri' 'https://security.test.company2.com/connect/token' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--2--authenticationconfig--clientsecret' 'verylongandsecuresecret2' $KeyVault",
@@ -402,7 +402,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--3--uri' 'https://company3.com/api/' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--3--selector' 'selector3' $KeyVault",
-                "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--3--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--3--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--3--authenticationconfig--clientid' 'client3.test.client' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--3--authenticationconfig--uri' 'https://security.test.company3.com/connect/token' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--3--authenticationconfig--clientsecret' 'verylongandsecuresecret3' $KeyVault",
@@ -434,7 +434,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--subscribers--1--name' 'subscriber1name' $KeyVault",
                 "setConfig 'event--1--subscribers--1--subscribername' 'subscriber1' $KeyVault",
                 "setConfig 'event--1--subscribers--1--sourcesubscriptionname' 'subscription1' $KeyVault",
-                "setConfig 'event--1--subscribers--1--dlqmode' '1' $KeyVault",
+                "setConfig 'event--1--subscribers--1--dlqmode' 'WebHookMode' $KeyVault",
             };
 
             result.Should().Equal(expected);
@@ -522,7 +522,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             {
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--1--uri' 'https://company1.com/api/' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--1--selector' 'selector1' $KeyVault",
-                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--1--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--1--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--1--authenticationconfig--clientid' 'client1.test.client' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--1--authenticationconfig--uri' 'https://security.test.company1.com/connect/token' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--1--authenticationconfig--clientsecret' 'verylongandsecuresecret1' $KeyVault",
@@ -531,7 +531,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--2--uri' 'https://company2.com/api/' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--2--selector' 'selector2' $KeyVault",
-                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--2--authenticationconfig--type' 2 $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--2--authenticationconfig--type' 'OIDC' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--2--authenticationconfig--clientid' 'client2.test.client' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--2--authenticationconfig--uri' 'https://security.test.company2.com/connect/token' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--2--authenticationconfig--clientsecret' 'verylongandsecuresecret2' $KeyVault",

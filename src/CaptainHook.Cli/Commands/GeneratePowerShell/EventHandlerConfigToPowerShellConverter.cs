@@ -33,28 +33,7 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                 case JValue jValue:
                     {
                         var key = BuildKey(property, eventPrefix);
-                        var value = jValue.ToString();
-
-                        // hack for AuthenticationConfig.Type:
-                        if (property.Path.EndsWith("AuthenticationConfig.Type"))
-                        {
-                            if (value == "OIDC")
-                            {
-                                commands.Add(new PsCommand(key, 2, true));
-                                break;
-                            }
-                        }
-
-                        if (property.Path.EndsWith("DLQMode"))
-                        {
-                            if (value == "WebHookMode")
-                            {
-                                commands.Add(new PsCommand(key, 1));
-                                break;
-                            }
-                        }
-
-                        commands.Add(new PsCommand(key, value));
+                        commands.Add(new PsCommand(key, jValue));
                         break;
                     }
                 case JArray jArray:
@@ -62,8 +41,7 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                         if (jArray.IsArrayOf(JTokenType.String))
                         {
                             var key = BuildKey(jArray, eventPrefix);
-                            var value = jArray.ToValuesString();
-                            commands.Add(new PsCommand(key, value));
+                            commands.Add(new PsCommand(key, jArray.ToValuesString()));
                             break;
                         }
 

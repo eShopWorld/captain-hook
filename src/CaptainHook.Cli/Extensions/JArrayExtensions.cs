@@ -7,7 +7,7 @@ namespace CaptainHook.Cli.Extensions
     {
         public static bool IsArrayOf(this JArray jArray, JTokenType typeToCheck)
         {
-            return jArray.First?.Type == typeToCheck;
+            return jArray.Values().All(x => x?.Type == typeToCheck);
         }
 
         public static string ToValuesString(this JArray jArray, char separator = ',')
