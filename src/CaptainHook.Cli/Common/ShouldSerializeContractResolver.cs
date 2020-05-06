@@ -40,13 +40,6 @@ namespace CaptainHook.Cli.Common
                     instance => ((AuthenticationConfig)instance.GetType().GetProperty(property.PropertyName).GetValue(instance)).Type != AuthenticationType.None;
             }
 
-            // don't serialize default HttpVerb of Post
-            if (property.PropertyName.Equals("HttpVerb", StringComparison.InvariantCulture))
-            {
-                property.ShouldSerialize =
-                    instance => !((string)instance.GetType().GetProperty(property.PropertyName).GetValue(instance)).Equals(HttpMethod.Post.ToString(), StringComparison.InvariantCultureIgnoreCase);
-            }
-
             return property;
         }
     }

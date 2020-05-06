@@ -21,7 +21,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// authentication config for this instance of webhook
         /// </summary>
-        [JsonProperty(Order = 4)]
+        [JsonProperty(Order = 3)]
         public AuthenticationConfig AuthenticationConfig { get; set; }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// due to limitations of binder (simple POCOs), route the config through this property
         /// </summary>
-        [JsonProperty(Order = 5)]
+        [JsonProperty(Order = 4)]
         public string HttpVerb
         {
             get => HttpMethod.Method;
@@ -71,7 +71,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// associated rules for the callback
         /// </summary>
-        [JsonProperty(Order = 7)]
+        [JsonProperty(Order = 5)]
         public List<WebhookRequestRule> WebhookRequestRules { get; set; }
 
         /// <summary>
@@ -208,7 +208,7 @@ namespace CaptainHook.Common.Configuration
         /// The list of all subscibers of the topic handling the event type.
         /// </summary>
         [JsonProperty(Order = 5)]
-        public List<SubscriberConfiguration> Subscribers { get; set; } = new List<SubscriberConfiguration>();
+        public List<SubscriberConfiguration> Subscribers { get; } = new List<SubscriberConfiguration>();
 
         /// <summary>
         /// Returns all subscribers defined in the old and new configuration schemas.
@@ -240,10 +240,10 @@ namespace CaptainHook.Common.Configuration
         [JsonProperty(Order = 4)]
         public WebhookConfig CallbackConfig { get; set; }
 
-        [JsonProperty(Order = 1)]
+        [JsonProperty(Order = 2)]
         public string Name { get; set; }
 
-        [JsonProperty(Order = 2)]
+        [JsonProperty(Order = 1)]
         public string Type { get; set; }
     }
 
