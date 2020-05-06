@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Text.RegularExpressions;
 
 namespace CaptainHook.Cli.Commands.GeneratePowerShell
 {
@@ -41,17 +42,28 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
             }
 
             var files = fileSystem.Directory.GetFiles(sourceFolderPath);
-            var allConfigs = new List<string>();
-            foreach (var file in files)
+            var allConfigs = new SortedDictionary<int, string>();
+            foreach (var fileName in files)
             {
-                var content = fileSystem.File.ReadAllText(file);
-                allConfigs.Add(content);
+                int eventId = ExtractEventId(fileName);
+                var content = fileSystem.File.ReadAllText(fileName);
+                allConfigs.Add(eventId, content);
             }
 
             var powershellCommands = new EventHandlerConfigToPowerShellConverter().Convert(allConfigs);
             fileSystem.File.WriteAllLines(outputFilePath, powershellCommands);
 
             return Result.Valid;
+        }
+
+        private static readonly Regex regex = new Regex(@"event-(\d+)-");
+
+        private int ExtractEventId(string fileName)
+        {
+            var match = regex.Match(fileName);
+            var rawNumber = match.Groups[1].Value;
+            int result = int.Parse(rawNumber);
+            return result;
         }
     }
 }

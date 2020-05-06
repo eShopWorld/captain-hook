@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using CaptainHook.Cli.Commands.GeneratePowerShell;
+using CaptainHook.Cli.Extensions;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Xunit;
@@ -8,8 +10,9 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 {
     public class EventHandlerConfigToPowerShellConverterTests
     {
-        private static IEnumerable<string> CallConverter(params string[] eventsData)
+        private static IEnumerable<string> CallConverter(params string[] contents)
         {
+            var eventsData = new SortedDictionary<int, string>(contents.WithIndex().ToDictionary(k => k.index + 1, v => v.item));
             var result = new EventHandlerConfigToPowerShellConverter().Convert(eventsData);
             return result;
         }

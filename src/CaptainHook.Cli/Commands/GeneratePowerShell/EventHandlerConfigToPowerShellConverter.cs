@@ -10,12 +10,12 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
     {
         private readonly List<PsCommand> commands = new List<PsCommand>();
 
-        public IEnumerable<string> Convert(IEnumerable<string> eventsData)
+        public IEnumerable<string> Convert(SortedDictionary<int, string> eventsData)
         {
-            var events = eventsData.Select(JObject.Parse);
-            foreach (var (eventConfig, eventId) in events.WithIndex())
+            foreach (var (eventId, content) in eventsData)
             {
-                ProcessToken(eventConfig, $"event--{eventId + 1}");
+                var eventConfig = JObject.Parse(content);
+                ProcessToken(eventConfig, $"event--{eventId}");
             }
 
             return commands.Select(c => c.ToString());
