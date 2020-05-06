@@ -80,7 +80,7 @@ namespace CaptainHook.Cli.Commands.GenerateJson
                 outputFolder = Path.GetFullPath(OutputFolderPath);
             }
 
-            if(!fileSystem.File.Exists(sourceFile))
+            if (!fileSystem.File.Exists(sourceFile))
             {
                 console.EmitWarning(GetType(), app.Options, $"Cannot open {InputFilePath}");
 
@@ -102,31 +102,58 @@ namespace CaptainHook.Cli.Commands.GenerateJson
                 var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                 ConfigParser.ParseAuthScheme(eventHandlerConfig.WebhookConfig, configurationSection, "webhookconfig:authenticationconfig");
 
-                foreach (var subscriber in eventHandlerConfig.AllSubscribers)
-                {
-                    var path = subscriber.WebHookConfigPath;
-                    ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
-                    subscriber.EventType = eventHandlerConfig.Type;
-                    subscriber.PayloadTransformation = subscriber.DLQMode != null ? PayloadContractTypeEnum.WrapperContract : PayloadContractTypeEnum.Raw;
-
-                    ConfigParser.AddEndpoints(subscriber, endpointList, configurationSection, path);
-
-                    if (subscriber.Callback != null)
-                    {
-                        path = subscriber.CallbackConfigPath;
-                        ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
-                        subscriber.Callback.EventType = eventHandlerConfig.Type;
-                        ConfigParser.AddEndpoints(subscriber.Callback, endpointList, configurationSection, path);
-                    }
-                }
+                UpdateWebhookRulesRoutesAuthenticationConfig(eventHandlerConfig, configurationSection);
+                UpdateSubscribersData(eventHandlerConfig, configurationSection, endpointList);
 
                 var jsonString = JsonConvert.SerializeObject(eventHandlerConfig, jsonSettings);
                 var filename = $"event-{1 + index}-{eventHandlerConfig.Name}.json";
                 fileSystem.File.WriteAllText(Path.Combine(outputFolder, filename), jsonString);
-
             }
 
             return Task.FromResult(0);
+        }
+
+        private static void UpdateWebhookRulesRoutesAuthenticationConfig(EventHandlerConfig eventHandlerConfig, IConfigurationSection configurationSection)
+        {
+            var webhookConfig = eventHandlerConfig.WebhookConfig;
+            for (var i = 0; i < webhookConfig.WebhookRequestRules.Count; i++)
+            {
+                var webhookRequestRule = webhookConfig.WebhookRequestRules[i];
+                for (var y = 0; y < webhookRequestRule.Routes.Count; y++)
+                {
+                    var route = webhookRequestRule.Routes[y];
+                    if (string.IsNullOrWhiteSpace(route.Uri))
+                    {
+                        continue;
+                    }
+
+                    var authPath = $"webhookconfig:webhookrequestrules:{i + 1}:routes:{y + 1}:authenticationconfig";
+                    ConfigParser.ParseAuthScheme(route, configurationSection, authPath);
+                }
+            }
+        }
+
+        private static void UpdateSubscribersData(EventHandlerConfig eventHandlerConfig, IConfigurationSection configurationSection, Dictionary<string, WebhookConfig> endpointList)
+        {
+            foreach (var subscriber in eventHandlerConfig.AllSubscribers)
+            {
+                var path = subscriber.WebHookConfigPath;
+                ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
+                subscriber.EventType = eventHandlerConfig.Type;
+                subscriber.PayloadTransformation = subscriber.DLQMode != null
+                    ? PayloadContractTypeEnum.WrapperContract
+                    : PayloadContractTypeEnum.Raw;
+
+                ConfigParser.AddEndpoints(subscriber, endpointList, configurationSection, path);
+
+                if (subscriber.Callback != null)
+                {
+                    path = subscriber.CallbackConfigPath;
+                    ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
+                    subscriber.Callback.EventType = eventHandlerConfig.Type;
+                    ConfigParser.AddEndpoints(subscriber.Callback, endpointList, configurationSection, path);
+                }
+            }
         }
     }
 }
