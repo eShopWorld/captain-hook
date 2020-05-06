@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 using CaptainHook.Cli.Commands.GeneratePowerShell.Internal;
-using CaptainHook.Common.Authentication;
-using CaptainHook.Common.Configuration;
+using Newtonsoft.Json.Linq;
 
 namespace CaptainHook.Cli.Commands.GeneratePowerShell
 {
@@ -9,24 +10,23 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
     {
         private readonly PsCommandList commands = new PsCommandList();
 
-        public IEnumerable<string> Convert(IEnumerable<EventHandlerConfig> events)
+        public IEnumerable<string> Convert(IEnumerable<string> eventsData)
         {
             int eventId = 1;
+
+            const string eventPrefix = "event";
+
+            var events = eventsData.Select(JObject.Parse);
             foreach (var eventConfig in events)
             {
-                commands.Add($"event--{eventId}--type", eventConfig.Type);
-                commands.Add($"event--{eventId}--name", eventConfig.Name);
+                var currentItemPrefix = $"{eventPrefix}--{eventId}";
 
-                var webhookPrefix = $"event--{eventId}--webhookconfig";
-                AddWebhookDetails(eventConfig.WebhookConfig, webhookPrefix);
-                AddWebHookRules(eventConfig.WebhookConfig?.WebhookRequestRules, webhookPrefix);
+                var allTokens = eventConfig.Values().ToList();
 
-                var callbackPrefix = $"event--{eventId}--callbackconfig";
-                AddCallbackDetails(eventConfig.CallbackConfig, callbackPrefix);
-                AddAuthenticationConfigLines(eventConfig.CallbackConfig?.AuthenticationConfig, callbackPrefix);
-                AddWebHookRules(eventConfig.CallbackConfig?.WebhookRequestRules, callbackPrefix);
-
-                AddSubscribers(eventConfig.Subscribers, $"event--{eventId}--subscribers");
+                foreach (var property in allTokens)
+                {
+                    ProcessToken(property, currentItemPrefix);
+                }
 
                 eventId++;
             }
@@ -34,93 +34,93 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
             return commands.ToCommandLines();
         }
 
-        private void AddWebhookDetails(WebhookConfig webhookConfig, string webhookPrefix)
+        private void ProcessToken(JToken property, string currentPrefix)
         {
-            commands.Add($"{webhookPrefix}--name", webhookConfig?.Name);
-            commands.Add($"{webhookPrefix}--uri", webhookConfig?.Uri);
-            AddAuthenticationConfigLines(webhookConfig?.AuthenticationConfig, webhookPrefix);
-            commands.Add($"{webhookPrefix}--httpverb", webhookConfig?.HttpVerb);
-        }
-
-        private void AddCallbackDetails(WebhookConfig callbackConfig, string calbackPrefix)
-        {
-            commands.Add($"{calbackPrefix}--name", callbackConfig?.Name);
-        }
-
-        private void AddSubscribers(List<SubscriberConfiguration> subscribers, string subscriberPrefix)
-        {
-            int subscriberId = 1;
-            foreach (var subscriber in subscribers)
+            switch (property)
             {
-                AddSubscriberDetails(subscriber, $"{subscriberPrefix}--{subscriberId}");
-                subscriberId++;
+                case JProperty jProperty:
+                    {
+                        ProcessToken(jProperty.Value, currentPrefix);
+                        break;
+                    }
+                case JValue jValue:
+                    {
+                        string key = $"{currentPrefix}--{property.Path.Replace(".", "--").ToLower()}";
+                        key = Regex.Replace(key, @"(\[\d+\])", FixKeyIndices);
+
+                        var value = jValue.ToString();
+
+                        // hack for AuthenticationConfig.Type:
+                        if (property.Path.EndsWith("AuthenticationConfig.Type"))
+                        {
+                            if (value == "OIDC")
+                            {
+                                commands.Add(key, 2, true);
+                                break;
+                            }
+                        }
+
+                        if (property.Path.EndsWith("DLQMode"))
+                        {
+                            if (value == "WebHookMode")
+                            {
+                                commands.Add(key, 1);
+                                break;
+                            }
+                        }
+
+                        commands.Add(key, value);
+                        break;
+                    }
+                case JArray jArray:
+                    {
+                        // hack for AuthenticationConfig.Scopes:
+                        if (property.Path.EndsWith("AuthenticationConfig.Scopes"))
+                        {
+                            string key = $"{currentPrefix}--{property.Path.Replace(".", "--").ToLower()}";
+                            key = Regex.Replace(key, @"(\[\d+\])", FixKeyIndices);
+
+                            var strings = property.Values().OfType<JValue>().Select(v => v.Value.ToString());
+                            commands.Add(key, strings);
+                            break;
+                        }
+
+                        //for (int i = 1; i <= jArray.Count; i++)
+                        //{
+                        //    string newPrefix = $"{currentPrefix}--{property.Name.ToLower()}--{i}";
+                        //    ProcessToken(jArray[i].V, newPrefix);
+
+                        //}
+
+                        int arrayIndex = 1;
+                        var allTokens = jArray.Values().ToList();
+                        foreach (var innerToken in allTokens)
+                        {
+                            //string newPrefix = $"{currentPrefix}--{property.Path.Replace(".", "--").ToLower()}--{arrayIndex}";
+                            ProcessToken(innerToken, currentPrefix);
+                        }
+
+                        break;
+                    }
+                case JObject jObject:
+                    {
+                        //string newPrefix = $"{currentPrefix}--{property.Path.Replace(".", "--").ToLower()}";
+
+                        var allTokens = jObject.Values().ToList();
+                        foreach (var innerToken in allTokens)
+                        {
+                            ProcessToken(innerToken, currentPrefix);
+                        }
+                        break;
+                    }
             }
         }
 
-        private void AddSubscriberDetails(SubscriberConfiguration subscriber, string subscriberPrefix)
+        private string FixKeyIndices(Match match)
         {
-            commands.Add($"{subscriberPrefix}--type", subscriber.EventType);
-            commands.Add($"{subscriberPrefix}--name", subscriber.Name);
-            commands.Add($"{subscriberPrefix}--subscribername", subscriber.SubscriberName);
-            commands.Add($"{subscriberPrefix}--SourceSubscriptionName", subscriber.SourceSubscriptionName);
-            commands.Add($"{subscriberPrefix}--dlqmode", subscriber.DLQMode);
-
-            AddWebHookRules(subscriber.WebhookRequestRules, subscriberPrefix);
-        }
-
-        private void AddWebHookRules(List<WebhookRequestRule> rules, string prefix)
-        {
-            if (rules == null)
-                return;
-
-            int ruleId = 1;
-            foreach (var rule in rules)
-            {
-                string rulePrefix = $"{prefix}--webhookrequestrules--{ruleId}";
-
-                commands.Add($"{rulePrefix}--Source--path", rule.Source.Path);
-                commands.Add($"{rulePrefix}--Source--type", rule.Source.Type);
-                commands.Add($"{rulePrefix}--destination--type", rule.Destination.Type);
-                commands.Add($"{rulePrefix}--destination--path", rule.Destination.Path);
-                commands.Add($"{rulePrefix}--destination--ruleaction", rule.Destination.RuleAction.ToString().ToLower());
-                commands.Add($"{rulePrefix}--destination--location", rule.Destination.Location);
-
-                AddRoutes(rule.Routes, rulePrefix);
-
-                ruleId++;
-            }
-        }
-
-        private void AddRoutes(List<WebhookConfigRoute> routes, string rulePrefix)
-        {
-            if (routes == null)
-                return;
-
-            int routeId = 1;
-            foreach (var route in routes)
-            {
-                string routePrefix = $"{rulePrefix}--routes--{routeId}";
-
-                commands.Add($"{routePrefix}--uri", route.Uri);
-                commands.Add($"{routePrefix}--selector", route.Selector);
-                commands.Add($"{routePrefix}--httpverb", route.HttpVerb);
-
-                AddAuthenticationConfigLines(route.AuthenticationConfig, routePrefix);
-
-                routeId++;
-            }
-        }
-
-        private void AddAuthenticationConfigLines(AuthenticationConfig authenticationConfig, string prefix)
-        {
-            if (authenticationConfig is OidcAuthenticationConfig oidcAuthConfig)
-            {
-                commands.Add($"{prefix}--authenticationconfig--type", (int)oidcAuthConfig.Type, true);
-                commands.Add($"{prefix}--authenticationconfig--uri", oidcAuthConfig.Uri);
-                commands.Add($"{prefix}--authenticationconfig--clientid", oidcAuthConfig.ClientId);
-                commands.Add($"{prefix}--authenticationconfig--clientsecret", oidcAuthConfig.ClientSecret);
-                commands.Add($"{prefix}--authenticationconfig--scopes", oidcAuthConfig.Scopes);
-            }
+            var rawNumber = match.Value.Trim('[', ']');
+            var number = int.Parse(rawNumber);
+            return $"--{++number}";
         }
     }
 }

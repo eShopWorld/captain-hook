@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
-using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Json;
-using Newtonsoft.Json;
 
 namespace CaptainHook.Cli.Commands.GeneratePowerShell
 {
@@ -43,21 +40,15 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                 return new Result($"Cannot open {inputFolderPath}");
             }
 
-            var allConfigs = new List<EventHandlerConfig>();
-
             var files = fileSystem.Directory.GetFiles(sourceFolderPath);
+            var allConfigs = new List<string>();
             foreach (var file in files)
             {
                 var content = fileSystem.File.ReadAllText(file);
-
-                var settings = new JsonSerializerSettings();
-                settings.Converters.Add(new AuthenticationConfigConverter());
-                var eventHandlerConfig = JsonConvert.DeserializeObject<EventHandlerConfig>(content, settings);
-                allConfigs.Add(eventHandlerConfig);
+                allConfigs.Add(content);
             }
 
-            var converter = new EventHandlerConfigToPowerShellConverter();
-            var powershellCommands = converter.Convert(allConfigs);
+            var powershellCommands = new EventHandlerConfigToPowerShellConverter().Convert(allConfigs);
             fileSystem.File.WriteAllLines(outputFilePath, powershellCommands);
 
             return Result.Valid;

@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.Cli.Commands.GeneratePowerShell.Internal
 {
@@ -13,21 +12,9 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell.Internal
             commands.Add(new PsCommand(name, value, withoutQuotes));
         }
 
-        public void Add(string name, SubscriberDlqMode? dlqMode)
+        public void Add(string name, IEnumerable<string> strings)
         {
-            if (dlqMode.HasValue)
-            {
-                Add(name, (int)dlqMode.Value);
-            }
-            else
-            {
-                Add(name, string.Empty);
-            }
-        }
-
-        public void Add(string name, string[] strings)
-        {
-            if (strings == null || strings.Length == 0)
+            if (strings == null || !strings.Any())
             {
                 Add(name, string.Empty);
             }
