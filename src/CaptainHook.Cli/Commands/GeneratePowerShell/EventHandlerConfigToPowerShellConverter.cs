@@ -1,53 +1,38 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CaptainHook.Cli.Commands.GeneratePowerShell.Internal;
+using CaptainHook.Cli.Extensions;
 using Newtonsoft.Json.Linq;
 
 namespace CaptainHook.Cli.Commands.GeneratePowerShell
 {
     public class EventHandlerConfigToPowerShellConverter
     {
-        private readonly PsCommandList commands = new PsCommandList();
+        private readonly List<PsCommand> commands = new List<PsCommand>();
 
         public IEnumerable<string> Convert(IEnumerable<string> eventsData)
         {
-            int eventId = 1;
-
-            const string eventPrefix = "event";
-
             var events = eventsData.Select(JObject.Parse);
-            foreach (var eventConfig in events)
+            foreach (var (eventConfig, eventId) in events.WithIndex())
             {
-                var currentItemPrefix = $"{eventPrefix}--{eventId}";
-
-                var allTokens = eventConfig.Values().ToList();
-
-                foreach (var property in allTokens)
-                {
-                    ProcessToken(property, currentItemPrefix);
-                }
-
-                eventId++;
+                ProcessToken(eventConfig, $"event--{eventId + 1}");
             }
 
-            return commands.ToCommandLines();
+            return commands.Select(c => c.ToString());
         }
 
-        private void ProcessToken(JToken property, string currentPrefix)
+        private void ProcessToken(JToken property, string eventPrefix)
         {
             switch (property)
             {
                 case JProperty jProperty:
                     {
-                        ProcessToken(jProperty.Value, currentPrefix);
+                        ProcessToken(jProperty.Value, eventPrefix);
                         break;
                     }
                 case JValue jValue:
                     {
-                        string key = $"{currentPrefix}--{property.Path.Replace(".", "--").ToLower()}";
-                        key = Regex.Replace(key, @"(\[\d+\])", FixKeyIndices);
-
+                        var key = BuildKey(property, eventPrefix);
                         var value = jValue.ToString();
 
                         // hack for AuthenticationConfig.Type:
@@ -55,7 +40,7 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                         {
                             if (value == "OIDC")
                             {
-                                commands.Add(key, 2, true);
+                                commands.Add(new PsCommand(key, 2, true));
                                 break;
                             }
                         }
@@ -64,59 +49,48 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                         {
                             if (value == "WebHookMode")
                             {
-                                commands.Add(key, 1);
+                                commands.Add(new PsCommand(key, 1));
                                 break;
                             }
                         }
 
-                        commands.Add(key, value);
+                        commands.Add(new PsCommand(key, value));
                         break;
                     }
                 case JArray jArray:
                     {
-                        // hack for AuthenticationConfig.Scopes:
-                        if (property.Path.EndsWith("AuthenticationConfig.Scopes"))
+                        if (jArray.IsArrayOf(JTokenType.String))
                         {
-                            string key = $"{currentPrefix}--{property.Path.Replace(".", "--").ToLower()}";
-                            key = Regex.Replace(key, @"(\[\d+\])", FixKeyIndices);
-
-                            var strings = property.Values().OfType<JValue>().Select(v => v.Value.ToString());
-                            commands.Add(key, strings);
-                            break;
+                            var key = BuildKey(jArray, eventPrefix);
+                            var value = jArray.ToValuesString();
+                            commands.Add(new PsCommand(key, value));
                         }
 
-                        //for (int i = 1; i <= jArray.Count; i++)
-                        //{
-                        //    string newPrefix = $"{currentPrefix}--{property.Name.ToLower()}--{i}";
-                        //    ProcessToken(jArray[i].V, newPrefix);
-
-                        //}
-
-                        int arrayIndex = 1;
-                        var allTokens = jArray.Values().ToList();
-                        foreach (var innerToken in allTokens)
+                        foreach (var innerToken in jArray.Values())
                         {
-                            //string newPrefix = $"{currentPrefix}--{property.Path.Replace(".", "--").ToLower()}--{arrayIndex}";
-                            ProcessToken(innerToken, currentPrefix);
+                            ProcessToken(innerToken, eventPrefix);
                         }
-
                         break;
                     }
                 case JObject jObject:
                     {
-                        //string newPrefix = $"{currentPrefix}--{property.Path.Replace(".", "--").ToLower()}";
-
-                        var allTokens = jObject.Values().ToList();
-                        foreach (var innerToken in allTokens)
+                        foreach (var innerToken in jObject.Values())
                         {
-                            ProcessToken(innerToken, currentPrefix);
+                            ProcessToken(innerToken, eventPrefix);
                         }
                         break;
                     }
             }
         }
 
-        private string FixKeyIndices(Match match)
+        private static string BuildKey(JToken property, string currentPrefix)
+        {
+            string key = $"{currentPrefix}--{property.Path.Replace(".", "--").ToLower()}";
+            key = Regex.Replace(key, @"(\[\d+\])", IncrementAllIndicesInKey);
+            return key;
+        }
+
+        private static string IncrementAllIndicesInKey(Match match)
         {
             var rawNumber = match.Value.Trim('[', ']');
             var number = int.Parse(rawNumber);

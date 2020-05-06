@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Cli.Commands.GeneratePowerShell.Internal
+﻿namespace CaptainHook.Cli.Commands.GeneratePowerShell
 {
     internal class PsCommand
     {
