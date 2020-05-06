@@ -30,7 +30,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--type' 'type1' $KeyVault",
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -56,7 +56,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--2--type' 'type2' $KeyVault",
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -79,7 +79,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--webhookconfig--httpverb' 'POST' $KeyVault"
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -89,8 +89,8 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 ""WebhookConfig"": {
                     ""AuthenticationConfig"": {
                         ""Type"": ""OIDC"",
-                        ""ClientId"": ""t.abc.client"",
                         ""Uri"": ""https://security.site.com/connect/token"",
+                        ""ClientId"": ""t.abc.client"",
                         ""ClientSecret"": ""verylongsecuresecret"",
                         ""Scopes"": [
                             ""t.abc.client.api.all""
@@ -110,7 +110,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--webhookconfig--authenticationconfig--scopes' 't.abc.client.api.all' $KeyVault"
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -148,7 +148,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--destination--ruleaction' 'Route' $KeyVault"
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -161,7 +161,6 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                         ""Routes"": [{
                             ""Uri"": ""https://company1.com/api/"",
                             ""Selector"": ""selector1"",
-                            ""HttpVerb"": ""POST"",
                             ""AuthenticationConfig"": {
                                 ""Type"": ""OIDC"",
                                 ""ClientId"": ""client1.test.client"",
@@ -170,11 +169,11 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                                 ""Scopes"": [
                                     ""activity1.webhook.api1.all""
                                 ]
-                            }
+                            },
+                            ""HttpVerb"": ""POST""
                         }, {
                             ""Uri"": ""https://company2.com/api/"",
                             ""Selector"": ""selector2"",
-                            ""HttpVerb"": ""POST"",
                             ""AuthenticationConfig"": {
                                 ""Type"": ""OIDC"",
                                 ""ClientId"": ""client2.test.client"",
@@ -183,11 +182,11 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                                 ""Scopes"": [
                                     ""activity1.webhook.api2.all""
                                 ]
-                            }
+                            },
+                            ""HttpVerb"": ""POST""
                         }, {
                             ""Uri"": ""https://company3.com/api/"",
                             ""Selector"": ""selector3"",
-                            ""HttpVerb"": ""POST"",
                             ""AuthenticationConfig"": {
                                 ""Type"": ""OIDC"",
                                 ""ClientId"": ""client3.test.client"",
@@ -196,7 +195,8 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                                 ""Scopes"": [
                                     ""activity1.webhook.api3.all""
                                 ]
-                            }
+                            },
+                            ""HttpVerb"": ""POST""
                         }]
                     }]
                 }
@@ -234,7 +234,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--webhookconfig--webhookrequestrules--2--routes--3--httpverb' 'POST' $KeyVault"
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -253,7 +253,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--callbackconfig--name' 'callback1-name' $KeyVault",
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -262,9 +262,9 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             var eventHandlerConfig = @"{
                 ""CallbackConfig"": {
                     ""AuthenticationConfig"": {
-                        ""Type"": ""OIDC"",
-                        ""ClientId"": ""t.abc.client"",
+                        ""Type"": ""OIDC"",                       
                         ""Uri"": ""https://security.site.com/connect/token"",
+                        ""ClientId"": ""t.abc.client"",
                         ""ClientSecret"": ""verylongsecuresecret"",
                         ""Scopes"": [
                             ""t.abc.client.api.all""
@@ -284,7 +284,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--callbackconfig--authenticationconfig--scopes' 't.abc.client.api.all' $KeyVault"
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -324,7 +324,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--destination--ruleaction' 'Route' $KeyVault"
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -337,7 +337,6 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                         ""Routes"": [{
                             ""Uri"": ""https://company1.com/api/"",
                             ""Selector"": ""selector1"",
-                            ""HttpVerb"": ""POST"",
                             ""AuthenticationConfig"": {
                                 ""Type"": ""OIDC"",
                                 ""ClientId"": ""client1.test.client"",
@@ -346,11 +345,11 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                                 ""Scopes"": [
                                     ""activity1.webhook.api1.all""
                                 ]
-                            }
+                            },
+                            ""HttpVerb"": ""POST""
                         }, {
                             ""Uri"": ""https://company2.com/api/"",
                             ""Selector"": ""selector2"",
-                            ""HttpVerb"": ""POST"",
                             ""AuthenticationConfig"": {
                                 ""Type"": ""OIDC"",
                                 ""ClientId"": ""client2.test.client"",
@@ -359,11 +358,11 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                                 ""Scopes"": [
                                     ""activity1.webhook.api2.all""
                                 ]
-                            }
+                            },
+                            ""HttpVerb"": ""POST""
                         }, {
                             ""Uri"": ""https://company3.com/api/"",
                             ""Selector"": ""selector3"",
-                            ""HttpVerb"": ""POST"",
                             ""AuthenticationConfig"": {
                                 ""Type"": ""OIDC"",
                                 ""ClientId"": ""client3.test.client"",
@@ -372,7 +371,8 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                                 ""Scopes"": [
                                     ""activity1.webhook.api3.all""
                                 ]
-                            }
+                            },
+                            ""HttpVerb"": ""POST""
                         }]
                     }]
                 }
@@ -410,7 +410,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--routes--3--httpverb' 'POST' $KeyVault"
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -418,8 +418,8 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         {
             var eventHandlerConfig = @"{
                     ""Subscribers"": [{
-                        ""Name"": ""subscriber1name"",
                         ""Type"": ""event1type"",
+                        ""Name"": ""subscriber1name"",
                         ""SubscriberName"": ""subscriber1"",
                         ""SourceSubscriptionName"": ""subscription1"",
                         ""DLQMode"": ""WebHookMode"",
@@ -437,7 +437,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--subscribers--1--dlqmode' '1' $KeyVault",
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -468,14 +468,14 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
             var expected = new[]
             {
-                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--destination--ruleaction' 'Route' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--1--source--path' 'path1' $KeyVault",
+                "setConfig 'event--1--subscribers--1--webhookrequestrules--1--destination--ruleaction' 'Route' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--source--path' 'path2' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--source--type' 'Model' $KeyVault",
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--destination--type' 'Model' $KeyVault",
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
 
         [Fact, IsLayer0]
@@ -488,7 +488,6 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                        ""Routes"": [{
                             ""Uri"": ""https://company1.com/api/"",
                             ""Selector"": ""selector1"",
-                            ""HttpVerb"": ""POST"",
                             ""AuthenticationConfig"": {
                                 ""Type"": ""OIDC"",
                                 ""ClientId"": ""client1.test.client"",
@@ -497,11 +496,11 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                                 ""Scopes"": [
                                     ""activity1.webhook.api1.all""
                                 ]
-                            }
+                            },
+                            ""HttpVerb"": ""POST""
                         }, {
                             ""Uri"": ""https://company2.com/api/"",
                             ""Selector"": ""selector2"",
-                            ""HttpVerb"": ""POST"",
                             ""AuthenticationConfig"": {
                                 ""Type"": ""OIDC"",
                                 ""ClientId"": ""client2.test.client"",
@@ -510,7 +509,8 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                                 ""Scopes"": [
                                     ""activity1.webhook.api2.all""
                                 ]
-                            }
+                            },  
+                            ""HttpVerb"": ""POST"",
                         }]
                     }]
                 }]
@@ -539,7 +539,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--subscribers--1--webhookrequestrules--2--routes--2--httpverb' 'POST' $KeyVault",
             };
 
-            result.Should().Contain(expected);
+            result.Should().Equal(expected);
         }
     }
 }

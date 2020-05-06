@@ -64,6 +64,7 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
                             var key = BuildKey(jArray, eventPrefix);
                             var value = jArray.ToValuesString();
                             commands.Add(new PsCommand(key, value));
+                            break;
                         }
 
                         foreach (var innerToken in jArray.Values())
