@@ -1,11 +1,8 @@
-﻿using System.IO;
-using System.IO.Abstractions.TestingHelpers;
-using System.Linq;
-using CaptainHook.Cli.Commands.GenerateJson;
+﻿using System.IO.Abstractions.TestingHelpers;
 using CaptainHook.Cli.Commands.GeneratePowerShell;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using Newtonsoft.Json.Linq;
+using FluentAssertions.Execution;
 using Xunit;
 
 namespace CaptainHook.Cli.Tests.GeneratePowerShell
@@ -16,11 +13,11 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
         public ConfigDirectoryProcessorTests()
         {
-            fileSystem.AddFile("C:\\Test\\event-1-testevent.json", $"{{\r\n\"Type\": \"type1\" \r\n}}");
-            fileSystem.AddFile("C:\\Test\\event-10-testevent.json", $"{{\r\n\"Type\": \"type10\" \r\n}}");
-            fileSystem.AddFile("C:\\Test\\event-11-testevent.json", $"{{\r\n\"Type\": \"type11\" \r\n}}");
-            fileSystem.AddFile("C:\\Test\\event-101-testevent.json", $"{{\r\n\"Type\": \"type101\" \r\n}}");
-            fileSystem.AddFile("C:\\Test\\event-2-testevent.json", $"{{\r\n\"Type\": \"type2\" \r\n}}");
+            fileSystem.AddFile(@"C:\Test\event-1-testevent.json", $"{{\r\n\"Type\": \"type1\" \r\n}}");
+            fileSystem.AddFile(@"C:\Test\event-10-testevent.json", $"{{\r\n\"Type\": \"type10\" \r\n}}");
+            fileSystem.AddFile(@"C:\Test\event-11-testevent.json", $"{{\r\n\"Type\": \"type11\" \r\n}}");
+            fileSystem.AddFile(@"C:\Test\event-101-testevent.json", $"{{\r\n\"Type\": \"type101\" \r\n}}");
+            fileSystem.AddFile(@"C:\Test\event-2-testevent.json", $"{{\r\n\"Type\": \"type2\" \r\n}}");
 
         }
 
@@ -41,6 +38,34 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
             var actual = fileSystem.File.ReadAllLines("result.ps1");
             actual.Should().Equal(expected);
+        }
+
+        [Fact, IsLayer0]
+        public void ShouldProcessHeaderAndIncludeInOutput()
+        {
+            fileSystem.AddFile(@"C:\Test\header.ps1", "abcde\r\ndef from header");
+            var configDirectoryProcessor = new ConfigDirectoryProcessor(fileSystem);
+
+            var result = configDirectoryProcessor.ProcessDirectory(@"C:\Test\", "result.ps1");
+
+            var expectedOutput = new[]
+            {
+                "abcde",
+                "def from header",
+                "setConfig 'event--1--type' 'type1' $KeyVault",
+                "setConfig 'event--2--type' 'type2' $KeyVault",
+                "setConfig 'event--10--type' 'type10' $KeyVault",
+                "setConfig 'event--11--type' 'type11' $KeyVault",
+                "setConfig 'event--101--type' 'type101' $KeyVault",
+            };
+
+            using (new AssertionScope())
+            {
+                result.Success.Should().BeTrue();
+
+                var actualOutput = fileSystem.File.ReadAllLines("result.ps1");
+                actualOutput.Should().Equal(expectedOutput);
+            }
         }
     }
 }
