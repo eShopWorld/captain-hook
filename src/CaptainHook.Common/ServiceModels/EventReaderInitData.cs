@@ -22,6 +22,8 @@ namespace CaptainHook.Common.ServiceModels
 
         public string SubscriptionName => DlqMode != null ? SourceSubscription : SubscriberName;
 
+        private static JsonIgnoreAttributeIgnorerContractResolver jsonIgnoreAttributeIgnorerContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
+        private static AuthenticationConfigConverter authenticationConfigConverter = new AuthenticationConfigConverter();
         public static EventReaderInitData FromSubscriberConfiguration(string eventType, string subName)
         {
             return FromSubscriberConfiguration(new SubscriberConfiguration { EventType = eventType, SubscriberName = subName });
@@ -42,7 +44,7 @@ namespace CaptainHook.Common.ServiceModels
         public byte[] ToByteArray()
         {
             var settings = new JsonSerializerSettings();
-            settings.ContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
+            settings.ContractResolver = jsonIgnoreAttributeIgnorerContractResolver;
             var stringValue = JsonConvert.SerializeObject(this, settings);
             var byteArray = Encoding.UTF8.GetBytes(stringValue);
             return byteArray;
@@ -52,8 +54,8 @@ namespace CaptainHook.Common.ServiceModels
         {
             var content = Encoding.UTF8.GetString(buffer);
             var settings = new JsonSerializerSettings();
-            settings.ContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
-            settings.Converters.Add(new AuthenticationConfigConverter());
+            settings.ContractResolver = jsonIgnoreAttributeIgnorerContractResolver;
+            settings.Converters.Add(authenticationConfigConverter);
             return JsonConvert.DeserializeObject<EventReaderInitData>(content, settings);
         }
     }
