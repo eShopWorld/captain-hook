@@ -45,13 +45,13 @@ namespace CaptainHook.Tests.Services.Reliable
             _context = CustomMockStatefulServiceContextFactory.Create(
                 ServiceNaming.EventReaderServiceType,
                 ServiceNaming.EventReaderServiceFullUri("test.type", "subA"),
-                Encoding.UTF8.GetBytes(EventReaderInitData.GetReaderInitDataAsString("test.type", "subA")), replicaId:(new Random(int.MaxValue)).Next());
+                EventReaderInitData.FromSubscriberConfiguration("test.type", "subA").ToByteArray(),
+                replicaId:(new Random(int.MaxValue)).Next());
             _mockActorProxyFactory = new MockActorProxyFactory();
             _stateManager = new MockReliableStateManager();
             _config = new ConfigurationSettings();
             _mockedBigBrother = new Mock<IBigBrother>().Object;
             _mockMessageProvider = new Mock<IMessageReceiver>();
-
         }
 
         /// <summary>

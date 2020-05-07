@@ -77,13 +77,17 @@ namespace CaptainHook.DirectorService
                         cancellationToken);
                 }
 
-                foreach (var (key, sub) in _subscriberConfigurations)
+                foreach (var (key, subscriber) in _subscriberConfigurations)
                 {
                     if (cancellationToken.IsCancellationRequested) return;
 
-                    var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(sub.EventType, sub.SubscriberName, sub.DLQMode != null);
+                    var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
                     if (!serviceList.Contains(readerServiceNameUri))
                     {
+                        var initializationData = EventReaderInitData
+                            .FromSubscriberConfiguration(subscriber)
+                            .ToByteArray();
+
                         await _fabricClient.ServiceManager.CreateServiceAsync(
                             new StatefulServiceDescription
                             {
@@ -94,7 +98,7 @@ namespace CaptainHook.DirectorService
                                 PartitionSchemeDescription = new SingletonPartitionSchemeDescription(),
                                 ServiceTypeName = ServiceNaming.EventReaderServiceType,
                                 ServiceName = new Uri(readerServiceNameUri),
-                                InitializationData = Encoding.UTF8.GetBytes(EventReaderInitData.GetReaderInitDataAsString(sub)),
+                                InitializationData = initializationData,
                                 PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
                             },
                             TimeSpan.FromSeconds(30),

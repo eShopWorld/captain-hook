@@ -3,10 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Fabric;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -27,7 +25,6 @@ using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
-using Newtonsoft.Json;
 using Polly;
 
 namespace CaptainHook.EventReaderService
@@ -96,7 +93,7 @@ namespace CaptainHook.EventReaderService
             if (initializationData == null || initializationData.Length == 0)
                 throw new ArgumentException("invalid initialization data structure", nameof(initializationData));
 
-            _initData = JsonSerializer.CreateDefault().Deserialize<EventReaderInitData>(new JsonTextReader(new StringReader(Encoding.UTF8.GetString(initializationData))));
+            _initData = EventReaderInitData.FromByteArray(initializationData);
 
             if (_initData == null)
                 throw new ArgumentException("failed to deserialize init data", nameof(initializationData));
