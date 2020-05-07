@@ -15,7 +15,7 @@ namespace CaptainHook.Common.Authentication
         /// <summary>
         /// String for now, enums and the like might be better
         /// </summary>
-        [JsonProperty(Order = 1)]
+        [JsonProperty(Order = 1, DefaultValueHandling = DefaultValueHandling.Include)]
         public AuthenticationType Type { get; set; }
     }
 }

@@ -117,6 +117,27 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
         }
 
         [Fact, IsLayer0]
+        public void ShouldUnderstandNoneAuthenticationNodeAsNoneAuthenticationConfig()
+        {
+            var eventHandlerConfig = @"{
+                ""WebhookConfig"": {
+                    ""AuthenticationConfig"": { 
+                        ""Type"": ""None""
+                    }       
+                }
+            }";
+
+            var result = CallConverter(eventHandlerConfig);
+
+            var expected = new[]
+            {
+                "setConfig 'event--1--webhookconfig--authenticationconfig--type' 'None' $KeyVault",
+            };
+
+            result.Should().Equal(expected);
+        }
+
+        [Fact, IsLayer0]
         public void ShouldBuildWebHookConfigWebhookRequestRule()
         {
             var eventHandlerConfig = @"{
@@ -325,6 +346,33 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--source--path' 'path2' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--destination--location' 'Uri' $KeyVault",
                 "setConfig 'event--1--callbackconfig--webhookrequestrules--2--destination--ruleaction' 'Route' $KeyVault"
+            };
+
+            result.Should().Equal(expected);
+        }
+
+        [Fact, IsLayer0]
+        public void ShouldIgnoreEmptyDestination()
+        {
+            var eventHandlerConfig = @"{
+                ""CallbackConfig"": {
+                    ""WebhookRequestRules"": [{
+                        ""Source"": {
+                            ""Path"": ""path1"",
+                            ""Type"": ""Model""
+                        },
+                        ""Destination"": {
+                        }
+                    }]
+                }
+            }";
+
+            var result = CallConverter(eventHandlerConfig);
+
+            var expected = new[]
+            {
+                "setConfig 'event--1--callbackconfig--webhookrequestrules--1--source--path' 'path1' $KeyVault",
+                "setConfig 'event--1--callbackconfig--webhookrequestrules--1--source--type' 'Model' $KeyVault",
             };
 
             result.Should().Equal(expected);
