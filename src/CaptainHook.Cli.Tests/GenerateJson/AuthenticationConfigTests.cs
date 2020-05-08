@@ -44,14 +44,15 @@ namespace CaptainHook.Cli.Tests.GenerateJson
 
         [Fact]
         [IsLayer0]
-        public async Task EmptyAuthConfigIsNotSerialized()
+        public async Task EmptyAuthConfigIsSerialized()
         {
             PrepareCommand();
             await Command.OnExecuteAsync(Application, Console);
+
             AllAuthConfigSections
                 .Where(x => x.Value<string>("Type") == "None")
                 .Should()
-                .BeEmpty();
+                .NotBeEmpty();
         }
     }
 }
