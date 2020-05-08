@@ -1,4 +1,4 @@
-﻿param ([string]$inputFileName =  ".\KeyVaultConfigV2_CI.ps1")
+﻿param ([string]$inputFileName)
 
 $replacementMap = @{ 
     "'route'" = "'Route'";
