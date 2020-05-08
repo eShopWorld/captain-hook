@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using CaptainHook.Cli.Commands.GenerateJson;
+using CaptainHook.Cli.Commands.GeneratePowerShell;
 using CaptainHook.Cli.Extensions;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ namespace CaptainHook.Cli
     /// </summary>
     [Command(Name = "ch", Description = "CaptainHook CLI")]
     [Subcommand(typeof(GenerateJsonCommand))]
+    [Subcommand(typeof(GeneratePowerShellCommand))]
     [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
     public class Program
     {

@@ -33,20 +33,6 @@ namespace CaptainHook.Cli.Common
                     instance => ((TimeSpan)instance.GetType().GetProperty(property.PropertyName).GetValue(instance)).TotalSeconds != 100;
             }
 
-            // don't serialize empty AuthenticationConfig objects
-            if(property.PropertyType == typeof(AuthenticationConfig) && property.PropertyName.Equals("AuthenticationConfig", StringComparison.InvariantCulture))
-            {
-                property.ShouldSerialize =
-                    instance => ((AuthenticationConfig)instance.GetType().GetProperty(property.PropertyName).GetValue(instance)).Type != AuthenticationType.None;
-            }
-
-            // don't serialize default HttpVerb of Post
-            if (property.PropertyName.Equals("HttpVerb", StringComparison.InvariantCulture))
-            {
-                property.ShouldSerialize =
-                    instance => !((string)instance.GetType().GetProperty(property.PropertyName).GetValue(instance)).Equals(HttpMethod.Post.ToString(), StringComparison.InvariantCultureIgnoreCase);
-            }
-
             return property;
         }
     }
