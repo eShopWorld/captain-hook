@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Xunit;
@@ -27,7 +25,7 @@ namespace CaptainHook.Cli.Tests.Integration
         [Fact, IsLayer1]
         public void OutputFileShouldBeSameAsInputFile()
         {
-            RunCaptainHookCli($@"generate-jso --input ""{sourceFile}"" --output ""{jsonDirectory}""");
+            RunCaptainHookCli($@"generate-json --input ""{sourceFile}"" --output ""{jsonDirectory}""");
             File.Copy("Header.ps1", $@"{jsonDirectory}\Header.ps1", true);
             RunCaptainHookCli($@"generate-powershell --input ""{jsonDirectory}"" --output ""{resultFile}""");
 
@@ -49,28 +47,20 @@ namespace CaptainHook.Cli.Tests.Integration
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true
-                }
+                },
             };
-
-            process.ErrorDataReceived += new DataReceivedEventHandler(OutputHandler);
+            process.ErrorDataReceived += OnDataReceived;
 
             process.Start();
             process.BeginErrorReadLine();
 
-            //string processOutput = process.StandardOutput.ReadToEnd();
-            // this.outputHelper.WriteLine(processOutput);
-            //process.WaitForExit();
-
-            while (!process.StandardOutput.EndOfStream)
-            {
-                string line = process.StandardOutput.ReadLine();
-                this.outputHelper.WriteLine(line);
-            }
+            string processOutput = process.StandardOutput.ReadToEnd();
+            this.outputHelper.WriteLine(processOutput);
 
             process.ExitCode.Should().Be(0);
         }
 
-        private void OutputHandler(object sender, DataReceivedEventArgs e)
+        private void OnDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data != null)
             {
