@@ -10,38 +10,34 @@ namespace CaptainHook.Cli.Tests.Integration
 {
     public class FromPowerShellToJsonAndBackTests
     {
+        const string sourceFile = "SampleFileWithSubscribers.ps1";
+        const string jsonDirectory = "json";
+        const string resultFile = "Result.ps1";
+
         [Fact, IsLayer1]
         public void OutputFileShouldBeSameAsInputFile()
         {
-            var toolDirectory = Directory.GetCurrentDirectory();
-
-            const string toolName = "CaptainHook.Cli.exe";
-            const string sourceFile = "SampleFileWithSubscribers.ps1";
-            const string jsonDirectory = "json";
-            const string resultFile = "Result.ps1";
-
-            string generateJsonCommand = $@"generate-json --input ""{sourceFile}"" --output ""{jsonDirectory}""";
-
-            var generateJsonProcess = Process.Start(toolName, generateJsonCommand);
-            generateJsonProcess.WaitForExit();
-
+            RunCaptainHookCli($@"generate-json --input ""{sourceFile}"" --output ""{jsonDirectory}""");
             File.Copy("Header.ps1", $@"{jsonDirectory}\Header.ps1", true);
-            
-            string generatePowerShellCommand = $@"generate-powershell --input ""{jsonDirectory}"" --output ""{resultFile}""";
+            RunCaptainHookCli($@"generate-powershell --input ""{jsonDirectory}"" --output ""{resultFile}""");
 
-            var generatePowerShellProcess = Process.Start(toolName, generatePowerShellCommand);
-            generatePowerShellProcess.WaitForExit();
-
-            generateJsonProcess.ExitCode.Should().Be(0);
-            generatePowerShellProcess.ExitCode.Should().Be(0);
-
-            var original = CleanPowershell(File.ReadAllLines(sourceFile)).ToArray();
-            var result = CleanPowershell(File.ReadAllLines(resultFile)).ToArray();
+            var original = File.ReadAllLines(sourceFile).TakeOnlyCommands();
+            var result = File.ReadAllLines(resultFile).TakeOnlyCommands();
 
             result.Should().BeEquivalentTo(original);
         }
 
-        private IEnumerable<string> CleanPowershell(IEnumerable<string> input)
+        private static void RunCaptainHookCli(string formattableString)
+        {
+            var generateJsonProcess = Process.Start("CaptainHook.Cli.exe", formattableString);
+            generateJsonProcess.WaitForExit();
+            generateJsonProcess.ExitCode.Should().Be(0);
+        }
+    }
+
+    internal static class TestPowerShellStringExtensions
+    {
+        public static IEnumerable<string> TakeOnlyCommands(this IEnumerable<string> input)
         {
             return input.Where(s => s.TrimStart().StartsWith("set"));
         }
