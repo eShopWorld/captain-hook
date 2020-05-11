@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Xunit;
 
 namespace CaptainHook.Cli.Tests.Integration
 {
-    public class FullTests
+    public class FromPowerShellToJsonAndBackTests
     {
         [Fact, IsLayer1]
         public void OutputFileShouldBeSameAsInputFile()
@@ -41,14 +39,11 @@ namespace CaptainHook.Cli.Tests.Integration
             var result = CleanPowershell(File.ReadAllLines(resultFile)).ToArray();
 
             result.Should().BeEquivalentTo(original);
-
-            /*generate-json --input "C:\Input\KeyVaultConfigV2_CI.ps1" --output "C:\Input\Output"
-generate-json --input "C:\Input\SampleFile.ps1" --output "C:\Input\jsonsample"*/
         }
 
         private IEnumerable<string> CleanPowershell(IEnumerable<string> input)
         {
-            return input.Where(s => s.TrimStart().StartsWith("set")).OrderBy(s => s);
+            return input.Where(s => s.TrimStart().StartsWith("set"));
         }
     }
 }
