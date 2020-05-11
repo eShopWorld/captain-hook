@@ -5,7 +5,6 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>dotnet-ch</PackageId>
-	<runtimeidentifier>win10-x64</runtimeidentifier>
   </PropertyGroup>
 
   <ItemGroup>
