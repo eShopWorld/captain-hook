@@ -21,7 +21,7 @@ namespace CaptainHook.Cli.Tests.Integration
             this.outputHelper = outputHelper;
         }
 
-        [Fact, IsLayer1]
+        [Fact(Skip = "Doesn't work in ADO, only to manual run"), IsLayer1]
         public void OutputFileShouldBeSameAsInputFile()
         {
             string tempPath = Path.GetTempPath();
@@ -30,8 +30,6 @@ namespace CaptainHook.Cli.Tests.Integration
 
             this.outputHelper.WriteLine($"Temp path: {tempPath}");
 
-            RunProcess("hostname");
-            
             RunProcess(cliExe, $@"generate-json --input ""{sourceFile}"" --output ""{jsonDirectory}""");
             File.Copy("Header.ps1", $@"{jsonDirectory}\Header.ps1", true);
             RunProcess(cliExe, $@"generate-powershell --input ""{jsonDirectory}"" --output ""{resultFile}""");
