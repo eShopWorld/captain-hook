@@ -11,6 +11,7 @@ namespace CaptainHook.Cli.Tests.Integration
 {
     public class FromPowerShellToJsonAndBackTests
     {
+        const string cliExe = "CaptainHook.Cli.exe";
         const string sourceFile = "SampleFileWithSubscribers.ps1";
 
         private readonly ITestOutputHelper outputHelper;
@@ -29,9 +30,11 @@ namespace CaptainHook.Cli.Tests.Integration
 
             this.outputHelper.WriteLine($"Temp path: {tempPath}");
 
-            RunCaptainHookCli($@"generate-json --input ""{sourceFile}"" --output ""{jsonDirectory}""");
+            RunProcess("hostname");
+            
+            RunProcess(cliExe, $@"generate-json --input ""{sourceFile}"" --output ""{jsonDirectory}""");
             File.Copy("Header.ps1", $@"{jsonDirectory}\Header.ps1", true);
-            RunCaptainHookCli($@"generate-powershell --input ""{jsonDirectory}"" --output ""{resultFile}""");
+            RunProcess(cliExe, $@"generate-powershell --input ""{jsonDirectory}"" --output ""{resultFile}""");
 
             var original = File.ReadAllLines(sourceFile).TakeOnlyCommands();
             var result = File.ReadAllLines(resultFile).TakeOnlyCommands();
@@ -39,14 +42,14 @@ namespace CaptainHook.Cli.Tests.Integration
             result.Should().BeEquivalentTo(original);
         }
 
-        private void RunCaptainHookCli(string arguments)
+        private void RunProcess(string executableFile, string arguments = null)
         {
-            this.outputHelper.WriteLine($"Starting CaptainHook.Cli with arguments: |{arguments}|");
+            this.outputHelper.WriteLine($"Starting {executableFile} with arguments: `{arguments}`");
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "CaptainHook.Cli.exe",
+                    FileName = executableFile,
                     Arguments = arguments,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
@@ -63,7 +66,7 @@ namespace CaptainHook.Cli.Tests.Integration
             this.outputHelper.WriteLine(processOutput);
 
             process.ExitCode.Should().Be(0);
-            this.outputHelper.WriteLine("CaptainHook.Cli done");
+            this.outputHelper.WriteLine($"{executableFile} done");
         }
 
         private void OnDataReceived(object sender, DataReceivedEventArgs e)
