@@ -12,8 +12,6 @@ namespace CaptainHook.Cli.Tests.Integration
     public class FromPowerShellToJsonAndBackTests
     {
         const string sourceFile = "SampleFileWithSubscribers.ps1";
-        const string jsonDirectory = "json";
-        const string resultFile = "Result.ps1";
 
         private readonly ITestOutputHelper outputHelper;
 
@@ -25,6 +23,12 @@ namespace CaptainHook.Cli.Tests.Integration
         [Fact, IsLayer1]
         public void OutputFileShouldBeSameAsInputFile()
         {
+            string tempPath = Path.GetTempPath();
+            string jsonDirectory = $@"{tempPath}\json";
+            string resultFile =  $@"{tempPath}\Result.ps1";
+
+            this.outputHelper.WriteLine($"Temp path: {tempPath}");
+
             RunCaptainHookCli($@"generate-json --input ""{sourceFile}"" --output ""{jsonDirectory}""");
             File.Copy("Header.ps1", $@"{jsonDirectory}\Header.ps1", true);
             RunCaptainHookCli($@"generate-powershell --input ""{jsonDirectory}"" --output ""{resultFile}""");
@@ -37,6 +41,7 @@ namespace CaptainHook.Cli.Tests.Integration
 
         private void RunCaptainHookCli(string arguments)
         {
+            this.outputHelper.WriteLine($"Starting CaptainHook.Cli with arguments: |{arguments}|");
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -58,6 +63,7 @@ namespace CaptainHook.Cli.Tests.Integration
             this.outputHelper.WriteLine(processOutput);
 
             process.ExitCode.Should().Be(0);
+            this.outputHelper.WriteLine("CaptainHook.Cli done");
         }
 
         private void OnDataReceived(object sender, DataReceivedEventArgs e)
