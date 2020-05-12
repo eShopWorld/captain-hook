@@ -6,13 +6,23 @@
     <IsPackable>false</IsPackable>
 
     <Platforms>AnyCPU;x64</Platforms>
+
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="GenerateJson\SampleFile.ps1" />
+    <None Remove="Header.ps1" />
+    <None Remove="SampleFileWithSubscribers.ps1" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Header.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SampleFileWithSubscribers.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="SampleFile.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
