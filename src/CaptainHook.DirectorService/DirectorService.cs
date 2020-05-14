@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Fabric.Description;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -71,6 +70,21 @@ namespace CaptainHook.DirectorService
                             PartitionSchemeDescription = new UniformInt64RangePartitionSchemeDescription(10),
                             ServiceTypeName = ServiceNaming.EventHandlerActorServiceType,
                             ServiceName = new Uri(ServiceNaming.EventHandlerServiceFullName),
+                            PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
+                        },
+                        TimeSpan.FromSeconds(30),
+                        cancellationToken);
+                }
+
+                if (!serviceList.Contains(ServiceNaming.ApiServiceFullName))
+                {
+                    await _fabricClient.ServiceManager.CreateServiceAsync(
+                        new StatelessServiceDescription
+                        {
+                            ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
+                            PartitionSchemeDescription = new UniformInt64RangePartitionSchemeDescription(1),
+                            ServiceTypeName = ServiceNaming.ApiServiceServiceType,
+                            ServiceName = new Uri(ServiceNaming.ApiServiceFullName),
                             PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
                         },
                         TimeSpan.FromSeconds(30),

@@ -14,15 +14,16 @@ namespace CaptainHook.Common
 
         public const string DirectorServiceType = "CaptainHook.DirectorServiceType";
 
-        public const string EventDispatcherServiceName = "Dispatcher";
-
-        public const string EventDispatcherServiceType = "CaptainHook.EventDispatcherServiceType";
-
         public const string EventHandlerServiceShortName = "EventHandler";
 
         public static readonly string EventHandlerServiceFullName = $"fabric:/{CaptainHookApplication.ApplicationName}/{EventHandlerServiceShortName}";
 
         public const string EventHandlerActorServiceType = "EventHandlerActorServiceType";
 
+        public const string ApiServiceShortName = "Api";
+
+        public static readonly string ApiServiceFullName = $"fabric:/{CaptainHookApplication.ApplicationName}/{ApiServiceShortName}";
+
+        public const string ApiServiceServiceType = "CaptainHook.ApiType";
     }
 }
