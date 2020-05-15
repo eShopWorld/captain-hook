@@ -76,21 +76,6 @@ namespace CaptainHook.DirectorService
                         cancellationToken);
                 }
 
-                if (!serviceList.Contains(ServiceNaming.ApiServiceFullName))
-                {
-                    await _fabricClient.ServiceManager.CreateServiceAsync(
-                        new StatelessServiceDescription
-                        {
-                            ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
-                            PartitionSchemeDescription = new UniformInt64RangePartitionSchemeDescription(1),
-                            ServiceTypeName = ServiceNaming.ApiServiceServiceType,
-                            ServiceName = new Uri(ServiceNaming.ApiServiceFullName),
-                            PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
-                        },
-                        TimeSpan.FromSeconds(30),
-                        cancellationToken);
-                }
-
                 foreach (var (key, subscriber) in _subscriberConfigurations)
                 {
                     if (cancellationToken.IsCancellationRequested) return;

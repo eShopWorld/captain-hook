@@ -20,10 +20,6 @@ namespace CaptainHook.Common
 
         public const string EventHandlerActorServiceType = "EventHandlerActorServiceType";
 
-        public const string ApiServiceShortName = "Api";
-
-        public static readonly string ApiServiceFullName = $"fabric:/{CaptainHookApplication.ApplicationName}/{ApiServiceShortName}";
-
         public const string ApiServiceServiceType = "CaptainHook.ApiType";
     }
 }
