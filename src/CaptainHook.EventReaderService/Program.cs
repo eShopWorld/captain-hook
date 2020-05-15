@@ -22,11 +22,9 @@ namespace CaptainHook.EventReaderService
         {
             try
             {
-                var configuration = Configuration.Load();
-                
-                var configurationSettings = new ConfigurationSettings();
-                configuration.Settings.Bind(configurationSettings);
+                var serviceConfiguration = ServiceConfiguration.Load();
 
+                var configurationSettings = serviceConfiguration.Settings.Get<ConfigurationSettings>();
 
                 var builder = new ContainerBuilder();
                 builder.RegisterInstance(configurationSettings).SingleInstance();

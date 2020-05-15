@@ -24,6 +24,7 @@ namespace CaptainHook.Common.ServiceModels
 
         private static JsonIgnoreAttributeIgnorerContractResolver jsonIgnoreAttributeIgnorerContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
         private static AuthenticationConfigConverter authenticationConfigConverter = new AuthenticationConfigConverter();
+     
         public static EventReaderInitData FromSubscriberConfiguration(string eventType, string subName)
         {
             return FromSubscriberConfiguration(new SubscriberConfiguration { EventType = eventType, SubscriberName = subName });
