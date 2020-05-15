@@ -6,20 +6,17 @@ using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace CaptainHook.Common.Configuration
 {
-    public sealed class ServiceConfiguration
+    public static class ConfigurationLoader
     {
         /// <summary>
-        /// Get all the configuration settings
+        /// Loads configuration from Environment and KeyVault
         /// </summary>
-        public IConfigurationRoot Settings { get; private set; }
-
-        public static ServiceConfiguration Load()
+        /// <returns>All application configuration properties</returns>
+        public static IConfigurationRoot Load()
         {
-            var result = new ServiceConfiguration();
-
             var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
 
-            result.Settings = new ConfigurationBuilder()
+            var root = new ConfigurationBuilder()
                 .AddAzureKeyVault(
                     kvUri,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
@@ -27,7 +24,7 @@ namespace CaptainHook.Common.Configuration
                 .AddEnvironmentVariables()
                 .Build();
 
-            return result;
+            return root;
         }
     }
 }

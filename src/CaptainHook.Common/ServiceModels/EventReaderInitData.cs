@@ -23,6 +23,7 @@ namespace CaptainHook.Common.ServiceModels
         public string SubscriptionName => DlqMode != null ? SourceSubscription : SubscriberName;
 
         private static JsonIgnoreAttributeIgnorerContractResolver jsonIgnoreAttributeIgnorerContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
+
         private static AuthenticationConfigConverter authenticationConfigConverter = new AuthenticationConfigConverter();
      
         public static EventReaderInitData FromSubscriberConfiguration(string eventType, string subName)
