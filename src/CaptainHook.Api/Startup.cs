@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using Eshopworld.Telemetry.Configuration;
+using Eshopworld.Telemetry.Processors;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.OpenApi.Models;
 using TelemetrySettings = Eshopworld.Telemetry.Configuration.TelemetrySettings;
@@ -51,6 +52,9 @@ namespace CaptainHook.Api
         {
             builder.RegisterInstance(_telemetrySettings).SingleInstance();
             builder.RegisterModule<TelemetryModule>();
+
+            builder.RegisterType<SuccessfulProbeFilterCriteria>()
+                .As<ITelemetryFilterCriteria>();
         }
 
         /// <summary>
