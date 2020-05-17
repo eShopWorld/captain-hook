@@ -286,7 +286,7 @@ namespace CaptainHook.EventReaderService
             messageData.HandlerId = handlerId;
             messageData.CorrelationId = Guid.NewGuid().ToString();
             messageData.ServiceBusMessageId = message.MessageId;
-            messageData.SubscriberConfig = JsonConvert.SerializeObject(_initData.SubscriberConfiguration);
+            messageData.SubscriberConfig = _initData.SubscriberConfiguration;
 
             return messageData;
         }
