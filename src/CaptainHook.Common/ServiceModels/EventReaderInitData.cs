@@ -20,6 +20,8 @@ namespace CaptainHook.Common.ServiceModels
 
         public SubscriberConfiguration SubscriberConfiguration { get; set; }
 
+        public WebhookConfig WebhookConfig { get; set; }
+
         public string SubscriptionName => DlqMode != null ? SourceSubscription : SubscriberName;
 
         private static JsonIgnoreAttributeIgnorerContractResolver jsonIgnoreAttributeIgnorerContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
@@ -40,6 +42,19 @@ namespace CaptainHook.Common.ServiceModels
                 EventType = subscriberConfiguration.EventType,
                 DlqMode = subscriberConfiguration.DLQMode,
                 SourceSubscription = subscriberConfiguration.DLQMode != null ? subscriberConfiguration.SourceSubscriptionName : null
+            };
+        }
+
+         public static EventReaderInitData FromSubscriberConfiguration(SubscriberConfiguration subscriberConfiguration, WebhookConfig webhookConfig)
+        {
+            return new EventReaderInitData
+            {
+                SubscriberConfiguration = subscriberConfiguration,
+                SubscriberName = subscriberConfiguration.SubscriberName,
+                EventType = subscriberConfiguration.EventType,
+                DlqMode = subscriberConfiguration.DLQMode,
+                SourceSubscription = subscriberConfiguration.DLQMode != null ? subscriberConfiguration.SourceSubscriptionName : null,
+                WebhookConfig = webhookConfig
             };
         }
 

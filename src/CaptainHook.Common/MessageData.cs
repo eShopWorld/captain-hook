@@ -57,6 +57,11 @@ namespace CaptainHook.Common
         /// <summary>
         /// The subscriber configuration related to the message.
         /// </summary>
-        public string SubscriberConfig { get; set; }
+        public SubscriberConfiguration SubscriberConfig { get; set; }
+
+        /// <summary>
+        /// The Webhook configuration related to the message.
+        /// </summary>
+        public WebhookConfig WebhookConfig { get; set; }
     }
 }

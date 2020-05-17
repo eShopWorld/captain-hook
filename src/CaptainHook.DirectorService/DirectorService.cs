@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Fabric.Description;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -20,7 +19,7 @@ namespace CaptainHook.DirectorService
         private readonly FabricClient _fabricClient;
         private readonly DefaultServiceSettings _defaultServiceSettings;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations { get; }
-
+        private IList<WebhookConfig> _webhookConfigurations { get; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
@@ -34,13 +33,15 @@ namespace CaptainHook.DirectorService
             IBigBrother bigBrother,
             FabricClient fabricClient,
             DefaultServiceSettings defaultServiceSettings,
-            IDictionary<string, SubscriberConfiguration> subscriberConfigurations)
+            IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
+            IList<WebhookConfig> webhookConfigurations)
             : base(context)
         {
             _bigBrother = bigBrother;
             _fabricClient = fabricClient;
             _defaultServiceSettings = defaultServiceSettings;
             _subscriberConfigurations = subscriberConfigurations;
+            _webhookConfigurations = webhookConfigurations;
         }
 
         /// <summary>
@@ -81,29 +82,7 @@ namespace CaptainHook.DirectorService
                 {
                     if (cancellationToken.IsCancellationRequested) return;
 
-                    var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
-                    if (!serviceList.Contains(readerServiceNameUri))
-                    {
-                        var initializationData = EventReaderInitData
-                            .FromSubscriberConfiguration(subscriber)
-                            .ToByteArray();
-
-                        await _fabricClient.ServiceManager.CreateServiceAsync(
-                            new StatefulServiceDescription
-                            {
-                                ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
-                                HasPersistedState = true,
-                                MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
-                                TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
-                                PartitionSchemeDescription = new SingletonPartitionSchemeDescription(),
-                                ServiceTypeName = ServiceNaming.EventReaderServiceType,
-                                ServiceName = new Uri(readerServiceNameUri),
-                                InitializationData = initializationData,
-                                PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
-                            },
-                            TimeSpan.FromSeconds(30),
-                            cancellationToken);
-                    }
+                    await CreateServiceForSubscriber(subscriber, serviceList, cancellationToken);
                 }
 
 
@@ -140,6 +119,39 @@ namespace CaptainHook.DirectorService
                 _bigBrother.Publish(ex.ToExceptionEvent());
                 throw;
             }
+        }
+
+        private async Task CreateServiceForSubscriber(SubscriberConfiguration subscriber, ICollection<string> serviceList, CancellationToken cancellationToken)
+        {
+            var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
+
+            if (!serviceList.Contains(readerServiceNameUri))
+            {
+                var initializationData = BuildInitializationData(subscriber);
+                await _fabricClient.ServiceManager.CreateServiceAsync(
+                    new StatefulServiceDescription
+                    {
+                        ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
+                        HasPersistedState = true,
+                        MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
+                        TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
+                        PartitionSchemeDescription = new SingletonPartitionSchemeDescription(),
+                        ServiceTypeName = ServiceNaming.EventReaderServiceType,
+                        ServiceName = new Uri(readerServiceNameUri),
+                        InitializationData = initializationData,
+                        PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
+                    },
+                    TimeSpan.FromSeconds(30),
+                    cancellationToken);
+            }
+        }
+
+        private byte[] BuildInitializationData(SubscriberConfiguration subscriber)
+        {
+            var webhookConfig = _webhookConfigurations.SingleOrDefault(x => x.Name == subscriber.Name);
+            return EventReaderInitData
+                .FromSubscriberConfiguration(subscriber, webhookConfig)
+                .ToByteArray();
         }
     }
 }

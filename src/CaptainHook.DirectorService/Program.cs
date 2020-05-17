@@ -41,6 +41,7 @@ namespace CaptainHook.DirectorService
                 var builder = new ContainerBuilder();
 
                 builder.RegisterInstance(configuration.SubscriberConfigurations);
+                builder.RegisterInstance(configuration.WebhookConfigurations);
 
                 builder.RegisterInstance(configurationSettings)
                        .SingleInstance();
