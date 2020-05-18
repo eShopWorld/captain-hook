@@ -52,7 +52,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     messageData.SubscriberConfig);
             }
 
-            return CreateWebhookHandler(messageData);
+            return CreateWebhookHandler(messageData.WebhookConfig);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="webHookName"></param>
         /// <returns></returns>
-        public IHandler CreateWebhookHandler(MessageData messageData)
+        public IHandler CreateWebhookHandler(WebhookConfig webhookConfig)
         {
             return new GenericWebhookHandler(
                 _httpClientFactory,
@@ -69,7 +69,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 _requestBuilder,
                 _requestLogger,
                 _bigBrother, 
-                messageData.WebhookConfig);
+                webhookConfig);
         }
     }
 }

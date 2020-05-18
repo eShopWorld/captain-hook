@@ -84,7 +84,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             metadata.Add("HttpResponseContent", content);
 
             //call callback
-            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(messageData);
+            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(messageData.SubscriberConfig.Callback);
 
             return await eswHandler.CallAsync(messageData, metadata, cancellationToken);
         }

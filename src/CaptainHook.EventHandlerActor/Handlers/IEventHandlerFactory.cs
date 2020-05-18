@@ -1,4 +1,5 @@
 ﻿using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -20,6 +21,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="webHookName"></param>
         /// <returns></returns>
-        IHandler CreateWebhookHandler(MessageData messageData);
+        IHandler CreateWebhookHandler(WebhookConfig webhookConfig);
     }
 }
