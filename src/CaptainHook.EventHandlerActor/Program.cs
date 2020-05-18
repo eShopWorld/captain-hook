@@ -26,11 +26,14 @@ namespace CaptainHook.EventHandlerActor
         {
             try
             {
-                var configuration = Configuration.Load();
+                //var configuration = Configuration.Load();
 
-                
-                var configurationSettings = new ConfigurationSettings();
-                configuration.Settings.Bind(configurationSettings);
+
+                //var configurationSettings = new ConfigurationSettings();
+                //configuration.Settings.Bind(configurationSettings);
+
+                var configuration = ConfigurationLoader.Load();
+                var configurationSettings = configuration.Get<ConfigurationSettings>();
 
                 var builder = new ContainerBuilder();
 
@@ -45,18 +48,18 @@ namespace CaptainHook.EventHandlerActor
                 builder.RegisterType<RequestLogger>().As<IRequestLogger>();
                 builder.RegisterType<RequestBuilder>().As<IRequestBuilder>();
 
-                //Register each webhook authenticationConfig separately for injection
-                foreach (var subscriber in configuration.SubscriberConfigurations)
-                {
-                    builder.RegisterInstance(subscriber.Value).Named<SubscriberConfiguration>(subscriber.Key);
-                }
+                ////Register each webhook authenticationConfig separately for injection
+                //foreach (var subscriber in configuration.SubscriberConfigurations)
+                //{
+                //    builder.RegisterInstance(subscriber.Value).Named<SubscriberConfiguration>(subscriber.Key);
+                //}
 
-                foreach (var webhookConfig in configuration.WebhookConfigurations)
-                {
-                    builder.RegisterInstance(webhookConfig).Named<WebhookConfig>(webhookConfig.Name.ToLowerInvariant());
-                }
+                //foreach (var webhookConfig in configuration.WebhookConfigurations)
+                //{
+                //    builder.RegisterInstance(webhookConfig).Named<WebhookConfig>(webhookConfig.Name.ToLowerInvariant());
+                //}
 
-                builder.RegisterActor<EventHandlerActor>();             
+                builder.RegisterActor<EventHandlerActor>();
 
                 using (builder.Build())
                 {
