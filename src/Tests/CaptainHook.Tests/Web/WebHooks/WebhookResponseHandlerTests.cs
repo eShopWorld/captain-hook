@@ -64,7 +64,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var requestLogger = new RequestLogger(mockBigBrother.Object);
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData))).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig))).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     mockAuthHandlerFactory.Object,
@@ -122,7 +122,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData))).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig))).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
@@ -143,7 +143,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var messageDelivery = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
-            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData)), Times.AtMostOnce);
+            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig)), Times.AtMostOnce);
 
             Assert.Equal(1, mockHttpHandler.GetMatchCount(callbackRequest));
             Assert.True(messageDelivery);
@@ -183,7 +183,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData))).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig))).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
@@ -204,7 +204,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var messageDelivery = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
-            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData)), Times.AtMostOnce);
+            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig)), Times.AtMostOnce);
 
             Assert.Equal(3, mockHttpHandler.GetMatchCount(callbackRequest)); //current polly policy
 
@@ -245,7 +245,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData))).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig))).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
@@ -266,7 +266,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var messageDelivery = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
-            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData)), Times.AtMostOnce);
+            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig)), Times.AtMostOnce);
 
             Assert.Equal(0, mockHttpHandler.GetMatchCount(callbackRequest));
 
@@ -306,7 +306,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData))).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig))).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
@@ -327,7 +327,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.AtMostOnce);
-            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData)), Times.AtMostOnce);
+            mockHandlerFactory.Verify(e => e.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig)), Times.AtMostOnce);
 
             Assert.Equal(1, mockHttpHandler.GetMatchCount(multiRouteCall));
         }
@@ -356,7 +356,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData))).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig))).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,
@@ -406,7 +406,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var mockBigBrother = new Mock<IBigBrother>();
 
             var mockHandlerFactory = new Mock<IEventHandlerFactory>();
-            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<MessageData>(x => x == messageData))).Returns(
+            mockHandlerFactory.Setup(s => s.CreateWebhookHandler(It.Is<WebhookConfig>(x => x == messageData.WebhookConfig))).Returns(
                 new GenericWebhookHandler(
                     httpClientBuilder,
                     new Mock<IAuthenticationHandlerFactory>().Object,

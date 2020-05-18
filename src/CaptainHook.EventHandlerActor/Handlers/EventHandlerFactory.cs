@@ -21,7 +21,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             IIndex<string, WebhookConfig> webHookConfig,
             IHttpClientFactory httpClientFactory,
             IAuthenticationHandlerFactory authenticationHandlerFactory,
-            IRequestLogger requestLogger, 
+            IRequestLogger requestLogger,
             IRequestBuilder requestBuilder)
         {
             _bigBrother = bigBrother;
@@ -40,6 +40,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns>handler instance</returns>
         public IHandler CreateEventHandler(MessageData messageData)
         {
+            if (messageData.SubscriberConfig == null)
+            {
+                throw new Exception($"Boom, handler event type was not found, cannot process the message");
+            }
+
             if (messageData.SubscriberConfig.Callback != null)
             {
                 return new WebhookResponseHandler(
@@ -63,12 +68,17 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public IHandler CreateWebhookHandler(WebhookConfig webhookConfig)
         {
+            if (webhookConfig == null)
+            {
+                throw new Exception("Boom, handler webhook not found cannot process the message");
+            }
+
             return new GenericWebhookHandler(
                 _httpClientFactory,
                 _authenticationHandlerFactory,
                 _requestBuilder,
                 _requestLogger,
-                _bigBrother, 
+                _bigBrother,
                 webhookConfig);
         }
     }
