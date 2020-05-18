@@ -10,8 +10,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class EventHandlerFactory : IEventHandlerFactory
     {
         private readonly IBigBrother _bigBrother;
-        //private readonly IIndex<string, SubscriberConfiguration> _subscriberConfigurations;
-        //private readonly IIndex<string, WebhookConfig> _webHookConfig;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
         private readonly IRequestLogger _requestLogger;
@@ -27,12 +25,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
             IRequestBuilder requestBuilder)
         {
             _bigBrother = bigBrother;
-            //_subscriberConfigurations = subscriberConfigurations;
             _httpClientFactory = httpClientFactory;
             _requestLogger = requestLogger;
             _requestBuilder = requestBuilder;
             _authenticationHandlerFactory = authenticationHandlerFactory;
-            //_webHookConfig = webHookConfig;
         }
 
         /// <inheritdoc />
@@ -44,11 +40,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns>handler instance</returns>
         public IHandler CreateEventHandler(MessageData messageData)
         {
-            //if (!_subscriberConfigurations.TryGetValue(SubscriberConfiguration.Key(eventType, subscriberName), out var subscriberConfig))
-            //{
-            //    throw new Exception($"Boom, handler event type {eventType} was not found, cannot process the message");
-            //}
-
             if (messageData.SubscriberConfig.Callback != null)
             {
                 return new WebhookResponseHandler(
@@ -72,11 +63,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public IHandler CreateWebhookHandler(MessageData messageData)
         {
-            //if (!_webHookConfig.TryGetValue(webHookName.ToLowerInvariant(), out var webhookConfig))
-            //{
-            //    throw new Exception("Boom, handler webhook not found cannot process the message");
-            //}
-
             return new GenericWebhookHandler(
                 _httpClientFactory,
                 _authenticationHandlerFactory,

@@ -25,7 +25,6 @@ using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
-using Newtonsoft.Json;
 using Polly;
 
 namespace CaptainHook.EventReaderService

@@ -1,5 +1,4 @@
 ﻿using CaptainHook.Common.Configuration;
-using CaptainHook.Common.ServiceModels;
 
 namespace CaptainHook.Common
 {
