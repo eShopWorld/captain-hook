@@ -12,7 +12,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
 {
     public class WebhookResponseHandler : GenericWebhookHandler
     {
-        private readonly SubscriberConfiguration _subscriberConfiguration;
         private readonly IEventHandlerFactory _eventHandlerFactory;
 
         public WebhookResponseHandler(
@@ -26,7 +25,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
             : base(httpClientFactory, authenticationHandlerFactory, requestBuilder, requestLogger, bigBrother, subscriberConfiguration)
         {
             _eventHandlerFactory = eventHandlerFactory;
-            _subscriberConfiguration = subscriberConfiguration;
         }
 
         public override async Task<bool> CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
