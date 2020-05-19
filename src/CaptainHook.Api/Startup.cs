@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using CaptainHook.Api.Core;
 using Eshopworld.Telemetry.Configuration;
 using Eshopworld.Telemetry.Processors;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -120,6 +121,8 @@ namespace CaptainHook.Api
                                 new string[0]
                             }
                         });
+
+                        c.OperationFilter<OperationIdFilter>();
                     });
                 }
 
@@ -161,7 +164,6 @@ namespace CaptainHook.Api
             });
 
             app.UseRouting();
-            app.UseHealthChecks("/probe");
 
             app.UseAuthentication();
             app.UseAuthorization();
