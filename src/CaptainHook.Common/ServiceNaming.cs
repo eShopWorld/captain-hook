@@ -18,6 +18,8 @@ namespace CaptainHook.Common
 
         public static readonly string EventHandlerServiceFullName = $"fabric:/{CaptainHookApplication.ApplicationName}/{EventHandlerServiceShortName}";
 
+        public static readonly string DirectorServiceFullName = $"fabric:/{CaptainHookApplication.ApplicationName}/CaptainHook.DirectorService";
+
         public const string EventHandlerActorServiceType = "EventHandlerActorServiceType";
 
         public const string ApiServiceServiceType = "CaptainHook.ApiType";
