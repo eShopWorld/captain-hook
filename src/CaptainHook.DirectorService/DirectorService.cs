@@ -82,7 +82,7 @@ namespace CaptainHook.DirectorService
                 {
                     if (cancellationToken.IsCancellationRequested) return;
 
-                    await CreateServiceForSubscriber(subscriber, serviceList, cancellationToken);
+                    await CreateServiceForSubscriberAsync(subscriber, serviceList, cancellationToken);
                 }
 
 
@@ -121,7 +121,7 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        private async Task CreateServiceForSubscriber(SubscriberConfiguration subscriber, ICollection<string> serviceList, CancellationToken cancellationToken)
+        private async Task CreateServiceForSubscriberAsync(SubscriberConfiguration subscriber, ICollection<string> serviceList, CancellationToken cancellationToken)
         {
             var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
 
