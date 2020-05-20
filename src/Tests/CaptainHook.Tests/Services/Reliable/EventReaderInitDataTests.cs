@@ -11,6 +11,7 @@ namespace CaptainHook.Tests.Services.Reliable
     public class EventReaderInitDataTests
     {
         private readonly SubscriberConfiguration _subscriberConfiguration;
+        private readonly WebhookConfig _webhookConfig;
 
         public EventReaderInitDataTests()
         {
@@ -84,6 +85,8 @@ namespace CaptainHook.Tests.Services.Reliable
                     }
                 }
             };
+
+            _webhookConfig = new WebhookConfig();
         }
 
         [Fact]
@@ -91,7 +94,7 @@ namespace CaptainHook.Tests.Services.Reliable
         public void CanPassSubscriberConfiguration()
         {
             var buffer = EventReaderInitData
-                .FromSubscriberConfiguration(_subscriberConfiguration)
+                .FromSubscriberConfiguration(_subscriberConfiguration, _webhookConfig)
                 .ToByteArray();
 
             var eventReaderInitData = EventReaderInitData.FromByteArray(buffer);

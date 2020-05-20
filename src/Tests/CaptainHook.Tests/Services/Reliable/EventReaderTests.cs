@@ -45,10 +45,16 @@ namespace CaptainHook.Tests.Services.Reliable
 
         public EventReaderTests()
         {
+            var subscriberConfiguration = new SubscriberConfiguration
+            {
+                SubscriberName = "subA",
+                EventType = "test.type",
+            };
+
             _context = CustomMockStatefulServiceContextFactory.Create(
                 ServiceNaming.EventReaderServiceType,
                 ServiceNaming.EventReaderServiceFullUri("test.type", "subA"),
-                EventReaderInitData.FromSubscriberConfiguration("test.type", "subA").ToByteArray(),
+                EventReaderInitData.FromSubscriberConfiguration(subscriberConfiguration, new WebhookConfig()).ToByteArray(),
                 replicaId:(new Random(int.MaxValue)).Next());
             _mockActorProxyFactory = new MockActorProxyFactory();
             _stateManager = new MockReliableStateManager();

@@ -28,23 +28,6 @@ namespace CaptainHook.Common.ServiceModels
 
         private static AuthenticationConfigConverter authenticationConfigConverter = new AuthenticationConfigConverter();
 
-        public static EventReaderInitData FromSubscriberConfiguration(string eventType, string subName)
-        {
-            return FromSubscriberConfiguration(new SubscriberConfiguration { EventType = eventType, SubscriberName = subName });
-        }
-
-        public static EventReaderInitData FromSubscriberConfiguration(SubscriberConfiguration subscriberConfiguration)
-        {
-            return new EventReaderInitData
-            {
-                SubscriberConfiguration = subscriberConfiguration,
-                SubscriberName = subscriberConfiguration.SubscriberName,
-                EventType = subscriberConfiguration.EventType,
-                DlqMode = subscriberConfiguration.DLQMode,
-                SourceSubscription = subscriberConfiguration.DLQMode != null ? subscriberConfiguration.SourceSubscriptionName : null
-            };
-        }
-
         public static EventReaderInitData FromSubscriberConfiguration(SubscriberConfiguration subscriberConfiguration, WebhookConfig webhookConfig)
         {
             return new EventReaderInitData
