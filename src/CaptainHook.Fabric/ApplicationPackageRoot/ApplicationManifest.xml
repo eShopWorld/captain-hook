@@ -11,10 +11,17 @@
     <Parameter Name="CaptainHook.DirectorService_PartitionCount" DefaultValue="1" />
     <Parameter Name="CaptainHook.DirectorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CosmosDb_Tooling_ConnectionString" DefaultValue="" />
+    <Parameter Name="CaptainHook.Api_InstanceCount" DefaultValue="1" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
        should match the Name and Version attributes of the ServiceManifest element defined in the 
        ServiceManifest.xml file. -->
+  <ServiceManifestImport>
+    <ServiceManifestRef ServiceManifestName="CaptainHook.ApiPkg" ServiceManifestVersion="1.0.0" />
+    <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
+    </EnvironmentOverrides>
+  </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.EventHandlerActorPkg" ServiceManifestVersion="1.0.0" />
     <EnvironmentOverrides CodePackageRef="Code">
@@ -50,6 +57,11 @@
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <DefaultServices>
+    <Service Name="CaptainHook.ApiPkg" ServicePackageActivationMode="ExclusiveProcess">
+      <StatelessService ServiceTypeName="CaptainHook.ApiType" InstanceCount="[CaptainHook.Api_InstanceCount]">
+        <SingletonPartition />
+      </StatelessService>
+    </Service>
     <Service Name="CaptainHook.DirectorService" ServicePackageActivationMode="ExclusiveProcess">
       <StatefulService ServiceTypeName="CaptainHook.DirectorServiceType" TargetReplicaSetSize="[CaptainHook.DirectorService_TargetReplicaSetSize]" MinReplicaSetSize="[CaptainHook.DirectorService_MinReplicaSetSize]">
         <SingletonPartition />

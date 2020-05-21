@@ -34,7 +34,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Telemetry.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Cli", "CaptainHook.Cli\CaptainHook.Cli.csproj", "{A164B0E1-58EA-4F96-BE08-900AC00609F7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaptainHook.Cli.Tests", "CaptainHook.Cli.Tests\CaptainHook.Cli.Tests.csproj", "{60D82264-1246-4205-A704-EF8A290A9A4D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Cli.Tests", "CaptainHook.Cli.Tests\CaptainHook.Cli.Tests.csproj", "{60D82264-1246-4205-A704-EF8A290A9A4D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api", "CaptainHook.Api\CaptainHook.Api.csproj", "{DE1559AF-7CF2-4196-9F83-2C272D7357D0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api.Tests", "CaptainHook.Api.Tests\CaptainHook.Api.Tests.csproj", "{67265B29-9868-459C-81C4-733F837A9491}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaptainHook.Api.Client", "CaptainHook.Api.Client\CaptainHook.Api.Client.csproj", "{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -136,6 +142,30 @@ Global
 		{60D82264-1246-4205-A704-EF8A290A9A4D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{60D82264-1246-4205-A704-EF8A290A9A4D}.Release|x64.ActiveCfg = Release|Any CPU
 		{60D82264-1246-4205-A704-EF8A290A9A4D}.Release|x64.Build.0 = Release|Any CPU
+		{DE1559AF-7CF2-4196-9F83-2C272D7357D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE1559AF-7CF2-4196-9F83-2C272D7357D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE1559AF-7CF2-4196-9F83-2C272D7357D0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DE1559AF-7CF2-4196-9F83-2C272D7357D0}.Debug|x64.Build.0 = Debug|Any CPU
+		{DE1559AF-7CF2-4196-9F83-2C272D7357D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE1559AF-7CF2-4196-9F83-2C272D7357D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE1559AF-7CF2-4196-9F83-2C272D7357D0}.Release|x64.ActiveCfg = Release|Any CPU
+		{DE1559AF-7CF2-4196-9F83-2C272D7357D0}.Release|x64.Build.0 = Release|Any CPU
+		{67265B29-9868-459C-81C4-733F837A9491}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67265B29-9868-459C-81C4-733F837A9491}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67265B29-9868-459C-81C4-733F837A9491}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{67265B29-9868-459C-81C4-733F837A9491}.Debug|x64.Build.0 = Debug|Any CPU
+		{67265B29-9868-459C-81C4-733F837A9491}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67265B29-9868-459C-81C4-733F837A9491}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67265B29-9868-459C-81C4-733F837A9491}.Release|x64.ActiveCfg = Release|Any CPU
+		{67265B29-9868-459C-81C4-733F837A9491}.Release|x64.Build.0 = Release|Any CPU
+		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Debug|x64.Build.0 = Debug|Any CPU
+		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Release|x64.ActiveCfg = Release|Any CPU
+		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

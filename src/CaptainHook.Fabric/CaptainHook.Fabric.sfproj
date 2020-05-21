@@ -41,6 +41,7 @@
     <Content Include="PublishProfiles\TEST.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Api\CaptainHook.Api.csproj" />
     <ProjectReference Include="..\CaptainHook.DirectorService\CaptainHook.DirectorService.csproj" />
     <ProjectReference Include="..\CaptainHook.EventHandlerActor\CaptainHook.EventHandlerActor.csproj" />
     <ProjectReference Include="..\CaptainHook.EventReaderService\CaptainHook.EventReaderService.csproj" />

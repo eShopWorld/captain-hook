@@ -7,13 +7,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Remoting;
 using CaptainHook.Common.ServiceModels;
 using Eshopworld.Core;
+using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace CaptainHook.DirectorService
 {
-    public class DirectorService : StatefulService
+    public class DirectorService : StatefulService, IDirectorServiceRemoting
     {
         private readonly IBigBrother _bigBrother;
         private readonly FabricClient _fabricClient;
@@ -152,6 +155,18 @@ namespace CaptainHook.DirectorService
             return EventReaderInitData
                 .FromSubscriberConfiguration(subscriber, webhookConfig)
                 .ToByteArray();
+        }
+
+         public Task<int> GetConfigurationForEventAsync(string eventName)
+        {
+            var subscribersForEvent =
+                _subscriberConfigurations.Keys.Count(k => k.StartsWith(eventName, StringComparison.OrdinalIgnoreCase));
+            return Task.FromResult(subscribersForEvent);
+        }
+
+        protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
+        {
+            return this.CreateServiceRemotingReplicaListeners();
         }
     }
 }
