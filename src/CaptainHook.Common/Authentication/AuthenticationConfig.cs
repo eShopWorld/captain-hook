@@ -1,7 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 namespace CaptainHook.Common.Authentication
 {
+    [KnownType(typeof(OidcAuthenticationConfig))]
+    [KnownType(typeof(BasicAuthenticationConfig))]
     public class AuthenticationConfig
     {
         /// <summary>
