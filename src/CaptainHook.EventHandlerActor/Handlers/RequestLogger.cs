@@ -40,7 +40,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 messageData.CorrelationId));
 
             //only log the failed requests in more depth, need to have a good think about this - debugging v privacy
-            if (response.IsSuccessStatusCode)
+            if (!response.IsDeliveryFailure())
             {
                 return;
             }
