@@ -14,6 +14,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
     {
         private readonly SubscriberConfiguration _subscriberConfiguration;
         private readonly IEventHandlerFactory _eventHandlerFactory;
+        private readonly IRequestLogger _requestLogger;
 
         public WebhookResponseHandler(
             IEventHandlerFactory eventHandlerFactory,
@@ -27,6 +28,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         {
             _eventHandlerFactory = eventHandlerFactory;
             _subscriberConfiguration = subscriberConfiguration;
+            _requestLogger = requestLogger;
         }
 
         public override async Task<bool> CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
@@ -53,16 +55,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             var response = await httpClient.SendRequestReliablyAsync(httpMethod, uri, headers, payload, cancellationToken);
 
-            BigBrother.Publish(
-                new WebhookEvent(
-                    messageData.EventHandlerActorId, 
-                    messageData.Type, 
-                    $"Response status code {response.StatusCode}", 
-                    uri.AbsoluteUri,
-                    httpMethod, 
-                    response.StatusCode,
-                    messageData.CorrelationId
-                ));
+            await _requestLogger.LogAsync(httpClient, response, messageData, uri, httpMethod, headers);
 
             //do not proceed to callback if response indicates "delivery failure"
             if (response.IsDeliveryFailure())
