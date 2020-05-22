@@ -39,7 +39,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         {
             if (messageData.SubscriberConfig == null)
             {
-                throw new Exception($"Boom, handler event type was not found, cannot process the message");
+                throw new Exception($"Boom, handler event type '{messageData.Type}' was not found, cannot process the message");
             }
 
             if (messageData.SubscriberConfig.Callback != null)
