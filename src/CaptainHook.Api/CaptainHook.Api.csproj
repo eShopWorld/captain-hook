@@ -9,6 +9,10 @@
     <Version>1.0$(DOTTED_BUILD_BUILDNUMBER)</Version>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;OAUTH_OFF_MODE</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Adding in update for a sub dep until Ms fix the dep tree-->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.3" />
