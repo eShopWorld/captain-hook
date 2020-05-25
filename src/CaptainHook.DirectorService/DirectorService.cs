@@ -128,7 +128,7 @@ namespace CaptainHook.DirectorService
         {
             var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
 
-            var (newName, oldName) = FindServiceNames(serviceList, readerServiceNameUri);
+            var (newName, oldNames) = FindServiceNames(serviceList, readerServiceNameUri);
 
             var initializationData = BuildInitializationData(subscriber);
             await _fabricClient.ServiceManager.CreateServiceAsync(
@@ -147,34 +147,29 @@ namespace CaptainHook.DirectorService
                 TimeSpan.FromSeconds(30),
                 cancellationToken);
 
-            if (oldName != null)
+            foreach (var oldName in oldNames.Where(n => n != null))
             {
                 await _fabricClient.ServiceManager.DeleteServiceAsync(
                    new DeleteServiceDescription(new Uri(oldName)),
                    TimeSpan.FromSeconds(30),
                    cancellationToken);
             }
+
         }
 
-        private static (string newName, string oldName) FindServiceNames(ICollection<string> serviceList, string readerServiceNameUri)
+        private static (string newName, IEnumerable<string> oldNames) FindServiceNames(ICollection<string> serviceList, string readerServiceNameUri)
         {
-            string newName = $"{readerServiceNameUri}-a", oldName = null;
+            var names = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
+            
+            var oldNames = serviceList.Intersect(names);
 
-            if (serviceList.Contains(readerServiceNameUri))
+            var newName = $"{readerServiceNameUri}-a";
+            if (oldNames.Contains(newName))
             {
-                oldName = readerServiceNameUri;
-            }
-            else if (serviceList.Contains($"{readerServiceNameUri}-b"))
-            {
-                oldName = $"{readerServiceNameUri}-b";
-            }
-            else if (serviceList.Contains($"{readerServiceNameUri}-a"))
-            {
-                oldName = $"{readerServiceNameUri}-a";
                 newName = $"{readerServiceNameUri}-b";
             }
 
-            return (newName, oldName);
+            return (newName, oldNames);
         }
 
         private byte[] BuildInitializationData(SubscriberConfiguration subscriber)
