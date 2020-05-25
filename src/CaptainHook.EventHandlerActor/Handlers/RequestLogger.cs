@@ -30,36 +30,37 @@ namespace CaptainHook.EventHandlerActor.Handlers
             WebHookHeaders headers
         )
         {
-            _bigBrother.Publish(new WebhookEvent(
-                messageData.EventHandlerActorId,
-                messageData.Type,
-                $"Response status code {response.StatusCode}",
-                uri.AbsoluteUri,
-                httpMethod,
-                response.StatusCode,
-                messageData.CorrelationId));
-
-            //only log the failed requests in more depth, need to have a good think about this - debugging v privacy
             if (response.IsSuccessStatusCode)
             {
-                return;
+                // request was successful
+                _bigBrother.Publish(new WebhookEvent(
+                    messageData.EventHandlerActorId,
+                    messageData.Type,
+                    $"Response status code {response.StatusCode}",
+                    uri.AbsoluteUri,
+                    httpMethod,
+                    response.StatusCode,
+                    messageData.CorrelationId));
             }
-
-            _bigBrother.Publish(new FailedWebHookEvent(
-                httpClient.DefaultRequestHeaders.ToString(),
-                response.Headers.ToString(),
-                messageData.Payload ?? string.Empty,
-                await GetPayloadAsync(response),
-                messageData.EventHandlerActorId,
-                messageData.Type,
-                $"Response status code {response.StatusCode}",
-                uri.AbsoluteUri,
-                httpMethod,
-                response.StatusCode,
-                messageData.CorrelationId)
-            { 
-                AuthToken = response.StatusCode==System.Net.HttpStatusCode.Unauthorized? headers?.RequestHeaders?[Constants.Headers.Authorization]: string.Empty
-            });
+            else
+            {
+                // request failed
+                _bigBrother.Publish(new FailedWebHookEvent(
+                    httpClient.DefaultRequestHeaders.ToString(),
+                    response.Headers.ToString(),
+                    messageData.Payload ?? string.Empty,
+                    await GetPayloadAsync(response),
+                    messageData.EventHandlerActorId,
+                    messageData.Type,
+                    $"Response status code {response.StatusCode}",
+                    uri.AbsoluteUri,
+                    httpMethod,
+                    response.StatusCode,
+                    messageData.CorrelationId)
+                {
+                    AuthToken = response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? headers?.RequestHeaders?[Constants.Headers.Authorization] : string.Empty
+                });
+            }
         }
 
         private static async Task<string> GetPayloadAsync(HttpResponseMessage response)
