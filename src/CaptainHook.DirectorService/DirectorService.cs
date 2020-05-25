@@ -85,7 +85,7 @@ namespace CaptainHook.DirectorService
                 {
                     if (cancellationToken.IsCancellationRequested) return;
 
-                    await CreateServiceForSubscriberAsync(subscriber, serviceList, cancellationToken);
+                    await RecreateServiceForSubscriberAsync(subscriber, serviceList, cancellationToken);
                 }
 
 
@@ -124,29 +124,57 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        private async Task CreateServiceForSubscriberAsync(SubscriberConfiguration subscriber, ICollection<string> serviceList, CancellationToken cancellationToken)
+        private async Task RecreateServiceForSubscriberAsync(SubscriberConfiguration subscriber, ICollection<string> serviceList, CancellationToken cancellationToken)
         {
             var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
 
-            if (!serviceList.Contains(readerServiceNameUri))
+            var (newName, oldName) = FindServiceNames(serviceList, readerServiceNameUri);
+
+            var initializationData = BuildInitializationData(subscriber);
+            await _fabricClient.ServiceManager.CreateServiceAsync(
+                new StatefulServiceDescription
+                {
+                    ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
+                    HasPersistedState = true,
+                    MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
+                    TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
+                    PartitionSchemeDescription = new SingletonPartitionSchemeDescription(),
+                    ServiceTypeName = ServiceNaming.EventReaderServiceType,
+                    ServiceName = new Uri(newName),
+                    InitializationData = initializationData,
+                    PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
+                },
+                TimeSpan.FromSeconds(30),
+                cancellationToken);
+
+            if (oldName != null)
             {
-                var initializationData = BuildInitializationData(subscriber);
-                await _fabricClient.ServiceManager.CreateServiceAsync(
-                    new StatefulServiceDescription
-                    {
-                        ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
-                        HasPersistedState = true,
-                        MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
-                        TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
-                        PartitionSchemeDescription = new SingletonPartitionSchemeDescription(),
-                        ServiceTypeName = ServiceNaming.EventReaderServiceType,
-                        ServiceName = new Uri(readerServiceNameUri),
-                        InitializationData = initializationData,
-                        PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
-                    },
-                    TimeSpan.FromSeconds(30),
-                    cancellationToken);
+                await _fabricClient.ServiceManager.DeleteServiceAsync(
+                   new DeleteServiceDescription(new Uri(oldName)),
+                   TimeSpan.FromSeconds(30),
+                   cancellationToken);
             }
+        }
+
+        private static (string newName, string oldName) FindServiceNames(ICollection<string> serviceList, string readerServiceNameUri)
+        {
+            string newName = $"{readerServiceNameUri}-a", oldName = null;
+
+            if (serviceList.Contains(readerServiceNameUri))
+            {
+                oldName = readerServiceNameUri;
+            }
+            else if (serviceList.Contains($"{readerServiceNameUri}-b"))
+            {
+                oldName = $"{readerServiceNameUri}-b";
+            }
+            else if (serviceList.Contains($"{readerServiceNameUri}-a"))
+            {
+                oldName = $"{readerServiceNameUri}-a";
+                newName = $"{readerServiceNameUri}-b";
+            }
+
+            return (newName, oldName);
         }
 
         private byte[] BuildInitializationData(SubscriberConfiguration subscriber)
@@ -157,7 +185,7 @@ namespace CaptainHook.DirectorService
                 .ToByteArray();
         }
 
-         public Task<int> GetConfigurationForEventAsync(string eventName)
+        public Task<int> GetConfigurationForEventAsync(string eventName)
         {
             var subscribersForEvent =
                 _subscriberConfigurations.Keys.Count(k => k.StartsWith(eventName, StringComparison.OrdinalIgnoreCase));
