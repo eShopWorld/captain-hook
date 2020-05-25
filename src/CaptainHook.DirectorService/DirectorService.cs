@@ -21,7 +21,7 @@ namespace CaptainHook.DirectorService
         private readonly IBigBrother _bigBrother;
         private readonly FabricClient _fabricClient;
         private readonly DefaultServiceSettings _defaultServiceSettings;
-        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations { get; }
+        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
 
 
         /// <summary>
@@ -144,11 +144,11 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public Task<int> GetConfigurationForEventAsync(string eventName)
+        public Task ReloadConfigurationForEventAsync(string eventName)
         {
-            var subscribersForEvent =
-                _subscriberConfigurations.Keys.Count(k => k.StartsWith(eventName, StringComparison.OrdinalIgnoreCase));
-            return Task.FromResult(subscribersForEvent);
+            var configuration = Configuration.Load();
+            this._subscriberConfigurations = configuration.SubscriberConfigurations;
+            return Task.CompletedTask;
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
