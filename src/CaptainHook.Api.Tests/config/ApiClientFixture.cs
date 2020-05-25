@@ -14,17 +14,6 @@ namespace CaptainHook.Api.Tests.Config
             return new CaptainHookClient(CaptainHookTestUri, AnonymousCredential.Instance);
         }
 
-        //private TokenCredentials CreateCredentials()
-        //{
-        //    return new TokenCredentialsBuilder()
-        //        // Loaded by default from appsettings.json
-        //        //.AddAudience("mydomain.api")
-        //        .AddClientId("tooling.eda.api.client")
-        //        .AddScopes("tooling.eda.api.all")
-        //        // Build
-        //        .Build();
-        //}
-
         public ICaptainHookClient GetApiClient()
         {
             var token = new TokenCredentialsBuilder().Build();
