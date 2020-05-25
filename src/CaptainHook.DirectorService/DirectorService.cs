@@ -144,11 +144,11 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public Task<int> GetConfigurationForEventAsync(string eventName)
+        public Task ReloadConfigurationForEventAsync(string eventName)
         {
-            var subscribersForEvent =
-                _subscriberConfigurations.Keys.Count(k => k.StartsWith(eventName, StringComparison.OrdinalIgnoreCase));
-            return Task.FromResult(subscribersForEvent);
+            var configuration = Configuration.Load();
+            this._subscriberConfigurations = configuration.SubscriberConfigurations;
+            return Task.CompletedTask;
         }
 
         public Task ReloadConfigurationForEventAsync(string eventName)

@@ -13,8 +13,8 @@ namespace CaptainHook.Api.Controllers
     /// Refresh configuration controller
     /// </summary>
     [Route("api/refresh-config")]
-    [AllowAnonymous]
-    public class RefreshConfigController: Controller
+    [Authorize]
+    public class RefreshConfigController: ControllerBase
     {
         /// <summary>
         /// Refreshes configuration for the given event
@@ -27,13 +27,9 @@ namespace CaptainHook.Api.Controllers
             try
             {
                 var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(new Uri(ServiceNaming.DirectorServiceFullName));
-                var refreshedSubscribersCount = await directorServiceClient.GetConfigurationForEventAsync(request.EventName);
-                if (refreshedSubscribersCount > 0)
-                {
-                    return Ok(refreshedSubscribersCount);
-                }
+                await directorServiceClient.ReloadConfigurationForEventAsync(request.EventName);
 
-                return BadRequest($"Event {request.EventName} does not exist in the configuration");
+                return Ok();
             }
             catch
             {
