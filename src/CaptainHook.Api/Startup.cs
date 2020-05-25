@@ -19,6 +19,7 @@ using Eshopworld.Telemetry.Processors;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.OpenApi.Models;
 using TelemetrySettings = Eshopworld.Telemetry.Configuration.TelemetrySettings;
+using CaptainHook.Api.Helpers;
 
 namespace CaptainHook.Api
 {
@@ -165,7 +166,11 @@ namespace CaptainHook.Api
 
             app.UseRouting();
 
+#if OAUTH_OFF_MODE
+            app.UseFakeAuthentication();
+#else
             app.UseAuthentication();
+#endif
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => {

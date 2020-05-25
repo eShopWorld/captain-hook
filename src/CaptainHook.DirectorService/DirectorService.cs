@@ -21,8 +21,8 @@ namespace CaptainHook.DirectorService
         private readonly IBigBrother _bigBrother;
         private readonly FabricClient _fabricClient;
         private readonly DefaultServiceSettings _defaultServiceSettings;
-        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations { get; }
-        private IList<WebhookConfig> _webhookConfigurations { get; }
+        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
+        private IList<WebhookConfig> _webhookConfigurations;
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
@@ -160,7 +160,7 @@ namespace CaptainHook.DirectorService
         private static (string newName, IEnumerable<string> oldNames) FindServiceNames(ICollection<string> serviceList, string readerServiceNameUri)
         {
             var names = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
-            
+
             var oldNames = serviceList.Intersect(names);
 
             var newName = $"{readerServiceNameUri}-a";
@@ -180,11 +180,11 @@ namespace CaptainHook.DirectorService
                 .ToByteArray();
         }
 
-        public Task<int> GetConfigurationForEventAsync(string eventName)
+        public Task ReloadConfigurationForEventAsync(string eventName)
         {
-            var subscribersForEvent =
-                _subscriberConfigurations.Keys.Count(k => k.StartsWith(eventName, StringComparison.OrdinalIgnoreCase));
-            return Task.FromResult(subscribersForEvent);
+            var configuration = Configuration.Load();
+            _subscriberConfigurations = configuration.SubscriberConfigurations;
+            return Task.CompletedTask;
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
