@@ -146,6 +146,11 @@ namespace CaptainHook.DirectorService
 
         public Task ReloadConfigurationForEventAsync(string eventName)
         {
+            if(string.IsNullOrWhiteSpace(eventName))
+            {
+                throw new ArgumentNullException(nameof(eventName));
+            }
+
             var configuration = Configuration.Load();
             this._subscriberConfigurations = configuration.SubscriberConfigurations;
             return Task.CompletedTask;
