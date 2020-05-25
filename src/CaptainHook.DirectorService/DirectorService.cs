@@ -151,13 +151,6 @@ namespace CaptainHook.DirectorService
             return Task.CompletedTask;
         }
 
-        public Task ReloadConfigurationForEventAsync(string eventName)
-        {
-            var configuration = Configuration.Load();
-            this._subscriberConfigurations = configuration.SubscriberConfigurations;
-            return Task.CompletedTask;
-        }
-
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
             return this.CreateServiceRemotingReplicaListeners();
