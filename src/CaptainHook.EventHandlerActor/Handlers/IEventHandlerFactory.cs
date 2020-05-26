@@ -21,6 +21,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="webHookName"></param>
         /// <returns></returns>
-        IHandler CreateWebhookHandler(WebhookConfig webhookConfig);
+        IHandler CreateWebhookHandler(WebhookConfig webhookConfig, string webHookName= "");
     }
 }

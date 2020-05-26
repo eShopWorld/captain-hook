@@ -1,4 +1,5 @@
 ﻿using System;
+using Autofac.Features.Indexed;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
@@ -9,6 +10,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class EventHandlerFactory : IEventHandlerFactory
     {
         private readonly IBigBrother _bigBrother;
+        private readonly IIndex<string, SubscriberConfiguration> _subscriberConfigurations;
+        private readonly IIndex<string, WebhookConfig> _webHookConfig;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
         private readonly IRequestLogger _requestLogger;
@@ -16,16 +19,20 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public EventHandlerFactory(
             IBigBrother bigBrother,
+            IIndex<string, SubscriberConfiguration> subscriberConfigurations,
+            IIndex<string, WebhookConfig> webHookConfig,
             IHttpClientFactory httpClientFactory,
             IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestLogger requestLogger,
             IRequestBuilder requestBuilder)
         {
             _bigBrother = bigBrother;
+            _subscriberConfigurations = subscriberConfigurations;
             _httpClientFactory = httpClientFactory;
             _requestLogger = requestLogger;
             _requestBuilder = requestBuilder;
             _authenticationHandlerFactory = authenticationHandlerFactory;
+            _webHookConfig = webHookConfig;
         }
 
         /// <inheritdoc />
@@ -37,12 +44,19 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns>handler instance</returns>
         public IHandler CreateEventHandler(MessageData messageData)
         {
-            if (messageData.SubscriberConfig == null)
+            var subscriberConfig = messageData.SubscriberConfig;
+            if (subscriberConfig == null)
             {
-                throw new Exception($"Boom, handler event type '{messageData.Type}' was not found, cannot process the message");
+                // for backward compatibility, if "old" version of reader send MessageData without SubscriberConfig, try to load it from configuration as it was previously
+                if (!_subscriberConfigurations.TryGetValue(SubscriberConfiguration.Key(messageData.Type, messageData.SubscriberName), out subscriberConfig))
+                {
+                    throw new Exception($"Boom, handler event type '{messageData.Type}' was not found, cannot process the message");
+                }
+
+                messageData.SubscriberConfig = subscriberConfig;
             }
 
-            if (messageData.SubscriberConfig.Callback != null)
+            if (subscriberConfig.Callback != null)
             {
                 return new WebhookResponseHandler(
                     this,
@@ -54,7 +68,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     messageData.SubscriberConfig);
             }
 
-            return CreateWebhookHandler(messageData.WebhookConfig);
+            return CreateWebhookHandler(messageData.WebhookConfig, messageData.SubscriberConfig.Name);
         }
 
         /// <summary>
@@ -63,11 +77,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="webHookName"></param>
         /// <returns></returns>
-        public IHandler CreateWebhookHandler(WebhookConfig webhookConfig)
+        public IHandler CreateWebhookHandler(WebhookConfig webhookConfig, string webHookName = "")
         {
             if (webhookConfig == null)
             {
-                throw new Exception("Boom, handler webhook not found cannot process the message");
+                // for backward compatibility, if "old" version of reader send MessageData without WebhookConfig, try to load it from configuration as it was previously
+                if (!_webHookConfig.TryGetValue(webHookName.ToLowerInvariant(), out webhookConfig))
+                {
+                    throw new Exception("Boom, handler webhook not found cannot process the message");
+                }
             }
 
             return new GenericWebhookHandler(

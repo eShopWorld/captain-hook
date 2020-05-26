@@ -54,8 +54,9 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClientBuilder = new HttpClientFactory(httpClients);
             var requestBuilder = new RequestBuilder(mockBigBrother.Object);
             var requestLogger = new RequestLogger(mockBigBrother.Object);
-            var handlerFactory = new EventHandlerFactory(mockBigBrother.Object, httpClientBuilder,
-                mockAuthHandlerFactory.Object, requestLogger, requestBuilder);
+            var handlerFactory = new EventHandlerFactory(mockBigBrother.Object, 
+                new IndexDictionary<string, SubscriberConfiguration>(), new IndexDictionary<string, WebhookConfig>(), 
+                httpClientBuilder, mockAuthHandlerFactory.Object, requestLogger, requestBuilder);
 
             var webhookResponseHandler = new WebhookResponseHandler(
                 handlerFactory,
@@ -119,7 +120,6 @@ namespace CaptainHook.Tests.Web.WebHooks
             mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
             Assert.Equal(1, mockHttpHandler.GetMatchCount(mockWebHookRequestWithCallback));
         }
-
 
         /// <summary>
         /// Tests the whole flow for a webhook handler with a callback
