@@ -19,12 +19,6 @@
     <Content Include="appsettings.PREP.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="appsettings.PROD.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="appsettings.SAND.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="appsettings.TEST.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
