@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using CaptainHook.Api.Models;
 using CaptainHook.Common;
 using CaptainHook.Common.Remoting;
+using Eshopworld.Core;
+using Eshopworld.Telemetry;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +19,16 @@ namespace CaptainHook.Api.Controllers
     [Authorize]
     public class RefreshConfigController: ControllerBase
     {
+        private readonly IBigBrother _bigBrother;
+
+        /// <summary>
+        /// Initializes a new instance of this class
+        /// </summary>
+        /// <param name="bigBrother">BigBrother instance</param>
+        public RefreshConfigController(IBigBrother bigBrother)
+        {
+            _bigBrother = bigBrother;
+        }
         /// <summary>
         /// Refreshes configuration for the given event
         /// </summary>
@@ -35,12 +47,9 @@ namespace CaptainHook.Api.Controllers
 
                 return Ok();
             }
-            catch(Exception exception) when (exception.InnerException is ArgumentNullException)
+            catch(Exception exception)
             {
-                return NotFound();
-            }
-            catch
-            {
+                _bigBrother.Publish(exception);
                 return BadRequest();
             }
         }
