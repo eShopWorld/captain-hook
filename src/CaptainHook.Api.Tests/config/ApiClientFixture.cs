@@ -1,16 +1,23 @@
 ﻿using System;
 using CaptainHook.Api.Client;
+using EShopworld.Security.Services.Testing.Token;
 using Microsoft.Rest;
 
 namespace CaptainHook.Api.Tests.Config
 {
     public class ApiClientFixture
     {
+        private static Uri CaptainHookTestUri = new Uri("https://localhost:24010");
+
         public ICaptainHookClient GetApiUnauthenticatedClient()
         {
-            var url = new Uri("https://localhost:24010");
+            return new CaptainHookClient(CaptainHookTestUri, AnonymousCredential.Instance);
+        }
 
-            return new CaptainHookClient(url, AnonymousCredential.Instance);
+        public ICaptainHookClient GetApiClient()
+        {
+            var token = new TokenCredentialsBuilder().Build();
+            return new CaptainHookClient(CaptainHookTestUri, token);
         }
 
         private class AnonymousCredential : ServiceClientCredentials
