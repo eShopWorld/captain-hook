@@ -62,6 +62,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var uriRules = config.WebhookRequestRules.FirstOrDefault(l => l.Destination.Location == Location.Uri);
             if (uriRules == null)
             {
+                if(string.IsNullOrEmpty(uri)) {
+                    bb.Publish(new NullUriEvent
+                    {
+                        Uri = uri,
+                        Config = JsonConvert.SerializeObject(config),
+                        Payload = JsonConvert.SerializeObject(payload)
+                    });
+                };
                 return new Uri(uri);
             }
 
@@ -270,4 +278,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return headers;
         }
     }
+
+    public class NullUriEvent : TelemetryEvent
+    {
+        public string Uri { get; set; }
+        public string Config { get; set; }
+        public string Payload { get; set; }
+    }
+
 }
