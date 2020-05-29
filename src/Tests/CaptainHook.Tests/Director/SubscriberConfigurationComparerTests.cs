@@ -17,10 +17,9 @@ namespace CaptainHook.Tests.Director
             ["event1-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("captain-hook").Create(),
             ["event1-subscriber1"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("subscriber1").Create(),
             ["event2-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
-                 .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
+                 .AddWebhookRequestRule(rb => rb
                     .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
-                    .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com")
-                    .Create())
+                    .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com"))
                 .Create(),
             ["event3-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event3").WithSubscriberName("captain-hook").Create(),
         };
@@ -33,10 +32,9 @@ namespace CaptainHook.Tests.Director
                 ["event1-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("captain-hook").Create(),
                 ["event1-subscriber1"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("subscriber1").Create(),
                 ["event2-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
-                     .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
+                     .AddWebhookRequestRule(rb => rb
                         .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
-                        .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com")
-                        .Create())
+                        .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com"))
                     .Create(),
                 ["event3-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event3").WithSubscriberName("captain-hook").Create(),
             };
@@ -57,10 +55,9 @@ namespace CaptainHook.Tests.Director
                 ["event1-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("captain-hook").Create(),
                 ["event1-subscriber1"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("subscriber1").Create(),
                 ["event2-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
-                     .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
+                     .AddWebhookRequestRule(rb => rb
                         .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
-                        .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com")
-                        .Create())
+                        .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com"))
                     .Create(),
                 ["event2-subscriber1"] = new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("subscriber1").Create(),
                 ["event3-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event3").WithSubscriberName("captain-hook").Create(),
@@ -117,46 +114,41 @@ namespace CaptainHook.Tests.Director
             get
             {
                 yield return new object[] {
-                    new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
-                        .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
-                            .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
-                            .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com")
-                            .Create())
-                        .WithOidcAuthentication()
-                        .Create()
-                };
+                     new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
+                         .AddWebhookRequestRule(rb => rb
+                             .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
+                             .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com"))
+                         .WithOidcAuthentication()
+                         .Create()
+                 };
+                yield return new object[] {
+                     new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
+                         .AddWebhookRequestRule(rb => rb
+                             .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
+                             .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com"))
+                         .WithCallback("https://calback.eshopworld.com")
+                         .Create()
+                 };
                 yield return new object[] { 
                     new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
-                        .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
-                            .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
-                            .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com")
-                            .Create())
-                        .WithCallback("https://calback.eshopworld.com")
-                        .Create()
-                };
-                yield return new object[] { 
-                    new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
-                        .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
+                        .AddWebhookRequestRule(rb => rb
                             .WithSource("OrderDto", DataType.HttpContent).WithDestination("", DataType.Model)
-                            .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com")
-                            .Create())
+                            .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com"))
                         .Create()
                 };
                 yield return new object[] { 
                     new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
-                        .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
+                        .AddWebhookRequestRule(rb => rb
                             .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
-                            .AddRoute("selector2", "https://blah.blah.selector2.eshopworld.com")
-                            .Create())
+                            .AddRoute("selector2", "https://blah.blah.selector2.eshopworld.com"))
                         .Create()
                 };
                 yield return new object[] {
                     new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
-                        .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
+                        .AddWebhookRequestRule(rb => rb
                             .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
                             .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com")
-                            .AddRoute("selector2", "https://blah.blah.selector2.eshopworld.com")
-                            .Create())
+                            .AddRoute("selector2", "https://blah.blah.selector2.eshopworld.com"))
                         .WithOidcAuthentication()
                         .Create()
                 };
@@ -176,13 +168,13 @@ namespace CaptainHook.Tests.Director
             Username = "user",
             Password = "password",
         };
-        private List<WebhookRequestRule> webhookRequestRules = new List<WebhookRequestRule>();
+        private List<WebhookRequestRule> webhookRequestRules;
         private WebhookConfig callback;
 
-        public SubscriberConfigurationBuilder()
-        {
-            this.webhookRequestRules.Add(new WebhookRequestRuleBuilder().WithSource("RequestDto").WithDestination().Create());
-        }
+        //public SubscriberConfigurationBuilder()
+        //{
+        //    //this.webhookRequestRules.Add(new WebhookRequestRuleBuilder().WithSource("RequestDto").WithDestination().Create());
+        //}
 
         public SubscriberConfigurationBuilder WithType(string type)
         {
