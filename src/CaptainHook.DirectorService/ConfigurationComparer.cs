@@ -10,9 +10,12 @@ namespace CaptainHook.DirectorService
     {
         public ComparisionResult Compare(IDictionary<string, SubscriberConfiguration> oldConfig, IDictionary<string, SubscriberConfiguration> newConfig)
         {
+            var added = new Dictionary<string, SubscriberConfiguration>(newConfig.Except(oldConfig));
+            var removed = new Dictionary<string, SubscriberConfiguration>(oldConfig.Except(newConfig));
+
             var empty = new Dictionary<string, SubscriberConfiguration>();
 
-            return new ComparisionResult(empty, empty, empty);
+            return new ComparisionResult(added, removed, empty);
         }
     }
 
