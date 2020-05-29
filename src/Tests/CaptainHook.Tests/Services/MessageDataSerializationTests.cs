@@ -1,21 +1,33 @@
-﻿using CaptainHook.Common.Authentication;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization;
+using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.ServiceModels;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using System.Collections.Generic;
 using Xunit;
 
-namespace CaptainHook.Tests.Services.Reliable
+namespace CaptainHook.Tests.Services
 {
-    public class EventReaderInitDataTests
+    public class MessageDataDataSerializationTests
     {
-        private readonly SubscriberConfiguration _subscriberConfiguration;
-        private readonly WebhookConfig _webhookConfig;
-
-        public EventReaderInitDataTests()
+        [Fact, IsLayer0]
+        public void DataContractSerializer_ShouldSerialize_MessageData()
         {
-            _subscriberConfiguration = new SubscriberConfiguration
+            var webhookConfig = new WebhookConfig
+            {
+                Name = "test-name-1",
+                AuthenticationConfig = new BasicAuthenticationConfig
+                {
+                    Type = AuthenticationType.Basic,
+                    Password = "secret",
+                    Username = "username",
+                },
+                Uri = "https://test.com/webhook"
+            };
+
+            var subscriberConfiguration = new SubscriberConfiguration
             {
                 SubscriberName = "subA",
                 EventType = "test.type",
@@ -73,12 +85,9 @@ namespace CaptainHook.Tests.Services.Reliable
                             {
                                 Uri = "http://testuri2",
                                 Selector = "test-selector2",
-                                AuthenticationConfig = new OidcAuthenticationConfig
+                                AuthenticationConfig = new AuthenticationConfig()
                                 {
-                                    Scopes = new string[] { "scope1", "scope2" },
-                                    ClientSecret = "verylongsecret",
-                                    ClientId = "aclientid",
-                                    Uri = "StsUri"
+                                    Type = AuthenticationType.Custom,
                                 }
                             }
                         }
@@ -86,22 +95,24 @@ namespace CaptainHook.Tests.Services.Reliable
                 }
             };
 
-            _webhookConfig = new WebhookConfig();
+            var data = new MessageData("payload", "type", "subscriberName", "replyTo", true);
+            data.SubscriberConfig = subscriberConfiguration;
+            data.WebhookConfig = webhookConfig;
+
+            AssertMessageDataCanBeSerialized(data);
         }
 
-        [Fact]
-        [IsLayer0]
-        public void CanPassSubscriberConfiguration()
+        private static void AssertMessageDataCanBeSerialized(MessageData data)
         {
-            var buffer = EventReaderInitData
-                .FromSubscriberConfiguration(_subscriberConfiguration, _webhookConfig)
-                .ToByteArray();
+            var ser = new DataContractSerializer(typeof(MessageData));
+            byte[] result;
+            using (var ms = new MemoryStream())
+            {
+                ser.WriteObject(ms, data);
+                result = ms.ToArray();
+            }
 
-            var eventReaderInitData = EventReaderInitData.FromByteArray(buffer);
-
-            eventReaderInitData.SubscriberName.Should().Be(_subscriberConfiguration.SubscriberName);
-            eventReaderInitData.EventType.Should().Be(_subscriberConfiguration.EventType);
-            eventReaderInitData.SubscriberConfiguration.Should().BeEquivalentTo(_subscriberConfiguration);
+            result.Should().NotBeNullOrEmpty();
         }
     }
 }

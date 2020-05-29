@@ -1,10 +1,6 @@
-﻿using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.Common.Configuration
 {
@@ -36,25 +32,16 @@ namespace CaptainHook.Common.Configuration
         public static Configuration Load()
         {
             var result = new Configuration();
+            result.Settings = ConfigurationLoader.Load();
+            result.InitSubscribersAndWebhook();
 
-            result.LoadFromKeyVaultAndEnvironment();
             // result.LoadFromCosmosDb();
 
             return result;
         }
 
-        private void LoadFromKeyVaultAndEnvironment()
+        private void InitSubscribersAndWebhook()
         {
-            var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
-
-            this.Settings = new ConfigurationBuilder()
-                .AddAzureKeyVault(
-                    kvUri,
-                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new DefaultKeyVaultSecretManager())
-                .AddEnvironmentVariables()
-                .Build();
-
             // Load and autowire event config
             var values = this.Settings.GetSection("event").GetChildren().ToList();
 

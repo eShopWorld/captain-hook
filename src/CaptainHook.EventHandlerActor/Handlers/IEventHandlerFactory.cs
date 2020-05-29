@@ -1,4 +1,7 @@
-﻿namespace CaptainHook.EventHandlerActor.Handlers
+﻿using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
+
+namespace CaptainHook.EventHandlerActor.Handlers
 {
     /// <summary>
     /// Manages the creation or reuse of specific webhook handler
@@ -11,13 +14,13 @@
         /// <param name="fullEventName"></param>
         /// <param name="webhookName">The optional name of a sending webhook handler</param>
         /// <returns></returns>
-        IHandler CreateEventHandler(string fullEventName, string webhookName);
+        IHandler CreateEventHandler(MessageData messageData);
 
         /// <summary>
         /// Used only for getting the callback handler
         /// </summary>
         /// <param name="webHookName"></param>
         /// <returns></returns>
-        IHandler CreateWebhookHandler(string webHookName);
+        IHandler CreateWebhookHandler(WebhookConfig webhookConfig, string webHookName= "");
     }
 }

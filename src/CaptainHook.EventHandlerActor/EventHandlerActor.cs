@@ -105,7 +105,7 @@ namespace CaptainHook.EventHandlerActor
                     return;
                 }
 
-                var handler = _eventHandlerFactory.CreateEventHandler(messageData.Type, messageData.SubscriberName);
+                var handler = _eventHandlerFactory.CreateEventHandler(messageData);
                 messageDelivered = await handler.CallAsync(messageData, new Dictionary<string, object>(), CancellationToken.None);
             }
             catch (Exception e)

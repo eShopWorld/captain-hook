@@ -62,7 +62,7 @@ namespace CaptainHook.EventReaderService
         internal MessageReceiverWrapper _activeMessageReader;
 
         private static int retryCeilingSeconds = 60;
-        private readonly Func<int, TimeSpan> exponentialBackoff = x => 
+        private readonly Func<int, TimeSpan> exponentialBackoff = x =>
             TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, retryCeilingSeconds));
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace CaptainHook.EventReaderService
 
             await _serviceBusManager.CreateAsync(_settings.AzureSubscriptionId, _settings.ServiceBusNamespace, _initData.SubscriptionName, _initData.EventType);
 
-            var messageReceiver = _serviceBusManager.CreateMessageReceiver(_settings.ServiceBusConnectionString, _initData.EventType, _initData.SubscriptionName, _initData.DlqMode!=null);
+            var messageReceiver = _serviceBusManager.CreateMessageReceiver(_settings.ServiceBusConnectionString, _initData.EventType, _initData.SubscriptionName, _initData.DlqMode != null);
 
             //add new receiver and set is as primary
             var wrapper = new MessageReceiverWrapper { Receiver = messageReceiver, ReceiverId = Guid.NewGuid() };
@@ -226,13 +226,7 @@ namespace CaptainHook.EventReaderService
 
                         foreach (var message in messages)
                         {
-                            var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), _initData.EventType, _initData.SubscriberName, Context.ServiceName.ToString(), _initData.DlqMode!=null);
-
-                            var handlerId = GetFreeHandlerId();
-
-                            messageData.HandlerId = handlerId;
-                            messageData.CorrelationId = Guid.NewGuid().ToString();
-                            messageData.ServiceBusMessageId = message.MessageId;
+                            var messageData = BuildMessageData(message);
 
                             var handleData = new MessageDataHandle
                             {
@@ -279,6 +273,22 @@ namespace CaptainHook.EventReaderService
             {
                 BigBrother.Write(e.ToExceptionEvent());
             }
+        }
+
+        private MessageData BuildMessageData(Message message)
+        {
+            var messageData = new MessageData(Encoding.UTF8.GetString(message.Body), _initData.EventType,
+                _initData.SubscriberName, Context.ServiceName.ToString(), _initData.DlqMode != null);
+
+            var handlerId = GetFreeHandlerId();
+
+            messageData.HandlerId = handlerId;
+            messageData.CorrelationId = Guid.NewGuid().ToString();
+            messageData.ServiceBusMessageId = message.MessageId;
+            messageData.SubscriberConfig = _initData.SubscriberConfiguration;
+            messageData.WebhookConfig = _initData.WebhookConfig;
+
+            return messageData;
         }
 
         /// <summary>

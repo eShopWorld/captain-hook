@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -10,10 +8,7 @@ using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Telemetry;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace CaptainHook.EventHandlerActor
 {
@@ -27,10 +22,7 @@ namespace CaptainHook.EventHandlerActor
             try
             {
                 var configuration = Configuration.Load();
-
-                
-                var configurationSettings = new ConfigurationSettings();
-                configuration.Settings.Bind(configurationSettings);
+                var configurationSettings = configuration.Settings.Get<ConfigurationSettings>();
 
                 var builder = new ContainerBuilder();
 
@@ -56,7 +48,7 @@ namespace CaptainHook.EventHandlerActor
                     builder.RegisterInstance(webhookConfig).Named<WebhookConfig>(webhookConfig.Name.ToLowerInvariant());
                 }
 
-                builder.RegisterActor<EventHandlerActor>();             
+                builder.RegisterActor<EventHandlerActor>();
 
                 using (builder.Build())
                 {

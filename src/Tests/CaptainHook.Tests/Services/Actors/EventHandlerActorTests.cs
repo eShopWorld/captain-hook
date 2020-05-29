@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.EventHandlerActor.Handlers;

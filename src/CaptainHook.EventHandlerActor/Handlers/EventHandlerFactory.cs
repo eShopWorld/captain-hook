@@ -1,5 +1,6 @@
 ﻿using System;
 using Autofac.Features.Indexed;
+using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
@@ -22,7 +23,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             IIndex<string, WebhookConfig> webHookConfig,
             IHttpClientFactory httpClientFactory,
             IAuthenticationHandlerFactory authenticationHandlerFactory,
-            IRequestLogger requestLogger, 
+            IRequestLogger requestLogger,
             IRequestBuilder requestBuilder)
         {
             _bigBrother = bigBrother;
@@ -41,11 +42,18 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <param name="eventType">type of event to process</param>
         /// <param name="subscriberName">name of the subscriber that received the event</param>
         /// <returns>handler instance</returns>
-        public IHandler CreateEventHandler(string eventType, string subscriberName)
+        public IHandler CreateEventHandler(MessageData messageData)
         {
-            if (!_subscriberConfigurations.TryGetValue(SubscriberConfiguration.Key(eventType, subscriberName), out var subscriberConfig))
+            var subscriberConfig = messageData.SubscriberConfig;
+            if (subscriberConfig == null)
             {
-                throw new Exception($"Boom, handler event type {eventType} was not found, cannot process the message");
+                // for backward compatibility, if "old" version of reader send MessageData without SubscriberConfig, try to load it from configuration as it was previously
+                if (!_subscriberConfigurations.TryGetValue(SubscriberConfiguration.Key(messageData.Type, messageData.SubscriberName), out subscriberConfig))
+                {
+                    throw new Exception($"Boom, handler event type '{messageData.Type}' was not found, cannot process the message");
+                }
+
+                messageData.SubscriberConfig = subscriberConfig;
             }
 
             if (subscriberConfig.Callback != null)
@@ -57,10 +65,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     _authenticationHandlerFactory,
                     _requestLogger,
                     _bigBrother,
-                    subscriberConfig);
+                    messageData.SubscriberConfig);
             }
 
-            return CreateWebhookHandler(subscriberConfig.Name);
+            return CreateWebhookHandler(messageData.WebhookConfig, messageData.SubscriberConfig.Name);
         }
 
         /// <summary>
@@ -69,11 +77,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// </summary>
         /// <param name="webHookName"></param>
         /// <returns></returns>
-        public IHandler CreateWebhookHandler(string webHookName)
+        public IHandler CreateWebhookHandler(WebhookConfig webhookConfig, string webHookName = "")
         {
-            if (!_webHookConfig.TryGetValue(webHookName.ToLowerInvariant(), out var webhookConfig))
+            if (webhookConfig == null)
             {
-                throw new Exception("Boom, handler webhook not found cannot process the message");
+                // for backward compatibility, if "old" version of reader send MessageData without WebhookConfig, try to load it from configuration as it was previously
+                if (!_webHookConfig.TryGetValue(webHookName.ToLowerInvariant(), out webhookConfig))
+                {
+                    throw new Exception("Boom, handler webhook not found cannot process the message");
+                }
             }
 
             return new GenericWebhookHandler(
@@ -81,7 +93,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 _authenticationHandlerFactory,
                 _requestBuilder,
                 _requestLogger,
-                _bigBrother, 
+                _bigBrother,
                 webhookConfig);
         }
     }

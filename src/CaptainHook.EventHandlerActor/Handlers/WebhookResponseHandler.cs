@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Telemetry.Web;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 
@@ -12,7 +11,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
 {
     public class WebhookResponseHandler : GenericWebhookHandler
     {
-        private readonly SubscriberConfiguration _subscriberConfiguration;
         private readonly IEventHandlerFactory _eventHandlerFactory;
         private readonly IRequestLogger _requestLogger;
 
@@ -27,7 +25,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
             : base(httpClientFactory, authenticationHandlerFactory, requestBuilder, requestLogger, bigBrother, subscriberConfiguration)
         {
             _eventHandlerFactory = eventHandlerFactory;
-            _subscriberConfiguration = subscriberConfiguration;
             _requestLogger = requestLogger;
         }
 
@@ -77,7 +74,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             metadata.Add("HttpResponseContent", content);
 
             //call callback
-            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(_subscriberConfiguration.Callback.Name);
+            var eswHandler = _eventHandlerFactory.CreateWebhookHandler(messageData.SubscriberConfig?.Callback);
 
             return await eswHandler.CallAsync(messageData, metadata, cancellationToken);
         }

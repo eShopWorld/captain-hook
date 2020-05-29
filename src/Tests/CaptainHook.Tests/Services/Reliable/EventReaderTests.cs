@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Fabric;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.EventReaderService;
@@ -15,6 +17,7 @@ using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.ServiceFabric.Actors;
+using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Actors.Runtime;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Data.Collections;
@@ -42,10 +45,16 @@ namespace CaptainHook.Tests.Services.Reliable
 
         public EventReaderTests()
         {
+            var subscriberConfiguration = new SubscriberConfiguration
+            {
+                SubscriberName = "subA",
+                EventType = "test.type",
+            };
+
             _context = CustomMockStatefulServiceContextFactory.Create(
                 ServiceNaming.EventReaderServiceType,
                 ServiceNaming.EventReaderServiceFullUri("test.type", "subA"),
-                EventReaderInitData.FromSubscriberConfiguration("test.type", "subA").ToByteArray(),
+                EventReaderInitData.FromSubscriberConfiguration(subscriberConfiguration, new WebhookConfig()).ToByteArray(),
                 replicaId:(new Random(int.MaxValue)).Next());
             _mockActorProxyFactory = new MockActorProxyFactory();
             _stateManager = new MockReliableStateManager();
@@ -274,6 +283,74 @@ namespace CaptainHook.Tests.Services.Reliable
             Assert.Equal(expectedStatMessageCount, dictionary.Count);
         }
 
+        [Theory]
+        [IsLayer0]
+        [InlineData("test.type", "test.type-1",  1)]
+        [InlineData("test.type", "test.type-2",  5)]
+        public async Task InitSubscriberDataIsPassedToHandlers(string eventName, string handlerName, int messageCount)
+        {
+            var actor = CreateMockEventHandlerActor(new ActorId(handlerName));
+            _mockActorProxyFactory.RegisterActor(actor);
+
+            var webhookConfig = new WebhookConfig
+            {
+                Name = "test-name-1",
+                AuthenticationConfig = new OidcAuthenticationConfig
+                {
+                    ClientId = "test-client-id",
+                    Uri = "https://test.com/sts"
+                },
+                Uri = "https://test.com/webhook"
+            };
+            var context = CustomMockStatefulServiceContextFactory.Create(
+                ServiceNaming.EventReaderServiceType,
+                ServiceNaming.EventReaderServiceFullUri("test.type", "subA"),
+                EventReaderInitData.FromSubscriberConfiguration(
+                    new SubscriberConfiguration { EventType = eventName, SubscriberName = "subA" },
+                    webhookConfig).ToByteArray(),
+                replicaId: (new Random(int.MaxValue)).Next());
+
+            var count = 0;
+            _mockMessageProvider.Setup(s => s.ReceiveAsync(
+                It.IsAny<int>(),
+                It.IsAny<TimeSpan>())).ReturnsAsync(() =>
+            {
+                if (count >= messageCount)
+                {
+                    return new List<Message>();
+                }
+                count++;
+                return CreateMessage(eventName);
+            });
+            var mockServiceBusProvider = new Mock<IServiceBusManager>();
+            mockServiceBusProvider.Setup(s => s.CreateAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()));
+
+            mockServiceBusProvider.Setup(s => s.CreateMessageReceiver(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<bool>())).Returns(_mockMessageProvider.Object);
+
+            mockServiceBusProvider.Setup(s => s.GetLockToken(It.IsAny<Message>())).Returns(Guid.NewGuid().ToString);
+
+            var service = new EventReaderService.EventReaderService(
+                context,
+                _stateManager,
+                _mockedBigBrother,
+                mockServiceBusProvider.Object,
+                _mockActorProxyFactory,
+                _config);
+
+            var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            await service.InvokeRunAsync(cancellationTokenSource.Token);
+
+            actor.MessageDataInstances.Select(m => m.WebhookConfig).Should().AllBeEquivalentTo(webhookConfig);
+        }
+
         /// <summary>
         /// Tests the service to determine that it can change role gracefully - while keeping messages and state inflight while migrating to the active secondaries.
         /// </summary>
@@ -367,7 +444,7 @@ namespace CaptainHook.Tests.Services.Reliable
         }
 
 
-        private static IEventHandlerActor CreateMockEventHandlerActor(ActorId id)
+        private static MockEventHandlerActor CreateMockEventHandlerActor(ActorId id)
         {
             ActorBase ActorFactory(ActorService service, ActorId actorId) => new MockEventHandlerActor(service, id);
             var svc = MockActorServiceFactory.CreateActorServiceForActor<MockEventHandlerActor>(ActorFactory);
@@ -380,12 +457,17 @@ namespace CaptainHook.Tests.Services.Reliable
         /// </summary>
         private class MockEventHandlerActor : Actor, IEventHandlerActor
         {
+            private readonly Queue<MessageData> _messageDataQueue = new Queue<MessageData>();
+
             public MockEventHandlerActor(ActorService actorService, ActorId actorId) : base(actorService, actorId)
             {
             }
 
+            public IEnumerable<MessageData> MessageDataInstances => _messageDataQueue;
+
             public Task Handle(MessageData messageData)
             {
+                _messageDataQueue.Enqueue(messageData);
                 return Task.CompletedTask;
             }
         }

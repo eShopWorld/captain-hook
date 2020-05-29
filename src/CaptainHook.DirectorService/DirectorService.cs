@@ -22,7 +22,7 @@ namespace CaptainHook.DirectorService
         private readonly FabricClient _fabricClient;
         private readonly DefaultServiceSettings _defaultServiceSettings;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
-
+        private IList<WebhookConfig> _webhookConfigurations;
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
@@ -36,13 +36,15 @@ namespace CaptainHook.DirectorService
             IBigBrother bigBrother,
             FabricClient fabricClient,
             DefaultServiceSettings defaultServiceSettings,
-            IDictionary<string, SubscriberConfiguration> subscriberConfigurations)
+            IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
+            IList<WebhookConfig> webhookConfigurations)
             : base(context)
         {
             _bigBrother = bigBrother;
             _fabricClient = fabricClient;
             _defaultServiceSettings = defaultServiceSettings;
             _subscriberConfigurations = subscriberConfigurations;
+            _webhookConfigurations = webhookConfigurations;
         }
 
         /// <summary>
@@ -83,29 +85,7 @@ namespace CaptainHook.DirectorService
                 {
                     if (cancellationToken.IsCancellationRequested) return;
 
-                    var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
-                    if (!serviceList.Contains(readerServiceNameUri))
-                    {
-                        var initializationData = EventReaderInitData
-                            .FromSubscriberConfiguration(subscriber)
-                            .ToByteArray();
-
-                        await _fabricClient.ServiceManager.CreateServiceAsync(
-                            new StatefulServiceDescription
-                            {
-                                ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
-                                HasPersistedState = true,
-                                MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
-                                TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
-                                PartitionSchemeDescription = new SingletonPartitionSchemeDescription(),
-                                ServiceTypeName = ServiceNaming.EventReaderServiceType,
-                                ServiceName = new Uri(readerServiceNameUri),
-                                InitializationData = initializationData,
-                                PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
-                            },
-                            TimeSpan.FromSeconds(30),
-                            cancellationToken);
-                    }
+                    await RecreateServiceForSubscriberAsync(subscriber, serviceList, cancellationToken);
                 }
 
 
@@ -144,10 +124,66 @@ namespace CaptainHook.DirectorService
             }
         }
 
+        private async Task RecreateServiceForSubscriberAsync(SubscriberConfiguration subscriber, ICollection<string> serviceList, CancellationToken cancellationToken)
+        {
+            var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
+
+            var (newName, oldNames) = FindServiceNames(serviceList, readerServiceNameUri);
+
+            var initializationData = BuildInitializationData(subscriber);
+            await _fabricClient.ServiceManager.CreateServiceAsync(
+                new StatefulServiceDescription
+                {
+                    ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
+                    HasPersistedState = true,
+                    MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
+                    TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
+                    PartitionSchemeDescription = new SingletonPartitionSchemeDescription(),
+                    ServiceTypeName = ServiceNaming.EventReaderServiceType,
+                    ServiceName = new Uri(newName),
+                    InitializationData = initializationData,
+                    PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
+                },
+                TimeSpan.FromSeconds(30),
+                cancellationToken);
+
+            foreach (var oldName in oldNames.Where(n => n != null))
+            {
+                await _fabricClient.ServiceManager.DeleteServiceAsync(
+                   new DeleteServiceDescription(new Uri(oldName)),
+                   TimeSpan.FromSeconds(30),
+                   cancellationToken);
+            }
+
+        }
+
+        private static (string newName, IEnumerable<string> oldNames) FindServiceNames(ICollection<string> serviceList, string readerServiceNameUri)
+        {
+            var names = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
+
+            var oldNames = serviceList.Intersect(names);
+
+            var newName = $"{readerServiceNameUri}-a";
+            if (oldNames.Contains(newName))
+            {
+                newName = $"{readerServiceNameUri}-b";
+            }
+
+            return (newName, oldNames);
+        }
+
+        private byte[] BuildInitializationData(SubscriberConfiguration subscriber)
+        {
+            var webhookConfig = _webhookConfigurations.SingleOrDefault(x => x.Name == subscriber.Name);
+            return EventReaderInitData
+                .FromSubscriberConfiguration(subscriber, webhookConfig)
+                .ToByteArray();
+        }
+
         public Task ReloadConfigurationForEventAsync(string eventName)
         {
             var configuration = Configuration.Load();
-            this._subscriberConfigurations = configuration.SubscriberConfigurations;
+            _subscriberConfigurations = configuration.SubscriberConfigurations;
             return Task.CompletedTask;
         }
 

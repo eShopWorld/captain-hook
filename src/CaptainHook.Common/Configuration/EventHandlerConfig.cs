@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using CaptainHook.Common.Authentication;
 using Newtonsoft.Json;
 
@@ -40,6 +41,7 @@ namespace CaptainHook.Common.Configuration
         /// HTTP method to use when executing the call
         /// </summary>
         [JsonIgnore]
+        [IgnoreDataMember]
         public HttpMethod HttpMethod { get; set; } = HttpMethod.Post;
 
         /// <summary>
