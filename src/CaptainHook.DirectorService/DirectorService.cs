@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Fabric;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
-using CaptainHook.Common.ServiceModels;
 using Eshopworld.Core;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
@@ -19,27 +16,26 @@ namespace CaptainHook.DirectorService
     {
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
-        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
-        private IList<WebhookConfig> _webhookConfigurations;
+        private readonly ISubscriptionManager _subscriptionManager;
+        
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
         /// </summary>
         /// <param name="context">The injected <see cref="StatefulServiceContext"/>.</param>
         /// <param name="bigBrother">The injected <see cref="IBigBrother"/> telemetry interface.</param>
-        /// <param name="fabricClientWrapper">The injected <see cref="IFabricClientWrapper"/> fabric client wrapper interface.</param>
+        /// <param name="fabricClientWrapper">The injected <see cref="IFabricClientWrapper"/>.</param>
+        /// <param name="subscriptionManager">The injected <see cref="ISubscriptionManager"/>.</param>
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
             IFabricClientWrapper fabricClientWrapper,
-            IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
-            IList<WebhookConfig> webhookConfigurations)
+            ISubscriptionManager subscriptionManager)
             : base(context)
         {
             _bigBrother = bigBrother;
             _fabricClientWrapper = fabricClientWrapper;
-            _subscriberConfigurations = subscriberConfigurations;
-            _webhookConfigurations = webhookConfigurations;
+            _subscriptionManager = subscriptionManager;
         }
 
         /// <summary>
@@ -53,20 +49,7 @@ namespace CaptainHook.DirectorService
 
             try
             {
-
-                var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
-
-                if (!serviceList.Contains(ServiceNaming.EventHandlerServiceFullName))
-                {
-                    await _fabricClientWrapper.CreateServiceAsync(ServiceNaming.EventHandlerServiceFullName, cancellationToken);
-                }
-
-                foreach (var (key, subscriber) in _subscriberConfigurations)
-                {
-                    if (cancellationToken.IsCancellationRequested) return;
-
-                    await RecreateServiceForSubscriberAsync(subscriber, serviceList, cancellationToken);
-                }
+                await _subscriptionManager.CreateServicesAsync(cancellationToken);
             }
             catch (Exception exception)
             {
@@ -75,50 +58,9 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        private async Task RecreateServiceForSubscriberAsync(SubscriberConfiguration subscriber, ICollection<string> serviceList, CancellationToken cancellationToken)
-        {
-            var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
-
-            var (newName, oldNames) = FindServiceNames(serviceList, readerServiceNameUri);
-
-            var initializationData = BuildInitializationData(subscriber);
-            
-            await _fabricClientWrapper.CreateServiceAsync(newName, cancellationToken);
-
-            foreach (var oldName in oldNames.Where(n => n != null))
-            {
-                await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
-            }
-
-        }
-
-        private static (string newName, IEnumerable<string> oldNames) FindServiceNames(ICollection<string> serviceList, string readerServiceNameUri)
-        {
-            var names = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
-
-            var oldNames = serviceList.Intersect(names);
-
-            var newName = $"{readerServiceNameUri}-a";
-            if (oldNames.Contains(newName))
-            {
-                newName = $"{readerServiceNameUri}-b";
-            }
-
-            return (newName, oldNames);
-        }
-
-        private byte[] BuildInitializationData(SubscriberConfiguration subscriber)
-        {
-            var webhookConfig = _webhookConfigurations.SingleOrDefault(x => x.Name == subscriber.Name);
-            return EventReaderInitData
-                .FromSubscriberConfiguration(subscriber, webhookConfig)
-                .ToByteArray();
-        }
-
         public Task ReloadConfigurationForEventAsync(string eventName)
         {
             var configuration = Configuration.Load();
-            _subscriberConfigurations = configuration.SubscriberConfigurations;
             return Task.CompletedTask;
         }
 
