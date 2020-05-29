@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using CaptainHook.Common.Configuration;
+using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService
 {
@@ -10,12 +9,23 @@ namespace CaptainHook.DirectorService
     {
         public ComparisionResult Compare(IDictionary<string, SubscriberConfiguration> oldConfig, IDictionary<string, SubscriberConfiguration> newConfig)
         {
-            var added = new Dictionary<string, SubscriberConfiguration>(newConfig.Except(oldConfig));
-            var removed = new Dictionary<string, SubscriberConfiguration>(oldConfig.Except(newConfig));
+            var added = new Dictionary<string, SubscriberConfiguration>(newConfig.Where(x => !oldConfig.Keys.Contains(x.Key)));
+            var removed = new Dictionary<string, SubscriberConfiguration>(oldConfig.Where(x => !newConfig.Keys.Contains(x.Key)));
 
-            var empty = new Dictionary<string, SubscriberConfiguration>();
+            var changed = new Dictionary<string, SubscriberConfiguration>();
+            var commonKeys = oldConfig.Keys.Intersect(newConfig.Keys);
+            foreach (var key in commonKeys)
+            {
+                var previous = JsonConvert.SerializeObject(oldConfig[key]);
+                var current = JsonConvert.SerializeObject(newConfig[key]);
 
-            return new ComparisionResult(added, removed, empty);
+                if (previous != current)
+                {
+                    changed.Add(key, newConfig[key]);
+                }
+            }
+
+            return new ComparisionResult(added, removed, changed);
         }
     }
 

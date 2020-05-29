@@ -32,7 +32,12 @@ namespace CaptainHook.Tests.Director
             {
                 ["event1-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("captain-hook").Create(),
                 ["event1-subscriber1"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("subscriber1").Create(),
-                ["event2-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook").Create(),
+                ["event2-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
+                     .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
+                        .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
+                        .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com")
+                        .Create())
+                    .Create(),
                 ["event3-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event3").WithSubscriberName("captain-hook").Create(),
             };
 
@@ -51,7 +56,12 @@ namespace CaptainHook.Tests.Director
             {
                 ["event1-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("captain-hook").Create(),
                 ["event1-subscriber1"] = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("subscriber1").Create(),
-                ["event2-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook").Create(),
+                ["event2-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
+                     .AddWebhookRequestRule(x => new WebhookRequestRuleBuilder()
+                        .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)
+                        .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com")
+                        .Create())
+                    .Create(),
                 ["event2-subscriber1"] = new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("subscriber1").Create(),
                 ["event3-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event3").WithSubscriberName("captain-hook").Create(),
             };
@@ -78,7 +88,7 @@ namespace CaptainHook.Tests.Director
 
             result.HasChanged.Should().BeTrue();
             result.Added.Should().BeEmpty();
-            result.Removed.Should().HaveCount(1).And.ContainKey("event2-subscriber1");
+            result.Removed.Should().HaveCount(1).And.ContainKey("event2-captain-hook");
             result.Changed.Should().BeEmpty();
         }
 
@@ -99,7 +109,7 @@ namespace CaptainHook.Tests.Director
             result.HasChanged.Should().BeTrue();
             result.Added.Should().BeEmpty();
             result.Removed.Should().BeEmpty();
-            result.Changed.Should().HaveCount(1).And.ContainKey("event2-subscriber1");
+            result.Changed.Should().HaveCount(1).And.ContainKey("event2-captain-hook");
         }
 
         public static IEnumerable<object[]> ChangedSubscribers
