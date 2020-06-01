@@ -64,7 +64,7 @@ namespace CaptainHook.Tests.Director
             var result = new SubscriberConfigurationComparer().Compare(oldConfigs, newConfigs);
 
             result.HasChanged.Should().BeTrue();
-            result.Added.Should().HaveCount(1).And.ContainKey("event2-subscriber1");
+            result.Added.Should().HaveCount(1).And.Contain(x => x.Key == "event2-subscriber1");
             result.Removed.Should().BeEmpty();
             result.Changed.Should().BeEmpty();
         }
@@ -83,7 +83,7 @@ namespace CaptainHook.Tests.Director
 
             result.HasChanged.Should().BeTrue();
             result.Added.Should().BeEmpty();
-            result.Removed.Should().HaveCount(1).And.ContainKey("event2-captain-hook");
+            result.Removed.Should().HaveCount(1).And.Contain(x => x.Key == "event2-captain-hook");
             result.Changed.Should().BeEmpty();
         }
 
@@ -104,7 +104,7 @@ namespace CaptainHook.Tests.Director
             result.HasChanged.Should().BeTrue();
             result.Added.Should().BeEmpty();
             result.Removed.Should().BeEmpty();
-            result.Changed.Should().HaveCount(1).And.ContainKey("event2-captain-hook");
+            result.Changed.Should().HaveCount(1).And.Contain(x => x.Key == "event2-captain-hook");
         }
 
         public static IEnumerable<object[]> ChangedSubscribers

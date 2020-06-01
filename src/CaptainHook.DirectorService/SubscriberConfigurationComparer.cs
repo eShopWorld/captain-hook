@@ -30,12 +30,13 @@ namespace CaptainHook.DirectorService
 
         public class Result
         {
-            public IDictionary<string, SubscriberConfiguration> Added { get; }
-            public IDictionary<string, SubscriberConfiguration> Removed { get; }
-            public IDictionary<string, SubscriberConfiguration> Changed { get; }
+            public IReadOnlyDictionary<string, SubscriberConfiguration> Added { get; }
+            public IReadOnlyDictionary<string, SubscriberConfiguration> Removed { get; }
+            public IReadOnlyDictionary<string, SubscriberConfiguration> Changed { get; }
             public bool HasChanged => this.Added.Any() || this.Removed.Any() || this.Changed.Any();
 
-            public Result(IDictionary<string, SubscriberConfiguration> added, IDictionary<string, SubscriberConfiguration> removed, IDictionary<string, SubscriberConfiguration> changed)
+            public Result(IReadOnlyDictionary<string, SubscriberConfiguration> added, 
+                IReadOnlyDictionary<string, SubscriberConfiguration> removed, IReadOnlyDictionary<string, SubscriberConfiguration> changed)
             {
                 Added = added;
                 Removed = removed;
