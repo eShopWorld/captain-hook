@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Fabric;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,16 +28,18 @@ namespace CaptainHook.DirectorService
         /// <param name="context">The injected <see cref="StatefulServiceContext"/>.</param>
         /// <param name="bigBrother">The injected <see cref="IBigBrother"/> telemetry interface.</param>
         /// <param name="fabricClientWrapper">The injected <see cref="IFabricClientWrapper"/>.</param>
-        /// <param name="subscriptionManager">The injected <see cref="ISubscriptionManager"/>.</param>
+        /// <param name="readerServicesUtil">The injected <see cref="ISubscriptionManager"/>.</param>
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
-            IFabricClientWrapper fabricClientWrapper, IDictionary<string, SubscriberConfiguration> subscriberConfigurations, IList<WebhookConfig> webhookConfigurations)
+            IFabricClientWrapper fabricClientWrapper, 
+            IDictionary<string, SubscriberConfiguration> subscriberConfigurations, 
+            IList<WebhookConfig> webhookConfigurations)
             : base(context)
         {
             _bigBrother = bigBrother;
             _fabricClientWrapper = fabricClientWrapper;
-            _subscriberConfigurations = subscriberConfigurations;
+            _subscriberConfigurations = (subscriberConfigurations);
             _webhookConfigurations = webhookConfigurations;
         }
 
@@ -61,7 +64,7 @@ namespace CaptainHook.DirectorService
                 }
 
                 var manager = new SubscriptionManager(_fabricClientWrapper, serviceList, _webhookConfigurations);
-                await manager.CreateAsync(_subscriberConfigurations, cancellationToken);
+                await manager.CreateAsync(new ReadOnlyDictionary<string, SubscriberConfiguration>(_subscriberConfigurations), cancellationToken);
             }
             catch (Exception exception)
             {
@@ -70,15 +73,20 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public Task ReloadConfigurationForEventAsync(string eventName)
+        public async Task ReloadConfigurationForEventAsync(string eventName)
         {
             var configuration = Configuration.Load();
+
             var comparison = new SubscriberConfigurationComparer().Compare(_subscriberConfigurations, configuration.SubscriberConfigurations);
 
+            var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
+            var manager = new SubscriptionManager(_fabricClientWrapper, serviceList, new ReadOnlyCollection<WebhookConfig>(configuration.WebhookConfigurations));
+            await manager.CreateAsync(comparison.Added, CancellationToken.None);
+            await manager.DeleteAsync(comparison.Removed, CancellationToken.None);
+            await manager.RefreshAsync(comparison.Changed, CancellationToken.None);
             _subscriberConfigurations = configuration.SubscriberConfigurations;
             _webhookConfigurations = configuration.WebhookConfigurations;
-            return Task.CompletedTask;
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
