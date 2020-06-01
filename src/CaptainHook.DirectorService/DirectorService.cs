@@ -73,6 +73,11 @@ namespace CaptainHook.DirectorService
         public Task ReloadConfigurationForEventAsync(string eventName)
         {
             var configuration = Configuration.Load();
+            var comparison = new SubscriberConfigurationComparer().Compare(_subscriberConfigurations, configuration.SubscriberConfigurations);
+
+
+            _subscriberConfigurations = configuration.SubscriberConfigurations;
+            _webhookConfigurations = configuration.WebhookConfigurations;
             return Task.CompletedTask;
         }
 
