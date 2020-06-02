@@ -72,7 +72,7 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public async Task ReloadConfigurationForEventAsync(string eventName)
+        public async Task<IReloadConfigurationResult> ReloadConfigurationForEventAsync()
         {
             var configuration = Configuration.Load();
 
@@ -86,6 +86,11 @@ namespace CaptainHook.DirectorService
 
             _subscriberConfigurations = configuration.SubscriberConfigurations;
             _webhookConfigurations = configuration.WebhookConfigurations;
+
+            return new ReloadConfigurationResult(
+                comparisonResult.Added.Count,
+                comparisonResult.Removed.Count,
+                comparisonResult.Changed.Count);
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
