@@ -1,20 +1,29 @@
-﻿using CaptainHook.Common;
-using CaptainHook.Common.Configuration;
-using CaptainHook.Common.ServiceModels;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
+using CaptainHook.Common.ServiceModels;
 
 namespace CaptainHook.DirectorService
 {
-    public class SubscriptionManager
+    /// <summary>
+    /// Allows to create, delete and refresh Reader Services instances.
+    /// </summary>
+    public class ReaderServicesManager
     {
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IList<WebhookConfig> _webhookConfigurations;
         private readonly IList<string> _serviceList;
 
-        public SubscriptionManager(IFabricClientWrapper fabricClientWrapper, IList<string> serviceList, IList<WebhookConfig> webhookConfigurations)
+        /// <summary>
+        /// Creates a ReaderServiceManager instance
+        /// </summary>
+        /// <param name="fabricClientWrapper">Fabric Client</param>
+        /// <param name="serviceList">List of currently deployed services.</param>
+        /// <param name="webhookConfigurations">Recent list of webhook configurations</param>
+        public ReaderServicesManager(IFabricClientWrapper fabricClientWrapper, IList<string> serviceList, IList<WebhookConfig> webhookConfigurations)
         {
             _fabricClientWrapper = fabricClientWrapper;
             _serviceList = serviceList;

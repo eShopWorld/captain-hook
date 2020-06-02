@@ -28,7 +28,6 @@ namespace CaptainHook.DirectorService
         /// <param name="context">The injected <see cref="StatefulServiceContext"/>.</param>
         /// <param name="bigBrother">The injected <see cref="IBigBrother"/> telemetry interface.</param>
         /// <param name="fabricClientWrapper">The injected <see cref="IFabricClientWrapper"/>.</param>
-        /// <param name="readerServicesUtil">The injected <see cref="ISubscriptionManager"/>.</param>
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
@@ -39,7 +38,7 @@ namespace CaptainHook.DirectorService
         {
             _bigBrother = bigBrother;
             _fabricClientWrapper = fabricClientWrapper;
-            _subscriberConfigurations = (subscriberConfigurations);
+            _subscriberConfigurations = subscriberConfigurations;
             _webhookConfigurations = webhookConfigurations;
         }
 
@@ -63,7 +62,7 @@ namespace CaptainHook.DirectorService
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 }
 
-                var manager = new SubscriptionManager(_fabricClientWrapper, serviceList, _webhookConfigurations);
+                var manager = new ReaderServicesManager(_fabricClientWrapper, serviceList, _webhookConfigurations);
                 await manager.CreateAsync(new ReadOnlyDictionary<string, SubscriberConfiguration>(_subscriberConfigurations), cancellationToken);
             }
             catch (Exception exception)
@@ -77,14 +76,14 @@ namespace CaptainHook.DirectorService
         {
             var configuration = Configuration.Load();
 
-            var comparison = new SubscriberConfigurationComparer().Compare(_subscriberConfigurations, configuration.SubscriberConfigurations);
+            var comparisonResult = new SubscriberConfigurationComparer().Compare(_subscriberConfigurations, configuration.SubscriberConfigurations);
 
             var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
+            var manager = new ReaderServicesManager(_fabricClientWrapper, serviceList, new ReadOnlyCollection<WebhookConfig>(configuration.WebhookConfigurations));
+            await manager.CreateAsync(comparisonResult.Added, CancellationToken.None);
+            await manager.DeleteAsync(comparisonResult.Removed, CancellationToken.None);
+            await manager.RefreshAsync(comparisonResult.Changed, CancellationToken.None);
 
-            var manager = new SubscriptionManager(_fabricClientWrapper, serviceList, new ReadOnlyCollection<WebhookConfig>(configuration.WebhookConfigurations));
-            await manager.CreateAsync(comparison.Added, CancellationToken.None);
-            await manager.DeleteAsync(comparison.Removed, CancellationToken.None);
-            await manager.RefreshAsync(comparison.Changed, CancellationToken.None);
             _subscriberConfigurations = configuration.SubscriberConfigurations;
             _webhookConfigurations = configuration.WebhookConfigurations;
         }
