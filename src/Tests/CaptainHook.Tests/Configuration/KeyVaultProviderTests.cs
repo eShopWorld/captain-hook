@@ -12,7 +12,7 @@ namespace CaptainHook.Tests.Configuration
 {
     public class KeyVaultProviderTests
     {
-        [Fact]
+        [Fact(Skip = "Superseded by ConfigLoaderTests.ConfigNotEmpty")]
         [IsDev]
         public void ConfigNotEmpty()
         {
