@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
 using Eshopworld.Core;
@@ -16,7 +17,8 @@ namespace CaptainHook.DirectorService
     {
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
-        private readonly ISubscriptionManager _subscriptionManager;
+        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
+        private IList<WebhookConfig> _webhookConfigurations;
         
 
         /// <summary>
@@ -29,13 +31,13 @@ namespace CaptainHook.DirectorService
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
-            IFabricClientWrapper fabricClientWrapper,
-            ISubscriptionManager subscriptionManager)
+            IFabricClientWrapper fabricClientWrapper, IDictionary<string, SubscriberConfiguration> subscriberConfigurations, IList<WebhookConfig> webhookConfigurations)
             : base(context)
         {
             _bigBrother = bigBrother;
             _fabricClientWrapper = fabricClientWrapper;
-            _subscriptionManager = subscriptionManager;
+            _subscriberConfigurations = subscriberConfigurations;
+            _webhookConfigurations = webhookConfigurations;
         }
 
         /// <summary>
@@ -49,7 +51,17 @@ namespace CaptainHook.DirectorService
 
             try
             {
-                await _subscriptionManager.CreateServicesAsync(cancellationToken);
+                var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
+
+                // Handlers:
+                if (!serviceList.Contains(ServiceNaming.EventHandlerServiceFullName))
+                {
+                    var description = new ServiceCreationDescription(ServiceNaming.EventHandlerServiceFullName, ServiceNaming.EventHandlerActorServiceType);
+                    await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
+                }
+
+                var manager = new SubscriptionManager(_fabricClientWrapper, serviceList, _webhookConfigurations);
+                await manager.CreateAsync(_subscriberConfigurations, cancellationToken);
             }
             catch (Exception exception)
             {

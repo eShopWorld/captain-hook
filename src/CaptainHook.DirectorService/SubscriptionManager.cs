@@ -11,21 +11,35 @@ namespace CaptainHook.DirectorService
     public class SubscriptionManager
     {
         private readonly IFabricClientWrapper fabricClientWrapper;
-        private IDictionary<string, SubscriberConfiguration> subscriberConfigurations;
-        private IList<WebhookConfig> webhookConfigurations;
+        private readonly IList<WebhookConfig> webhookConfigurations;
+        private readonly IList<string> serviceList;
 
-        public SubscriptionManager(
-            IFabricClientWrapper fabricClientWrapper,
-            IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
-            IList<WebhookConfig> webhookConfigurations)
+        public SubscriptionManager(IFabricClientWrapper fabricClientWrapper, IList<string> serviceList, IList<WebhookConfig> webhookConfigurations)
         {
             this.fabricClientWrapper = fabricClientWrapper;
-            this.subscriberConfigurations = subscriberConfigurations;
+            this.serviceList = serviceList;
             this.webhookConfigurations = webhookConfigurations;
         }
 
-        private static (string newName, IEnumerable<string> oldNames) FindServiceNames(ICollection<string> serviceList, string readerServiceNameUri)
+        public async Task CreateAsync(IDictionary<string, SubscriberConfiguration> subscriberConfigurations, CancellationToken cancellationToken)
         {
+            foreach (var (_, subscriber) in subscriberConfigurations)
+            {
+                if (cancellationToken.IsCancellationRequested) return;
+
+                var (newName, oldNames) = FindServiceNames(subscriber);
+                var initializationData = BuildInitializationData(subscriber);
+
+                var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
+
+                await this.fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
+            }
+        }
+
+        private (string newName, IEnumerable<string> oldNames) FindServiceNames(SubscriberConfiguration subscriber)
+        {
+            var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
+
             var names = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
 
             var oldNames = serviceList.Intersect(names);
@@ -39,23 +53,6 @@ namespace CaptainHook.DirectorService
             return (newName, oldNames);
         }
 
-        public async Task CreateServicesAsync(CancellationToken cancellationToken)
-        {
-            var serviceList = await fabricClientWrapper.GetServiceUriListAsync();
-
-            if (!serviceList.Contains(ServiceNaming.EventHandlerServiceFullName))
-            {
-                await fabricClientWrapper.CreateServiceAsync(ServiceNaming.EventHandlerServiceFullName, cancellationToken);
-            }
-
-            foreach (var (_, subscriber) in subscriberConfigurations)
-            {
-                if (cancellationToken.IsCancellationRequested) return;
-
-                await RecreateServiceForSubscriberAsync(subscriber, serviceList, cancellationToken);
-            }
-        }
-
         private byte[] BuildInitializationData(SubscriberConfiguration subscriber)
         {
             var webhookConfig = webhookConfigurations.SingleOrDefault(x => x.Name == subscriber.Name);
@@ -63,22 +60,5 @@ namespace CaptainHook.DirectorService
                 .FromSubscriberConfiguration(subscriber, webhookConfig)
                 .ToByteArray();
         }
-
-        private async Task RecreateServiceForSubscriberAsync(SubscriberConfiguration subscriber, ICollection<string> serviceList, CancellationToken cancellationToken)
-        {
-            var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
-
-            var (newName, oldNames) = FindServiceNames(serviceList, readerServiceNameUri);
-
-            var initializationData = BuildInitializationData(subscriber);
-
-            await fabricClientWrapper.CreateServiceAsync(newName, cancellationToken);
-
-            foreach (var oldName in oldNames.Where(n => n != null))
-            {
-                await fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
-            }
-        }
-
     }
 }
