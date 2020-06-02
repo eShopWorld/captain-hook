@@ -15,8 +15,8 @@ namespace CaptainHook.DirectorService
     /// </summary>
     public class FabricClientWrapper : IFabricClientWrapper
     {
-        private readonly FabricClient fabricClient;
-        private readonly DefaultServiceSettings defaultServiceSettings;
+        private readonly FabricClient _fabricClient;
+        private readonly DefaultServiceSettings _defaultServiceSettings;
 
         private static readonly TimeSpan timeout = TimeSpan.FromSeconds(30);
 
@@ -26,15 +26,15 @@ namespace CaptainHook.DirectorService
         /// <param name="fabricClient"></param>
         public FabricClientWrapper(FabricClient fabricClient, DefaultServiceSettings defaultServiceSettings)
         {
-            this.fabricClient = fabricClient;
-            this.defaultServiceSettings = defaultServiceSettings;
+            _fabricClient = fabricClient;
+            _defaultServiceSettings = defaultServiceSettings;
         }
 
         public async Task<List<string>> GetServiceUriListAsync()
         {
             var uri = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}");
 
-            var serviceList = await fabricClient.QueryManager.GetServiceListAsync(uri);
+            var serviceList = await _fabricClient.QueryManager.GetServiceListAsync(uri);
 
             return serviceList.Select(s => s.ServiceName.AbsoluteUri).ToList();
         }
@@ -45,16 +45,16 @@ namespace CaptainHook.DirectorService
             {
                 ApplicationName = new Uri($"fabric:/{Constants.CaptainHookApplication.ApplicationName}"),
                 HasPersistedState = true,
-                MinReplicaSetSize = defaultServiceSettings.DefaultMinReplicaSetSize,
-                TargetReplicaSetSize = defaultServiceSettings.DefaultTargetReplicaSetSize,
+                MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
+                TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
                 PartitionSchemeDescription = new UniformInt64RangePartitionSchemeDescription(10),
                 ServiceTypeName = serviceCreationDescription.ServiceTypeName,
                 ServiceName = new Uri(serviceCreationDescription.ServiceName),
                 InitializationData = serviceCreationDescription.InitializationData,
-                PlacementConstraints = defaultServiceSettings.DefaultPlacementConstraints
+                PlacementConstraints = _defaultServiceSettings.DefaultPlacementConstraints
             };
 
-            await fabricClient.ServiceManager.CreateServiceAsync(serviceDescription, timeout, cancellationToken);
+            await _fabricClient.ServiceManager.CreateServiceAsync(serviceDescription, timeout, cancellationToken);
         }
 
         public async Task DeleteServiceAsync(string serviceName, CancellationToken cancellationToken = default)
@@ -62,7 +62,7 @@ namespace CaptainHook.DirectorService
             var uri = new Uri(serviceName);
             var serviceDescription = new DeleteServiceDescription(uri);
 
-            await fabricClient.ServiceManager.DeleteServiceAsync(serviceDescription, timeout, cancellationToken);
+            await _fabricClient.ServiceManager.DeleteServiceAsync(serviceDescription, timeout, cancellationToken);
         }
     }
 }

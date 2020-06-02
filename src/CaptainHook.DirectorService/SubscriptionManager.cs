@@ -10,15 +10,15 @@ namespace CaptainHook.DirectorService
 {
     public class SubscriptionManager
     {
-        private readonly IFabricClientWrapper fabricClientWrapper;
-        private readonly IList<WebhookConfig> webhookConfigurations;
-        private readonly IList<string> serviceList;
+        private readonly IFabricClientWrapper _fabricClientWrapper;
+        private readonly IList<WebhookConfig> _webhookConfigurations;
+        private readonly IList<string> _serviceList;
 
         public SubscriptionManager(IFabricClientWrapper fabricClientWrapper, IList<string> serviceList, IList<WebhookConfig> webhookConfigurations)
         {
-            this.fabricClientWrapper = fabricClientWrapper;
-            this.serviceList = serviceList;
-            this.webhookConfigurations = webhookConfigurations;
+            _fabricClientWrapper = fabricClientWrapper;
+            _serviceList = serviceList;
+            _webhookConfigurations = webhookConfigurations;
         }
 
         public async Task CreateAsync(IDictionary<string, SubscriberConfiguration> subscriberConfigurations, CancellationToken cancellationToken)
@@ -32,7 +32,7 @@ namespace CaptainHook.DirectorService
 
                 var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
 
-                await this.fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
+                await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
             }
         }
 
@@ -42,7 +42,7 @@ namespace CaptainHook.DirectorService
 
             var names = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
 
-            var oldNames = serviceList.Intersect(names);
+            var oldNames = _serviceList.Intersect(names);
 
             var newName = $"{readerServiceNameUri}-a";
             if (oldNames.Contains(newName))
@@ -55,7 +55,7 @@ namespace CaptainHook.DirectorService
 
         private byte[] BuildInitializationData(SubscriberConfiguration subscriber)
         {
-            var webhookConfig = webhookConfigurations.SingleOrDefault(x => x.Name == subscriber.Name);
+            var webhookConfig = _webhookConfigurations.SingleOrDefault(x => x.Name == subscriber.Name);
             return EventReaderInitData
                 .FromSubscriberConfiguration(subscriber, webhookConfig)
                 .ToByteArray();
