@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using CaptainHook.Common.Configuration;
 using Newtonsoft.Json;
@@ -35,12 +36,11 @@ namespace CaptainHook.DirectorService
             public IReadOnlyDictionary<string, SubscriberConfiguration> Changed { get; }
             public bool HasChanged => this.Added.Any() || this.Removed.Any() || this.Changed.Any();
 
-            public Result(IReadOnlyDictionary<string, SubscriberConfiguration> added, 
-                IReadOnlyDictionary<string, SubscriberConfiguration> removed, IReadOnlyDictionary<string, SubscriberConfiguration> changed)
+            public Result(IDictionary<string, SubscriberConfiguration> added, IDictionary<string, SubscriberConfiguration> removed, IDictionary<string, SubscriberConfiguration> changed)
             {
-                Added = added;
-                Removed = removed;
-                Changed = changed;
+                Added = new ReadOnlyDictionary<string, SubscriberConfiguration>(added);
+                Removed = new ReadOnlyDictionary<string, SubscriberConfiguration>(removed);
+                Changed = new ReadOnlyDictionary<string, SubscriberConfiguration>(changed);
             }
         }
     }
