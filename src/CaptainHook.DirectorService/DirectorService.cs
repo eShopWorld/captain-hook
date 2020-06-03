@@ -80,9 +80,9 @@ namespace CaptainHook.DirectorService
 
             var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
             var manager = new ReaderServicesManager(_fabricClientWrapper, serviceList, new ReadOnlyCollection<WebhookConfig>(configuration.WebhookConfigurations));
-            await manager.CreateAsync(comparisonResult.Added, CancellationToken.None);
-            await manager.DeleteAsync(comparisonResult.Removed, CancellationToken.None);
-            await manager.RefreshAsync(comparisonResult.Changed, CancellationToken.None);
+                await manager.CreateAsync(comparisonResult.Added.Values, CancellationToken.None);
+                await manager.DeleteAsync(comparisonResult.Removed.Values, CancellationToken.None);
+                await manager.RefreshAsync(comparisonResult.Changed.Values, CancellationToken.None);
 
             _subscriberConfigurations = configuration.SubscriberConfigurations;
             _webhookConfigurations = configuration.WebhookConfigurations;

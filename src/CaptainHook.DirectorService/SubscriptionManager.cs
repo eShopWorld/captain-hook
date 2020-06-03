@@ -30,9 +30,9 @@ namespace CaptainHook.DirectorService
             _webhookConfigurations = webhookConfigurations;
         }
 
-        public async Task CreateAsync(IReadOnlyDictionary<string, SubscriberConfiguration> subscriberConfigurations, CancellationToken cancellationToken)
+        public async Task CreateAsync(IEnumerable<SubscriberConfiguration> subscribers, CancellationToken cancellationToken)
         {
-            foreach (var (_, subscriber) in subscriberConfigurations)
+            foreach (var subscriber in subscribers)
             {
                 if (cancellationToken.IsCancellationRequested) return;
 
@@ -45,9 +45,9 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public async Task DeleteAsync(IReadOnlyDictionary<string, SubscriberConfiguration> subscriberConfigurations, CancellationToken cancellationToken)
+        public async Task DeleteAsync(IEnumerable<SubscriberConfiguration> subscribers, CancellationToken cancellationToken)
         {
-            foreach (var (_, subscriber) in subscriberConfigurations)
+            foreach (var subscriber in subscribers)
             {
                 if (cancellationToken.IsCancellationRequested) return;
 
@@ -60,9 +60,9 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public async Task RefreshAsync(IReadOnlyDictionary<string, SubscriberConfiguration> subscriberConfigurations, CancellationToken cancellationToken)
+        public async Task RefreshAsync(IEnumerable<SubscriberConfiguration> subscribers, CancellationToken cancellationToken)
         {
-            foreach (var (_, subscriber) in subscriberConfigurations)
+            foreach (var subscriber in subscribers)
             {
                 var (newName, oldNames) = FindServiceNames(subscriber);
                 var initializationData = BuildInitializationData(subscriber);
