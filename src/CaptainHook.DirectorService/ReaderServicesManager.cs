@@ -5,9 +5,53 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
+using Eshopworld.Core;
+using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService
 {
+    class RefreshSubscribersEvent : TelemetryEvent
+    {
+        public string Message { get; set; }
+        public string ReadersToAdd { get; set; }
+        public string ReadersToDelete { get; set; }
+        public string ReadersToRefresh { get; set; }
+
+        public RefreshSubscribersEvent(SubscriberConfigurationComparer.Result result)
+        {
+            Message = $"Number of Readers to add: {result.Added.Count} to delete: {result.Removed.Count} and to refresh: {result.Changed.Count}";
+            ReadersToAdd = string.Join(',', result.Added.Keys);
+            ReadersToDelete = string.Join(',', result.Removed.Keys);
+            ReadersToRefresh = string.Join(',', result.Changed.Keys);
+        }
+    }
+
+    class ServiceCreatedEvent : TelemetryEvent
+    {
+        public string Message { get; set; }
+        public string ReaderName { get; set; }
+        public string Configuration { get; set; }
+
+        public ServiceCreatedEvent(string readerName, string configuration)
+        {
+            ReaderName = readerName;
+            Configuration = configuration;
+            Message = $"Created Service: {readerName}";
+        }
+    }
+
+    class ServiceDeletedEvent : TelemetryEvent
+    {
+        public string Message { get; set; }
+        public string ReaderName { get; set; }
+
+        public ServiceDeletedEvent(string readerName)
+        {
+            ReaderName = readerName;
+            Message = $"Created Service: {readerName}";
+        }
+    }
+
     public interface IReaderServicesManager
     {
         /// <summary>
@@ -37,14 +81,16 @@ namespace CaptainHook.DirectorService
     public class ReaderServicesManager : IReaderServicesManager
     {
         private readonly IFabricClientWrapper _fabricClientWrapper;
+        private readonly IBigBrother _bigBrother;
 
         /// <summary>
         /// Creates a ReaderServiceManager instance
         /// </summary>
         /// <param name="fabricClientWrapper">Fabric Client</param>
-        public ReaderServicesManager(IFabricClientWrapper fabricClientWrapper)
+        public ReaderServicesManager(IFabricClientWrapper fabricClientWrapper, IBigBrother bigBrother)
         {
             _fabricClientWrapper = fabricClientWrapper;
+            _bigBrother = bigBrother;
         }
 
         /// <summary>
@@ -73,6 +119,8 @@ namespace CaptainHook.DirectorService
         {
             var comparisonResult = new SubscriberConfigurationComparer().Compare(currentSubscribers, newConfiguration.SubscriberConfigurations);
 
+            _bigBrother.Publish(new RefreshSubscribersEvent(comparisonResult));
+
             await CreateAsync(comparisonResult.Added.Values, serviceList, newConfiguration.WebhookConfigurations);
             await DeleteAsync(comparisonResult.Removed.Values, serviceList, newConfiguration.WebhookConfigurations);
             await RefreshAsync(comparisonResult.Changed.Values, serviceList, newConfiguration.WebhookConfigurations, CancellationToken.None);
@@ -88,6 +136,7 @@ namespace CaptainHook.DirectorService
                 var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
 
                 await _fabricClientWrapper.CreateServiceAsync(description, CancellationToken.None);
+                _bigBrother.Publish(new ServiceCreatedEvent(newName, JsonConvert.SerializeObject(subscriber)));
             }
         }
 
@@ -100,6 +149,7 @@ namespace CaptainHook.DirectorService
                 foreach (var oldName in oldNames.Where(n => n != null))
                 {
                     await _fabricClientWrapper.DeleteServiceAsync(oldName, CancellationToken.None);
+                    _bigBrother.Publish(new ServiceDeletedEvent(oldName));
                 }
             }
         }
@@ -108,16 +158,19 @@ namespace CaptainHook.DirectorService
         {
             foreach (var subscriber in subscribers)
             {
-                  if (cancellationToken.IsCancellationRequested) return;
+                if (cancellationToken.IsCancellationRequested) return;
 
                 var (newName, oldNames) = FindServiceNames(subscriber, serviceList);
                 var initializationData = BuildInitializationData(subscriber, webhooks);
                 var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
 
                 await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
+                _bigBrother.Publish(new ServiceCreatedEvent(newName, JsonConvert.SerializeObject(subscriber)));
+
                 foreach (var oldName in oldNames.Where(n => n != null))
                 {
                     await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
+                    _bigBrother.Publish(new ServiceDeletedEvent(oldName));
                 }
             }
         }
