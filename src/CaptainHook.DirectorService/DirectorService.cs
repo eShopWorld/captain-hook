@@ -15,6 +15,7 @@ namespace CaptainHook.DirectorService
 {
     public class DirectorService : StatefulService, IDirectorServiceRemoting
     {
+        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IReaderServicesManager _readerServicesManager;
@@ -74,13 +75,21 @@ namespace CaptainHook.DirectorService
 
         public async Task ReloadConfigurationForEventAsync(string eventName)
         {
-            var configuration = Configuration.Load();
-            var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
+            await _semaphore.WaitAsync();
+            try
+            {
+                var configuration = Configuration.Load();
+                var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
-            await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList);
+                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList);
 
-            _subscriberConfigurations = configuration.SubscriberConfigurations;
-            _webhookConfigurations = configuration.WebhookConfigurations;
+                _subscriberConfigurations = configuration.SubscriberConfigurations;
+                _webhookConfigurations = configuration.WebhookConfigurations;
+            }
+            finally
+            {
+                _semaphore.Release(1);
+            }
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
