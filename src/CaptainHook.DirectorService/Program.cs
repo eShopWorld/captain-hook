@@ -10,6 +10,7 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Database.Setup;
+using CaptainHook.DirectorService.Utils;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 

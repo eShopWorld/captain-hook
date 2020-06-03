@@ -5,76 +5,13 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
+using CaptainHook.DirectorService.Events;
+using CaptainHook.DirectorService.Utils;
 using Eshopworld.Core;
 using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService
 {
-    class RefreshSubscribersEvent : TelemetryEvent
-    {
-        public string Message { get; set; }
-        public string ReadersToAdd { get; set; }
-        public string ReadersToDelete { get; set; }
-        public string ReadersToRefresh { get; set; }
-
-        public RefreshSubscribersEvent(SubscriberConfigurationComparer.Result result)
-        {
-            Message = $"Number of Readers to add: {result.Added.Count} to delete: {result.Removed.Count} and to refresh: {result.Changed.Count}";
-            ReadersToAdd = string.Join(',', result.Added.Keys);
-            ReadersToDelete = string.Join(',', result.Removed.Keys);
-            ReadersToRefresh = string.Join(',', result.Changed.Keys);
-        }
-    }
-
-    class ServiceCreatedEvent : TelemetryEvent
-    {
-        public string Message { get; set; }
-        public string ReaderName { get; set; }
-        public string Configuration { get; set; }
-
-        public ServiceCreatedEvent(string readerName, string configuration)
-        {
-            ReaderName = readerName;
-            Configuration = configuration;
-            Message = $"Created Service: {readerName}";
-        }
-    }
-
-    class ServiceDeletedEvent : TelemetryEvent
-    {
-        public string Message { get; set; }
-        public string ReaderName { get; set; }
-
-        public ServiceDeletedEvent(string readerName)
-        {
-            ReaderName = readerName;
-            Message = $"Created Service: {readerName}";
-        }
-    }
-
-    public interface IReaderServicesManager
-    {
-        /// <summary>
-        /// Creates new instance of readers. Also deletes obsolete and no longer configured ones.
-        /// </summary>
-        /// <param name="subscribers">List of subscribers to create</param>
-        /// <param name="serviceList">List of currently deployed services names</param>
-        /// <param name="webhooks">List of webhook configuration</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns></returns>
-        Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IList<WebhookConfig> webhooks, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Compares newly read Configuration with list of currently deployed subscribers and based on that create new, delete old
-        /// and refresh (by pair of create and delete operation) existing readers.
-        /// </summary>
-        /// <param name="newConfiguration">Target Configuration to be deployed</param>
-        /// <param name="serviceList">List of currently deployed services names</param>
-        /// <param name="currentSubscribers">List of currently deployed subscribers</param>
-        /// <returns></returns>
-        Task RefreshReadersAsync(Configuration newConfiguration, IDictionary<string, SubscriberConfiguration> currentSubscribers, IList<string> serviceList);
-    }
-
     /// <summary>
     /// Allows to create or refresh Reader Services.
     /// </summary>
