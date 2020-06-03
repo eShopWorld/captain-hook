@@ -20,7 +20,7 @@ namespace CaptainHook.DirectorService
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
         private IList<WebhookConfig> _webhookConfigurations;
-        
+
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
@@ -31,8 +31,8 @@ namespace CaptainHook.DirectorService
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
-            IFabricClientWrapper fabricClientWrapper, 
-            IDictionary<string, SubscriberConfiguration> subscriberConfigurations, 
+            IFabricClientWrapper fabricClientWrapper,
+            IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
             IList<WebhookConfig> webhookConfigurations)
             : base(context)
         {
@@ -63,7 +63,7 @@ namespace CaptainHook.DirectorService
                 }
 
                 var manager = new ReaderServicesManager(_fabricClientWrapper, serviceList, _webhookConfigurations);
-                await manager.CreateAsync(new ReadOnlyDictionary<string, SubscriberConfiguration>(_subscriberConfigurations), cancellationToken);
+                await manager.CreateAsync(_subscriberConfigurations.Values, cancellationToken);
             }
             catch (Exception exception)
             {
@@ -72,20 +72,30 @@ namespace CaptainHook.DirectorService
             }
         }
 
+        private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+
         public async Task ReloadConfigurationForEventAsync(string eventName)
         {
-            var configuration = Configuration.Load();
+            await semaphore.WaitAsync();
+            try
+            {
+                var configuration = Configuration.Load();
 
-            var comparisonResult = new SubscriberConfigurationComparer().Compare(_subscriberConfigurations, configuration.SubscriberConfigurations);
+                var comparisonResult = new SubscriberConfigurationComparer().Compare(_subscriberConfigurations, configuration.SubscriberConfigurations);
 
-            var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
-            var manager = new ReaderServicesManager(_fabricClientWrapper, serviceList, new ReadOnlyCollection<WebhookConfig>(configuration.WebhookConfigurations));
+                var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
+                var manager = new ReaderServicesManager(_fabricClientWrapper, serviceList, new ReadOnlyCollection<WebhookConfig>(configuration.WebhookConfigurations));
                 await manager.CreateAsync(comparisonResult.Added.Values, CancellationToken.None);
                 await manager.DeleteAsync(comparisonResult.Removed.Values, CancellationToken.None);
                 await manager.RefreshAsync(comparisonResult.Changed.Values, CancellationToken.None);
 
-            _subscriberConfigurations = configuration.SubscriberConfigurations;
-            _webhookConfigurations = configuration.WebhookConfigurations;
+                _subscriberConfigurations = configuration.SubscriberConfigurations;
+                _webhookConfigurations = configuration.WebhookConfigurations;
+            }
+            finally
+            {
+                semaphore.Release(1);
+            }
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
