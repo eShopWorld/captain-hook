@@ -57,7 +57,8 @@ namespace CaptainHook.DirectorService
         /// <returns></returns>
         public async Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IList<WebhookConfig> webhooks, CancellationToken cancellationToken)
         {
-            await CreateAsync(subscribers, serviceList, webhooks, cancellationToken);
+            // we must delete old services also, that's why we need to call Refresh not Create here
+            await RefreshAsync(subscribers, serviceList, webhooks, cancellationToken);
         }
 
         /// <summary>
@@ -72,27 +73,25 @@ namespace CaptainHook.DirectorService
         {
             var comparisonResult = new SubscriberConfigurationComparer().Compare(currentSubscribers, newConfiguration.SubscriberConfigurations);
 
-            await CreateAsync(comparisonResult.Added.Values, serviceList, newConfiguration.WebhookConfigurations, CancellationToken.None);
+            await CreateAsync(comparisonResult.Added.Values, serviceList, newConfiguration.WebhookConfigurations);
             await DeleteAsync(comparisonResult.Removed.Values, serviceList, newConfiguration.WebhookConfigurations);
-            await RefreshAsync(comparisonResult.Changed.Values, serviceList, newConfiguration.WebhookConfigurations);
+            await RefreshAsync(comparisonResult.Changed.Values, serviceList, newConfiguration.WebhookConfigurations, CancellationToken.None);
         }
 
-        public async Task CreateAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IEnumerable<WebhookConfig> webhooks, CancellationToken cancellationToken)
+        private async Task CreateAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IEnumerable<WebhookConfig> webhooks)
         {
             foreach (var subscriber in subscribers)
             {
-                if (cancellationToken.IsCancellationRequested) return;
-
                 var (newName, _) = FindServiceNames(subscriber, serviceList);
                 var initializationData = BuildInitializationData(subscriber, webhooks);
 
                 var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
 
-                await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
+                await _fabricClientWrapper.CreateServiceAsync(description, CancellationToken.None);
             }
         }
 
-        public async Task DeleteAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IEnumerable<WebhookConfig> webhooks)
+        private async Task DeleteAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IEnumerable<WebhookConfig> webhooks)
         {
             foreach (var subscriber in subscribers)
             {
@@ -105,18 +104,20 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public async Task RefreshAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IEnumerable<WebhookConfig> webhooks)
+        private async Task RefreshAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IEnumerable<WebhookConfig> webhooks, CancellationToken cancellationToken)
         {
             foreach (var subscriber in subscribers)
             {
+                  if (cancellationToken.IsCancellationRequested) return;
+
                 var (newName, oldNames) = FindServiceNames(subscriber, serviceList);
                 var initializationData = BuildInitializationData(subscriber, webhooks);
                 var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
 
-                await _fabricClientWrapper.CreateServiceAsync(description, CancellationToken.None);
+                await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 foreach (var oldName in oldNames.Where(n => n != null))
                 {
-                    await _fabricClientWrapper.DeleteServiceAsync(oldName, CancellationToken.None);
+                    await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
                 }
             }
         }
