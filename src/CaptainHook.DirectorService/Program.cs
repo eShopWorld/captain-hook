@@ -55,6 +55,8 @@ namespace CaptainHook.DirectorService
                 builder.RegisterType<FabricClientWrapper>()
                     .As<IFabricClientWrapper>()
                     .SingleInstance();
+
+                builder.RegisterType<ReaderServicesManager>().As<IReaderServicesManager>().SingleInstance();
                 
                 var featureFlags = ConfigureFeatureFlags(configuration.Settings, builder);
                 if (featureFlags.GetFlag<CosmosDbFeatureFlag>().IsEnabled)

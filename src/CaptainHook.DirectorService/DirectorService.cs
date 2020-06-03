@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Fabric;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,9 +17,9 @@ namespace CaptainHook.DirectorService
     {
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
+        private readonly IReaderServicesManager _readerServicesManager;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
         private IList<WebhookConfig> _webhookConfigurations;
-
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
@@ -31,6 +30,7 @@ namespace CaptainHook.DirectorService
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
+            IReaderServicesManager readerServicesManager,
             IFabricClientWrapper fabricClientWrapper,
             IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
             IList<WebhookConfig> webhookConfigurations)
@@ -40,6 +40,7 @@ namespace CaptainHook.DirectorService
             _fabricClientWrapper = fabricClientWrapper;
             _subscriberConfigurations = subscriberConfigurations;
             _webhookConfigurations = webhookConfigurations;
+            _readerServicesManager = readerServicesManager;
         }
 
         /// <summary>
@@ -62,8 +63,7 @@ namespace CaptainHook.DirectorService
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 }
 
-                var manager = new ReaderServicesManager(_fabricClientWrapper, serviceList, _webhookConfigurations);
-                await manager.CreateAsync(_subscriberConfigurations.Values, cancellationToken);
+                await _readerServicesManager.CreateReadersAsync(_subscriberConfigurations.Values, serviceList, _webhookConfigurations, cancellationToken);
             }
             catch (Exception exception)
             {
@@ -72,30 +72,15 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
-
         public async Task ReloadConfigurationForEventAsync(string eventName)
         {
-            await semaphore.WaitAsync();
-            try
-            {
-                var configuration = Configuration.Load();
+            var configuration = Configuration.Load();
+            var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                var comparisonResult = new SubscriberConfigurationComparer().Compare(_subscriberConfigurations, configuration.SubscriberConfigurations);
+            await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList);
 
-                var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
-                var manager = new ReaderServicesManager(_fabricClientWrapper, serviceList, new ReadOnlyCollection<WebhookConfig>(configuration.WebhookConfigurations));
-                await manager.CreateAsync(comparisonResult.Added.Values, CancellationToken.None);
-                await manager.DeleteAsync(comparisonResult.Removed.Values, CancellationToken.None);
-                await manager.RefreshAsync(comparisonResult.Changed.Values, CancellationToken.None);
-
-                _subscriberConfigurations = configuration.SubscriberConfigurations;
-                _webhookConfigurations = configuration.WebhookConfigurations;
-            }
-            finally
-            {
-                semaphore.Release(1);
-            }
+            _subscriberConfigurations = configuration.SubscriberConfigurations;
+            _webhookConfigurations = configuration.WebhookConfigurations;
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
