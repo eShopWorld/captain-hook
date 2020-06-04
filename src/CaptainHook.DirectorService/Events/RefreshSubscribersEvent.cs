@@ -1,21 +1,27 @@
 ﻿using CaptainHook.DirectorService.Utils;
 using Eshopworld.Core;
+using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService.Events
 {
     class RefreshSubscribersEvent : TelemetryEvent
     {
-        public string Message { get; set; }
-        public string ReadersToAdd { get; set; }
-        public string ReadersToDelete { get; set; }
-        public string ReadersToRefresh { get; set; }
+        public int AddedCount { get; set; }
+        public int RemovedCount { get; set; }
+        public int ChangedCount { get; set; }
+        public string AddedReaders { get; set; }
+        public string RemovedReaders { get; set; }
+        public string ChangedReaders { get; set; }
 
         public RefreshSubscribersEvent(SubscriberConfigurationComparer.Result result)
         {
-            Message = $"Number of Readers to add: {result.Added.Count} to delete: {result.Removed.Count} and to refresh: {result.Changed.Count}";
-            ReadersToAdd = string.Join(',', result.Added.Keys);
-            ReadersToDelete = string.Join(',', result.Removed.Keys);
-            ReadersToRefresh = string.Join(',', result.Changed.Keys);
+            AddedCount = result.Added.Count;
+            RemovedCount = result.Removed.Count;
+            ChangedCount = result.Changed.Count;
+
+            AddedReaders = JsonConvert.SerializeObject(result.Added.Keys);
+            RemovedReaders = JsonConvert.SerializeObject(result.Removed.Keys);
+            ChangedReaders = JsonConvert.SerializeObject(result.Changed.Keys);
         }
     }
 }

@@ -7,7 +7,6 @@
 namespace CaptainHook.Api.Client
 {
     using Microsoft.Rest;
-    using Models;
     using System.Collections;
     using System.Collections.Generic;
     using System.Threading;
@@ -63,12 +62,9 @@ namespace CaptainHook.Api.Client
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='body'>
-            /// Request with details to refresh configuration
-            /// </param>
-            public static void RefreshConfigForEvent(this ICaptainHookClient operations, CaptainHookApiModelsRefreshConfigRequest body = default(CaptainHookApiModelsRefreshConfigRequest))
+            public static void RefreshConfig(this ICaptainHookClient operations)
             {
-                operations.RefreshConfigForEventAsync(body).GetAwaiter().GetResult();
+                operations.RefreshConfigAsync().GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -76,16 +72,13 @@ namespace CaptainHook.Api.Client
             /// </summary>
             /// <param name='operations'>
             /// The operations group for this extension method.
-            /// </param>
-            /// <param name='body'>
-            /// Request with details to refresh configuration
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task RefreshConfigForEventAsync(this ICaptainHookClient operations, CaptainHookApiModelsRefreshConfigRequest body = default(CaptainHookApiModelsRefreshConfigRequest), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task RefreshConfigAsync(this ICaptainHookClient operations, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.RefreshConfigForEventWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.RefreshConfigWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -94,15 +87,12 @@ namespace CaptainHook.Api.Client
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='body'>
-            /// Request with details to refresh configuration
-            /// </param>
             /// <param name='customHeaders'>
             /// Headers that will be added to request.
             /// </param>
-            public static HttpOperationResponse RefreshConfigForEventWithHttpMessages(this ICaptainHookClient operations, CaptainHookApiModelsRefreshConfigRequest body = default(CaptainHookApiModelsRefreshConfigRequest), Dictionary<string, List<string>> customHeaders = null)
+            public static HttpOperationResponse RefreshConfigWithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
             {
-                return operations.RefreshConfigForEventWithHttpMessagesAsync(body, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+                return operations.RefreshConfigWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
             }
 
     }

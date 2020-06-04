@@ -4,7 +4,6 @@ namespace CaptainHook.DirectorService.Events
 {
     class ServiceCreatedEvent : TelemetryEvent
     {
-        public string Message { get; set; }
         public string ReaderName { get; set; }
         public string Configuration { get; set; }
 
@@ -12,7 +11,6 @@ namespace CaptainHook.DirectorService.Events
         {
             ReaderName = readerName;
             Configuration = configuration;
-            Message = $"Created Service: {readerName}";
         }
     }
 }
