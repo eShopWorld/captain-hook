@@ -83,7 +83,7 @@ namespace CaptainHook.DirectorService
 
         private async Task DeleteReaderServicesAsync(IEnumerable<string> oldNames, CancellationToken cancellationToken)
         {
-            foreach (var oldName in oldNames.Where(n => n != null))
+            foreach (var oldName in oldNames)
             {
                 if (cancellationToken.IsCancellationRequested) return;
 
