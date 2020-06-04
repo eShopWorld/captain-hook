@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Fabric;
+using System.Fabric.Description;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -69,7 +70,11 @@ namespace CaptainHook.DirectorService
                 // Handlers:
                 if (!serviceList.Contains(ServiceNaming.EventHandlerServiceFullName))
                 {
-                    var description = new ServiceCreationDescription(ServiceNaming.EventHandlerServiceFullName, ServiceNaming.EventHandlerActorServiceType);
+                    var description = new ServiceCreationDescription(
+                        serviceName: ServiceNaming.EventHandlerServiceFullName,
+                        serviceTypeName: ServiceNaming.EventHandlerActorServiceType,
+                        partitionScheme: new UniformInt64RangePartitionSchemeDescription(10));
+
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 }
 

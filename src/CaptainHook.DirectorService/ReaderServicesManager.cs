@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -75,7 +76,11 @@ namespace CaptainHook.DirectorService
                 if (cancellationToken.IsCancellationRequested) return;
 
                 var initializationData = BuildInitializationData(subscriber, webhooks);
-                var description = new ServiceCreationDescription(name, ServiceNaming.EventReaderServiceType, initializationData);
+                var description = new ServiceCreationDescription(
+                    serviceName: name,
+                    serviceTypeName: ServiceNaming.EventReaderServiceType,
+                    partitionScheme: new SingletonPartitionSchemeDescription(),
+                    initializationData);
                 await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 _bigBrother.Publish(new ServiceCreatedEvent(name, JsonConvert.SerializeObject(subscriber)));
             }
