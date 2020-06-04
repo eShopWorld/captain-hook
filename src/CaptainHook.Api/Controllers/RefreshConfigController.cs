@@ -32,18 +32,17 @@ namespace CaptainHook.Api.Controllers
         /// <summary>
         /// Refreshes configuration for the given event
         /// </summary>
-        /// <param name="request">Request with details to refresh configuration</param>
         /// <returns>If the event name is valid, returns its configuration. If invalid, returns BadRequest</returns>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> RefreshConfigForEvent([FromBody]RefreshConfigRequest request)
+        public async Task<IActionResult> RefreshConfigForEvent()
         {
             try
             {
                 var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(new Uri(ServiceNaming.DirectorServiceFullName));
-                await directorServiceClient.ReloadConfigurationForEventAsync(request.EventName);
+                await directorServiceClient.ReloadConfigurationForEventAsync();
 
                 return Ok();
             }
