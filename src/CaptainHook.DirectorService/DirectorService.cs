@@ -18,6 +18,7 @@ namespace CaptainHook.DirectorService
     {
         private bool _refreshInProgress;
         private readonly object _refreshSync = new object();
+        private CancellationToken _cancellationToken;
 
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
@@ -54,6 +55,7 @@ namespace CaptainHook.DirectorService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
             // TODO: Check fabric node topology - if running below Bronze, set min and target replicas to 1 instead of 3
             try
             {
@@ -102,7 +104,7 @@ namespace CaptainHook.DirectorService
                 var configuration = Configuration.Load();
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList, CancellationToken.None);
+                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList, _cancellationToken);
 
                 _subscriberConfigurations = configuration.SubscriberConfigurations;
                 _webhookConfigurations = configuration.WebhookConfigurations;
