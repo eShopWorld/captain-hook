@@ -5,6 +5,6 @@ namespace CaptainHook.Common.Remoting
 {
     public interface IDirectorServiceRemoting: IService
     {
-        Task ReloadConfigurationForEventAsync();
+        Task ReloadConfigurationAsync();
     }
 }

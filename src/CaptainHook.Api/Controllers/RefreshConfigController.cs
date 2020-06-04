@@ -37,12 +37,12 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> RefreshConfigForEvent()
+        public async Task<IActionResult> RefreshConfig()
         {
             try
             {
                 var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(new Uri(ServiceNaming.DirectorServiceFullName));
-                await directorServiceClient.ReloadConfigurationForEventAsync();
+                await directorServiceClient.ReloadConfigurationAsync();
 
                 return Ok();
             }

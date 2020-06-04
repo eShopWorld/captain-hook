@@ -74,7 +74,7 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public async Task ReloadConfigurationForEventAsync()
+        public async Task ReloadConfigurationAsync()
         {
             await _semaphore.WaitAsync();
             try
