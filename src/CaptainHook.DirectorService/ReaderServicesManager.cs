@@ -115,7 +115,7 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        private (string newName, IEnumerable<string> oldNames) FindServiceNames(SubscriberConfiguration subscriber, IList<string> serviceList)
+        public (string newName, IEnumerable<string> oldNames) FindServiceNames(SubscriberConfiguration subscriber, IList<string> serviceList)
         {
             var ticksPerSecond = 10_000_000;
 

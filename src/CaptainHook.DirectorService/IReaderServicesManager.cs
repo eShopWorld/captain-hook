@@ -26,5 +26,7 @@ namespace CaptainHook.DirectorService
         /// <param name="currentSubscribers">List of currently deployed subscribers</param>
         /// <returns></returns>
         Task RefreshReadersAsync(Configuration newConfiguration, IDictionary<string, SubscriberConfiguration> currentSubscribers, IList<string> serviceList);
+
+        (string newName, IEnumerable<string> oldNames) FindServiceNames(SubscriberConfiguration subscriber, IList<string> serviceList);
     }
 }
