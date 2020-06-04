@@ -8,7 +8,6 @@ namespace CaptainHook.Api.Client
 {
     using Microsoft.Rest;
     using Microsoft.Rest.Serialization;
-    using Models;
     using Newtonsoft.Json;
     using System.Collections;
     using System.Collections.Generic;
@@ -416,9 +415,6 @@ namespace CaptainHook.Api.Client
         /// <summary>
         /// Refreshes configuration for the given event
         /// </summary>
-        /// <param name='body'>
-        /// Request with details to refresh configuration
-        /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
         /// </param>
@@ -431,7 +427,7 @@ namespace CaptainHook.Api.Client
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse> RefreshConfigForEventWithHttpMessagesAsync(CaptainHookApiModelsRefreshConfigRequest body = default(CaptainHookApiModelsRefreshConfigRequest), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse> RefreshConfigWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -440,9 +436,8 @@ namespace CaptainHook.Api.Client
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "RefreshConfigForEvent", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "RefreshConfig", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
@@ -469,12 +464,6 @@ namespace CaptainHook.Api.Client
 
             // Serialize Request
             string _requestContent = null;
-            if(body != null)
-            {
-                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
-                _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
-                _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
-            }
             // Set Credentials
             if (Credentials != null)
             {
