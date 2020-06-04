@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -19,15 +20,17 @@ namespace CaptainHook.DirectorService
     {
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IBigBrother _bigBrother;
+        private readonly IDateTimeProvider _dateTimeProvider;
 
         /// <summary>
         /// Creates a ReaderServiceManager instance
         /// </summary>
         /// <param name="fabricClientWrapper">Fabric Client</param>
-        public ReaderServicesManager(IFabricClientWrapper fabricClientWrapper, IBigBrother bigBrother)
+        public ReaderServicesManager(IFabricClientWrapper fabricClientWrapper, IBigBrother bigBrother, IDateTimeProvider dateTimeProvider)
         {
             _fabricClientWrapper = fabricClientWrapper;
             _bigBrother = bigBrother;
+            _dateTimeProvider = dateTimeProvider;
         }
 
         /// <summary>
@@ -112,19 +115,22 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        private static (string newName, IEnumerable<string> oldNames) FindServiceNames(SubscriberConfiguration subscriber, IList<string> serviceList)
+        private (string newName, IEnumerable<string> oldNames) FindServiceNames(SubscriberConfiguration subscriber, IList<string> serviceList)
         {
+            var ticksPerSecond = 10_000_000;
+
+            // generates a new id every minute
+            var newSuffix = (_dateTimeProvider.UtcNow.Ticks / (60 * ticksPerSecond)).ToString();
+
             var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
 
-            var names = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
+            var possibleOldNames = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
 
-            var oldNames = serviceList.Intersect(names);
+            var oldNames = new List<string>();
+            oldNames.AddRange(serviceList.Intersect(possibleOldNames));
+            oldNames.AddRange(serviceList.Where(x => Regex.IsMatch(x, @"-\d{10}$")));
 
-            var newName = $"{readerServiceNameUri}-a";
-            if (oldNames.Contains(newName))
-            {
-                newName = $"{readerServiceNameUri}-b";
-            }
+            var newName = $"{readerServiceNameUri}-{newSuffix}";
 
             return (newName, oldNames);
         }

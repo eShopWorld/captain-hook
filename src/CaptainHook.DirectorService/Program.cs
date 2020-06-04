@@ -57,6 +57,10 @@ namespace CaptainHook.DirectorService
                     .As<IFabricClientWrapper>()
                     .SingleInstance();
 
+                builder.RegisterType<DateTimeProvider>()
+                    .As<IDateTimeProvider>()
+                    .SingleInstance();
+
                 builder.RegisterType<ReaderServicesManager>().As<IReaderServicesManager>().SingleInstance();
                 
                 var featureFlags = ConfigureFeatureFlags(configuration.Settings, builder);
