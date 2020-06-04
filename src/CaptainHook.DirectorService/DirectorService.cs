@@ -82,7 +82,7 @@ namespace CaptainHook.DirectorService
                 var configuration = Configuration.Load();
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList);
+                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList, CancellationToken.None);
 
                 _subscriberConfigurations = configuration.SubscriberConfigurations;
                 _webhookConfigurations = configuration.WebhookConfigurations;
