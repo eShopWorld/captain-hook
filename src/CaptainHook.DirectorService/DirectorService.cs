@@ -16,7 +16,9 @@ namespace CaptainHook.DirectorService
 {
     public class DirectorService : StatefulService, IDirectorServiceRemoting
     {
-        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private bool _refreshInProgress;
+        private readonly object _refreshSync = new object();
+
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IReaderServicesManager _readerServicesManager;
@@ -53,9 +55,13 @@ namespace CaptainHook.DirectorService
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             // TODO: Check fabric node topology - if running below Bronze, set min and target replicas to 1 instead of 3
-
             try
             {
+                lock (_refreshSync)
+                {
+                    _refreshInProgress = true;
+                }
+
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
                 // Handlers:
@@ -72,11 +78,25 @@ namespace CaptainHook.DirectorService
                 _bigBrother.Publish(exception);
                 throw;
             }
+            finally
+            {
+                lock (_refreshSync)
+                {
+                    _refreshInProgress = false;
+                }
+            }
         }
 
         public async Task ReloadConfigurationAsync()
         {
-            await _semaphore.WaitAsync();
+            lock (_refreshSync)
+            {
+                if (_refreshInProgress)
+                    return;
+
+                _refreshInProgress = true;
+            }
+
             try
             {
                 var configuration = Configuration.Load();
@@ -89,7 +109,10 @@ namespace CaptainHook.DirectorService
             }
             finally
             {
-                _semaphore.Release(1);
+                lock (_refreshSync)
+                {
+                    _refreshInProgress = false;
+                }
             }
         }
 
