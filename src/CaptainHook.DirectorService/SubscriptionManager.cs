@@ -2,6 +2,7 @@
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using System.Collections.Generic;
+using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,9 +31,18 @@ namespace CaptainHook.DirectorService
                 var (newName, oldNames) = FindServiceNames(subscriber);
                 var initializationData = BuildInitializationData(subscriber);
 
-                var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
+                var description = new ServiceCreationDescription(
+                    serviceName: newName,
+                    serviceTypeName: ServiceNaming.EventReaderServiceType,
+                    partitionScheme: new SingletonPartitionSchemeDescription(),
+                    initializationData);
 
                 await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
+
+                foreach (var oldName in oldNames)
+                {
+                    await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
+                }
             }
         }
 
