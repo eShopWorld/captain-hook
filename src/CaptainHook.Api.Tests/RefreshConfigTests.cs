@@ -27,14 +27,6 @@ namespace CaptainHook.Api.Tests
             result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
         }
 
-        [Fact, IsDev]
-        public async Task RefreshConfig_NullEvent_InvalidResponse()
-        {
-            var result = await _apiClient.RefreshConfigWithHttpMessagesAsync();
-
-            result.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
-        }
-
         public void Dispose()
         {
             _apiClient.Dispose();
