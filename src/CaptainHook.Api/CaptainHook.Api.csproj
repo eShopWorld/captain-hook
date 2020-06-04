@@ -66,6 +66,10 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
   <Target Name="IncludeDocFile" BeforeTargets="PrepareForPublish">
     <ItemGroup Condition=" '$(DocumentationFile)' != '' ">
       <_DocumentationFile Include="$(DocumentationFile)" />

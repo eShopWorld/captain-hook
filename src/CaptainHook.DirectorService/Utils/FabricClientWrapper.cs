@@ -1,14 +1,14 @@
-﻿using CaptainHook.Common;
-using CaptainHook.Common.Configuration;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Fabric;
 using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 
-namespace CaptainHook.DirectorService
+namespace CaptainHook.DirectorService.Utils
 {
     /// <summary>
     /// A simple wrapper around FabricClient

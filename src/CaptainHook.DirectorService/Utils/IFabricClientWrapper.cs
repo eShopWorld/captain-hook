@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace CaptainHook.DirectorService
+namespace CaptainHook.DirectorService.Utils
 {
     public interface IFabricClientWrapper
     {
