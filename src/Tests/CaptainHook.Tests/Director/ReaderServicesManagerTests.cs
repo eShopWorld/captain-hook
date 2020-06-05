@@ -55,9 +55,11 @@ namespace CaptainHook.Tests.Director
 
             var deployedServicesNames = new[]
             {
+                "fabric:/CaptainHook/EventReader.oldtestevent.completed-captain-hook-a",
+                "fabric:/CaptainHook/EventReader.oldtestevent.completed-oldsubscriber-a",
                 "fabric:/CaptainHook/EventReader.testevent-captain-hook-a",
                 "fabric:/CaptainHook/EventReader.testevent-subscriber1-b",
-                "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-a"
+                "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-a",
             };
 
             await readerServiceManager.CreateReadersAsync(_subscribersToCreate, deployedServicesNames, _webhooks, CancellationToken.None);
@@ -114,9 +116,11 @@ namespace CaptainHook.Tests.Director
 
             var deployedServicesNames = new[]
             {
+                "fabric:/CaptainHook/EventReader.oldtestevent.completed-captain-hook-a",
+                "fabric:/CaptainHook/EventReader.oldtestevent.completed-oldsubscriber-a",
                 "fabric:/CaptainHook/EventReader.testevent-captain-hook-a",
                 "fabric:/CaptainHook/EventReader.testevent-subscriber1-b",
-                "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-a"
+                "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-a",
             };
 
             await readerServiceManager.CreateReadersAsync(_subscribersToCreate, deployedServicesNames, _webhooks, CancellationToken.None);
