@@ -1,7 +1,6 @@
 ﻿using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
-using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -13,7 +12,7 @@ namespace CaptainHook.Tests.Director
 {
     public class ReaderServiceNameGeneratorTests
     {
-        private IReaderServiceNameGenerator _readerServiceNameGenerator;
+        private ReaderServiceNameGenerator _readerServiceNameGenerator;
         private IDateTimeProvider _dateTimeProvider;
         private SubscriberConfiguration _subscriberConfiguration;
 
