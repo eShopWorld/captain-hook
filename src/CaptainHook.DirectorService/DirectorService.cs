@@ -7,17 +7,20 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
+using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Utils;
 using Eshopworld.Core;
+using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace CaptainHook.DirectorService
 {
+    [UsedImplicitly]
     public class DirectorService : StatefulService, IDirectorServiceRemoting
     {
-        private bool _refreshInProgress;
+        private volatile bool _refreshInProgress;
         private readonly object _refreshSync = new object();
         private CancellationToken _cancellationToken;
 
@@ -94,19 +97,27 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public async Task ReloadConfigurationAsync()
+        public Task<RequestReloadConfigurationResult> RequestReloadConfigurationAsync()
         {
             if (!_refreshInProgress)
             {
                 lock (_refreshSync)
                 {
-                    if (_refreshInProgress)
-                        return;
-
-                    _refreshInProgress = true;
+                    if (!_refreshInProgress)
+                    {
+                        _refreshInProgress = true;
+                        ThreadPool.QueueUserWorkItem(ExecuteConfigRefresh);
+                        return Task.FromResult(RequestReloadConfigurationResult.ReloadStarted);
+                    }
                 }
             }
 
+            _bigBrother.Publish(new RefreshConfigRequestedWhenAnotherInProgressEvent());
+            return Task.FromResult(RequestReloadConfigurationResult.ReloadInProgress);
+        }
+
+        private async void ExecuteConfigRefresh(object state)
+        {
             try
             {
                 var configuration = Configuration.Load();
