@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.DirectorService.Infrastructure;
+using CaptainHook.DirectorService.Infrastructure.Interfaces;
 
 namespace CaptainHook.DirectorService.Utils
 {

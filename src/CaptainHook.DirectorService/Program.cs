@@ -10,6 +10,8 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Database.Setup;
+using CaptainHook.DirectorService.Infrastructure;
+using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.Utils;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
@@ -57,7 +59,17 @@ namespace CaptainHook.DirectorService
                     .As<IFabricClientWrapper>()
                     .SingleInstance();
 
-                builder.RegisterType<ReaderServicesManager>().As<IReaderServicesManager>().SingleInstance();
+                builder.RegisterType<DateTimeProvider>()
+                    .As<IDateTimeProvider>()
+                    .SingleInstance();
+
+                builder.RegisterType<ReaderServiceNameGenerator>()
+                    .As<IReaderServiceNameGenerator>()
+                    .SingleInstance();
+
+                builder.RegisterType<ReaderServicesManager>()
+                    .As<IReaderServicesManager>()
+                    .SingleInstance();
                 
                 var featureFlags = ConfigureFeatureFlags(configuration.Settings, builder);
                 if (featureFlags.GetFlag<CosmosDbFeatureFlag>().IsEnabled)
