@@ -22,9 +22,9 @@ namespace CaptainHook.Api.Tests
         [Fact, IsDev]
         public async Task RefreshConfig_ValidEvent_ValidResponse()
         {
-            var result = await _apiClient.RefreshConfigWithHttpMessagesAsync();
+            var result = await _apiClient.ReloadConfigurationWithHttpMessagesAsync();
 
-            result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+            result.Response.StatusCode.Should().Be(StatusCodes.Status202Accepted);
         }
 
         public void Dispose()
