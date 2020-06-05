@@ -7,20 +7,28 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
+using CaptainHook.DirectorService.Events;
+using CaptainHook.DirectorService.Utils;
 using Eshopworld.Core;
+using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace CaptainHook.DirectorService
 {
+    [UsedImplicitly]
     public class DirectorService : StatefulService, IDirectorServiceRemoting
     {
+        private volatile bool _refreshInProgress;
+        private readonly object _refreshSync = new object();
+        private CancellationToken _cancellationToken;
+
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
+        private readonly IReaderServicesManager _readerServicesManager;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
         private IList<WebhookConfig> _webhookConfigurations;
-        
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
@@ -28,17 +36,20 @@ namespace CaptainHook.DirectorService
         /// <param name="context">The injected <see cref="StatefulServiceContext"/>.</param>
         /// <param name="bigBrother">The injected <see cref="IBigBrother"/> telemetry interface.</param>
         /// <param name="fabricClientWrapper">The injected <see cref="IFabricClientWrapper"/>.</param>
-        /// <param name="subscriptionManager">The injected <see cref="ISubscriptionManager"/>.</param>
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
-            IFabricClientWrapper fabricClientWrapper, IDictionary<string, SubscriberConfiguration> subscriberConfigurations, IList<WebhookConfig> webhookConfigurations)
+            IReaderServicesManager readerServicesManager,
+            IFabricClientWrapper fabricClientWrapper,
+            IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
+            IList<WebhookConfig> webhookConfigurations)
             : base(context)
         {
             _bigBrother = bigBrother;
             _fabricClientWrapper = fabricClientWrapper;
             _subscriberConfigurations = subscriberConfigurations;
             _webhookConfigurations = webhookConfigurations;
+            _readerServicesManager = readerServicesManager;
         }
 
         /// <summary>
@@ -48,10 +59,15 @@ namespace CaptainHook.DirectorService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
             // TODO: Check fabric node topology - if running below Bronze, set min and target replicas to 1 instead of 3
-
             try
             {
+                lock (_refreshSync)
+                {
+                    _refreshInProgress = true;
+                }
+
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
                 // Handlers:
@@ -65,20 +81,71 @@ namespace CaptainHook.DirectorService
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 }
 
-                var manager = new SubscriptionManager(_fabricClientWrapper, serviceList, _webhookConfigurations);
-                await manager.CreateAsync(_subscriberConfigurations, cancellationToken);
+                await _readerServicesManager.CreateReadersAsync(_subscriberConfigurations.Values, serviceList, _webhookConfigurations, cancellationToken);
             }
             catch (Exception exception)
             {
                 _bigBrother.Publish(exception);
                 throw;
             }
+            finally
+            {
+                lock (_refreshSync)
+                {
+                    _refreshInProgress = false;
+                }
+            }
         }
 
-        public Task ReloadConfigurationForEventAsync(string eventName)
+        public Task<RequestReloadConfigurationResult> RequestReloadConfigurationAsync()
         {
-            var configuration = Configuration.Load();
-            return Task.CompletedTask;
+            if (!_refreshInProgress)
+            {
+                lock (_refreshSync)
+                {
+                    if (!_refreshInProgress)
+                    {
+                        _refreshInProgress = true;
+                        ThreadPool.QueueUserWorkItem(ExecuteConfigReload);
+                        return Task.FromResult(RequestReloadConfigurationResult.ReloadStarted);
+                    }
+                }
+            }
+
+            _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
+            return Task.FromResult(RequestReloadConfigurationResult.ReloadInProgress);
+        }
+
+        private async void ExecuteConfigReload(object state)
+        {
+            var reloadConfigFinishedTimedEvent = new ReloadConfigFinishedEvent();
+
+            try
+            {
+                var configuration = Configuration.Load();
+                var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
+
+                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList,
+                    _cancellationToken);
+
+                _subscriberConfigurations = configuration.SubscriberConfigurations;
+                _webhookConfigurations = configuration.WebhookConfigurations;
+
+                reloadConfigFinishedTimedEvent.IsSuccess = true;
+            }
+            catch
+            {
+                reloadConfigFinishedTimedEvent.IsSuccess = false;
+                throw;
+            }
+            finally
+            {
+                _bigBrother.Publish(reloadConfigFinishedTimedEvent);
+                lock (_refreshSync)
+                {
+                    _refreshInProgress = false;
+                }
+            }
         }
 
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()

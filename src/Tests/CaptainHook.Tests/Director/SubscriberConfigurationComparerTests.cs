@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService;
+using CaptainHook.DirectorService.Utils;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;

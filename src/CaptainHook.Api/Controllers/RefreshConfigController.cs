@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CaptainHook.Api.Models;
 using CaptainHook.Common;
 using CaptainHook.Common.Remoting;
 using Eshopworld.Core;
-using Eshopworld.Telemetry;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,25 +27,30 @@ namespace CaptainHook.Api.Controllers
         {
             _bigBrother = bigBrother;
         }
+
         /// <summary>
-        /// Refreshes configuration for the given event
+        /// Reloads configuration for Captain Hook
         /// </summary>
-        /// <param name="request">Request with details to refresh configuration</param>
-        /// <returns>If the event name is valid, returns its configuration. If invalid, returns BadRequest</returns>
+        /// <response code="202">Configuration reload has been requested</response>
+        /// <response code="400">Configuration reload has not been requested due to an error</response>
+        /// <response code="409">Configuration reload has not been requested as another reload is in progress</response>
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> RefreshConfigForEvent([FromBody]RefreshConfigRequest request)
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> ReloadConfiguration()
         {
             try
             {
-                var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(new Uri(ServiceNaming.DirectorServiceFullName));
-                await directorServiceClient.ReloadConfigurationForEventAsync(request.EventName);
+                var directorServiceUri = new Uri(ServiceNaming.DirectorServiceFullName);
+                var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
+                var requestReloadConfigurationResult = await directorServiceClient.RequestReloadConfigurationAsync();
 
-                return Ok();
+                return requestReloadConfigurationResult == RequestReloadConfigurationResult.ReloadStarted
+                    ? (IActionResult) Accepted()
+                    : Conflict();
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 _bigBrother.Publish(exception);
                 return BadRequest();
