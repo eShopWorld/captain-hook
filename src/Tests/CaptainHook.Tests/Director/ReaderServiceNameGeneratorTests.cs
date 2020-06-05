@@ -69,29 +69,59 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [Fact, IsLayer0]
-        public void CanFindOldServiceNames()
+        [IsLayer0]
+        [Theory]
+        [InlineData("a")]
+        [InlineData("b")]
+        [InlineData("12345678901234")]
+        //[InlineData("-a")]
+        //[InlineData("d")]
+        //[InlineData("--")]
+        //[InlineData("\\")]
+        //[InlineData("1234567890123412345678901234")]
+        //[InlineData("a12345678901234")]
+        //[InlineData("12345678901234a")]
+        public void CanFindOldServiceNames(string suffix)
         {
             var serviceList = new[]
             {
                 FullEventName(EventTypeName1),
-                FullEventName(EventTypeName1, "a"),
-                FullEventName(EventTypeName1, "b"),
-                FullEventName(EventTypeName1, "12345678901234"),
+                FullEventName(EventTypeName1, suffix),
 
                 FullEventName(EventTypeName2),
-                FullEventName(EventTypeName2, "a"),
-                FullEventName(EventTypeName2, "b"),
-                FullEventName(EventTypeName2, "12345678901234")
+                FullEventName(EventTypeName2, suffix)
             };
 
             var oldNames = _readerServiceNameGenerator.FindOldNames(_subscriberNaming, serviceList);
 
             oldNames.Should().BeEquivalentTo(
                 FullEventName(EventTypeName1),
-                FullEventName(EventTypeName1, "a"),
-                FullEventName(EventTypeName1, "b"),
-                FullEventName(EventTypeName1, "12345678901234"));
+                FullEventName(EventTypeName1, suffix));
+        }
+
+        [IsLayer0]
+        [Theory]
+        [InlineData("-a")]
+        [InlineData("d")]
+        [InlineData("--")]
+        [InlineData("\\")]
+        [InlineData("1234567890123412345678901234")]
+        [InlineData("a12345678901234")]
+        [InlineData("12345678901234a")]
+        public void WontFindServiceNames(string suffix)
+        {
+            var serviceList = new[]
+            {
+                FullEventName(EventTypeName1),
+                FullEventName(EventTypeName1, suffix),
+
+                FullEventName(EventTypeName2),
+                FullEventName(EventTypeName2, suffix)
+            };
+
+            var oldNames = _readerServiceNameGenerator.FindOldNames(_subscriberNaming, serviceList);
+
+            oldNames.Should().BeEquivalentTo(FullEventName(EventTypeName1));
         }
     }
 }
