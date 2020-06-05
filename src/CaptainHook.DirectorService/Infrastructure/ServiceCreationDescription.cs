@@ -1,18 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace CaptainHook.DirectorService.Utils
+﻿namespace CaptainHook.DirectorService.Infrastructure
 {
-    public interface IFabricClientWrapper
-    {
-        Task<List<string>> GetServiceUriListAsync();
-
-        Task CreateServiceAsync(ServiceCreationDescription serviceCreationDescription, CancellationToken cancellationToken);
-
-        Task DeleteServiceAsync(string serviceName, CancellationToken cancellationToken);
-    }
-
     public class ServiceCreationDescription
     {
         public string ServiceName { get; }

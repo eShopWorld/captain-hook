@@ -1,17 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
+using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.Utils;
 using Eshopworld.Core;
 using Newtonsoft.Json;
 
-namespace CaptainHook.DirectorService
+namespace CaptainHook.DirectorService.Infrastructure
 {
     /// <summary>
     /// Allows to create or refresh Reader Services.
@@ -21,16 +21,22 @@ namespace CaptainHook.DirectorService
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IBigBrother _bigBrother;
         private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly IReaderServiceNameGenerator _readerServiceNameGenerator;
 
         /// <summary>
         /// Creates a ReaderServiceManager instance
         /// </summary>
         /// <param name="fabricClientWrapper">Fabric Client</param>
-        public ReaderServicesManager(IFabricClientWrapper fabricClientWrapper, IBigBrother bigBrother, IDateTimeProvider dateTimeProvider)
+        public ReaderServicesManager(
+            IFabricClientWrapper fabricClientWrapper, 
+            IBigBrother bigBrother, 
+            IDateTimeProvider dateTimeProvider,
+            IReaderServiceNameGenerator readerServiceNameGenerator)
         {
             _fabricClientWrapper = fabricClientWrapper;
             _bigBrother = bigBrother;
             _dateTimeProvider = dateTimeProvider;
+            _readerServiceNameGenerator = readerServiceNameGenerator;
         }
 
         /// <summary>
@@ -70,7 +76,8 @@ namespace CaptainHook.DirectorService
         {
             foreach (var subscriber in subscribers)
             {
-                var (newName, _) = FindServiceNames(subscriber, serviceList);
+                var newName = _readerServiceNameGenerator.GenerateNewName(subscriber);
+                
                 var initializationData = BuildInitializationData(subscriber, webhooks);
 
                 var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
@@ -84,7 +91,7 @@ namespace CaptainHook.DirectorService
         {
             foreach (var subscriber in subscribers)
             {
-                var (_, oldNames) = FindServiceNames(subscriber, serviceList);
+                var oldNames = _readerServiceNameGenerator.FindOldNames(subscriber, serviceList);
 
                 foreach (var oldName in oldNames.Where(n => n != null))
                 {
@@ -100,39 +107,21 @@ namespace CaptainHook.DirectorService
             {
                 if (cancellationToken.IsCancellationRequested) return;
 
-                var (newName, oldNames) = FindServiceNames(subscriber, serviceList);
+                var newName = _readerServiceNameGenerator.GenerateNewName(subscriber);
+
                 var initializationData = BuildInitializationData(subscriber, webhooks);
                 var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
 
                 await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 _bigBrother.Publish(new ServiceCreatedEvent(newName, JsonConvert.SerializeObject(subscriber)));
 
+                var oldNames = _readerServiceNameGenerator.FindOldNames(subscriber, serviceList);
                 foreach (var oldName in oldNames.Where(n => n != null))
                 {
                     await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
                     _bigBrother.Publish(new ServiceDeletedEvent(oldName));
                 }
             }
-        }
-
-        public (string newName, IEnumerable<string> oldNames) FindServiceNames(SubscriberConfiguration subscriber, IList<string> serviceList)
-        {
-            var ticksPerSecond = 10_000_000;
-
-            // generates a new id every minute
-            var newSuffix = (_dateTimeProvider.UtcNow.Ticks / (60 * ticksPerSecond)).ToString();
-
-            var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
-
-            var possibleOldNames = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
-
-            var oldNames = new List<string>();
-            oldNames.AddRange(serviceList.Intersect(possibleOldNames));
-            oldNames.AddRange(serviceList.Where(x => Regex.IsMatch(x, @"-\d{10}$")));
-
-            var newName = $"{readerServiceNameUri}-{newSuffix}";
-
-            return (newName, oldNames);
         }
 
         private static byte[] BuildInitializationData(SubscriberConfiguration subscriber, IEnumerable<WebhookConfig> webhooks)

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CaptainHook.DirectorService
+namespace CaptainHook.DirectorService.Infrastructure.Interfaces
 {
     public interface IDateTimeProvider
     {
