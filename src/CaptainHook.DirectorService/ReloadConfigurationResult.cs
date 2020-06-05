@@ -1,8 +1,6 @@
-﻿using CaptainHook.Common.Remoting;
-
-namespace CaptainHook.DirectorService
+﻿namespace CaptainHook.DirectorService
 {
-    public class ReloadConfigurationResult: IReloadConfigurationResult
+    public class ReloadConfigurationResult
     {
         public int Added { get; }
         public int Removed { get; }
@@ -14,7 +12,5 @@ namespace CaptainHook.DirectorService
             Removed = removed;
             Changed = changed;
         }
-
     }
-
 }
