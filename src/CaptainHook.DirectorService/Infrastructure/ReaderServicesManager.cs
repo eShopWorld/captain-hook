@@ -1,17 +1,18 @@
 ﻿using System.Collections.Generic;
+using System.Fabric.Description;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
-using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.Utils;
 using Eshopworld.Core;
 using Newtonsoft.Json;
 
-namespace CaptainHook.DirectorService.Infrastructure
+namespace CaptainHook.DirectorService
 {
     /// <summary>
     /// Allows to create or refresh Reader Services.
@@ -21,22 +22,16 @@ namespace CaptainHook.DirectorService.Infrastructure
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IBigBrother _bigBrother;
         private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly IReaderServiceNameGenerator _readerServiceNameGenerator;
 
         /// <summary>
         /// Creates a ReaderServiceManager instance
         /// </summary>
         /// <param name="fabricClientWrapper">Fabric Client</param>
-        public ReaderServicesManager(
-            IFabricClientWrapper fabricClientWrapper, 
-            IBigBrother bigBrother, 
-            IDateTimeProvider dateTimeProvider,
-            IReaderServiceNameGenerator readerServiceNameGenerator)
+        public ReaderServicesManager(IFabricClientWrapper fabricClientWrapper, IBigBrother bigBrother, IDateTimeProvider dateTimeProvider)
         {
             _fabricClientWrapper = fabricClientWrapper;
             _bigBrother = bigBrother;
             _dateTimeProvider = dateTimeProvider;
-            _readerServiceNameGenerator = readerServiceNameGenerator;
         }
 
         /// <summary>
@@ -49,8 +44,12 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// <returns></returns>
         public async Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IList<WebhookConfig> webhooks, CancellationToken cancellationToken)
         {
-            // we must delete old services also, that's why we need to call Refresh not Create here
-            await RefreshAsync(subscribers, serviceList, webhooks, cancellationToken);
+            // we must delete previous instances also as they may have obsolete configuration
+            var servicesToCreate = subscribers.ToDictionary(s => FindServiceNames(s, serviceList).newName, s => s);
+            var servicesToDelete = subscribers.SelectMany(s => FindServiceNames(s, serviceList).oldNames);
+
+            await CreateReaderServicesAsync(servicesToCreate, webhooks, cancellationToken);
+            await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
         }
 
         /// <summary>
@@ -61,67 +60,64 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// <param name="serviceList">List of currently deployed services names</param>
         /// <param name="currentSubscribers">List of currently deployed subscribers</param>
         /// <returns></returns>
-        public async Task RefreshReadersAsync(Configuration newConfiguration, IDictionary<string, SubscriberConfiguration> currentSubscribers, IList<string> serviceList)
+        public async Task RefreshReadersAsync(Configuration newConfiguration, IDictionary<string, SubscriberConfiguration> currentSubscribers, IList<string> serviceList, CancellationToken cancellationToken)
         {
             var comparisonResult = new SubscriberConfigurationComparer().Compare(currentSubscribers, newConfiguration.SubscriberConfigurations);
-
             _bigBrother.Publish(new RefreshSubscribersEvent(comparisonResult));
 
-            await CreateAsync(comparisonResult.Added.Values, serviceList, newConfiguration.WebhookConfigurations);
-            await DeleteAsync(comparisonResult.Removed.Values, serviceList, newConfiguration.WebhookConfigurations);
-            await RefreshAsync(comparisonResult.Changed.Values, serviceList, newConfiguration.WebhookConfigurations, CancellationToken.None);
+            var servicesToCreate = comparisonResult.Added.Values.Union(comparisonResult.Changed.Values).ToDictionary(s => FindServiceNames(s, serviceList).newName, s => s);
+            var servicesToDelete = comparisonResult.Removed.Values.Union(comparisonResult.Changed.Values).SelectMany(s => FindServiceNames(s, serviceList).oldNames);
+
+            await CreateReaderServicesAsync(servicesToCreate, newConfiguration.WebhookConfigurations, cancellationToken);
+            await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
         }
 
-        private async Task CreateAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IEnumerable<WebhookConfig> webhooks)
+        private async Task CreateReaderServicesAsync(IDictionary<string, SubscriberConfiguration> subscribers, IList<WebhookConfig> webhooks, CancellationToken cancellationToken)
         {
-            foreach (var subscriber in subscribers)
-            {
-                var newName = _readerServiceNameGenerator.GenerateNewName(subscriber);
-                
-                var initializationData = BuildInitializationData(subscriber, webhooks);
-
-                var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
-
-                await _fabricClientWrapper.CreateServiceAsync(description, CancellationToken.None);
-                _bigBrother.Publish(new ServiceCreatedEvent(newName, JsonConvert.SerializeObject(subscriber)));
-            }
-        }
-
-        private async Task DeleteAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IEnumerable<WebhookConfig> webhooks)
-        {
-            foreach (var subscriber in subscribers)
-            {
-                var oldNames = _readerServiceNameGenerator.FindOldNames(subscriber, serviceList);
-
-                foreach (var oldName in oldNames.Where(n => n != null))
-                {
-                    await _fabricClientWrapper.DeleteServiceAsync(oldName, CancellationToken.None);
-                    _bigBrother.Publish(new ServiceDeletedEvent(oldName));
-                }
-            }
-        }
-
-        private async Task RefreshAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IEnumerable<WebhookConfig> webhooks, CancellationToken cancellationToken)
-        {
-            foreach (var subscriber in subscribers)
+            foreach (var (name, subscriber) in subscribers)
             {
                 if (cancellationToken.IsCancellationRequested) return;
 
-                var newName = _readerServiceNameGenerator.GenerateNewName(subscriber);
-
                 var initializationData = BuildInitializationData(subscriber, webhooks);
-                var description = new ServiceCreationDescription(newName, ServiceNaming.EventReaderServiceType, initializationData);
-
+                var description = new ServiceCreationDescription(
+                    serviceName: name,
+                    serviceTypeName: ServiceNaming.EventReaderServiceType,
+                    partitionScheme: new SingletonPartitionSchemeDescription(),
+                    initializationData);
                 await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
-                _bigBrother.Publish(new ServiceCreatedEvent(newName, JsonConvert.SerializeObject(subscriber)));
-
-                var oldNames = _readerServiceNameGenerator.FindOldNames(subscriber, serviceList);
-                foreach (var oldName in oldNames.Where(n => n != null))
-                {
-                    await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
-                    _bigBrother.Publish(new ServiceDeletedEvent(oldName));
-                }
+                _bigBrother.Publish(new ServiceCreatedEvent(name, JsonConvert.SerializeObject(subscriber)));
             }
+        }
+
+        private async Task DeleteReaderServicesAsync(IEnumerable<string> oldNames, CancellationToken cancellationToken)
+        {
+            foreach (var oldName in oldNames)
+            {
+                if (cancellationToken.IsCancellationRequested) return;
+
+                await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
+                _bigBrother.Publish(new ServiceDeletedEvent(oldName));
+            }
+        }
+
+        public (string newName, IEnumerable<string> oldNames) FindServiceNames(SubscriberConfiguration subscriber, IList<string> serviceList)
+        {
+            var ticksPerSecond = 10_000_000;
+
+            // generates a new id every minute
+            var newSuffix = (_dateTimeProvider.UtcNow.Ticks / (60 * ticksPerSecond)).ToString();
+
+            var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(subscriber.EventType, subscriber.SubscriberName, subscriber.DLQMode != null);
+
+            var possibleOldNames = new[] { readerServiceNameUri, $"{readerServiceNameUri}-a", $"{readerServiceNameUri}-b" };
+
+            var oldNames = new List<string>();
+            oldNames.AddRange(serviceList.Intersect(possibleOldNames));
+            oldNames.AddRange(serviceList.Where(x => Regex.IsMatch(x, @"-\d{10}$")));
+
+            var newName = $"{readerServiceNameUri}-{newSuffix}";
+
+            return (newName, oldNames);
         }
 
         private static byte[] BuildInitializationData(SubscriberConfiguration subscriber, IEnumerable<WebhookConfig> webhooks)

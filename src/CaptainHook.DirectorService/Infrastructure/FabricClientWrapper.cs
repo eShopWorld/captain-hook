@@ -49,7 +49,7 @@ namespace CaptainHook.DirectorService.Utils
                 HasPersistedState = true,
                 MinReplicaSetSize = _defaultServiceSettings.DefaultMinReplicaSetSize,
                 TargetReplicaSetSize = _defaultServiceSettings.DefaultTargetReplicaSetSize,
-                PartitionSchemeDescription = new UniformInt64RangePartitionSchemeDescription(10),
+                PartitionSchemeDescription = serviceCreationDescription.PartitionScheme,
                 ServiceTypeName = serviceCreationDescription.ServiceTypeName,
                 ServiceName = new Uri(serviceCreationDescription.ServiceName),
                 InitializationData = serviceCreationDescription.InitializationData,

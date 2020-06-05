@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Fabric;
+using System.Fabric.Description;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -17,7 +18,10 @@ namespace CaptainHook.DirectorService
 {
     public class DirectorService : StatefulService, IDirectorServiceRemoting
     {
-        private static readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+        private bool _refreshInProgress;
+        private readonly object _refreshSync = new object();
+        private CancellationToken _cancellationToken;
+
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IReaderServicesManager _readerServicesManager;
@@ -53,16 +57,25 @@ namespace CaptainHook.DirectorService
         /// <param name="cancellationToken">Canceled when Service Fabric needs to shut down this service replica.</param>
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
             // TODO: Check fabric node topology - if running below Bronze, set min and target replicas to 1 instead of 3
-
             try
             {
+                lock (_refreshSync)
+                {
+                    _refreshInProgress = true;
+                }
+
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
                 // Handlers:
                 if (!serviceList.Contains(ServiceNaming.EventHandlerServiceFullName))
                 {
-                    var description = new ServiceCreationDescription(ServiceNaming.EventHandlerServiceFullName, ServiceNaming.EventHandlerActorServiceType);
+                    var description = new ServiceCreationDescription(
+                        serviceName: ServiceNaming.EventHandlerServiceFullName,
+                        serviceTypeName: ServiceNaming.EventHandlerActorServiceType,
+                        partitionScheme: new UniformInt64RangePartitionSchemeDescription(10));
+
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 }
 
@@ -73,24 +86,41 @@ namespace CaptainHook.DirectorService
                 _bigBrother.Publish(exception);
                 throw;
             }
+            finally
+            {
+                lock (_refreshSync)
+                {
+                    _refreshInProgress = false;
+                }
+            }
         }
 
-        public async Task ReloadConfigurationForEventAsync()
+        public async Task ReloadConfigurationAsync()
         {
-            await _semaphore.WaitAsync();
+            lock (_refreshSync)
+            {
+                if (_refreshInProgress)
+                    return;
+
+                _refreshInProgress = true;
+            }
+
             try
             {
                 var configuration = Configuration.Load();
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList);
+                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList, _cancellationToken);
 
                 _subscriberConfigurations = configuration.SubscriberConfigurations;
                 _webhookConfigurations = configuration.WebhookConfigurations;
             }
             finally
             {
-                _semaphore.Release(1);
+                lock (_refreshSync)
+                {
+                    _refreshInProgress = false;
+                }
             }
         }
 

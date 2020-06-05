@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 
-namespace CaptainHook.DirectorService.Infrastructure.Interfaces
+namespace CaptainHook.DirectorService
 {
     public interface IReaderServicesManager
     {
@@ -25,6 +25,8 @@ namespace CaptainHook.DirectorService.Infrastructure.Interfaces
         /// <param name="serviceList">List of currently deployed services names</param>
         /// <param name="currentSubscribers">List of currently deployed subscribers</param>
         /// <returns></returns>
-        Task RefreshReadersAsync(Configuration newConfiguration, IDictionary<string, SubscriberConfiguration> currentSubscribers, IList<string> serviceList);
+        Task RefreshReadersAsync(Configuration newConfiguration, IDictionary<string, SubscriberConfiguration> currentSubscribers, IList<string> serviceList, CancellationToken cancellationToken);
+
+        (string newName, IEnumerable<string> oldNames) FindServiceNames(SubscriberConfiguration subscriber, IList<string> serviceList);
     }
 }
