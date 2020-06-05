@@ -8,15 +8,6 @@ using Xunit;
 
 namespace CaptainHook.Tests.Director
 {
-    public class ReaderServicesManagerTests
-    {
-        [Fact, IsLayer0]
-        public void NoChangesDone_NoChangesDetected()
-        {
-
-        }
-    }
-
     public class SubscriberConfigurationComparerTests
     {
         private readonly Dictionary<string, SubscriberConfiguration> oldConfigs = new Dictionary<string, SubscriberConfiguration>
