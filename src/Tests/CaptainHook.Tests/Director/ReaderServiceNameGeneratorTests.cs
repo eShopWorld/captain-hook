@@ -14,7 +14,7 @@ namespace CaptainHook.Tests.Director
     {
         private ReaderServiceNameGenerator _readerServiceNameGenerator;
         private IDateTimeProvider _dateTimeProvider;
-        private SubscriberConfiguration _subscriberConfiguration;
+        private SubscriberNaming _subscriberNaming;
 
         private const string EventPrefix = "fabric:/CaptainHook/EventReader";
         private const string SubscriberName = "captain-hook";
@@ -29,10 +29,11 @@ namespace CaptainHook.Tests.Director
         public ReaderServiceNameGeneratorTests()
         {
             _dateTimeProvider = Mock.Of<IDateTimeProvider>();
-            _subscriberConfiguration = new SubscriberConfiguration()
+            _subscriberNaming = new SubscriberNaming()
             {
                 EventType = EventTypeName1,
-                SubscriberName = SubscriberName
+                SubscriberName = SubscriberName,
+                IsDlqMode = false
             };
             _readerServiceNameGenerator = new ReaderServiceNameGenerator(_dateTimeProvider);
         }
@@ -42,7 +43,7 @@ namespace CaptainHook.Tests.Director
         {
             Mock.Get(_dateTimeProvider).SetupGet(s => s.UtcNow).Returns(BaseTime);
 
-            var newName = _readerServiceNameGenerator.GenerateNewName(_subscriberConfiguration);
+            var newName = _readerServiceNameGenerator.GenerateNewName(_subscriberNaming);
 
             newName.Should().Be(FullEventName(suffix: GetMillisecondsAsString(BaseTime)));
         }
@@ -54,11 +55,11 @@ namespace CaptainHook.Tests.Director
 
             var time1 = BaseTime;
             Mock.Get(_dateTimeProvider).SetupGet(s => s.UtcNow).Returns(time1);
-            var newName1 = _readerServiceNameGenerator.GenerateNewName(_subscriberConfiguration);
+            var newName1 = _readerServiceNameGenerator.GenerateNewName(_subscriberNaming);
 
             var time2 = BaseTime.AddMilliseconds(1);
             Mock.Get(_dateTimeProvider).SetupGet(s => s.UtcNow).Returns(time2);
-            var newName2 = _readerServiceNameGenerator.GenerateNewName(_subscriberConfiguration);
+            var newName2 = _readerServiceNameGenerator.GenerateNewName(_subscriberNaming);
 
 
             using (new AssertionScope())
@@ -84,7 +85,7 @@ namespace CaptainHook.Tests.Director
                 FullEventName(EventTypeName2, "12345678901234")
             };
 
-            var oldNames = _readerServiceNameGenerator.FindOldNames(_subscriberConfiguration, serviceList);
+            var oldNames = _readerServiceNameGenerator.FindOldNames(_subscriberNaming, serviceList);
 
             oldNames.Should().BeEquivalentTo(
                 FullEventName(EventTypeName1),

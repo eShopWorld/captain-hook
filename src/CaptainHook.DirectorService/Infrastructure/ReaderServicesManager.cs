@@ -8,6 +8,7 @@ using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
+using CaptainHook.DirectorService.Extensions;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.Utils;
@@ -53,8 +54,8 @@ namespace CaptainHook.DirectorService
         public async Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IList<WebhookConfig> webhooks, CancellationToken cancellationToken)
         {
             // we must delete previous instances also as they may have obsolete configuration
-            var servicesToCreate = subscribers.ToDictionary(s => _readerServiceNameGenerator.GenerateNewName(s), s => s);
-            var servicesToDelete = subscribers.SelectMany(s => _readerServiceNameGenerator.FindOldNames(s, serviceList));
+            var servicesToCreate = subscribers.ToDictionary(s => _readerServiceNameGenerator.GenerateNewName(s.ToSubscriberNaming()), s => s);
+            var servicesToDelete = subscribers.SelectMany(s => _readerServiceNameGenerator.FindOldNames(s.ToSubscriberNaming(), serviceList));
 
             await CreateReaderServicesAsync(servicesToCreate, webhooks, cancellationToken);
             await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
@@ -73,8 +74,8 @@ namespace CaptainHook.DirectorService
             var comparisonResult = new SubscriberConfigurationComparer().Compare(currentSubscribers, newConfiguration.SubscriberConfigurations);
             _bigBrother.Publish(new RefreshSubscribersEvent(comparisonResult));
 
-            var servicesToCreate = comparisonResult.Added.Values.Union(comparisonResult.Changed.Values).ToDictionary(s => _readerServiceNameGenerator.GenerateNewName(s), s => s);
-            var servicesToDelete = comparisonResult.Removed.Values.Union(comparisonResult.Changed.Values).SelectMany(s => _readerServiceNameGenerator.FindOldNames(s, serviceList));
+            var servicesToCreate = comparisonResult.Added.Values.Union(comparisonResult.Changed.Values).ToDictionary(s => _readerServiceNameGenerator.GenerateNewName(s.ToSubscriberNaming()), s => s);
+            var servicesToDelete = comparisonResult.Removed.Values.Union(comparisonResult.Changed.Values).SelectMany(s => _readerServiceNameGenerator.FindOldNames(s.ToSubscriberNaming(), serviceList));
 
             await CreateReaderServicesAsync(servicesToCreate, newConfiguration.WebhookConfigurations, cancellationToken);
             await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
