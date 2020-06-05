@@ -57,18 +57,18 @@ namespace CaptainHook.Api.Client
             }
 
             /// <summary>
-            /// Refreshes configuration for the given event
+            /// Reloads configuration for Captain Hook
             /// </summary>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            public static void RefreshConfig(this ICaptainHookClient operations)
+            public static void ReloadConfiguration(this ICaptainHookClient operations)
             {
-                operations.RefreshConfigAsync().GetAwaiter().GetResult();
+                operations.ReloadConfigurationAsync().GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Refreshes configuration for the given event
+            /// Reloads configuration for Captain Hook
             /// </summary>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -76,13 +76,13 @@ namespace CaptainHook.Api.Client
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task RefreshConfigAsync(this ICaptainHookClient operations, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task ReloadConfigurationAsync(this ICaptainHookClient operations, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.RefreshConfigWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.ReloadConfigurationWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
-            /// Refreshes configuration for the given event
+            /// Reloads configuration for Captain Hook
             /// </summary>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -90,9 +90,9 @@ namespace CaptainHook.Api.Client
             /// <param name='customHeaders'>
             /// Headers that will be added to request.
             /// </param>
-            public static HttpOperationResponse RefreshConfigWithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
+            public static HttpOperationResponse ReloadConfigurationWithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
             {
-                return operations.RefreshConfigWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+                return operations.ReloadConfigurationWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
             }
 
     }
