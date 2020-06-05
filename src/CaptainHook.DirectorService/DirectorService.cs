@@ -7,17 +7,20 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
+using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Utils;
 using Eshopworld.Core;
+using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace CaptainHook.DirectorService
 {
+    [UsedImplicitly]
     public class DirectorService : StatefulService, IDirectorServiceRemoting
     {
-        private bool _refreshInProgress;
+        private volatile bool _refreshInProgress;
         private readonly object _refreshSync = new object();
         private CancellationToken _cancellationToken;
 
@@ -94,31 +97,50 @@ namespace CaptainHook.DirectorService
             }
         }
 
-        public async Task ReloadConfigurationAsync()
+        public Task<RequestReloadConfigurationResult> RequestReloadConfigurationAsync()
         {
             if (!_refreshInProgress)
             {
                 lock (_refreshSync)
                 {
-                    if (_refreshInProgress)
-                        return;
-
-                    _refreshInProgress = true;
+                    if (!_refreshInProgress)
+                    {
+                        _refreshInProgress = true;
+                        ThreadPool.QueueUserWorkItem(ExecuteConfigReload);
+                        return Task.FromResult(RequestReloadConfigurationResult.ReloadStarted);
+                    }
                 }
             }
+
+            _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
+            return Task.FromResult(RequestReloadConfigurationResult.ReloadInProgress);
+        }
+
+        private async void ExecuteConfigReload(object state)
+        {
+            var reloadConfigFinishedTimedEvent = new ReloadConfigFinishedEvent();
 
             try
             {
                 var configuration = Configuration.Load();
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList, _cancellationToken);
+                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList,
+                    _cancellationToken);
 
                 _subscriberConfigurations = configuration.SubscriberConfigurations;
                 _webhookConfigurations = configuration.WebhookConfigurations;
+
+                reloadConfigFinishedTimedEvent.IsSuccess = true;
+            }
+            catch
+            {
+                reloadConfigFinishedTimedEvent.IsSuccess = false;
+                throw;
             }
             finally
             {
+                _bigBrother.Publish(reloadConfigFinishedTimedEvent);
                 lock (_refreshSync)
                 {
                     _refreshInProgress = false;

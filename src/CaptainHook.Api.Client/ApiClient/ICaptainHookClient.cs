@@ -51,7 +51,7 @@ namespace CaptainHook.Api.Client
         Task<HttpOperationResponse> GetProbeWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Refreshes configuration for the given event
+        /// Reloads configuration for Captain Hook
         /// </summary>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
@@ -59,7 +59,7 @@ namespace CaptainHook.Api.Client
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse> RefreshConfigWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse> ReloadConfigurationWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
     }
 }
