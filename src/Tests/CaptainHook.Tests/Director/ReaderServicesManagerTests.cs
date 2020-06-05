@@ -33,7 +33,7 @@ namespace CaptainHook.Tests.Director
 
 
         [Fact, IsLayer0]
-        public async Task CreateReadersAsync_ForFreshEnvironment_ShouldCallFabricClientWrapperToCreateNewInstances()
+        public async Task CreateReadersAsync_ForFreshEnvironment_ShouldCallFabricClientWrapper()
         {
             var readerServiceManager = new ReaderServicesManager(_fabricClientMock.Object, _bigBrotherMock.Object);
 
@@ -49,7 +49,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact, IsLayer0]
-        public async Task CreateReadersAsync_ForExistingEnvironment_ShouldCallFabricClientWrapperToCreateNewInstances()
+        public async Task CreateReadersAsync_ForExistingEnvironment_ShouldCallFabricClientWrapper()
         {
             var readerServiceManager = new ReaderServicesManager(_fabricClientMock.Object, _bigBrotherMock.Object);
 
