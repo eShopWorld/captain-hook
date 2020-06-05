@@ -2,7 +2,7 @@
 
 namespace CaptainHook.DirectorService.Events
 {
-    class ServiceDeletedEvent : TelemetryEvent
+    public class ServiceDeletedEvent : TelemetryEvent
     {
         public string ReaderName { get; set; }
 
