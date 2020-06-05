@@ -2,7 +2,7 @@
 
 namespace CaptainHook.DirectorService.Events
 {
-    public class RefreshConfigRequestedWhenAnotherInProgressEvent: TelemetryEvent
+    public class ReloadConfigRequestedWhenAnotherInProgressEvent: TelemetryEvent
     {
     }
 }

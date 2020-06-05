@@ -106,30 +106,41 @@ namespace CaptainHook.DirectorService
                     if (!_refreshInProgress)
                     {
                         _refreshInProgress = true;
-                        ThreadPool.QueueUserWorkItem(ExecuteConfigRefresh);
+                        ThreadPool.QueueUserWorkItem(ExecuteConfigReload);
                         return Task.FromResult(RequestReloadConfigurationResult.ReloadStarted);
                     }
                 }
             }
 
-            _bigBrother.Publish(new RefreshConfigRequestedWhenAnotherInProgressEvent());
+            _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
             return Task.FromResult(RequestReloadConfigurationResult.ReloadInProgress);
         }
 
-        private async void ExecuteConfigRefresh(object state)
+        private async void ExecuteConfigReload(object state)
         {
+            var reloadConfigFinishedTimedEvent = new ReloadConfigFinishedEvent();
+
             try
             {
                 var configuration = Configuration.Load();
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList, _cancellationToken);
+                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList,
+                    _cancellationToken);
 
                 _subscriberConfigurations = configuration.SubscriberConfigurations;
                 _webhookConfigurations = configuration.WebhookConfigurations;
+
+                reloadConfigFinishedTimedEvent.IsSuccess = true;
+            }
+            catch
+            {
+                reloadConfigFinishedTimedEvent.IsSuccess = false;
+                throw;
             }
             finally
             {
+                _bigBrother.Publish(reloadConfigFinishedTimedEvent);
                 lock (_refreshSync)
                 {
                     _refreshInProgress = false;

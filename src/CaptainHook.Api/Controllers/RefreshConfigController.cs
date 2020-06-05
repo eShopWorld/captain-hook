@@ -32,12 +32,12 @@ namespace CaptainHook.Api.Controllers
         /// Reloads configuration for Captain Hook
         /// </summary>
         /// <response code="202">Configuration reload has been requested</response>
-        /// <response code="204">Configuration reload has not been requested as another reload is in progress</response>
         /// <response code="400">Configuration reload has not been requested due to an error</response>
+        /// <response code="409">Configuration reload has not been requested as another reload is in progress</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> ReloadConfiguration()
         {
             try
@@ -48,7 +48,7 @@ namespace CaptainHook.Api.Controllers
 
                 return requestReloadConfigurationResult == RequestReloadConfigurationResult.ReloadStarted
                     ? (IActionResult) Accepted()
-                    : NoContent();
+                    : Conflict();
             }
             catch (Exception exception)
             {
