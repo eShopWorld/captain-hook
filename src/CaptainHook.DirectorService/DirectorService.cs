@@ -96,12 +96,15 @@ namespace CaptainHook.DirectorService
 
         public async Task ReloadConfigurationAsync()
         {
-            lock (_refreshSync)
+            if (!_refreshInProgress)
             {
-                if (_refreshInProgress)
-                    return;
+                lock (_refreshSync)
+                {
+                    if (_refreshInProgress)
+                        return;
 
-                _refreshInProgress = true;
+                    _refreshInProgress = true;
+                }
             }
 
             try
