@@ -53,7 +53,7 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
-        public SubscriberConfigurationBuilder WithCallback(string uri)
+        public SubscriberConfigurationBuilder WithCallback(string uri = "https://callback.eshopworld.com")
         {
             this.callback = new WebhookConfig
             {

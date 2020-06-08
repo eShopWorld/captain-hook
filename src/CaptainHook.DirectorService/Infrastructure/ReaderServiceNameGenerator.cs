@@ -26,7 +26,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             return $"{readerServiceNameUri}-{newSuffix}";
         }
 
-        public IList<string> FindOldNames(SubscriberNaming naming, IList<string> serviceList)
+        public IList<string> FindOldNames(SubscriberNaming naming, IEnumerable<string> serviceList)
         {
             var readerServiceNameUri = ServiceNaming.EventReaderServiceFullUri(naming.EventType, naming.SubscriberName, naming.IsDlqMode);
             var pattern = $@"^{Regex.Escape(readerServiceNameUri)}\b(|-a|-b|-\d{{14}})\b$";

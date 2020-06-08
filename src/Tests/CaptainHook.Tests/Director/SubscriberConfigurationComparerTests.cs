@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
-using CaptainHook.DirectorService;
 using CaptainHook.DirectorService.Utils;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Tests.Core;
@@ -128,14 +127,14 @@ namespace CaptainHook.Tests.Director
                          .WithCallback("https://calback.eshopworld.com")
                          .Create()
                  };
-                yield return new object[] { 
+                yield return new object[] {
                     new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
                         .AddWebhookRequestRule(rb => rb
                             .WithSource("OrderDto", DataType.HttpContent).WithDestination("", DataType.Model)
                             .AddRoute("selector1", "https://blah.blah.selector1.eshopworld.com"))
                         .Create()
                 };
-                yield return new object[] { 
+                yield return new object[] {
                     new SubscriberConfigurationBuilder().WithType("event2").WithSubscriberName("captain-hook")
                         .AddWebhookRequestRule(rb => rb
                             .WithSource("OrderDto", DataType.Model).WithDestination("", DataType.Model)

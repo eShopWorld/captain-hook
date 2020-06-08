@@ -47,15 +47,15 @@ namespace CaptainHook.DirectorService
         /// Creates new instance of readers. Also deletes obsolete and no longer configured ones.
         /// </summary>
         /// <param name="subscribers">List of subscribers to create</param>
-        /// <param name="serviceList">List of currently deployed services names</param>
+        /// <param name="deployedServicesNames">List of currently deployed services names</param>
         /// <param name="webhooks">List of webhook configuration</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        public async Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IList<string> serviceList, IList<WebhookConfig> webhooks, CancellationToken cancellationToken)
+        public async Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IEnumerable<string> deployedServicesNames, IEnumerable<WebhookConfig> webhooks, CancellationToken cancellationToken)
         {
             // we must delete previous instances also as they may have obsolete configuration
             var servicesToCreate = subscribers.ToDictionary(s => _readerServiceNameGenerator.GenerateNewName(s.ToSubscriberNaming()), s => s);
-            var servicesToDelete = subscribers.SelectMany(s => _readerServiceNameGenerator.FindOldNames(s.ToSubscriberNaming(), serviceList));
+            var servicesToDelete = subscribers.SelectMany(s => _readerServiceNameGenerator.FindOldNames(s.ToSubscriberNaming(), deployedServicesNames));
 
             await CreateReaderServicesAsync(servicesToCreate, webhooks, cancellationToken);
             await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
@@ -65,23 +65,23 @@ namespace CaptainHook.DirectorService
         /// Compares newly read Configuration with list of currently deployed subscribers and based on that create new, delete old
         /// and refresh (by pair of create and delete operation) existing readers.
         /// </summary>
-        /// <param name="newConfiguration">Target Configuration to be deployed</param>
-        /// <param name="serviceList">List of currently deployed services names</param>
+        /// <param name="newSubscribers">Target subscribers to create</param>
+        /// <param name="deployedServicesNames">List of currently deployed services names</param>
         /// <param name="currentSubscribers">List of currently deployed subscribers</param>
         /// <returns></returns>
-        public async Task RefreshReadersAsync(Configuration newConfiguration, IDictionary<string, SubscriberConfiguration> currentSubscribers, IList<string> serviceList, CancellationToken cancellationToken)
+        public async Task RefreshReadersAsync(IDictionary<string, SubscriberConfiguration> newSubscribers, IEnumerable<WebhookConfig> newWebhooks, IDictionary<string, SubscriberConfiguration> currentSubscribers, IEnumerable<string> deployedServicesNames, CancellationToken cancellationToken)
         {
-            var comparisonResult = new SubscriberConfigurationComparer().Compare(currentSubscribers, newConfiguration.SubscriberConfigurations);
+            var comparisonResult = new SubscriberConfigurationComparer().Compare(currentSubscribers, newSubscribers);
             _bigBrother.Publish(new RefreshSubscribersEvent(comparisonResult));
 
             var servicesToCreate = comparisonResult.Added.Values.Union(comparisonResult.Changed.Values).ToDictionary(s => _readerServiceNameGenerator.GenerateNewName(s.ToSubscriberNaming()), s => s);
-            var servicesToDelete = comparisonResult.Removed.Values.Union(comparisonResult.Changed.Values).SelectMany(s => _readerServiceNameGenerator.FindOldNames(s.ToSubscriberNaming(), serviceList));
+            var servicesToDelete = comparisonResult.Removed.Values.Union(comparisonResult.Changed.Values).SelectMany(s => _readerServiceNameGenerator.FindOldNames(s.ToSubscriberNaming(), deployedServicesNames));
 
-            await CreateReaderServicesAsync(servicesToCreate, newConfiguration.WebhookConfigurations, cancellationToken);
+            await CreateReaderServicesAsync(servicesToCreate, newWebhooks, cancellationToken);
             await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
         }
 
-        private async Task CreateReaderServicesAsync(IDictionary<string, SubscriberConfiguration> subscribers, IList<WebhookConfig> webhooks, CancellationToken cancellationToken)
+        private async Task CreateReaderServicesAsync(IDictionary<string, SubscriberConfiguration> subscribers, IEnumerable<WebhookConfig> webhooks, CancellationToken cancellationToken)
         {
             foreach (var (name, subscriber) in subscribers)
             {

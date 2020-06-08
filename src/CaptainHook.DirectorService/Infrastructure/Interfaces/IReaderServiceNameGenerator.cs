@@ -6,6 +6,6 @@ namespace CaptainHook.DirectorService.Infrastructure.Interfaces
     {
         string GenerateNewName(SubscriberNaming subscriber);
 
-        IList<string> FindOldNames(SubscriberNaming subscriber, IList<string> serviceList);
+        IList<string> FindOldNames(SubscriberNaming subscriber, IEnumerable<string> serviceList);
     }
 }
