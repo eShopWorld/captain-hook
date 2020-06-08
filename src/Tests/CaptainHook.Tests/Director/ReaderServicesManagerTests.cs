@@ -11,6 +11,7 @@ using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
+using FluentAssertions.Execution;
 using Moq;
 using Xunit;
 
@@ -57,17 +58,20 @@ namespace CaptainHook.Tests.Director
 
             await readerServiceManager.CreateReadersAsync(_subscribersToCreate, deployedServicesNames, _webhooks, CancellationToken.None);
 
-            VerifyFabricClientCreateCalls("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000000",
-                "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000");
+            using (new AssertionScope())
+            {
+                VerifyFabricClientCreateCalls("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000000",
+                    "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000");
 
-            VerifyFabricClientDeleteCalls();
+                VerifyFabricClientDeleteCalls();
 
-            VerifyServiceCreatedEventPublished("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
-               "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000000",
-               "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000");
+                VerifyServiceCreatedEventPublished("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000000",
+                    "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000");
 
-            VerifyServiceDeletedEventPublished();
+                VerifyServiceDeletedEventPublished();
+            }
         }
 
         [Fact, IsLayer0]
@@ -88,21 +92,24 @@ namespace CaptainHook.Tests.Director
 
             await readerServiceManager.CreateReadersAsync(_subscribersToCreate, deployedServicesNames, _webhooks, CancellationToken.None);
 
-            VerifyFabricClientCreateCalls("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000002",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000002",
-                "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000002");
+            using (new AssertionScope())
+            {
+                VerifyFabricClientCreateCalls("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000002",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000002",
+                    "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000002");
 
-            VerifyFabricClientDeleteCalls("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
-                "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000");
+                VerifyFabricClientDeleteCalls("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
+                    "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000");
 
-            VerifyServiceCreatedEventPublished("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000002",
-               "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000002",
-               "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000002");
+                VerifyServiceCreatedEventPublished("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000002",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000002",
+                    "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000002");
 
-            VerifyServiceDeletedEventPublished("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
-                "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000");
+                VerifyServiceDeletedEventPublished("fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
+                    "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000");
+            }
         }
 
         [Fact, IsLayer0]
@@ -158,29 +165,32 @@ namespace CaptainHook.Tests.Director
 
             await readerServiceManager.RefreshReadersAsync(newSubscribersMap, webhooks, currentSubscribersMap, deployedServicesNames, CancellationToken.None);
 
-            VerifyFabricClientCreateCalls(
-                "fabric:/CaptainHook/EventReader.newtestevent-captain-hook-10000000000002",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000002",
-                "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000002");
+            using (new AssertionScope())
+            {
+                VerifyFabricClientCreateCalls(
+                    "fabric:/CaptainHook/EventReader.newtestevent-captain-hook-10000000000002",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000002",
+                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000002");
 
-            VerifyFabricClientDeleteCalls(
-                "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-10000000000001",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
-                "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000000");
+                VerifyFabricClientDeleteCalls(
+                    "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-10000000000001",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
+                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000000");
 
-            VerifyServiceCreatedEventPublished(
-                "fabric:/CaptainHook/EventReader.newtestevent-captain-hook-10000000000002",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000002",
-                "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000002");
+                VerifyServiceCreatedEventPublished(
+                    "fabric:/CaptainHook/EventReader.newtestevent-captain-hook-10000000000002",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000002",
+                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000002");
 
-            VerifyServiceDeletedEventPublished(
-                "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-10000000000001",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
-                "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000000");
+                VerifyServiceDeletedEventPublished(
+                    "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-10000000000001",
+                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
+                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000000");
 
-            _bigBrotherMock.Verify(b => b.Publish(
-                It.Is<RefreshSubscribersEvent>(m => m.AddedCount == 1 && m.RemovedCount == 1 && m.ChangedCount == 2),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+                _bigBrotherMock.Verify(b => b.Publish(
+                    It.Is<RefreshSubscribersEvent>(m => m.AddedCount == 1 && m.RemovedCount == 1 && m.ChangedCount == 2),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+            }
         }
 
 
