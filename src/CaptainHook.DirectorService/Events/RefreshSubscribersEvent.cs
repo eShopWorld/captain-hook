@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService.Events
 {
-    class RefreshSubscribersEvent : TelemetryEvent
+    public class RefreshSubscribersEvent : TelemetryEvent
     {
         public int AddedCount { get; set; }
         public int RemovedCount { get; set; }
