@@ -124,10 +124,10 @@ namespace CaptainHook.DirectorService
             try
             {
                 var configuration = Configuration.Load();
-                var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
+                var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(configuration, _subscriberConfigurations, serviceList,
-                    _cancellationToken);
+                await _readerServicesManager.RefreshReadersAsync(configuration.SubscriberConfigurations, configuration.WebhookConfigurations,
+                    _subscriberConfigurations, deployedServiceNames, _cancellationToken);
 
                 _subscriberConfigurations = configuration.SubscriberConfigurations;
                 _webhookConfigurations = configuration.WebhookConfigurations;
