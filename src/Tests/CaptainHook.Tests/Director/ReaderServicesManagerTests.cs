@@ -46,7 +46,10 @@ namespace CaptainHook.Tests.Director
 
         private void ProgressTime(int milliseconds)
         {
-            _dateTimeProviderMock.SetupGet(x => x.UtcNow).Returns(DateTimeOffset.MinValue.AddMilliseconds(10000000000000 + milliseconds));
+            var currentTime = _dateTimeProviderMock.Object.UtcNow;
+            _dateTimeProviderMock
+                .SetupGet(x => x.UtcNow)
+                .Returns(currentTime.AddMilliseconds(milliseconds));
         }
 
         [Fact, IsLayer0]
