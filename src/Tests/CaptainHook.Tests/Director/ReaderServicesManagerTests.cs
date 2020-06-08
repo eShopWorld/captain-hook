@@ -177,7 +177,7 @@ namespace CaptainHook.Tests.Director
 
 
         [Fact, IsLayer0]
-        public async Task RefreshReadersAsync_ForExistingEnvironment_ShouldCallFabricClientWrapper()
+        public async Task RefreshReadersAsync_ForExistingEnvironment_ShouldCallFabricClientWrapperAndPublishTelemetryEvent()
         {
             var readerServiceManager = CreateReaderServiceManager();
 
@@ -238,6 +238,20 @@ namespace CaptainHook.Tests.Director
                 "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-10000000000001",
                 "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
                 "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000000");
+
+            VerifyServiceCreatedEventPublished(
+                "fabric:/CaptainHook/EventReader.newtestevent-captain-hook-10000000000002",
+                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000002",
+                "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000002");
+
+            VerifyServiceDeletedEventPublished(
+                "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-10000000000001",
+                "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
+                "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-10000000000000");
+
+            _bigBrotherMock.Verify(b => b.Publish(
+                It.Is<RefreshSubscribersEvent>(m => m.AddedCount == 1 && m.RemovedCount == 1 && m.ChangedCount == 2), 
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
         }
     }
 }
