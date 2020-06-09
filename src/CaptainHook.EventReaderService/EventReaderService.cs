@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Fabric;
+using System.Fabric.Description;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -10,7 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Remoting;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.Common.Telemetry.Service;
 using CaptainHook.Common.Telemetry.Service.EventReader;
@@ -23,9 +24,11 @@ using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Polly;
+using ConfigurationSettings = CaptainHook.Common.Configuration.ConfigurationSettings;
 
 namespace CaptainHook.EventReaderService
 {
@@ -38,13 +41,16 @@ namespace CaptainHook.EventReaderService
     {
         private const int BatchSize = 1; // make this dynamic - based on the number of active handlers - more handlers, lower batch
 
+        private readonly FabricClient _fabricClient;
         private readonly IBigBrother _bigBrother;
         private readonly IServiceBusManager _serviceBusManager;
         private readonly IActorProxyFactory _proxyFactory;
         private readonly ConfigurationSettings _settings;
         private EventReaderInitData _initData;
 
-        internal ConcurrentDictionary<string, MessageDataHandle> _inflightMessages = new ConcurrentDictionary<string, MessageDataHandle>();
+        internal readonly ConcurrentDictionary<string, MessageDataHandle> _inflightMessages = new ConcurrentDictionary<string, MessageDataHandle>();
+
+        private readonly AutoResetEvent _inflightMessagesResetEvent = new AutoResetEvent(true);
 
         private ConcurrentQueue<int> _freeHandlers = new ConcurrentQueue<int>();
 
@@ -75,12 +81,14 @@ namespace CaptainHook.EventReaderService
         /// <param name="settings"></param>
         public EventReaderService(
             StatefulServiceContext context,
+            FabricClient fabricClient,
             IBigBrother bigBrother,
             IServiceBusManager serviceBusManager,
             IActorProxyFactory proxyFactory,
             ConfigurationSettings settings)
             : base(context)
         {
+            _fabricClient = fabricClient;
             _bigBrother = bigBrother;
             _serviceBusManager = serviceBusManager;
             _proxyFactory = proxyFactory;
@@ -199,7 +207,7 @@ namespace CaptainHook.EventReaderService
                 _freeHandlers = Enumerable.Range(1, HandlerCount).ToConcurrentQueue();
                 await SetupServiceBus();
 
-                while (!cancellationToken.IsCancellationRequested)
+                while (!cancellationToken.IsCancellationRequested && _isShuttingDown == 0)
                 {
                     try
                     {
@@ -235,6 +243,7 @@ namespace CaptainHook.EventReaderService
                             };
 
                             _inflightMessages.TryAdd(messageData.CorrelationId, handleData); //should again always succeed
+                            _inflightMessagesResetEvent.Reset();
 
                             await _proxyFactory.CreateActorProxy<IEventHandlerActor>(
                                     new ActorId(messageData.EventHandlerActorId),
@@ -403,7 +412,29 @@ namespace CaptainHook.EventReaderService
             finally
             {
                 _freeHandlers.Enqueue(messageData.HandlerId);
+
+                if (_inflightMessages.IsEmpty)
+                {
+                    _inflightMessagesResetEvent.Set();
+                }
             }
+        }
+
+        private int _isShuttingDown = 0;
+
+        public Task InitializeGracefulShutdown(string directorServiceName)
+        {
+            Interlocked.Exchange(ref _isShuttingDown, 1);
+
+            ThreadPool.QueueUserWorkItem(state =>
+            {
+                _inflightMessagesResetEvent.WaitOne(TimeSpan.FromSeconds(30.0));
+                _fabricClient.ServiceManager.DeleteServiceAsync(new DeleteServiceDescription(this.Context.ServiceName));
+                //ServiceProxy.Create<IDirectorServiceRemoting>(new Uri(directorServiceName))
+                //    .RequestReaderServiceDeleteAsync(this.Context.ServiceName.AbsoluteUri);
+            });
+
+            return Task.CompletedTask;
         }
     }
 

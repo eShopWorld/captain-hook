@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Fabric.Description;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -12,7 +13,9 @@ using CaptainHook.DirectorService.Extensions;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.Utils;
+using CaptainHook.Interfaces;
 using Eshopworld.Core;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService
@@ -100,13 +103,19 @@ namespace CaptainHook.DirectorService
 
         private async Task DeleteReaderServicesAsync(IEnumerable<string> oldNames, CancellationToken cancellationToken)
         {
+            var listOfTasks = new List<Task>();
             foreach (var oldName in oldNames)
             {
                 if (cancellationToken.IsCancellationRequested) return;
 
-                await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
-                _bigBrother.Publish(new ServiceDeletedEvent(oldName));
+                var oldNameUri = new Uri(oldName);
+                var task = ServiceProxy.Create<IEventReaderService>(oldNameUri)
+                    .InitializeGracefulShutdown(ServiceNaming.DirectorServiceFullName);
+
+                listOfTasks.Add(task);
             }
+
+            await Task.WhenAll(listOfTasks);
         }
 
         private static byte[] BuildInitializationData(SubscriberConfiguration subscriber, IEnumerable<WebhookConfig> webhooks)

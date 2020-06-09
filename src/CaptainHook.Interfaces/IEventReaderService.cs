@@ -15,5 +15,7 @@ namespace CaptainHook.Interfaces
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task CompleteMessageAsync(MessageData messageData, bool messageDelivered, CancellationToken cancellationToken = default);
+
+        Task InitializeGracefulShutdown(string directorServiceName);
     }
 }

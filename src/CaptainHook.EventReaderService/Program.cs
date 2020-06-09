@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Fabric;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -29,6 +30,8 @@ namespace CaptainHook.EventReaderService
                 builder.RegisterInstance(configurationSettings).SingleInstance();
                 builder.RegisterType<MessageProviderFactory>().As<IMessageProviderFactory>().SingleInstance();
                 builder.RegisterType<ServiceBusManager>().As<IServiceBusManager>();
+                builder.RegisterType<FabricClient>()
+                    .SingleInstance();
 
                 //SF Deps
                 builder.Register<IActorProxyFactory>(_ => new ActorProxyFactory());
