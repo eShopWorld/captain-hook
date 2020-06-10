@@ -15,6 +15,7 @@ using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.Utils;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
+using Eshopworld.Telemetry;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Newtonsoft.Json;
 
@@ -108,14 +109,25 @@ namespace CaptainHook.DirectorService
             {
                 if (cancellationToken.IsCancellationRequested) return;
 
-                var oldNameUri = new Uri(oldName);
-                var task = ServiceProxy.Create<IEventReaderService>(oldNameUri)
-                    .InitializeGracefulShutdown(ServiceNaming.DirectorServiceFullName);
-
-                listOfTasks.Add(task);
+                listOfTasks.Add(ShutdownOrDelete(oldName, cancellationToken));
             }
 
             await Task.WhenAll(listOfTasks);
+        }
+
+        private async Task ShutdownOrDelete(string oldName, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await ServiceProxy.Create<IEventReaderService>(new Uri(oldName))
+                     .InitializeGracefulShutdown(ServiceNaming.DirectorServiceFullName);
+            }
+            catch (Exception e)
+            {
+                BigBrother.Write(e.ToExceptionEvent());
+                await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
+                _bigBrother.Publish(new ServiceDeletedEvent(oldName));
+            }
         }
 
         private static byte[] BuildInitializationData(SubscriberConfiguration subscriber, IEnumerable<WebhookConfig> webhooks)
