@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Fabric.Description;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -103,18 +102,20 @@ namespace CaptainHook.DirectorService
 
         private async Task DeleteReaderServicesAsync(IEnumerable<string> oldNames, CancellationToken cancellationToken)
         {
-            var listOfTasks = new List<Task>();
-            foreach (var oldName in oldNames)
+            IEnumerable<Task> CreateShutdownTasksForOldNames()
             {
-                if (cancellationToken.IsCancellationRequested) return;
+                foreach (var oldName in oldNames)
+                {
+                    if (cancellationToken.IsCancellationRequested) yield break;
 
-                var oldNameUri = new Uri(oldName);
-                var task = ServiceProxy.Create<IEventReaderService>(oldNameUri)
-                    .InitializeGracefulShutdown(ServiceNaming.DirectorServiceFullName);
+                    var serviceToShutdownUri = new Uri(oldName);
+                    var task = ServiceProxy.Create<IEventReaderService>(serviceToShutdownUri).InitializeGracefulShutdown();
 
-                listOfTasks.Add(task);
+                    yield return task;
+                }
             }
 
+            var listOfTasks = CreateShutdownTasksForOldNames().ToArray();
             await Task.WhenAll(listOfTasks);
         }
 

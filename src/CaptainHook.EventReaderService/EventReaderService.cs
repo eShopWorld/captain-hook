@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Fabric;
-using System.Fabric.Description;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -11,24 +10,26 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
-using CaptainHook.Common.Remoting;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.Common.Telemetry.Service;
 using CaptainHook.Common.Telemetry.Service.EventReader;
+using CaptainHook.EventReaderService.Events;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
 using Eshopworld.Telemetry;
+using JetBrains.Annotations;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.ServiceFabric.Actors;
 using Microsoft.ServiceFabric.Actors.Client;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
-using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Polly;
-using ConfigurationSettings = CaptainHook.Common.Configuration.ConfigurationSettings;
+using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Remoting;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace CaptainHook.EventReaderService
 {
@@ -40,6 +41,9 @@ namespace CaptainHook.EventReaderService
     public class EventReaderService : StatefulService, IEventReaderService
     {
         private const int BatchSize = 1; // make this dynamic - based on the number of active handlers - more handlers, lower batch
+
+        private volatile int _isShuttingDown = 0;
+        private readonly object _messageCompleteSync = new object();
 
         private readonly FabricClient _fabricClient;
         private readonly IBigBrother _bigBrother;
@@ -79,6 +83,7 @@ namespace CaptainHook.EventReaderService
         /// <param name="serviceBusManager"></param>
         /// <param name="proxyFactory"></param>
         /// <param name="settings"></param>
+        [UsedImplicitly]
         public EventReaderService(
             StatefulServiceContext context,
             FabricClient fabricClient,
@@ -159,6 +164,11 @@ namespace CaptainHook.EventReaderService
 
         protected override async Task OnCloseAsync(CancellationToken cancellationToken)
         {
+            if (_isShuttingDown == 1)
+            {
+                _bigBrother.Publish(new ServiceDeletedEvent(this.Context.ServiceName.AbsoluteUri));
+            }
+
             _bigBrother.Publish(new ServiceDeactivatedEvent(Context, InFlightMessageCount));
             await base.OnCloseAsync(cancellationToken);
         }
@@ -371,16 +381,24 @@ namespace CaptainHook.EventReaderService
         /// <returns></returns>
         public async Task CompleteMessageAsync(MessageData messageData, bool messageDelivered, CancellationToken cancellationToken = default)
         {
+            bool finalMessageProcessed = false;
+
             try
             {
-                if (!_inflightMessages.TryRemove(messageData.CorrelationId, out var handle))
+                MessageDataHandle handle;
+                lock (_messageCompleteSync)
                 {
-                    throw new LockTokenNotFoundException("lock token was not found in inflight message queue")
+                    if (!_inflightMessages.TryRemove(messageData.CorrelationId, out handle))
                     {
-                        EventType = messageData.Type,
-                        HandlerId = messageData.HandlerId,
-                        CorrelationId = messageData.CorrelationId
-                    };
+                        throw new LockTokenNotFoundException("lock token was not found in inflight message queue")
+                        {
+                            EventType = messageData.Type,
+                            HandlerId = messageData.HandlerId,
+                            CorrelationId = messageData.CorrelationId
+                        };
+                    }
+
+                    finalMessageProcessed = _inflightMessages.IsEmpty;
                 }
 
                 try
@@ -413,25 +431,26 @@ namespace CaptainHook.EventReaderService
             {
                 _freeHandlers.Enqueue(messageData.HandlerId);
 
-                if (_inflightMessages.IsEmpty)
+                if (finalMessageProcessed && _isShuttingDown == 1)
                 {
                     _inflightMessagesResetEvent.Set();
                 }
             }
         }
 
-        private int _isShuttingDown = 0;
-
-        public Task InitializeGracefulShutdown(string directorServiceName)
+        public Task InitializeGracefulShutdown()
         {
             Interlocked.Exchange(ref _isShuttingDown, 1);
 
+            _bigBrother.Publish(new GracefulShutdownRequestedForReaderEvent(Context.ServiceName.AbsoluteUri, _initData.EventType));
+            var shutdownCompletedTimedEvent = new GracefulShutdownCompletedForReaderEvent(Context.ServiceName.AbsoluteUri, _initData.EventType);
+
             ThreadPool.QueueUserWorkItem(state =>
             {
-                _inflightMessagesResetEvent.WaitOne(TimeSpan.FromSeconds(30.0));
-                _fabricClient.ServiceManager.DeleteServiceAsync(new DeleteServiceDescription(this.Context.ServiceName));
-                //ServiceProxy.Create<IDirectorServiceRemoting>(new Uri(directorServiceName))
-                //    .RequestReaderServiceDeleteAsync(this.Context.ServiceName.AbsoluteUri);
+                _inflightMessagesResetEvent.WaitOne(TimeSpan.FromMinutes(5.0));
+                _bigBrother.Publish(shutdownCompletedTimedEvent);
+
+                _fabricClient.ServiceManager.DeleteServiceAsync(new System.Fabric.Description.DeleteServiceDescription(this.Context.ServiceName));
             });
 
             return Task.CompletedTask;
