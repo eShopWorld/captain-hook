@@ -11,6 +11,7 @@ using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
+using Eshopworld.Data.CosmosDb;
 using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
@@ -28,6 +29,7 @@ namespace CaptainHook.DirectorService
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IReaderServicesManager _readerServicesManager;
+        private readonly ICosmosDbRepository _cosmosDbRepository;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
         private IList<WebhookConfig> _webhookConfigurations;
 
@@ -43,7 +45,8 @@ namespace CaptainHook.DirectorService
             IReaderServicesManager readerServicesManager,
             IFabricClientWrapper fabricClientWrapper,
             IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
-            IList<WebhookConfig> webhookConfigurations)
+            IList<WebhookConfig> webhookConfigurations,
+            ICosmosDbRepository cosmosDbRepository)
             : base(context)
         {
             _bigBrother = bigBrother;
@@ -51,6 +54,7 @@ namespace CaptainHook.DirectorService
             _subscriberConfigurations = subscriberConfigurations;
             _webhookConfigurations = webhookConfigurations;
             _readerServicesManager = readerServicesManager;
+            _cosmosDbRepository = cosmosDbRepository;
         }
 
         /// <summary>
@@ -61,6 +65,7 @@ namespace CaptainHook.DirectorService
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
+
             // TODO: Check fabric node topology - if running below Bronze, set min and target replicas to 1 instead of 3
             try
             {
