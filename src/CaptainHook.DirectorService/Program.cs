@@ -9,10 +9,11 @@ using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
-using CaptainHook.Database.Setup;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.Utils;
+using Eshopworld.Data.CosmosDb;
+using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 
@@ -74,7 +75,8 @@ namespace CaptainHook.DirectorService
                 var featureFlags = ConfigureFeatureFlags(configuration.Settings, builder);
                 if (featureFlags.GetFlag<CosmosDbFeatureFlag>().IsEnabled)
                 {
-                    builder.ConfigureCosmosDb(configuration.Settings);
+                    builder.RegisterModule<CosmosDbModule>();
+                    builder.ConfigureCosmosDb(configuration.Settings.GetSection(CaptainHookConfigSection));
                 }
 
                 builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);

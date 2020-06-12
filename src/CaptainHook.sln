@@ -26,8 +26,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EventReaderServ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EventHandlerActor", "CaptainHook.EventHandlerActor\CaptainHook.EventHandlerActor.csproj", "{36DB72DA-DE01-4686-9311-DDE619AAC567}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Database", "CaptainHook.Database\CaptainHook.Database.csproj", "{A04E141E-91D4-42C5-8D12-6A8E15377ED3}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Telemetry", "CaptainHook.Telemetry\CaptainHook.Telemetry.csproj", "{DFDEE70A-65A5-42B6-B58D-31E1CD393816}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Telemetry.Tests", "CaptainHook.Telemetry.Tests\CaptainHook.Telemetry.Tests.csproj", "{976791C1-9AC5-4B65-AEF0-DAD79DE48356}"
@@ -40,7 +38,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api", "CaptainH
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api.Tests", "CaptainHook.Api.Tests\CaptainHook.Api.Tests.csproj", "{67265B29-9868-459C-81C4-733F837A9491}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaptainHook.Api.Client", "CaptainHook.Api.Client\CaptainHook.Api.Client.csproj", "{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api.Client", "CaptainHook.Api.Client\CaptainHook.Api.Client.csproj", "{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,14 +100,6 @@ Global
 		{36DB72DA-DE01-4686-9311-DDE619AAC567}.Release|Any CPU.ActiveCfg = Release|x64
 		{36DB72DA-DE01-4686-9311-DDE619AAC567}.Release|x64.ActiveCfg = Release|x64
 		{36DB72DA-DE01-4686-9311-DDE619AAC567}.Release|x64.Build.0 = Release|x64
-		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Debug|x64.Build.0 = Debug|Any CPU
-		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Release|x64.ActiveCfg = Release|Any CPU
-		{A04E141E-91D4-42C5-8D12-6A8E15377ED3}.Release|x64.Build.0 = Release|Any CPU
 		{DFDEE70A-65A5-42B6-B58D-31E1CD393816}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DFDEE70A-65A5-42B6-B58D-31E1CD393816}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFDEE70A-65A5-42B6-B58D-31E1CD393816}.Debug|x64.ActiveCfg = Debug|Any CPU
