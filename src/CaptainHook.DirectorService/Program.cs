@@ -73,7 +73,7 @@ namespace CaptainHook.DirectorService
                     .SingleInstance();
                 
                 builder.RegisterModule<CosmosDbModule>();
-                builder.ConfigureCosmosDb(configuration.Settings);
+                builder.ConfigureCosmosDb(configuration.Settings.GetSection(CaptainHookConfigSection));
 
                 builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
                 builder.RegisterStatefulService<DirectorService>(ServiceNaming.DirectorServiceType);
@@ -91,18 +91,6 @@ namespace CaptainHook.DirectorService
                 BigBrother.Write(e);
                 throw;
             }
-        }
-
-        /// <summary>
-        /// Configures Feature Flags based on input configuration and register the instance with the container.
-        /// </summary>
-        private static FeatureFlagsConfiguration ConfigureFeatureFlags(IConfiguration config, ContainerBuilder builder)
-        {
-            var featureFlags = new FeatureFlagsConfiguration();
-            config.GetSection(CaptainHookConfigSection).Bind(featureFlags);
-            builder.RegisterInstance(featureFlags);
-
-            return featureFlags;
         }
 
         /// <summary>
