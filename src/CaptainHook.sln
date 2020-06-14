@@ -40,6 +40,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api.Tests", "Ca
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api.Client", "CaptainHook.Api.Client\CaptainHook.Api.Client.csproj", "{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaptainHook.Domain", "CaptainHook.Domain\CaptainHook.Domain.csproj", "{C781A7C9-3098-4026-8F2A-A52AA11ED0F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -156,6 +158,12 @@ Global
 		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Release|x64.ActiveCfg = Release|Any CPU
 		{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}.Release|x64.Build.0 = Release|Any CPU
+		{C781A7C9-3098-4026-8F2A-A52AA11ED0F5}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{C781A7C9-3098-4026-8F2A-A52AA11ED0F5}.Debug|x64.ActiveCfg = Debug|x64
+		{C781A7C9-3098-4026-8F2A-A52AA11ED0F5}.Debug|x64.Build.0 = Debug|x64
+		{C781A7C9-3098-4026-8F2A-A52AA11ED0F5}.Release|Any CPU.ActiveCfg = Release|x64
+		{C781A7C9-3098-4026-8F2A-A52AA11ED0F5}.Release|x64.ActiveCfg = Release|x64
+		{C781A7C9-3098-4026-8F2A-A52AA11ED0F5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
