@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace CaptainHook.Domain.Models
 {
@@ -13,7 +12,7 @@ namespace CaptainHook.Domain.Models
 
         public IList<Endpoint> Endpoints => _endpoints;
 
-        public void Add(Endpoint endpoint)
+        public void AddEndpoint(Endpoint endpoint)
         {
             _endpoints.Add(endpoint);
         }

@@ -2,9 +2,10 @@
 {
     public class Endpoint
     {
-        public Webhooks Webhooks { get; set; }
+        public Subscriber Subscriber { get; set; }
         public string Uri { get; set; }
         public Authentication Authentication { get; set; }
         public string HttpVerb { get; set; }
+        public string Selector { get; set; }
     }
 }
