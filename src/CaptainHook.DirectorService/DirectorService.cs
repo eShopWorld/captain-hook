@@ -29,7 +29,6 @@ namespace CaptainHook.DirectorService
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IReaderServicesManager _readerServicesManager;
-        private readonly ICosmosDbRepository _cosmosDbRepository;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
         private IList<WebhookConfig> _webhookConfigurations;
 
@@ -45,8 +44,7 @@ namespace CaptainHook.DirectorService
             IReaderServicesManager readerServicesManager,
             IFabricClientWrapper fabricClientWrapper,
             IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
-            IList<WebhookConfig> webhookConfigurations,
-            ICosmosDbRepository cosmosDbRepository)
+            IList<WebhookConfig> webhookConfigurations)
             : base(context)
         {
             _bigBrother = bigBrother;
@@ -54,7 +52,6 @@ namespace CaptainHook.DirectorService
             _subscriberConfigurations = subscriberConfigurations;
             _webhookConfigurations = webhookConfigurations;
             _readerServicesManager = readerServicesManager;
-            _cosmosDbRepository = cosmosDbRepository;
         }
 
         /// <summary>
