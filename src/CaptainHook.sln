@@ -42,6 +42,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api.Client", "C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Domain", "CaptainHook.Domain\CaptainHook.Domain.csproj", "{C781A7C9-3098-4026-8F2A-A52AA11ED0F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CaptainHook.Repository", "CaptainHook.Repository\CaptainHook.Repository.csproj", "{035A6D86-CE70-4C24-883A-F4CCB3916AD0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
