@@ -3,8 +3,9 @@
     public class Subscriber
     {
         public string Name { get; set; }
-        public Webhook Webhooks { get; set; } = new Webhook();
-        public Webhook Callbacks { get; set; } = new Webhook();
-        public Webhook Dlq { get; set; } = new Webhook();
+        public Event Event { get; set; }
+        public Webhooks Webhooks { get; set; }
+        public Webhooks Callbacks { get; set; }
+        public Webhooks Dlq { get; set; }
     }
 }
