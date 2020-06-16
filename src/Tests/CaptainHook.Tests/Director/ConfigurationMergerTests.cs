@@ -9,6 +9,7 @@ using CaptainHook.Domain.Models;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Xunit;
 
 namespace CaptainHook.Tests.Director
@@ -183,15 +184,18 @@ namespace CaptainHook.Tests.Director
 
             var result = new ConfigurationMerger().Merge(_kvSubscribers, cosmosSubscribers);
 
-            result.Should().HaveCount(5);
+            using (var scope = new AssertionScope())
+            {
+                result.Should().HaveCount(5);
 
-            result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/testevent/");
+                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/testevent/");
 
-            result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://blah.blah.eshopworld.com/webhook/");
-            result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://blah.blah.eshopworld.com/webhook/");
+                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://blah.blah.eshopworld.com");
+                result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://blah.blah.eshopworld.com");
 
-            result.Should().Contain(x => x.Name == "newtestevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://cosmos.eshopworld.com/testevent2/");
-            result.Should().Contain(x => x.Name == "newtestevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/newtestevent-completed/");
+                result.Should().Contain(x => x.Name == "newtestevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://cosmos.eshopworld.com/newtestevent2/");
+                result.Should().Contain(x => x.Name == "newtestevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/newtestevent-completed/");
+            }
         }
 
         [Fact, IsLayer0]
@@ -276,7 +280,7 @@ namespace CaptainHook.Tests.Director
             var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             result.Should().HaveCount(3);
-            result.Should().Contain(x => x.Name == "testevent" 
+            result.Should().Contain(x => x.Name == "testevent"
                                          && x.SubscriberName == "captain-hook" && x.Callback.Uri == "https://cosmos.eshopworld.com/callback/" && x.Callback.HttpVerb == "PUT");
         }
 
