@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure;
@@ -16,175 +14,68 @@ namespace CaptainHook.Tests.Director
 {
     public class ConfigurationMergerTests
     {
-        private readonly SubscriberConfiguration[] _kvSubscribers =
-        {
-            new SubscriberConfigurationBuilder().WithType("testevent").WithCallback().Create(),
-            new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("subscriber1").Create(),
-            new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
-        };
-
         [Fact, IsLayer0]
         public void OnlyKVSubscribers_AllInResult()
         {
-            var result = new ConfigurationMerger().Merge(_kvSubscribers, new List<Subscriber>());
+            var kvSubscribers = new[]
+            {
+                new SubscriberConfigurationBuilder().WithType("testevent").WithCallback().Create(),
+                new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("subscriber1").Create(),
+                new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
+            };
 
-            result.Should().HaveCount(3);
-            result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook");
-            result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1");
-            result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook");
+            var result = new ConfigurationMerger().Merge(kvSubscribers, new List<Subscriber>());
+
+            using (new AssertionScope())
+            {
+                result.Should().HaveCount(3);
+                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook");
+                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1");
+                result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook");
+            }
         }
 
         [Fact, IsLayer0]
         public void OnlyCosmosSubscribers_AllInResult()
         {
-            var cosmosSubscribers = new Subscriber[]
+            var cosmosSubscribers = new[]
             {
-                new Subscriber
-                {
-                    Name = "captain-hook",
-                    Webhooks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/testevent/",
-                                HttpVerb = "POST",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Event = new Event
-                    {
-                        Name = "testevent",
-                        Type = "testevent",
-                    }
-                },
-                new Subscriber
-                {
-                    Name = "captain-hook",
-                    Webhooks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/testevent-completed/",
-                                HttpVerb = "POST",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Event = new Event
-                    {
-                        Name = "testevent.completed",
-                        Type = "testevent.completed",
-                    }
-                },
-                new Subscriber
-                {
-                    Name = "subscriber1",
-                    Webhooks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/testevent2/",
-                                HttpVerb = "POST",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Event = new Event
-                    {
-                        Name = "testevent",
-                        Type = "testevent",
-                    }
-                },
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST").Create(),
+                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST").Create(),
+                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST").Create(),
             };
 
             var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
-            result.Should().HaveCount(3);
-            result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook");
-            result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1");
-            result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook");
+            using (new AssertionScope())
+            {
+                result.Should().HaveCount(3);
+                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook");
+                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1");
+                result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook");
+            }
         }
 
         [Fact, IsLayer0]
         public void WhenSameEventsExistInKvSubscribersAndCosmosSubscribers_CosmosSubscribersMustOverrideKvSubscribers()
         {
-            var cosmosSubscribers = new Subscriber[]
+            var kvSubscribers = new[]
             {
-                new Subscriber
-                {
-                    Name = "captain-hook",
-                    Webhooks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/testevent/",
-                                HttpVerb = "POST",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Event = new Event
-                    {
-                        Name = "testevent",
-                        Type = "testevent",
-                    }
-                },
-                new Subscriber
-                {
-                    Name = "captain-hook",
-                    Webhooks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/newtestevent-completed/",
-                                HttpVerb = "POST",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Event = new Event
-                    {
-                        Name = "newtestevent.completed",
-                        Type = "newtestevent.completed",
-                    }
-                },
-                new Subscriber
-                {
-                    Name = "subscriber1",
-                    Webhooks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/newtestevent2/",
-                                HttpVerb = "POST",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Event = new Event
-                    {
-                        Name = "newtestevent",
-                        Type = "newtestevent",
-                    }
-                },
+                new SubscriberConfigurationBuilder().WithType("testevent").WithCallback().Create(),
+                new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("subscriber1").Create(),
+                new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
-            var result = new ConfigurationMerger().Merge(_kvSubscribers, cosmosSubscribers);
+            var cosmosSubscribers = new[]
+            {
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST").Create(),
+                new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST").Create(),
+                new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST").Create(),
+            };
 
-            using (var scope = new AssertionScope())
+            var result = new ConfigurationMerger().Merge(kvSubscribers, cosmosSubscribers);
+
+            using (new AssertionScope())
             {
                 result.Should().HaveCount(5);
 
@@ -201,41 +92,22 @@ namespace CaptainHook.Tests.Director
         [Fact, IsLayer0]
         public void CosmosSubscriberWithAuthentication_ShouldBeMappedProperly()
         {
-            var cosmosSubscribers = new Subscriber[]
+            var cosmosSubscribers = new[]
             {
-                new Subscriber
-                {
-                    Name = "captain-hook",
-                    Webhooks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/testevent/",
-                                HttpVerb = "POST",
-                                Authentication = new Authentication()
-                                {
-                                    Uri = "https://blah-blah.sts.eshopworld.com",
-                                    ClientId = "captain-hook-id",
-                                    Secret = "verylongpassword",
-                                },
-                            },
-                        },
-                    },
-                    Event = new Event
-                    {
-                        Name = "testevent",
-                        Type = "testevent",
-                    }
-                },
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST",
+                        new Authentication{  Uri = "https://blah-blah.sts.eshopworld.com", ClientId = "captain-hook-id", Secret = "verylongpassword", }
+                    ).Create(),
             };
 
             var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
-            result.Should().HaveCount(1);
-            result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook"
-                                                               && IsOidcAuthentication(x, "captain-hook-id", "verylongpassword", "https://blah-blah.sts.eshopworld.com"));
+            using (new AssertionScope())
+            {
+                result.Should().HaveCount(1);
+                result.Should().Contain(x => x.Name == "testevent"
+                                             && x.SubscriberName == "captain-hook"
+                                             && IsOidcAuthentication(x, "captain-hook-id", "verylongpassword", "https://blah-blah.sts.eshopworld.com"));
+            }
         }
 
         private bool IsOidcAuthentication(SubscriberConfiguration sc, string clientId, string secret, string uri)
@@ -252,183 +124,43 @@ namespace CaptainHook.Tests.Director
         [Fact, IsLayer0]
         public void CosmosSubscriberWithCallback_ShouldBeMappedProperly()
         {
-            var cosmosSubscribers = new Subscriber[]
+            var cosmosSubscribers = new[]
             {
-                new Subscriber
-                {
-                    Name = "captain-hook",
-                    Webhooks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/testevent/",
-                                HttpVerb = "POST",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Callbacks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/callback/",
-                                HttpVerb = "PUT",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Event = new Event
-                    {
-                        Name = "testevent",
-                        Type = "testevent",
-                    }
-                },
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST")
+                    .WithCallback("https://cosmos.eshopworld.com/callback/", "PUT")
+                    .Create(),
             };
 
             var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
-            result.Should().HaveCount(1);
-            result.Should().Contain(x => x.Callback.Name == "captain-hook" && x.Callback.EventType == "testevent" 
-                                        && x.Callback.Uri == "https://cosmos.eshopworld.com/callback/" && x.Callback.HttpVerb == "PUT");
+            using (new AssertionScope())
+            {
+                result.Should().HaveCount(1);
+                result.Should().Contain(x => x.Callback.Name == "captain-hook"
+                                             && x.Callback.EventType == "testevent"
+                                             && x.Callback.Uri == "https://cosmos.eshopworld.com/callback/" && x.Callback.HttpVerb == "PUT");
+            }
         }
 
         [Fact, IsLayer0]
         public void CosmosSubscriberWithDlq_ShouldBeMappedProperly()
         {
-            var cosmosSubscribers = new Subscriber[]
+            var cosmosSubscribers = new[]
             {
-                new Subscriber
-                {
-                    Name = "DLQ",
-                    Webhooks = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/testevent/",
-                                HttpVerb = "POST",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Dlq = new Webhooks
-                    {
-                        Endpoints =
-                        {
-                            new Endpoint
-                            {
-                                Uri = "https://cosmos.eshopworld.com/dlq/",
-                                HttpVerb = "PUT",
-                                Authentication = null,
-                            },
-                        },
-                    },
-                    Event = new Event
-                    {
-                        Name = "testevent-dlq",
-                        Type = "testevent-dlq",
-                    }
-                },
+                new SubscriberBuilder().WithEvent("testevent-dlq").WithName("DLQ")
+                    .WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST")
+                    .WithDlq("https://cosmos.eshopworld.com/dlq/", "PUT")
+                    .Create(),
             };
 
             var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
-            result.Should().HaveCount(2);
-            result.Should().Contain(x => x.Name == "testevent-dlq" && x.SubscriberName == "DLQ"
-                                                                   && x.WebhookRequestRules.SelectMany(w => w.Routes).All(r => r.Uri == "https://cosmos.eshopworld.com/dlq/"));
-        }
-
-        internal class SubscriberBuilder
-        {
-            private string _name = "event1";
-
-            private string subscriberName = "captain-hook";
-            private string uri = "https://blah.blah.eshopworld.com";
-            private List<WebhookRequestRule> webhookRequestRules;
-            private WebhookConfig callback;
-
-            private Event _event;
-            private Webhooks _webhooks;
-            private Webhooks _callbacks;
-
-            public SubscriberBuilder WithName(string name)
+            using (new AssertionScope())
             {
-                _name = name;
-                return this;
-            }
-
-            public SubscriberBuilder WithSubscriberName(string subscriberName)
-            {
-                this.subscriberName = subscriberName;
-                return this;
-            }
-
-            public SubscriberBuilder WithUri(string uri)
-            {
-                this.uri = uri;
-                return this;
-            }
-
-            //public SubscriberBuilder WithOidcAuthentication()
-            //{
-            //    this.authenticationConfig = new OidcAuthenticationConfig
-            //    {
-            //        Type = AuthenticationType.OIDC,
-            //        Uri = "https://blah-blah.sts.eshopworld.com",
-            //        ClientId = "ClientId",
-            //        ClientSecret = "ClientSecret",
-            //        Scopes = new[] { "scope1", "scope2" }
-            //    };
-
-            //    return this;
-            //}
-
-            // public SubscriberBuilder WithCallback(string uri = "https://callback.eshopworld.com")
-            // {
-            //     this.callback = new WebhookConfig
-            //     {
-            //         Name = "callback",
-            //         HttpMethod = HttpMethod.Post,
-            //         Uri = uri,
-            //         EventType = "event1",
-            //         AuthenticationConfig = new AuthenticationConfig
-            //         {
-            //             Type = AuthenticationType.None
-            //         },
-            //     };
-            //
-            //     return this;
-            // }
-
-            // public SubscriberBuilder AddWebhookRequestRule(Action<WebhookRequestRuleBuilder> ruleBuilder)
-            // {
-            //     if (this.webhookRequestRules == null)
-            //     {
-            //         this.webhookRequestRules = new List<WebhookRequestRule>();
-            //     }
-            //
-            //     var rb = new WebhookRequestRuleBuilder();
-            //     ruleBuilder(rb);
-            //     this.webhookRequestRules.Add(rb.Create());
-            //     return this;
-            // }
-
-            public Subscriber Create()
-            {
-                var subscriber = new Subscriber
-                {
-                    Name = _name,
-                    Event = _event,
-                    Webhooks = _webhooks,
-                    Callbacks = _callbacks,
-                };
-
-                return subscriber;
+                result.Should().HaveCount(2);
+                result.Should().Contain(x => x.Name == "testevent-dlq"
+                                             && x.SubscriberName == "DLQ"
+                                             && x.WebhookRequestRules.SelectMany(w => w.Routes).All(r => r.Uri == "https://cosmos.eshopworld.com/dlq/"));
             }
         }
     }
