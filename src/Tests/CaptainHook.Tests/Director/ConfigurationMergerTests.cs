@@ -112,7 +112,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact, IsLayer0]
-        public void WhenSameEventsExistInKvSubscribersAndCosomosSubscribers_CosmosSubscribersMustOverrideKvSubscribers()
+        public void WhenSameEventsExistInKvSubscribersAndCosmosSubscribers_CosmosSubscribersMustOverrideKvSubscribers()
         {
             var cosmosSubscribers = new Subscriber[]
             {
