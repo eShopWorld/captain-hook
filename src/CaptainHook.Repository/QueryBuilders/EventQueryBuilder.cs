@@ -3,19 +3,21 @@ using Microsoft.Azure.Cosmos;
 
 namespace CaptainHook.Repository.QueryBuilders
 {
-    public class EndpointQueryBuilder: IEndpointQueryBuilder
+    public class EventQueryBuilder: IEventQueryBuilder
     {
         public CosmosQuery BuildSelectSubscriberEndpoints(string eventName, string subscriberName)
         {
             var partitionKey = $"{eventName}-{subscriberName}";
-            var query = new QueryDefinition("select * from c");
+            var query = new QueryDefinition("select * from c where eventName = @eventName and subscriberName = @subscriberName")
+                .WithParameter("@eventName", eventName)
+                .WithParameter("@subscriberName", subscriberName);
             return new CosmosQuery(query, partitionKey);
         }
 
         public CosmosQuery BuildSelectSubscribersEndpoints(string eventName)
         {
-            var query = new QueryDefinition("select * from c where name = @name")
-                .WithParameter("@name", eventName);
+            var query = new QueryDefinition("select * from c where eventName = @eventName")
+                .WithParameter("@eventName", eventName);
             return new CosmosQuery(query);
         }
     }

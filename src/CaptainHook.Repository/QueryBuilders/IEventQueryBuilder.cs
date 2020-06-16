@@ -2,7 +2,10 @@
 
 namespace CaptainHook.Repository.QueryBuilders
 {
-    public interface IEndpointQueryBuilder
+    /// <summary>
+    /// Query Builder interface
+    /// </summary>
+    public interface IEventQueryBuilder
     {
         CosmosQuery BuildSelectSubscriberEndpoints(string eventName, string subscriberName);
         

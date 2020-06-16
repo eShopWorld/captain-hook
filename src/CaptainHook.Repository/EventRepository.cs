@@ -4,32 +4,41 @@ using Eshopworld.Data.CosmosDb;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DbEndpoint = CaptainHook.Repository.Models.Endpoint;
-using DomainEndpoint = CaptainHook.Domain.Models.Endpoint;
-using DomainAuthentication = CaptainHook.Domain.Models.Authentication;
 using CaptainHook.Repository.QueryBuilders;
 using System.Linq;
 
 namespace CaptainHook.Repository
 {
-    public class EndpointRepository : IEndpointRepository
+    /// <summary>
+    /// Event repository
+    /// </summary>
+    /// <seealso cref="IEventRepository" />
+    public class EventRepository : IEventRepository
     {
         private readonly ICosmosDbRepository _cosmosDbRepository;
-        private readonly IEndpointQueryBuilder _endpointQueryBuilder;
+        private readonly IEventQueryBuilder _endpointQueryBuilder;
 
         public string CollectionName { get; } = "endpoints";
         //public string GenerateId(Endpoint entity) => Guid.NewGuid().ToString();
         //public string ResolvePartitionKey(Endpoint entity) => $"{entity.EventName}-{entity.SubscriberName}";
 
-        public EndpointRepository(ICosmosDbRepository cosmosDbRepository, IEndpointQueryBuilder endpointQueryBuilder)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="EventRepository" /> class.
+        /// </summary>
+        /// <param name="cosmosDbRepository">The Cosmos DB repository</param>
+        /// <param name="setup">The setup</param>
+        /// <param name="queryBuilder">The query builder</param>
+        /// <exception cref="System.ArgumentNullException">If cosmosDbRepository is null</exception>
+        /// <exception cref="System.ArgumentNullException">If endpointQueryBuilder is null</exception>
+        public EventRepository(ICosmosDbRepository cosmosDbRepository, IEventQueryBuilder queryBuilder)
         {
             _cosmosDbRepository = cosmosDbRepository ?? throw new ArgumentNullException(nameof(cosmosDbRepository));
-            _endpointQueryBuilder = endpointQueryBuilder ?? throw new ArgumentNullException(nameof(endpointQueryBuilder));
+            _endpointQueryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
 
             _cosmosDbRepository.UseCollection(CollectionName);
         }
 
-        public Task<Subscriber> GetSubscriberAsync(string eventName, string subscriberName)
+        public Task<SubscriberModel> GetSubscriberAsync(string eventName, string subscriberName)
         {
             if (string.IsNullOrWhiteSpace(eventName))
             {
@@ -44,7 +53,7 @@ namespace CaptainHook.Repository
             return GetSubscriberInternalAsync(eventName, subscriberName);
         }
 
-        public Task<IEnumerable<Subscriber>> GetSubscribersAsync(string eventName)
+        public Task<IEnumerable<SubscriberModel>> GetEventSubscribersAsync(string eventName)
         {
             if (string.IsNullOrWhiteSpace(eventName))
             {
@@ -56,67 +65,69 @@ namespace CaptainHook.Repository
 
         #region Private methods
 
-        private async Task<IEnumerable<Subscriber>> GetSubscribersInternalAsync(string eventName)
+        private async Task<IEnumerable<SubscriberModel>> GetSubscribersInternalAsync(string eventName)
         {
             var query = _endpointQueryBuilder.BuildSelectSubscribersEndpoints(eventName);
-            var endpoints = await _cosmosDbRepository.QueryAsync<DbEndpoint>(query);
+            var endpoints = await _cosmosDbRepository.QueryAsync<Endpoint>(query);
 
             return endpoints
                 .GroupBy(x => x.SubscriberName)
                 .Select(x => Map(x));
         }
 
-        private async Task<Subscriber> GetSubscriberInternalAsync(string eventName, string subscriberName)
+        private async Task<SubscriberModel> GetSubscriberInternalAsync(string eventName, string subscriberName)
         {
             var query = _endpointQueryBuilder.BuildSelectSubscriberEndpoints(eventName, subscriberName);
-            var endpoints = await _cosmosDbRepository.QueryAsync<DbEndpoint>(query);
+            var endpoints = await _cosmosDbRepository.QueryAsync<Endpoint>(query);
             return Map(endpoints);
         }
 
-        private DomainEndpoint Map(DbEndpoint endpoint)
+        private EndpointModel Map(Endpoint endpoint)
         {
-            return new DomainEndpoint
-            {
-                HttpVerb = endpoint.HttpVerb,
-                Uri = endpoint.Uri,
-                Authentication = new DomainAuthentication
-                {
-                    Scopes = endpoint.Authentication.Scopes,
-                    ClientSecret = endpoint.Authentication.ClientSecret,
-                    ClientId = endpoint.Authentication.ClientId,
-                    Uri = endpoint.Authentication.Uri,
-                    Type = endpoint.Authentication.Type
-                },
-                Selector = endpoint.Selector
-            };
+            var authentication = Map(endpoint.Authentication);
+            return new EndpointModel(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.EndpointSelector);
         }
 
-        private Subscriber Map(IEnumerable<DbEndpoint> endpoints)
+        private AuthenticationModel Map(Authentication authentication)
         {
-            var subscriber = new Subscriber
-            {
-                Name = endpoints.First().SubscriberName
-            };
+            var secretStore = new SecretStoreModel(authentication.KeyVaultName, authentication.SecretName);
+            return new AuthenticationModel(authentication.ClientId, secretStore, authentication.Uri, authentication.Type, authentication.Scopes);
+        }
+
+        private SubscriberModel Map(IEnumerable<Endpoint> endpoints)
+        {
+            var subscriberName = endpoints.First().SubscriberName;
+            var webhookSelector = endpoints
+                .FirstOrDefault(x => x.WebhookType == WebhookType.Webhook)?
+                .WebhookSelector;
+            var callbackSelector = endpoints
+                .FirstOrDefault(x => x.WebhookType == WebhookType.Callback)?
+                .WebhookSelector;
+            var dqlSelector = endpoints
+                .FirstOrDefault(x => x.WebhookType == WebhookType.Dlq)?
+                .WebhookSelector;
+
+            var subscriber = new SubscriberModel(subscriberName, webhookSelector, callbackSelector, dqlSelector);
 
             foreach (var endpoint in endpoints)
             {
                 var domainEndpoint = Map(endpoint);
-                domainEndpoint.Subscriber = subscriber;
                 switch (endpoint.WebhookType)
                 {
                     case WebhookType.Webhook:
-                        subscriber.Webhooks.Endpoints.Add(domainEndpoint);
+                        subscriber.AddWebhookEndpoint(domainEndpoint);
                         break;
                     case WebhookType.Callback:
-                        subscriber.Webhooks.Endpoints.Add(domainEndpoint);
+                        subscriber.AddCallbackEndpoint(domainEndpoint);
                         break;
                     case WebhookType.Dlq:
-                        subscriber.Webhooks.Endpoints.Add(domainEndpoint);
+                        subscriber.AddDlqEndpoint(domainEndpoint);
                         break;
                     default:
-                        throw new ArgumentException("Invalid webhook type for endpoint");
+                        throw new NotImplementedException();
                 }
             }
+
             return subscriber;
         }
 

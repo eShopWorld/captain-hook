@@ -16,7 +16,7 @@ namespace CaptainHook.Repository.Models
         public string Pk => GetPartitionKey(EventName, SubscriberName);
 
         public string Uri { get; set; }
-        public string Selector { get; set; }
+        public string EndpointSelector { get; set; }
         public Authentication Authentication { get; set; }
         public string HttpVerb { get; set; }
         public string WebhookSelector { get; set; }
