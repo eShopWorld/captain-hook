@@ -233,8 +233,20 @@ namespace CaptainHook.Tests.Director
 
             var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
-            result.Should().HaveCount(3);
-            result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook" && x.AuthenticationConfig is OidcAuthenticationConfig);
+            result.Should().HaveCount(1);
+            result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook"
+                                                               && IsOidcAuthentication(x, "captain-hook-id", "verylongpassword", "https://blah-blah.sts.eshopworld.com"));
+        }
+
+        private bool IsOidcAuthentication(SubscriberConfiguration sc, string clientId, string secret, string uri)
+        {
+            var oidcAuth = sc.AuthenticationConfig as OidcAuthenticationConfig;
+            if (oidcAuth == null)
+            {
+                return false;
+            }
+
+            return oidcAuth.ClientId == clientId && oidcAuth.ClientSecret == secret && oidcAuth.Uri == uri;
         }
 
         [Fact, IsLayer0]
@@ -279,9 +291,9 @@ namespace CaptainHook.Tests.Director
 
             var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
-            result.Should().HaveCount(3);
-            result.Should().Contain(x => x.Name == "testevent"
-                                         && x.SubscriberName == "captain-hook" && x.Callback.Uri == "https://cosmos.eshopworld.com/callback/" && x.Callback.HttpVerb == "PUT");
+            result.Should().HaveCount(1);
+            result.Should().Contain(x => x.Callback.Name == "captain-hook" && x.Callback.EventType == "testevent" 
+                                        && x.Callback.Uri == "https://cosmos.eshopworld.com/callback/" && x.Callback.HttpVerb == "PUT");
         }
 
         [Fact, IsLayer0]
@@ -291,7 +303,7 @@ namespace CaptainHook.Tests.Director
             {
                 new Subscriber
                 {
-                    Name = "captain-hook",
+                    Name = "DLQ",
                     Webhooks = new Webhooks
                     {
                         Endpoints =
@@ -318,15 +330,15 @@ namespace CaptainHook.Tests.Director
                     },
                     Event = new Event
                     {
-                        Name = "testevent",
-                        Type = "testevent",
+                        Name = "testevent-dlq",
+                        Type = "testevent-dlq",
                     }
                 },
             };
 
             var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
-            result.Should().HaveCount(3);
+            result.Should().HaveCount(2);
             result.Should().Contain(x => x.Name == "testevent-dlq" && x.SubscriberName == "DLQ"
                                                                    && x.WebhookRequestRules.SelectMany(w => w.Routes).All(r => r.Uri == "https://cosmos.eshopworld.com/dlq/"));
         }
