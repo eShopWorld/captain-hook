@@ -41,6 +41,7 @@
     <ProjectReference Include="..\..\CaptainHook.Cli\CaptainHook.Cli.csproj" />
     <ProjectReference Include="..\..\CaptainHook.Common\CaptainHook.Common.csproj" />
     <ProjectReference Include="..\..\CaptainHook.DirectorService\CaptainHook.DirectorService.csproj" />
+    <ProjectReference Include="..\..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
     <ProjectReference Include="..\..\CaptainHook.EventHandlerActor\CaptainHook.EventHandlerActor.csproj" />
     <ProjectReference Include="..\..\CaptainHook.EventReaderService\CaptainHook.EventReaderService.csproj" />
   </ItemGroup>

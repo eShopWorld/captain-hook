@@ -30,6 +30,7 @@
         /// </summary>
         public WebhooksModel Dlqs { get; }
 
+        public SubscriberModel(string name) : this(name, null, null, null, null) { }
         public SubscriberModel(string name, string webHookSelector, string callbackSelector, string dlqSelector) : this(name, webHookSelector, callbackSelector, dlqSelector, null) { }
         public SubscriberModel(string name, string webHookSelector, string callbackSelector, string dlqSelector, EventModel parentEvent)
         {

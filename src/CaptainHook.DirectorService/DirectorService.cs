@@ -11,6 +11,7 @@ using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
+using Eshopworld.Data.CosmosDb;
 using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
@@ -61,6 +62,7 @@ namespace CaptainHook.DirectorService
         protected override async Task RunAsync(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
+
             // TODO: Check fabric node topology - if running below Bronze, set min and target replicas to 1 instead of 3
             try
             {
