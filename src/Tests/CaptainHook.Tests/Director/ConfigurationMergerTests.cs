@@ -121,7 +121,7 @@ namespace CaptainHook.Tests.Director
             return oidcAuth.ClientId == clientId && oidcAuth.ClientSecret == secret && oidcAuth.Uri == uri;
         }
 
-        [Fact, IsLayer0]
+        [Fact(Skip = "Callback handling not needed as for now"), IsLayer0]
         public void CosmosSubscriberWithCallback_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
@@ -142,7 +142,7 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [Fact, IsLayer0]
+        [Fact(Skip = "DQL handling not needed as for now"), IsLayer0]
         public void CosmosSubscriberWithDlq_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]

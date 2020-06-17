@@ -33,11 +33,12 @@ namespace CaptainHook.DirectorService.Infrastructure
             var config = MapBasicSubscriber(cosmosModel);
             result.Add(config);
 
-            var dlq = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
-            if (dlq != null)
-            {
-                result.Add(MapDlq(cosmosModel));
-            }
+            // DLQ handling not needed now
+            //var dlq = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
+            //if (dlq != null)
+            //{
+            //    result.Add(MapDlq(cosmosModel));
+            //}
 
             return result;
         }
@@ -50,7 +51,8 @@ namespace CaptainHook.DirectorService.Infrastructure
                 SubscriberName = cosmosModel.Name,
                 Uri = cosmosModel.Webhooks.Endpoints.First().Uri,
                 AuthenticationConfig = MapAuthentication(cosmosModel.Webhooks.Endpoints.FirstOrDefault()?.Authentication),
-                Callback = MapCallback(cosmosModel),
+                // Callback handling not needed now
+                //Callback = MapCallback(cosmosModel),
             };
             return config;
         }
