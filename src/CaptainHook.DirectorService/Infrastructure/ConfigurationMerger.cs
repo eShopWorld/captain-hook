@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
@@ -15,7 +16,7 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// <param name="subscribersFromKeyVault">Subscriber definitions loaded from KeyVault</param>
         /// <param name="subscribersFromCosmos">Subscriber models retrieved from Cosmos</param>
         /// <returns>List of all subscribers converted to KeyVault structure</returns>
-        public IEnumerable<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<Subscriber> subscribersFromCosmos)
+        public ReadOnlyCollection<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<Subscriber> subscribersFromCosmos)
         {
             var onlyInKv = subscribersFromKeyVault
                 .Where(kvSubscriber => !subscribersFromCosmos.Any(cosmosSubscriber =>
@@ -23,27 +24,23 @@ namespace CaptainHook.DirectorService.Infrastructure
                     && kvSubscriber.SubscriberName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase)));
 
             var fromCosmos = subscribersFromCosmos.SelectMany(MapSubscriber);
-            var result = onlyInKv.Union(fromCosmos);
-            return result;
+            var union = onlyInKv.Union(fromCosmos).ToList();
+            return new ReadOnlyCollection<SubscriberConfiguration>(union);
         }
 
         private IEnumerable<SubscriberConfiguration> MapSubscriber(Subscriber cosmosModel)
         {
-            var result = new List<SubscriberConfiguration>();
-            var config = MapBasicSubscriber(cosmosModel);
-            result.Add(config);
+            yield return MapBasicSubscriberData(cosmosModel);;
 
             // DLQ handling not needed now
             //var dlq = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
             //if (dlq != null)
             //{
-            //    result.Add(MapDlq(cosmosModel));
+            //    yield return MapDlq(cosmosModel);
             //}
-
-            return result;
         }
 
-        private SubscriberConfiguration MapBasicSubscriber(Subscriber cosmosModel)
+        private SubscriberConfiguration MapBasicSubscriberData(Subscriber cosmosModel)
         {
             var config = new SubscriberConfiguration
             {
