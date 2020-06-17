@@ -16,11 +16,11 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// <param name="subscribersFromKeyVault">Subscriber definitions loaded from KeyVault</param>
         /// <param name="subscribersFromCosmos">Subscriber models retrieved from Cosmos</param>
         /// <returns>List of all subscribers converted to KeyVault structure</returns>
-        public ReadOnlyCollection<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<Subscriber> subscribersFromCosmos)
+        public ReadOnlyCollection<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<SubscriberModel> subscribersFromCosmos)
         {
             var onlyInKv = subscribersFromKeyVault
                 .Where(kvSubscriber => !subscribersFromCosmos.Any(cosmosSubscriber =>
-                    kvSubscriber.Name.Equals(cosmosSubscriber.Event.Name, StringComparison.InvariantCultureIgnoreCase)
+                    kvSubscriber.Name.Equals(cosmosSubscriber.ParentEvent.Name, StringComparison.InvariantCultureIgnoreCase)
                     && kvSubscriber.SubscriberName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase)));
 
             var fromCosmos = subscribersFromCosmos.SelectMany(MapSubscriber);
@@ -28,9 +28,9 @@ namespace CaptainHook.DirectorService.Infrastructure
             return new ReadOnlyCollection<SubscriberConfiguration>(union);
         }
 
-        private IEnumerable<SubscriberConfiguration> MapSubscriber(Subscriber cosmosModel)
+        private IEnumerable<SubscriberConfiguration> MapSubscriber(SubscriberModel cosmosModel)
         {
-            yield return MapBasicSubscriberData(cosmosModel);;
+            yield return MapBasicSubscriberData(cosmosModel);
 
             // DLQ handling not needed now
             //var dlq = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
@@ -40,11 +40,11 @@ namespace CaptainHook.DirectorService.Infrastructure
             //}
         }
 
-        private SubscriberConfiguration MapBasicSubscriberData(Subscriber cosmosModel)
+        private SubscriberConfiguration MapBasicSubscriberData(SubscriberModel cosmosModel)
         {
             var config = new SubscriberConfiguration
             {
-                Name = cosmosModel.Event.Name,
+                Name = cosmosModel.ParentEvent.Name,
                 SubscriberName = cosmosModel.Name,
                 Uri = cosmosModel.Webhooks.Endpoints.First().Uri,
                 AuthenticationConfig = MapAuthentication(cosmosModel.Webhooks.Endpoints.FirstOrDefault()?.Authentication),
@@ -54,7 +54,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             return config;
         }
 
-        private WebhookConfig MapCallback(Subscriber cosmosModel)
+        private WebhookConfig MapCallback(SubscriberModel cosmosModel)
         {
             var endpoint = cosmosModel?.Callbacks?.Endpoints.FirstOrDefault();
             if (endpoint == null)
@@ -66,27 +66,27 @@ namespace CaptainHook.DirectorService.Infrastructure
                 Uri = endpoint.Uri,
                 HttpVerb = endpoint.HttpVerb,
                 AuthenticationConfig = MapAuthentication(endpoint.Authentication),
-                EventType = cosmosModel.Event.Type,
+                EventType = cosmosModel.ParentEvent.Name,
             };
         }
 
-        private SubscriberConfiguration MapDlq(Subscriber cosmosModel)
-        {
-            var endpoint = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
-            if (endpoint == null)
-                return null;
+        //private SubscriberConfiguration MapDlq(SubscriberModel cosmosModel)
+        //{
+        //    var endpoint = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
+        //    if (endpoint == null)
+        //        return null;
 
-            return new SubscriberConfiguration
-            {
-                Name = cosmosModel.Name,
-                Uri = endpoint.Uri,
-                HttpVerb = endpoint.HttpVerb,
-                AuthenticationConfig = MapAuthentication(endpoint.Authentication),
-                DLQMode = SubscriberDlqMode.WebHookMode,
-            };
-        }
+        //    return new SubscriberConfiguration
+        //    {
+        //        Name = cosmosModel.Name,
+        //        Uri = endpoint.Uri,
+        //        HttpVerb = endpoint.HttpVerb,
+        //        AuthenticationConfig = MapAuthentication(endpoint.Authentication),
+        //        DLQMode = SubscriberDlqMode.WebHookMode,
+        //    };
+        //}
 
-        private AuthenticationConfig MapAuthentication(Authentication cosmosAuthentication)
+        private AuthenticationConfig MapAuthentication(AuthenticationModel cosmosAuthentication)
         {
             if (cosmosAuthentication == null)
                 return null;
@@ -95,7 +95,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             {
                 Type = AuthenticationType.OIDC,
                 ClientId = cosmosAuthentication.ClientId,
-                ClientSecret = cosmosAuthentication.Secret,
+                ClientSecret = cosmosAuthentication.SecretStore.SecretName,
                 Uri = cosmosAuthentication.Uri,
                 Scopes = cosmosAuthentication.Scopes,
             };
