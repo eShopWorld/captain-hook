@@ -123,8 +123,6 @@ namespace CaptainHook.Repository
                     case WebhookType.Dlq:
                         subscriber.AddDlqEndpoint(domainEndpoint);
                         break;
-                    default:
-                        throw new NotImplementedException();
                 }
             }
 
