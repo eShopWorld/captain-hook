@@ -61,14 +61,14 @@ namespace CaptainHook.Tests.Director
         {
             var kvSubscribers = new[]
             {
-                new SubscriberConfigurationBuilder().WithType("testevent").WithCallback().Create(),
+                new SubscriberConfigurationBuilder().WithType("testEVENT").WithCallback().Create(),
                 new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("subscriber1").Create(),
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST").Create(),
+                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST").Create(),
                 new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST").Create(),
                 new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST").Create(),
             };
@@ -79,7 +79,7 @@ namespace CaptainHook.Tests.Director
             {
                 result.Should().HaveCount(5);
 
-                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/testevent/");
+                result.Should().Contain(x => x.Name == "TESTevent" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/testevent/");
 
                 result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://blah.blah.eshopworld.com");
                 result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://blah.blah.eshopworld.com");

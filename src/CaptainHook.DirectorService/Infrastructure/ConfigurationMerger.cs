@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Models;
@@ -10,10 +9,20 @@ namespace CaptainHook.DirectorService.Infrastructure
 {
     public class ConfigurationMerger
     {
-        public IEnumerable<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> kvModels, IEnumerable<Subscriber> cosmosModels)
+        /// <summary>
+        /// Merges subscribers loaded from Cosmos and from KeyVault. If particular subscriber is defined in both sources, the Cosmos version overrides the KeyVault version.
+        /// </summary>
+        /// <param name="subscribersFromKeyVault">Subscriber definitions loaded from KeyVault</param>
+        /// <param name="subscribersFromCosmos">Subscriber models retrieved from Cosmos</param>
+        /// <returns>List of all subscribers converted to KeyVault structure</returns>
+        public IEnumerable<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<Subscriber> subscribersFromCosmos)
         {
-            var onlyInKv = kvModels.Where(k => !cosmosModels.Any(c => k.Name == c.Event.Name && k.SubscriberName == c.Name));
-            var fromCosmos = cosmosModels.SelectMany(MapSubscriber);
+            var onlyInKv = subscribersFromKeyVault
+                .Where(kvSubscriber => !subscribersFromCosmos.Any(cosmosSubscriber =>
+                    kvSubscriber.Name.Equals(cosmosSubscriber.Event.Name, StringComparison.InvariantCultureIgnoreCase)
+                    && kvSubscriber.SubscriberName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase)));
+
+            var fromCosmos = subscribersFromCosmos.SelectMany(MapSubscriber);
             var result = onlyInKv.Union(fromCosmos);
             return result;
         }
