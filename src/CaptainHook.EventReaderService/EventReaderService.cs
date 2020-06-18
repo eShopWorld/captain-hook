@@ -424,6 +424,7 @@ namespace CaptainHook.EventReaderService
             finally
             {
                 _freeHandlers.Enqueue(messageData.HandlerId);
+                _heartBeatStats.ReportCompleteMessage(messageDelivered);
             }
         }
     }

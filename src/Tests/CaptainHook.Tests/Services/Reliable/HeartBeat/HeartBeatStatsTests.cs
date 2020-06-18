@@ -100,11 +100,33 @@ namespace CaptainHook.Tests.Services.Reliable.HeartBeat
         }
 
         [Fact, IsUnit]
+        public void ReportCompleteMessage_Delivered_Undelivered_ReflectedInTelemetry()
+        {
+            // Act
+            _heartBeat.ReportCompleteMessage(true);
+            _heartBeat.ReportCompleteMessage(true);
+            _heartBeat.ReportCompleteMessage(false);
+            _heartBeat.ReportCompleteMessage(false);
+            _heartBeat.ReportCompleteMessage(false);
+            var telemetryEvent = _heartBeat.ToTelemetryEvent(_context);
+
+            // Assert
+            var expected = new ReaderHeartBeatEvent(_context)
+            {
+                NumberOfMessagesDeliveredSinceLastHeartBeat = 2,
+                NumberOfMessagesUndeliveredSinceLastHeartBeat = 3
+            };
+            telemetryEvent.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact, IsUnit]
         public void ToTelemetryEvent_CalledMultipleTimes_ResetsAggregatesBetweenCalls()
         {
             // Act
             _heartBeat.ReportInFlight(5, 15);
             _heartBeat.ReportMessagesRead(5);
+            _heartBeat.ReportCompleteMessage(true);
+            _heartBeat.ReportCompleteMessage(false);
             var _ = _heartBeat.ToTelemetryEvent(_context);
             var telemetryEvent2 = _heartBeat.ToTelemetryEvent(_context);
 
@@ -115,7 +137,9 @@ namespace CaptainHook.Tests.Services.Reliable.HeartBeat
                 NumberOfAvailableHandlers = 15,
                 NumberOfMessagesReadLastTime = 5,
                 NumberOfMessagesReadSinceLastHeartBeat = 0,
-                NumberOfTimesNoMessagesReadSinceLastHeartBeat = 0
+                NumberOfTimesNoMessagesReadSinceLastHeartBeat = 0,
+                NumberOfMessagesUndeliveredSinceLastHeartBeat = 0,
+                NumberOfMessagesDeliveredSinceLastHeartBeat = 0
             };
             telemetryEvent2.Should().BeEquivalentTo(expected, config => config
                 .Using<DateTime?>(context => context.Subject.Should().NotBeNull())

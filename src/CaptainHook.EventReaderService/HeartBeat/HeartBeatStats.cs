@@ -19,6 +19,10 @@ namespace CaptainHook.EventReaderService.HeartBeat
 
         private int _numberOfTimesNoMessagesReadSinceLastHeartBeat;
 
+        private int _numberOfDeliveredMessagesSinceLastHeartBeat;
+
+        private int _numberOfUndeliveredMessagesSinceLastHeartBeat;
+
         private readonly bool _enabled;
 
         public HeartBeatStats(bool enabled)
@@ -77,7 +81,9 @@ namespace CaptainHook.EventReaderService.HeartBeat
                     LastTimeMessagesReadUtc = _lastTimeMessagesReadUtc,
                     NumberOfMessagesReadLastTime = _numberOfMessagesReadLastTime,
                     NumberOfTimesNoMessagesReadSinceLastHeartBeat = _numberOfTimesNoMessagesReadSinceLastHeartBeat,
-                    NumberOfMessagesReadSinceLastHeartBeat = _numberOfMessagesReadSinceLastHeartBeat
+                    NumberOfMessagesReadSinceLastHeartBeat = _numberOfMessagesReadSinceLastHeartBeat,
+                    NumberOfMessagesDeliveredSinceLastHeartBeat = _numberOfDeliveredMessagesSinceLastHeartBeat,
+                    NumberOfMessagesUndeliveredSinceLastHeartBeat = _numberOfUndeliveredMessagesSinceLastHeartBeat
                 };
 
                 this.Reset();
@@ -85,10 +91,32 @@ namespace CaptainHook.EventReaderService.HeartBeat
             }
         }
 
+        public void ReportCompleteMessage(bool messageDelivered)
+        {
+            if (!_enabled)
+            {
+                return;
+            }
+
+            lock (_syncObject)
+            {
+                if (messageDelivered)
+                {
+                    _numberOfDeliveredMessagesSinceLastHeartBeat++;
+                }
+                else
+                {
+                    _numberOfUndeliveredMessagesSinceLastHeartBeat++;
+                }
+            }
+        }
+
         private void Reset()
         {
-            _numberOfMessagesReadSinceLastHeartBeat = 0;
-            _numberOfTimesNoMessagesReadSinceLastHeartBeat = 0;
+            _numberOfMessagesReadSinceLastHeartBeat =
+            _numberOfTimesNoMessagesReadSinceLastHeartBeat =
+            _numberOfUndeliveredMessagesSinceLastHeartBeat =
+            _numberOfDeliveredMessagesSinceLastHeartBeat = 0;
         }
     }
 }
