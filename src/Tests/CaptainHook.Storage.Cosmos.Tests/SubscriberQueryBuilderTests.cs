@@ -11,7 +11,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         private readonly SubscriberQueryBuilder queryBuilder = new SubscriberQueryBuilder();
 
         [Fact, IsUnit]
-        public void IsQueryUsingPartitionKey()
+        public void ShouldUsePartitionKey()
         {
             // Arrange
             var eventName = "eventName";
