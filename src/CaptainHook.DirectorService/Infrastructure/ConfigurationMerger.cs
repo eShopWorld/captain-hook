@@ -54,21 +54,21 @@ namespace CaptainHook.DirectorService.Infrastructure
             return config;
         }
 
-        private WebhookConfig MapCallback(SubscriberModel cosmosModel)
-        {
-            var endpoint = cosmosModel?.Callbacks?.Endpoints.FirstOrDefault();
-            if (endpoint == null)
-                return null;
+        //private WebhookConfig MapCallback(SubscriberModel cosmosModel)
+        //{
+        //    var endpoint = cosmosModel?.Callbacks?.Endpoints.FirstOrDefault();
+        //    if (endpoint == null)
+        //        return null;
 
-            return new WebhookConfig()
-            {
-                Name = cosmosModel.Name,
-                Uri = endpoint.Uri,
-                HttpVerb = endpoint.HttpVerb,
-                AuthenticationConfig = MapAuthentication(endpoint.Authentication),
-                EventType = cosmosModel.ParentEvent.Name,
-            };
-        }
+        //    return new WebhookConfig()
+        //    {
+        //        Name = cosmosModel.Name,
+        //        Uri = endpoint.Uri,
+        //        HttpVerb = endpoint.HttpVerb,
+        //        AuthenticationConfig = MapAuthentication(endpoint.Authentication),
+        //        EventType = cosmosModel.ParentEvent.Name,
+        //    };
+        //}
 
         //private SubscriberConfiguration MapDlq(SubscriberModel cosmosModel)
         //{

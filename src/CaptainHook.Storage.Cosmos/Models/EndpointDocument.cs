@@ -4,25 +4,33 @@ using System;
 namespace CaptainHook.Repository.Models
 {
     /// <summary>
-    /// Endpoint model in cosmos db
+    /// Endpoint model in Cosmos DB
     /// </summary>
-    public class Endpoint
+    internal class EndpointDocument
     {
         public const string Type = "Endpoint";
-        public static string GetPartitionKey(string eventName, string subscriberName) => $"{Type}_{eventName}_{subscriberName}";
-        public static string GetDocumentId() => Guid.NewGuid().ToString();
+        public static string GetPartitionKey(string eventName) => $"{Type}_{eventName}";
+        
+        //change
+        public static string GetDocumentId(string eventName, string subscriberName, string selector) => $"{eventName}_{subscriberName}_{selector}";
 
         /// <summary>
-        /// Endpoint id
+        /// Identifier
         /// </summary>
         [JsonProperty("id")]
-        public string Id => GetDocumentId();
+        public string Id => GetDocumentId(EventName, SubscriberName, EndpointSelector);
+
+        /// <summary>
+        /// Type of the document.
+        /// </summary>
+        [JsonProperty("type")]
+        public string DocumentType { get; set; } = Type;
 
         /// <summary>
         /// Partition key
         /// </summary>
         [JsonProperty("pk")]
-        public string Pk => GetPartitionKey(EventName, SubscriberName);
+        public string Pk => GetPartitionKey(EventName);
 
         /// <summary>
         /// Endpoint URI
@@ -40,7 +48,7 @@ namespace CaptainHook.Repository.Models
         /// Endpoint authentication
         /// </summary>
         [JsonProperty("authentication")]
-        public Authentication Authentication { get; set; }
+        public AuthenticationData Authentication { get; set; }
 
         /// <summary>
         /// Endpoint HTTP verb
@@ -50,7 +58,7 @@ namespace CaptainHook.Repository.Models
         /// <summary>
         /// Webhook selector
         /// </summary>
-        public string WebhookSelector { get; set; }
+        public string WebhookSelectionRule { get; set; }
 
         /// <summary>
         /// Subscriber name

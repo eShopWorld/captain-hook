@@ -50,8 +50,6 @@ namespace CaptainHook.Tests.Builders
             subscriber.SetParentEvent(_event);
 
             _webhooks.ForEach(x => subscriber.AddWebhookEndpoint(x));
-            _callbacks.ForEach(x => subscriber.AddCallbackEndpoint(x));
-            _dlq.ForEach(x => subscriber.AddDlqEndpoint(x));
 
             return subscriber;
         }

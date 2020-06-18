@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CaptainHook.Domain.Models
+﻿namespace CaptainHook.Domain.Models
 {
     /// <summary>
     /// Secret store model

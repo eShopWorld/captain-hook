@@ -13,18 +13,18 @@ namespace CaptainHook.Domain.Models
         /// <summary>
         /// Webhook selector
         /// </summary>
-        public string Selector { get; }
+        public string SelectionRule { get; }
 
         /// <summary>
         /// Webhook endpoints
         /// </summary>
         public IEnumerable<EndpointModel> Endpoints => _endpoints;
 
-        public WebhooksModel(string selector): this(selector, null) { }
+        public WebhooksModel(string selectionRule): this(selectionRule, null) { }
 
-        public WebhooksModel(string selector, IEnumerable<EndpointModel> endpoints)
+        public WebhooksModel(string selectionRule, IEnumerable<EndpointModel> endpoints)
         {
-            Selector = selector;
+            SelectionRule = selectionRule;
             _endpoints = endpoints?.ToList() ?? new List<EndpointModel>();
         }
 
