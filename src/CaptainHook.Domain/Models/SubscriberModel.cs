@@ -21,11 +21,11 @@
         public WebhooksModel Webhooks { get; }
 
         public SubscriberModel(string name) : this(name, null, null) { }
-        public SubscriberModel(string name, string webhookSelector) : this(name, webhookSelector, null) { }
-        public SubscriberModel(string name, string webhookSelector, EventModel parentEvent)
+        public SubscriberModel(string name, string webhookSelectionRule) : this(name, webhookSelectionRule, null) { }
+        public SubscriberModel(string name, string webhookSelectionRule, EventModel parentEvent)
         {
             Name = name;
-            Webhooks = new WebhooksModel(webhookSelector);
+            Webhooks = new WebhooksModel(webhookSelectionRule);
 
             SetParentEvent(parentEvent);
         }

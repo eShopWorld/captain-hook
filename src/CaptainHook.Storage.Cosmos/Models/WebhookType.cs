@@ -1,6 +1,6 @@
 ﻿namespace CaptainHook.Repository.Models
 {
-    public enum WebhookType
+    internal enum WebhookType
     {
         Webhook = 0, Callback, Dlq
     }

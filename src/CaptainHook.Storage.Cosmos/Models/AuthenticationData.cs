@@ -5,7 +5,7 @@ namespace CaptainHook.Repository.Models
     /// <summary>
     /// Authentication model in cosmos db
     /// </summary>
-    public class AuthenticationData
+    internal class AuthenticationData
     {
         /// <summary>
         /// Client id for authentication
