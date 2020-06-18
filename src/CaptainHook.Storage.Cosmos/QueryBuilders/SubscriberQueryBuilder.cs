@@ -1,8 +1,8 @@
-﻿using CaptainHook.Repository.Models;
+﻿using CaptainHook.Storage.Cosmos.Models;
 using Eshopworld.Data.CosmosDb;
 using Microsoft.Azure.Cosmos;
 
-namespace CaptainHook.Repository.QueryBuilders
+namespace CaptainHook.Storage.Cosmos.QueryBuilders
 {
     public class SubscriberQueryBuilder: ISubscriberQueryBuilder
     {

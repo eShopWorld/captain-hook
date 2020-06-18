@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Domain.Models;
+using CaptainHook.Domain.Entities;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
@@ -16,7 +16,7 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// <param name="subscribersFromKeyVault">Subscriber definitions loaded from KeyVault</param>
         /// <param name="subscribersFromCosmos">Subscriber models retrieved from Cosmos</param>
         /// <returns>List of all subscribers converted to KeyVault structure</returns>
-        public ReadOnlyCollection<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<SubscriberModel> subscribersFromCosmos)
+        public ReadOnlyCollection<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<SubscriberEntity> subscribersFromCosmos)
         {
             var onlyInKv = subscribersFromKeyVault
                 .Where(kvSubscriber => !subscribersFromCosmos.Any(cosmosSubscriber =>
@@ -28,7 +28,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             return new ReadOnlyCollection<SubscriberConfiguration>(union);
         }
 
-        private IEnumerable<SubscriberConfiguration> MapSubscriber(SubscriberModel cosmosModel)
+        private IEnumerable<SubscriberConfiguration> MapSubscriber(SubscriberEntity cosmosModel)
         {
             yield return MapBasicSubscriberData(cosmosModel);
 
@@ -40,7 +40,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             //}
         }
 
-        private SubscriberConfiguration MapBasicSubscriberData(SubscriberModel cosmosModel)
+        private SubscriberConfiguration MapBasicSubscriberData(SubscriberEntity cosmosModel)
         {
             var config = new SubscriberConfiguration
             {
@@ -86,7 +86,7 @@ namespace CaptainHook.DirectorService.Infrastructure
         //    };
         //}
 
-        private AuthenticationConfig MapAuthentication(AuthenticationModel cosmosAuthentication)
+        private AuthenticationConfig MapAuthentication(AuthenticationEntity cosmosAuthentication)
         {
             if (cosmosAuthentication == null)
                 return null;

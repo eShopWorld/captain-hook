@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace CaptainHook.Repository.Models
+namespace CaptainHook.Storage.Cosmos.Models
 {
     /// <summary>
     /// Authentication model in cosmos db

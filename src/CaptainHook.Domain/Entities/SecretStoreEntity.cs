@@ -1,9 +1,9 @@
-﻿namespace CaptainHook.Domain.Models
+﻿namespace CaptainHook.Domain.Entities
 {
     /// <summary>
     /// Secret store model
     /// </summary>
-    public class SecretStoreModel
+    public class SecretStoreEntity
     {
         /// <summary>
         /// Name of the keyvault which holds the secret
@@ -15,9 +15,9 @@
         /// </summary>
         public string SecretName { get; }
         
-        public SecretStoreModel(): this(null, null) { }
+        public SecretStoreEntity(): this(null, null) { }
 
-        public SecretStoreModel(string keyVaultName, string secretName)
+        public SecretStoreEntity(string keyVaultName, string secretName)
         {
             KeyVaultName = keyVaultName;
             SecretName = secretName;

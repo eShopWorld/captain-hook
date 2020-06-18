@@ -1,14 +1,14 @@
-﻿using CaptainHook.Domain.Models;
-using CaptainHook.Repository.Models;
+﻿using CaptainHook.Domain.Entities;
 using Eshopworld.Data.CosmosDb;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CaptainHook.Repository.QueryBuilders;
 using System.Linq;
-using CaptainHook.Domain.Interfaces;
+using CaptainHook.Domain.Repositories;
+using CaptainHook.Storage.Cosmos.QueryBuilders;
+using CaptainHook.Storage.Cosmos.Models;
 
-namespace CaptainHook.Repository
+namespace CaptainHook.Storage.Cosmos
 {
     /// <summary>
     /// Event repository
@@ -37,7 +37,7 @@ namespace CaptainHook.Repository
             _cosmosDbRepository.UseCollection(CollectionName);
         }
 
-        public Task<IEnumerable<SubscriberModel>> GetSubscribersListAsync(string eventName)
+        public Task<IEnumerable<SubscriberEntity>> GetSubscribersListAsync(string eventName)
         {
             if (string.IsNullOrWhiteSpace(eventName))
             {
@@ -49,7 +49,7 @@ namespace CaptainHook.Repository
 
         #region Private methods
 
-        private async Task<IEnumerable<SubscriberModel>> GetSubscribersListInternalAsync(string eventName)
+        private async Task<IEnumerable<SubscriberEntity>> GetSubscribersListInternalAsync(string eventName)
         {
             var query = _endpointQueryBuilder.BuildSelectSubscribersListEndpoints(eventName);
             var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
@@ -59,26 +59,26 @@ namespace CaptainHook.Repository
                 .Select(x => Map(x));
         }
 
-        private EndpointModel Map(EndpointDocument endpoint)
+        private EndpointEntity Map(EndpointDocument endpoint)
         {
             var authentication = Map(endpoint.Authentication);
-            return new EndpointModel(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.EndpointSelector);
+            return new EndpointEntity(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.EndpointSelector);
         }
 
-        private AuthenticationModel Map(AuthenticationData authentication)
+        private AuthenticationEntity Map(AuthenticationData authentication)
         {
-            var secretStore = new SecretStoreModel(authentication.KeyVaultName, authentication.SecretName);
-            return new AuthenticationModel(authentication.ClientId, secretStore, authentication.Uri, authentication.Type, authentication.Scopes);
+            var secretStore = new SecretStoreEntity(authentication.KeyVaultName, authentication.SecretName);
+            return new AuthenticationEntity(authentication.ClientId, secretStore, authentication.Uri, authentication.Type, authentication.Scopes);
         }
 
-        private SubscriberModel Map(IEnumerable<EndpointDocument> endpoints)
+        private SubscriberEntity Map(IEnumerable<EndpointDocument> endpoints)
         {
             var subscriberName = endpoints.First().SubscriberName;
             var webhookSelectionRule = endpoints
                 .FirstOrDefault(x => x.WebhookType == WebhookType.Webhook)?
                 .WebhookSelectionRule;
 
-            var subscriber = new SubscriberModel(subscriberName, webhookSelectionRule);
+            var subscriber = new SubscriberEntity(subscriberName, webhookSelectionRule);
 
             foreach (var endpoint in endpoints)
             {

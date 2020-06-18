@@ -1,11 +1,9 @@
-﻿using System.Collections;
-
-namespace CaptainHook.Domain.Models
+﻿namespace CaptainHook.Domain.Entities
 {
     /// <summary>
     /// Authentication model
     /// </summary>
-    public class AuthenticationModel
+    public class AuthenticationEntity
     {
         /// <summary>
         /// Client ID
@@ -15,7 +13,7 @@ namespace CaptainHook.Domain.Models
         /// <summary>
         /// The secret storage
         /// </summary>
-        public SecretStoreModel SecretStore { get; }
+        public SecretStoreEntity SecretStore { get; }
 
         /// <summary>
         /// Authentication URI
@@ -32,7 +30,7 @@ namespace CaptainHook.Domain.Models
         /// </summary>
         public string[] Scopes { get; }
 
-        public AuthenticationModel(string clientId, SecretStoreModel secretStore, string uri, string type, string[] scopes)
+        public AuthenticationEntity(string clientId, SecretStoreEntity secretStore, string uri, string type, string[] scopes)
         {
             ClientId = clientId;
             SecretStore = secretStore;

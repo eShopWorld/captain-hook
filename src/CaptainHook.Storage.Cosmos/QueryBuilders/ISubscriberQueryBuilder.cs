@@ -1,6 +1,6 @@
 ﻿using Eshopworld.Data.CosmosDb;
 
-namespace CaptainHook.Repository.QueryBuilders
+namespace CaptainHook.Storage.Cosmos.QueryBuilders
 {
     /// <summary>
     /// Query Builder interface

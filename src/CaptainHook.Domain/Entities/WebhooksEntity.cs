@@ -1,0 +1,36 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace CaptainHook.Domain.Entities
+{
+    /// <summary>
+    /// Webhooks model
+    /// </summary>
+    public class WebhooksEntity
+    {
+        private readonly List<EndpointEntity> _endpoints = new List<EndpointEntity>();
+
+        /// <summary>
+        /// Webhook selector
+        /// </summary>
+        public string SelectionRule { get; }
+
+        /// <summary>
+        /// Webhook endpoints
+        /// </summary>
+        public IEnumerable<EndpointEntity> Endpoints => _endpoints;
+
+        public WebhooksEntity(string selectionRule): this(selectionRule, null) { }
+
+        public WebhooksEntity(string selectionRule, IEnumerable<EndpointEntity> endpoints)
+        {
+            SelectionRule = selectionRule;
+            _endpoints = endpoints?.ToList() ?? new List<EndpointEntity>();
+        }
+
+        public void AddEndpoint(EndpointEntity endpointModel)
+        {
+            _endpoints.Add(endpointModel);
+        }
+    }
+}

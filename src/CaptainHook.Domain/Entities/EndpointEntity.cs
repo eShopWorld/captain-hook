@@ -1,14 +1,14 @@
-﻿namespace CaptainHook.Domain.Models
+﻿namespace CaptainHook.Domain.Entities
 {
     /// <summary>
     /// Endpoint model
     /// </summary>
-    public class EndpointModel
+    public class EndpointEntity
     {
         /// <summary>
         /// Parent subscriber model
         /// </summary>
-        public SubscriberModel ParentSubscriber { get; private set; }
+        public SubscriberEntity ParentSubscriber { get; private set; }
 
         /// <summary>
         /// Endpoint URI
@@ -18,7 +18,7 @@
         /// <summary>
         /// Endpoint authentication
         /// </summary>
-        public AuthenticationModel Authentication { get; }
+        public AuthenticationEntity Authentication { get; }
 
         /// <summary>
         /// Endpoint HTTP method
@@ -30,9 +30,9 @@
         /// </summary>
         public string Selector { get; }
 
-        public EndpointModel(string uri, AuthenticationModel authentication, string httpVerb, string selector): this(uri, authentication, httpVerb, selector, null) { }
+        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector): this(uri, authentication, httpVerb, selector, null) { }
 
-        public EndpointModel(string uri, AuthenticationModel authentication, string httpVerb, string selector, SubscriberModel subscriber)
+        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector, SubscriberEntity subscriber)
         {
             Uri = uri;
             Authentication = authentication;
@@ -42,7 +42,7 @@
             SetParentSubscriber(subscriber);
         }
 
-        public void SetParentSubscriber(SubscriberModel subscriber)
+        public void SetParentSubscriber(SubscriberEntity subscriber)
         {
             ParentSubscriber = subscriber;
         }

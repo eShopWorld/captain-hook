@@ -1,8 +1,8 @@
-﻿using CaptainHook.Domain.Models;
+﻿using CaptainHook.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CaptainHook.Domain.Interfaces
+namespace CaptainHook.Domain.Repositories
 {
     public interface ISubscriberRepository
     {
@@ -11,6 +11,6 @@ namespace CaptainHook.Domain.Interfaces
         /// </summary>
         /// <param name="eventName">The event name</param>
         /// <returns></returns>
-        public Task<IEnumerable<SubscriberModel>> GetSubscribersListAsync(string eventName);
+        public Task<IEnumerable<SubscriberEntity>> GetSubscribersListAsync(string eventName);
     }
 }

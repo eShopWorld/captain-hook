@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Repository.Models
+﻿namespace CaptainHook.Storage.Cosmos.Models
 {
     internal enum WebhookType
     {

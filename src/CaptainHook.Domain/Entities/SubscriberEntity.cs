@@ -1,9 +1,9 @@
-﻿namespace CaptainHook.Domain.Models
+﻿namespace CaptainHook.Domain.Entities
 {
     /// <summary>
     /// Subscriber model
     /// </summary>
-    public class SubscriberModel
+    public class SubscriberEntity
     {
         /// <summary>
         /// Subscriber name
@@ -13,24 +13,24 @@
         /// <summary>
         /// Parent event for this subscriber
         /// </summary>
-        public EventModel ParentEvent { get; private set; }
+        public EventEntity ParentEvent { get; private set; }
 
         /// <summary>
         /// Collection of webhook enpoints
         /// </summary>
-        public WebhooksModel Webhooks { get; }
+        public WebhooksEntity Webhooks { get; }
 
-        public SubscriberModel(string name) : this(name, null, null) { }
-        public SubscriberModel(string name, string webhookSelectionRule) : this(name, webhookSelectionRule, null) { }
-        public SubscriberModel(string name, string webhookSelectionRule, EventModel parentEvent)
+        public SubscriberEntity(string name) : this(name, null, null) { }
+        public SubscriberEntity(string name, string webhookSelectionRule) : this(name, webhookSelectionRule, null) { }
+        public SubscriberEntity(string name, string webhookSelectionRule, EventEntity parentEvent)
         {
             Name = name;
-            Webhooks = new WebhooksModel(webhookSelectionRule);
+            Webhooks = new WebhooksEntity(webhookSelectionRule);
 
             SetParentEvent(parentEvent);
         }
 
-        public void SetParentEvent(EventModel parentEvent)
+        public void SetParentEvent(EventEntity parentEvent)
         {
             ParentEvent = parentEvent;
         }
@@ -39,7 +39,7 @@
         /// Adds an enpoint to the list of webhook endpoints
         /// </summary>
         /// <param name="endpointModel"></param>
-        public void AddWebhookEndpoint(EndpointModel endpointModel)
+        public void AddWebhookEndpoint(EndpointEntity endpointModel)
         {
             endpointModel.SetParentSubscriber(this);
             Webhooks.AddEndpoint(endpointModel);

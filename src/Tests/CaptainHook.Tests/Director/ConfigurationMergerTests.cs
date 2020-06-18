@@ -3,7 +3,7 @@ using System.Linq;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure;
-using CaptainHook.Domain.Models;
+using CaptainHook.Domain.Entities;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -24,7 +24,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
-            var result = new ConfigurationMerger().Merge(kvSubscribers, new List<SubscriberModel>());
+            var result = new ConfigurationMerger().Merge(kvSubscribers, new List<SubscriberEntity>());
 
             using (new AssertionScope())
             {
@@ -95,7 +95,7 @@ namespace CaptainHook.Tests.Director
             var cosmosSubscribers = new[]
             {
                 new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector",
-                        new AuthenticationModel("captain-hook-id", new SecretStoreModel("kvname", "verylongpassword"), "https://blah-blah.sts.eshopworld.com", "type", new string[] { "scope1" })
+                        new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "verylongpassword"), "https://blah-blah.sts.eshopworld.com", "type", new string[] { "scope1" })
                     ).Create(),
             };
 
