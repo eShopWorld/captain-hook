@@ -7,9 +7,9 @@ namespace CaptainHook.Tests.Builders
     {
         private string _name = "captain-hook";
         private EventModel _event;
-        private List<EndpointModel> _webhooks = new List<EndpointModel>();
-        private List<EndpointModel> _callbacks = new List<EndpointModel>();
-        private List<EndpointModel> _dlq = new List<EndpointModel>();
+        private readonly List<EndpointModel> _webhooks = new List<EndpointModel>();
+        private readonly List<EndpointModel> _callbacks = new List<EndpointModel>();
+        private readonly List<EndpointModel> _dlq = new List<EndpointModel>();
 
         public SubscriberBuilder WithName(string name)
         {
