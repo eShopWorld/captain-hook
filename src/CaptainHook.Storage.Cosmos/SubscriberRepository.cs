@@ -59,13 +59,6 @@ namespace CaptainHook.Repository
                 .Select(x => Map(x));
         }
 
-        private async Task<SubscriberModel> GetSubscriberInternalAsync(string eventName, string subscriberName)
-        {
-            var query = _endpointQueryBuilder.BuildSelectSubscriberEndpoints(eventName, subscriberName);
-            var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
-            return Map(endpoints);
-        }
-
         private EndpointModel Map(EndpointDocument endpoint)
         {
             var authentication = Map(endpoint.Authentication);
