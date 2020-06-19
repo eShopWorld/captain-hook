@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Text;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Json;
@@ -24,6 +25,8 @@ namespace CaptainHook.Common.ServiceModels
 
         public string SubscriptionName => DlqMode != null ? SourceSubscription : SubscriberName;
 
+        public TimeSpan? HeartBeatInterval { get; set; }
+
         private static JsonIgnoreAttributeIgnorerContractResolver jsonIgnoreAttributeIgnorerContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
 
         private static AuthenticationConfigConverter authenticationConfigConverter = new AuthenticationConfigConverter();
@@ -37,7 +40,8 @@ namespace CaptainHook.Common.ServiceModels
                 EventType = subscriberConfiguration.EventType,
                 DlqMode = subscriberConfiguration.DLQMode,
                 SourceSubscription = subscriberConfiguration.DLQMode != null ? subscriberConfiguration.SourceSubscriptionName : null,
-                WebhookConfig = webhookConfig
+                WebhookConfig = webhookConfig,
+                HeartBeatInterval = TimeSpan.TryParse(subscriberConfiguration.HeartBeatInterval, out var heartBeatInterval) ? heartBeatInterval : (TimeSpan?)null
             };
         }
 
