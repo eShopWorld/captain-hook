@@ -3,7 +3,7 @@ using System.Linq;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure;
-using CaptainHook.Domain.Models;
+using CaptainHook.Domain.Entities;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -24,7 +24,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
-            var result = new ConfigurationMerger().Merge(kvSubscribers, new List<Subscriber>());
+            var result = new ConfigurationMerger().Merge(kvSubscribers, new List<SubscriberEntity>());
 
             using (new AssertionScope())
             {
@@ -40,9 +40,9 @@ namespace CaptainHook.Tests.Director
         {
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST").Create(),
-                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST").Create(),
-                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST").Create(),
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector").Create(),
+                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST", "selector").Create(),
+                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector").Create(),
             };
 
             var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
@@ -68,9 +68,9 @@ namespace CaptainHook.Tests.Director
 
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST").Create(),
-                new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST").Create(),
-                new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST").Create(),
+                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector").Create(),
+                new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST", "selector").Create(),
+                new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector").Create(),
             };
 
             var result = new ConfigurationMerger().Merge(kvSubscribers, cosmosSubscribers);
@@ -94,8 +94,8 @@ namespace CaptainHook.Tests.Director
         {
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST",
-                        new Authentication{  Uri = "https://blah-blah.sts.eshopworld.com", ClientId = "captain-hook-id", Secret = "verylongpassword", }
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector",
+                        new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "verylongpassword"), "https://blah-blah.sts.eshopworld.com", "type", new string[] { "scope1" })
                     ).Create(),
             };
 
@@ -126,8 +126,8 @@ namespace CaptainHook.Tests.Director
         {
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST")
-                    .WithCallback("https://cosmos.eshopworld.com/callback/", "PUT")
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector")
+                    .WithCallback("https://cosmos.eshopworld.com/callback/", "PUT", "selector")
                     .Create(),
             };
 
@@ -148,8 +148,8 @@ namespace CaptainHook.Tests.Director
             var cosmosSubscribers = new[]
             {
                 new SubscriberBuilder().WithEvent("testevent-dlq").WithName("DLQ")
-                    .WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST")
-                    .WithDlq("https://cosmos.eshopworld.com/dlq/", "PUT")
+                    .WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector")
+                    .WithDlq("https://cosmos.eshopworld.com/dlq/", "PUT", "selector")
                     .Create(),
             };
 

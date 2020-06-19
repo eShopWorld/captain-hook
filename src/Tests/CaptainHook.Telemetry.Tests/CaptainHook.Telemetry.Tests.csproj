@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CaptainHook.Telemetry\CaptainHook.Telemetry.csproj" />
+    <ProjectReference Include="..\..\CaptainHook.Telemetry\CaptainHook.Telemetry.csproj" />
   </ItemGroup>
 
 </Project>

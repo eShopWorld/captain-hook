@@ -28,19 +28,25 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.EventHandlerAct
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Telemetry", "CaptainHook.Telemetry\CaptainHook.Telemetry.csproj", "{DFDEE70A-65A5-42B6-B58D-31E1CD393816}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Telemetry.Tests", "CaptainHook.Telemetry.Tests\CaptainHook.Telemetry.Tests.csproj", "{976791C1-9AC5-4B65-AEF0-DAD79DE48356}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Telemetry.Tests", "Tests\CaptainHook.Telemetry.Tests\CaptainHook.Telemetry.Tests.csproj", "{976791C1-9AC5-4B65-AEF0-DAD79DE48356}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Cli", "CaptainHook.Cli\CaptainHook.Cli.csproj", "{A164B0E1-58EA-4F96-BE08-900AC00609F7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Cli.Tests", "CaptainHook.Cli.Tests\CaptainHook.Cli.Tests.csproj", "{60D82264-1246-4205-A704-EF8A290A9A4D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Cli.Tests", "Tests\CaptainHook.Cli.Tests\CaptainHook.Cli.Tests.csproj", "{60D82264-1246-4205-A704-EF8A290A9A4D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api", "CaptainHook.Api\CaptainHook.Api.csproj", "{DE1559AF-7CF2-4196-9F83-2C272D7357D0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api.Tests", "CaptainHook.Api.Tests\CaptainHook.Api.Tests.csproj", "{67265B29-9868-459C-81C4-733F837A9491}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api.Tests", "Tests\CaptainHook.Api.Tests\CaptainHook.Api.Tests.csproj", "{67265B29-9868-459C-81C4-733F837A9491}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Api.Client", "CaptainHook.Api.Client\CaptainHook.Api.Client.csproj", "{6EBED3A2-596B-4BAB-969E-C852FB2E6A5D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Domain", "CaptainHook.Domain\CaptainHook.Domain.csproj", "{C781A7C9-3098-4026-8F2A-A52AA11ED0F5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Storage.Cosmos", "CaptainHook.Storage.Cosmos\CaptainHook.Storage.Cosmos.csproj", "{035A6D86-CE70-4C24-883A-F4CCB3916AD0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{24314874-C52E-4C8E-B7A5-D17EFD0C01DD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CaptainHook.Storage.Cosmos.Tests", "Tests\CaptainHook.Storage.Cosmos.Tests\CaptainHook.Storage.Cosmos.Tests.csproj", "{3635FFA4-A712-48A3-B69D-0976DAD93572}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -172,12 +178,25 @@ Global
 		{035A6D86-CE70-4C24-883A-F4CCB3916AD0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{035A6D86-CE70-4C24-883A-F4CCB3916AD0}.Release|x64.ActiveCfg = Release|Any CPU
 		{035A6D86-CE70-4C24-883A-F4CCB3916AD0}.Release|x64.Build.0 = Release|Any CPU
+		{3635FFA4-A712-48A3-B69D-0976DAD93572}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3635FFA4-A712-48A3-B69D-0976DAD93572}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3635FFA4-A712-48A3-B69D-0976DAD93572}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3635FFA4-A712-48A3-B69D-0976DAD93572}.Debug|x64.Build.0 = Debug|Any CPU
+		{3635FFA4-A712-48A3-B69D-0976DAD93572}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3635FFA4-A712-48A3-B69D-0976DAD93572}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3635FFA4-A712-48A3-B69D-0976DAD93572}.Release|x64.ActiveCfg = Release|Any CPU
+		{3635FFA4-A712-48A3-B69D-0976DAD93572}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{A8BA8475-6198-4CB2-9D5B-C70356D9135B} = {24314874-C52E-4C8E-B7A5-D17EFD0C01DD}
 		{F933539D-C4FA-424D-924A-21FAF7DA26C9} = {D16E878F-FC8E-4C10-940B-05EBCE767CDF}
+		{976791C1-9AC5-4B65-AEF0-DAD79DE48356} = {24314874-C52E-4C8E-B7A5-D17EFD0C01DD}
+		{60D82264-1246-4205-A704-EF8A290A9A4D} = {24314874-C52E-4C8E-B7A5-D17EFD0C01DD}
+		{67265B29-9868-459C-81C4-733F837A9491} = {24314874-C52E-4C8E-B7A5-D17EFD0C01DD}
+		{3635FFA4-A712-48A3-B69D-0976DAD93572} = {24314874-C52E-4C8E-B7A5-D17EFD0C01DD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {839C8B27-7C12-42F3-A1E3-85EB0F130282}

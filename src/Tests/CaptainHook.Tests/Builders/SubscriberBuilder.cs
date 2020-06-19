@@ -1,14 +1,15 @@
-﻿using CaptainHook.Domain.Models;
+﻿using CaptainHook.Domain.Entities;
+using System.Collections.Generic;
 
 namespace CaptainHook.Tests.Builders
 {
     internal class SubscriberBuilder
     {
         private string _name = "captain-hook";
-        private Event _event;
-        private Webhooks _webhooks;
-        private Webhooks _callbacks;
-        private Webhooks _dlq;
+        private EventEntity _event;
+        private readonly List<EndpointEntity> _webhooks = new List<EndpointEntity>();
+        private readonly List<EndpointEntity> _callbacks = new List<EndpointEntity>();
+        private readonly List<EndpointEntity> _dlq = new List<EndpointEntity>();
 
         public SubscriberBuilder WithName(string name)
         {
@@ -18,44 +19,37 @@ namespace CaptainHook.Tests.Builders
 
         public SubscriberBuilder WithEvent(string name)
         {
-            _event = new Event { Name = name, Type = name };
+            _event = new EventEntity(name);
             return this;
         }
 
-        public SubscriberBuilder WithWebhook(string uri, string httpVerb, Authentication authentication = null)
+        public SubscriberBuilder WithWebhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
-            var endpoint = new Endpoint { Uri = uri, HttpVerb = httpVerb, Authentication = authentication };
-            _webhooks = new Webhooks();
-            _webhooks.Endpoints.Add(endpoint);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector);
+            _webhooks.Add(endpoint);
             return this;
         }
 
-        public SubscriberBuilder WithCallback(string uri, string httpVerb, Authentication authentication = null)
+        public SubscriberBuilder WithCallback(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
-            var endpoint = new Endpoint { Uri = uri, HttpVerb = httpVerb, Authentication = authentication };
-            _callbacks = new Webhooks();
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector);
             _callbacks.Add(endpoint);
             return this;
         }
 
-        public SubscriberBuilder WithDlq(string uri, string httpVerb, Authentication authentication = null)
+        public SubscriberBuilder WithDlq(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
-            var endpoint = new Endpoint { Uri = uri, HttpVerb = httpVerb, Authentication = authentication };
-            _dlq = new Webhooks();
-            _dlq.Endpoints.Add(endpoint);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector);
+            _dlq.Add(endpoint);
             return this;
         }
 
-        public Subscriber Create()
+        public SubscriberEntity Create()
         {
-            var subscriber = new Subscriber
-            {
-                Name = _name,
-                Event = _event,
-                Webhooks = _webhooks,
-                Callbacks = _callbacks,
-                Dlq = _dlq,
-            };
+            var subscriber = new SubscriberEntity(_name);
+            subscriber.SetParentEvent(_event);
+
+            _webhooks.ForEach(x => subscriber.AddWebhookEndpoint(x));
 
             return subscriber;
         }
