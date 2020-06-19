@@ -157,12 +157,18 @@ namespace CaptainHook.Common.Configuration
         public bool IsMainConfiguration { get; private set; }
 
         /// <summary>
+        /// Provide this value as TimeSpan format to send HeartBeat telemetry event from Event Reader
+        /// </summary>
+        public string HeartBeatInterval { get; set; }
+
+        /// <summary>
         /// Tranforms the old structure of configuration into the new one.
         /// </summary>
         /// <param name="webhookConfig">The webhook configuration.</param>
         /// <param name="callback">The callback associated with <paramref name="webhookConfig"/>.</param>
+        /// <param name="heartBeatInterval">Heart Beat Interval value if applicable.</param>
         /// <returns>The subscriber configuration consisting of the webhook configuration and its callback.</returns>
-        public static SubscriberConfiguration FromWebhookConfig(WebhookConfig webhookConfig, WebhookConfig callback)
+        public static SubscriberConfiguration FromWebhookConfig(WebhookConfig webhookConfig, WebhookConfig callback, string heartBeatInterval)
         {
             return new SubscriberConfiguration
             {
@@ -177,6 +183,7 @@ namespace CaptainHook.Common.Configuration
                 WebhookRequestRules = webhookConfig.WebhookRequestRules,
                 Callback = callback,
                 IsMainConfiguration = true,
+                HeartBeatInterval = heartBeatInterval
             };
         }
 
@@ -209,7 +216,7 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// The list of all subscibers of the topic handling the event type.
         /// </summary>
-        [JsonProperty(Order = 5)]
+        [JsonProperty(Order = 6)]
         public List<SubscriberConfiguration> Subscribers { get; } = new List<SubscriberConfiguration>();
 
         /// <summary>
@@ -221,7 +228,7 @@ namespace CaptainHook.Common.Configuration
             get
             {
                 if (WebhookConfig != null)
-                    yield return SubscriberConfiguration.FromWebhookConfig(WebhookConfig, CallbackConfig);
+                    yield return SubscriberConfiguration.FromWebhookConfig(WebhookConfig, CallbackConfig, HeartBeatInterval);
                 foreach (var conf in Subscribers)
                 {
                     conf.CollectionIndex = Subscribers.IndexOf(conf);
@@ -247,6 +254,9 @@ namespace CaptainHook.Common.Configuration
 
         [JsonProperty(Order = 1)]
         public string Type { get; set; }
+
+        [JsonProperty(Order = 5)]
+        public string HeartBeatInterval { get; set; }
     }
 
     public class WebhookRequestRule
