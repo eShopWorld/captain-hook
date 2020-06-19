@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CaptainHook.Domain.Entities
@@ -8,7 +9,7 @@ namespace CaptainHook.Domain.Entities
     /// </summary>
     public class WebhooksEntity
     {
-        private readonly List<EndpointEntity> _endpoints;
+        private readonly IList<EndpointEntity> _endpoints;
 
         /// <summary>
         /// Webhook selector
@@ -25,7 +26,7 @@ namespace CaptainHook.Domain.Entities
         public WebhooksEntity(string selectionRule, IEnumerable<EndpointEntity> endpoints)
         {
             SelectionRule = selectionRule;
-            _endpoints = endpoints?.ToList() ?? new List<EndpointEntity>();
+            _endpoints = endpoints?.ToList() ?? (IList<EndpointEntity>)Array.Empty<EndpointEntity>();
         }
 
         public void AddEndpoint(EndpointEntity endpointModel)

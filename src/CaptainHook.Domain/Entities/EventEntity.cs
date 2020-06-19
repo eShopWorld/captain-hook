@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CaptainHook.Domain.Entities
@@ -18,7 +19,7 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         public IEnumerable<SubscriberEntity> Subscribers => _subscribers;
 
-        private readonly List<SubscriberEntity> _subscribers;
+        private readonly IList<SubscriberEntity> _subscribers;
 
         public EventEntity() : this(null, null) { }
 
@@ -26,7 +27,7 @@ namespace CaptainHook.Domain.Entities
 
         public EventEntity(string name, IEnumerable<SubscriberEntity> subscribers)
         {
-            _subscribers = subscribers?.ToList() ?? new List<SubscriberEntity>();
+            _subscribers = subscribers?.ToList() ?? (IList<SubscriberEntity>)Array.Empty<SubscriberEntity>();
             Name = name;
         }
     }
