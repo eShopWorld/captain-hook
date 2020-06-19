@@ -21,5 +21,9 @@ namespace CaptainHook.EventReaderService.HeartBeat
         public int NumberOfTimesNoMessagesReadSinceLastHeartBeat { get; set; }
 
         public int NumberOfMessagesReadSinceLastHeartBeat { get; set; }
+
+        public int NumberOfMessagesDeliveredSinceLastHeartBeat { get; set; }
+
+        public int NumberOfMessagesUndeliveredSinceLastHeartBeat { get; set; }
     }
 }
