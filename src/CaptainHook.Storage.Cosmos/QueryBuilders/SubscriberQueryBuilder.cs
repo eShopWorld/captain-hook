@@ -16,5 +16,13 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
 
             return new CosmosQuery(query, partitionKey);
         }
+
+        public CosmosQuery BuildSelectAllSubscribersEndpoints()
+        {
+            var query = new QueryDefinition("select * from c where documentType = @documentType")
+                .WithParameter("@documentType", EndpointDocument.Type);
+
+            return new CosmosQuery(query);
+        }
     }
 }

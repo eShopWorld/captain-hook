@@ -11,7 +11,6 @@ using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
-using Eshopworld.Data.CosmosDb;
 using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;

@@ -11,7 +11,7 @@ using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
-using CaptainHook.DirectorService.Utils;
+using CaptainHook.DirectorService.Infrastructure;
 using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.Telemetry;
@@ -70,6 +70,10 @@ namespace CaptainHook.DirectorService
 
                 builder.RegisterType<ReaderServicesManager>()
                     .As<IReaderServicesManager>()
+                    .SingleInstance();
+
+                builder
+                    .RegisterType<ConfigurationMerger>()
                     .SingleInstance();
                 
                 builder.RegisterModule<CosmosDbModule>();
