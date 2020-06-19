@@ -26,7 +26,7 @@ namespace CaptainHook.Domain.Entities
         public WebhooksEntity(string selectionRule, IEnumerable<EndpointEntity> endpoints)
         {
             SelectionRule = selectionRule;
-            _endpoints = endpoints?.ToList() ?? (IList<EndpointEntity>)Array.Empty<EndpointEntity>();
+            _endpoints = endpoints?.ToList() ?? new List<EndpointEntity>();
         }
 
         public void AddEndpoint(EndpointEntity endpointModel)

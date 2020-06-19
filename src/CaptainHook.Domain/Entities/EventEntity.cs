@@ -27,7 +27,7 @@ namespace CaptainHook.Domain.Entities
 
         public EventEntity(string name, IEnumerable<SubscriberEntity> subscribers)
         {
-            _subscribers = subscribers?.ToList() ?? (IList<SubscriberEntity>)Array.Empty<SubscriberEntity>();
+            _subscribers = subscribers?.ToList() ?? new List<SubscriberEntity>();
             Name = name;
         }
     }
