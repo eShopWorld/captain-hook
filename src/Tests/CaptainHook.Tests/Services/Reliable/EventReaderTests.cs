@@ -115,6 +115,7 @@ namespace CaptainHook.Tests.Services.Reliable
                 _config);
 
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
             //Assert that the dictionary contains 1 processing message and associated handle            
@@ -151,6 +152,7 @@ namespace CaptainHook.Tests.Services.Reliable
                 _config);
 
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
             //Assert can cancel the service from running
@@ -209,6 +211,7 @@ namespace CaptainHook.Tests.Services.Reliable
                 _config);
 
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
             Assert.Equal(expectedHandlerId, service.HandlerCount);
@@ -264,6 +267,7 @@ namespace CaptainHook.Tests.Services.Reliable
                 _config);
 
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
             var dictionary = await _stateManager.GetOrAddAsync<IReliableDictionary2<int, MessageDataHandle>>(nameof(MessageDataHandle));
@@ -346,6 +350,7 @@ namespace CaptainHook.Tests.Services.Reliable
                 _config);
 
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
             actor.MessageDataInstances.Select(m => m.WebhookConfig).Should().AllBeEquivalentTo(webhookConfig);

@@ -14,6 +14,7 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.Common.Telemetry.Service;
 using CaptainHook.Common.Telemetry.Service.EventReader;
+using CaptainHook.EventReaderService.HeartBeat;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
 using Eshopworld.Telemetry;
@@ -64,6 +65,10 @@ namespace CaptainHook.EventReaderService
         private static int retryCeilingSeconds = 60;
         private readonly Func<int, TimeSpan> exponentialBackoff = x =>
             TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, retryCeilingSeconds));
+
+        private Timer _heartBeatTimer;
+
+        private HeartBeatStats _heartBeatStats;
 
         /// <summary>
         /// Default ctor used at runtime
@@ -146,11 +151,30 @@ namespace CaptainHook.EventReaderService
         protected override async Task OnOpenAsync(ReplicaOpenMode openMode, CancellationToken cancellationToken)
         {
             _bigBrother.Publish(new ServiceActivatedEvent(Context, InFlightMessageCount));
+
+            var heartBeatEnabled = _initData.HeartBeatInterval != null;
+            _heartBeatStats = new HeartBeatStats(heartBeatEnabled);
+            if (heartBeatEnabled)
+            {
+                _heartBeatTimer = new Timer(HeartBeatTimerCallback, null, TimeSpan.FromSeconds(1.0), _initData.HeartBeatInterval.Value);
+            }
+
             await base.OnOpenAsync(openMode, cancellationToken);
+        }
+
+        private void HeartBeatTimerCallback(object state)
+        {
+            // when the app is starting and there are no handlers in action we discover this situation
+            var handlerCount = _freeHandlers.Count == 0 && HandlerCount == 10 ? 0 : HandlerCount;
+            _heartBeatStats.ReportInFlight(_inflightMessages.Count, handlerCount);
+            var heartBeatEvent = _heartBeatStats.ToTelemetryEvent(Context);
+
+            _bigBrother.Publish(heartBeatEvent);
         }
 
         protected override async Task OnCloseAsync(CancellationToken cancellationToken)
         {
+            _heartBeatTimer.Dispose();
             _bigBrother.Publish(new ServiceDeactivatedEvent(Context, InFlightMessageCount));
             await base.OnCloseAsync(cancellationToken);
         }
@@ -212,9 +236,12 @@ namespace CaptainHook.EventReaderService
 
                         var (messages, activeReaderId) = await ReceiveMessagesFromActiveReceiver();
 
+                        var readMessages = messages?.Count ?? 0;
+                        _heartBeatStats.ReportMessagesRead(readMessages);
+
                         await ServiceReceiversLifecycle();
 
-                        if (messages == null || messages.Count == 0)
+                        if (readMessages == 0)
                         {
                             // ReSharper disable once MethodSupportsCancellation - no need to cancellation token here
 #if DEBUG
@@ -403,6 +430,7 @@ namespace CaptainHook.EventReaderService
             finally
             {
                 _freeHandlers.Enqueue(messageData.HandlerId);
+                _heartBeatStats.ReportCompleteMessage(messageDelivered);
             }
         }
     }
