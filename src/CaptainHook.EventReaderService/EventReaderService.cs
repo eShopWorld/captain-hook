@@ -151,8 +151,14 @@ namespace CaptainHook.EventReaderService
         protected override async Task OnOpenAsync(ReplicaOpenMode openMode, CancellationToken cancellationToken)
         {
             _bigBrother.Publish(new ServiceActivatedEvent(Context, InFlightMessageCount));
-            _heartBeatTimer = new Timer(HeartBeatTimerCallback, null, TimeSpan.FromSeconds(1.0), TimeSpan.FromSeconds(10.0));
-            _heartBeatStats = new HeartBeatStats(true);
+
+            var heartBeatEnabled = _initData.HeartBeatInterval != null;
+            _heartBeatStats = new HeartBeatStats(heartBeatEnabled);
+            if (heartBeatEnabled)
+            {
+                _heartBeatTimer = new Timer(HeartBeatTimerCallback, null, TimeSpan.FromSeconds(1.0), _initData.HeartBeatInterval.Value);
+            }
+
             await base.OnOpenAsync(openMode, cancellationToken);
         }
 

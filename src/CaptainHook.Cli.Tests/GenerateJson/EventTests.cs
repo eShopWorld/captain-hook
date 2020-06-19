@@ -48,5 +48,14 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             JsonResult["CallbackConfig"]
                 .Should().BeOfType<JObject>();
         }
+
+        [Fact, IsLayer0]
+        public async Task SupportsHeartBeatConfig()
+        {
+            PrepareCommand();
+            await Command.OnExecuteAsync(Application, Console);
+            JsonResult["HeartBeatInterval"]
+                .Should().BeOfType<JValue>().Which.Value<string>().Should().Be("00:00:05");
+        }
     }
 }

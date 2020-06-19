@@ -46,6 +46,8 @@ setConfig 'CaptainHook--RequiredScopes--1' 'aaa.bbb.ccc' $KeyVault
 #First Domain Event 
 setConfig 'event--1--type' 'activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent' $KeyVault
 setConfig 'event--1--name' 'activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent' $KeyVault
+setConfig 'event--1--heartbeatinterval' '00:00:05' $KeyVault
+
 setConfig 'event--1--webhookconfig--name' 'activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent-webhook' $KeyVault
 setConfig 'event--1--webhookconfig--uri' 'https://ct.site.com/api/v1/WebHook/Update' $KeyVault
 setConfig 'event--1--webhookconfig--authenticationconfig--type' 2 $KeyVault

@@ -1,4 +1,5 @@
-﻿using CaptainHook.Common.Authentication;
+﻿using System;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using Eshopworld.Tests.Core;
@@ -102,6 +103,51 @@ namespace CaptainHook.Tests.Services.Reliable
             eventReaderInitData.SubscriberName.Should().Be(_subscriberConfiguration.SubscriberName);
             eventReaderInitData.EventType.Should().Be(_subscriberConfiguration.EventType);
             eventReaderInitData.SubscriberConfiguration.Should().BeEquivalentTo(_subscriberConfiguration);
+        }
+
+        [Fact, IsUnit]
+        public void FromSubscriberConfiguration_HeartBeatIntervalInSeconds_MapsToTimeSpan()
+        {
+            // Arrange
+            var heartBeatDisabledSubscriber = new SubscriberConfiguration
+            {
+                HeartBeatInterval = "00:00:05"
+            };
+
+            // Act
+            var initData = EventReaderInitData.FromSubscriberConfiguration(heartBeatDisabledSubscriber, _webhookConfig);
+
+            // Assert
+            initData.HeartBeatInterval.Should().Be(TimeSpan.FromSeconds(5.0));
+        }
+
+        [Fact, IsUnit]
+        public void FromSubscriberConfiguration_HeartBeatIntervalInMinutes_MapsToTimeSpan()
+        {
+            // Arrange
+            var heartBeatDisabledSubscriber = new SubscriberConfiguration
+            {
+                HeartBeatInterval = "00:06:00"
+            };
+
+            // Act
+            var initData = EventReaderInitData.FromSubscriberConfiguration(heartBeatDisabledSubscriber, _webhookConfig);
+
+            // Assert
+            initData.HeartBeatInterval.Should().Be(TimeSpan.FromMinutes(6.0));
+        }
+
+        [Fact, IsUnit]
+        public void FromSubscriberConfiguration_HeartBeatIntervalUnavailable_MapsToNullTimeSpan()
+        {
+            // Arrange
+            var heartBeatDisabledSubscriber = new SubscriberConfiguration();
+
+            // Act
+            var initData = EventReaderInitData.FromSubscriberConfiguration(heartBeatDisabledSubscriber, _webhookConfig);
+
+            // Assert
+            initData.HeartBeatInterval.Should().BeNull();
         }
     }
 }
