@@ -108,14 +108,12 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var result = await repository.GetSubscribersListAsync(eventName);
 
             // Assert
-            using (new AssertionScope())
-            {
-                result.Should().HaveCount(1);
-
-                result.First().Should().BeEquivalentTo(expectedSubscriberEntity, 
+            result.Should()
+                .HaveCount(1)
+                .And
+                .BeEquivalentTo(new [] { expectedSubscriberEntity }, 
                     options => options
                         .Excluding(x => x.SelectedMemberPath == "Webhooks.Endpoints[0].ParentSubscriber"));
-            }
         }
     }
 }
