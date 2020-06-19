@@ -15,8 +15,6 @@
         /// </summary>
         public string SecretName { get; }
         
-        public SecretStoreEntity(): this(null, null) { }
-
         public SecretStoreEntity(string keyVaultName, string secretName)
         {
             KeyVaultName = keyVaultName;
