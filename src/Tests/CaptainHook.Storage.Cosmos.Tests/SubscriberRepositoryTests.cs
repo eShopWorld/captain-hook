@@ -30,38 +30,12 @@ namespace CaptainHook.Storage.Cosmos.Tests
             repository = new SubscriberRepository(_cosmosDbRepositoryMock.Object, _queryBuilderMock.Object);
         }
 
-        [Fact, IsUnit]
-        public async Task EmptyEventNameThrowsException()
+        [Theory, IsUnit]
+        [InlineData("")]
+        [InlineData(" ")]
+        [InlineData(null)]
+        public async Task InvalidEventNameThrowsException(string eventName)
         {
-            // Arrange
-            var eventName = "";
-
-            // Act
-            Task act() => repository.GetSubscribersListAsync(eventName);
-
-            // Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(act);
-        }
-
-        [Fact, IsUnit]
-        public async Task BlankEventNameThrowsException()
-        {
-            // Arrange
-            var eventName = " ";
-
-            // Act
-            Task act() => repository.GetSubscribersListAsync(eventName);
-
-            // Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(act);
-        }
-
-        [Fact, IsUnit]
-        public async Task NullEventNameThrowsException()
-        {
-            // Arrange
-            string eventName = null;
-
             // Act
             Task act() => repository.GetSubscribersListAsync(eventName);
 
