@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace CaptainHook.Api.Dtos
+namespace CaptainHook.Contract
 {
     public class AuthenticationDto
     {

@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Api.Dtos
+﻿namespace CaptainHook.Contract
 {
     public class SubscriberDto
     {
