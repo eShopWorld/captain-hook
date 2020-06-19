@@ -20,7 +20,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var query = _queryBuilder.BuildSelectSubscribersListEndpoints(eventName);
             
             // Assert
-            query.PartitionKey.Should().Be(EndpointDocument.GetPartitionKey(eventName));
+            query.PartitionKey.Should().Be($"{EndpointDocument.Type}_{eventName}");
         }
     }
 }
