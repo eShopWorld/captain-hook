@@ -8,7 +8,7 @@ namespace CaptainHook.Domain.Entities
     /// </summary>
     public class WebhooksEntity
     {
-        private readonly List<EndpointEntity> _endpoints = new List<EndpointEntity>();
+        private readonly List<EndpointEntity> _endpoints;
 
         /// <summary>
         /// Webhook selector
