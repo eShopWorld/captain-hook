@@ -8,6 +8,7 @@ using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.FeatureFlags;
+using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
@@ -71,7 +72,8 @@ namespace CaptainHook.DirectorService
                 builder.RegisterType<ReaderServicesManager>()
                     .As<IReaderServicesManager>()
                     .SingleInstance();
-                
+
+                builder.RegisterModule<KeyVaultModule>();
                 builder.RegisterModule<CosmosDbModule>();
                 builder.ConfigureCosmosDb(configuration.Settings.GetSection(CaptainHookConfigSection));
 

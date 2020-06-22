@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
@@ -79,8 +78,8 @@ namespace CaptainHook.EventReaderService
                                    .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
                                    .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty, AzureEnvironment.AzureGlobalCloud))
                                    .Build();
-
-            var sbNamespace = Azure.Authenticate(client, string.Empty)
+            
+            var sbNamespace = Microsoft.Azure.Management.Fluent.Azure.Authenticate(client, string.Empty)
                                    .WithSubscription(azureSubscriptionId)
                                    .ServiceBusNamespaces.List()
                                    .SingleOrDefault(n => n.Name == serviceBusNamespace);

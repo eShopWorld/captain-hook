@@ -4,12 +4,20 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Domain.Entities;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
     public class ConfigurationMerger
     {
+        private readonly ISecretManager _secretManager;
+
+        public ConfigurationMerger(ISecretManager secretManager)
+        {
+            _secretManager = secretManager;
+        }
+
         /// <summary>
         /// Merges subscribers loaded from Cosmos and from KeyVault. If particular subscriber is defined in both sources, the Cosmos version overrides the KeyVault version.
         /// </summary>
@@ -91,11 +99,13 @@ namespace CaptainHook.DirectorService.Infrastructure
             if (cosmosAuthentication == null)
                 return null;
 
+            var secretValue = _secretManager.GetSecretValueAsync(cosmosAuthentication.SecretStore.SecretName).Result;
+
             return new OidcAuthenticationConfig
             {
                 Type = AuthenticationType.OIDC,
                 ClientId = cosmosAuthentication.ClientId,
-                ClientSecret = cosmosAuthentication.SecretStore.SecretName,
+                ClientSecret = secretValue,
                 Uri = cosmosAuthentication.Uri,
                 Scopes = cosmosAuthentication.Scopes,
             };
