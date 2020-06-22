@@ -10,7 +10,7 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
         {
             var partitionKey = EndpointDocument.GetPartitionKey(eventName);
 
-            var query = new QueryDefinition("select * from c where eventName = @eventName and documentType = @documentType")
+            var query = new QueryDefinition("select * from c where c.eventName = @eventName and c.documentType = @documentType")
                 .WithParameter("@eventName", eventName)
                 .WithParameter("@documentType", EndpointDocument.Type);
 
@@ -19,7 +19,7 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
 
         public CosmosQuery BuildSelectAllSubscribersEndpoints()
         {
-            var query = new QueryDefinition("select * from c where documentType = @documentType")
+            var query = new QueryDefinition("select * from c where c.documentType = @documentType")
                 .WithParameter("@documentType", EndpointDocument.Type);
 
             return new CosmosQuery(query);
