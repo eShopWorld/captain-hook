@@ -29,7 +29,7 @@ namespace CaptainHook.DirectorService
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IReaderServicesManager _readerServicesManager;
-        private readonly SubscriberConfigurationLoader _subscriberConfigurationLoader;
+        private readonly ISubscriberConfigurationLoader _subscriberConfigurationLoader;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
         private IList<WebhookConfig> _webhookConfigurations;
 

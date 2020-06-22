@@ -44,7 +44,13 @@ namespace CaptainHook.DirectorService
 
                 var builder = new ContainerBuilder();
 
-                builder.RegisterType<SubscriberConfigurationLoader>();
+                builder.RegisterType<SubscriberConfigurationLoader>()
+                    .As<ISubscriberConfigurationLoader>()
+                    .SingleInstance();
+
+                builder.RegisterType<ConfigurationMerger>()
+                    .As<IConfigurationMerger>()
+                    .SingleInstance();
 
                 builder.RegisterModule<CosmosDbStorageModule>();                
 
