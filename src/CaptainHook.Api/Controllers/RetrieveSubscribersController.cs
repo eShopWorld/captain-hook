@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
 using Eshopworld.Core;
 using Microsoft.AspNetCore.Authorization;
@@ -11,9 +15,11 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 namespace CaptainHook.Api.Controllers
 {
     [Route("api/subscribers")]
-    //[Authorize]
+    [Authorize]
     public class RetrieveSubscribersController : ControllerBase
     {
+        private const string SecretDataReplacementString = "***";
+
         private readonly IBigBrother _bigBrother;
 
         public RetrieveSubscribersController(IBigBrother bigBrother)
@@ -36,12 +42,45 @@ namespace CaptainHook.Api.Controllers
                 var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
                 var subscribers = await directorServiceClient.GetAllSubscribers();
 
+                HideCredentials(subscribers.Values);
+
                 return Ok(subscribers);
             }
             catch (Exception exception)
             {
                 _bigBrother.Publish(exception);
                 return BadRequest();
+            }
+        }
+
+        private void HideCredentials(ICollection<SubscriberConfiguration> subscribers)
+        {
+            foreach (var subscriber in subscribers)
+            {
+                HideWebhookCredentials(subscriber);
+                HideWebhookCredentials(subscriber.Callback);
+
+                var routes = subscriber.WebhookRequestRules.SelectMany(r => r.Routes);
+                foreach (var route in routes)
+                {
+                    HideWebhookCredentials(route);
+                }
+            }
+        }
+
+        private void HideWebhookCredentials(WebhookConfig configuration)
+        {
+            if (configuration == null)
+                return;
+
+            switch (configuration.AuthenticationConfig)
+            {
+                case OidcAuthenticationConfig oidcAuth:
+                    oidcAuth.ClientSecret = SecretDataReplacementString;
+                    break;
+                case BasicAuthenticationConfig basicAuth:
+                    basicAuth.Password = SecretDataReplacementString;
+                    break;
             }
         }
     }
