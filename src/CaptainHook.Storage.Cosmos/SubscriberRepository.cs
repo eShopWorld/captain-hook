@@ -37,6 +37,16 @@ namespace CaptainHook.Storage.Cosmos
             _cosmosDbRepository.UseCollection(CollectionName);
         }
 
+        public async Task<IEnumerable<SubscriberEntity>> GetAllSubscribersAsync()
+        {
+            var query = _endpointQueryBuilder.BuildSelectAllSubscribersEndpoints();
+            var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
+
+            return endpoints
+                .GroupBy(x => x.SubscriberName)
+                .Select(x => Map(x));
+        }
+
         public Task<IEnumerable<SubscriberEntity>> GetSubscribersListAsync(string eventName)
         {
             if (string.IsNullOrWhiteSpace(eventName))

@@ -11,11 +11,10 @@ using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Extensions;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
-using CaptainHook.DirectorService.Utils;
 using Eshopworld.Core;
 using Newtonsoft.Json;
 
-namespace CaptainHook.DirectorService
+namespace CaptainHook.DirectorService.Infrastructure
 {
     /// <summary>
     /// Allows to create or refresh Reader Services.

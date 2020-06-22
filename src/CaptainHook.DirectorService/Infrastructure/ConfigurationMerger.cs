@@ -4,11 +4,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
+using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Domain.Entities;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
-    public class ConfigurationMerger
+    public class ConfigurationMerger : IConfigurationMerger
     {
         /// <summary>
         /// Merges subscribers loaded from Cosmos and from KeyVault. If particular subscriber is defined in both sources, the Cosmos version overrides the KeyVault version.
