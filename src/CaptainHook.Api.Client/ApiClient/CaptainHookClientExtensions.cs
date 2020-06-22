@@ -95,5 +95,44 @@ namespace CaptainHook.Api.Client
                 return operations.ReloadConfigurationWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
             }
 
+            /// <summary>
+            /// Retrieve all subscribers from current configuration
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            public static void GetAll(this ICaptainHookClient operations)
+            {
+                operations.GetAllAsync().GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Retrieve all subscribers from current configuration
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task GetAllAsync(this ICaptainHookClient operations, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.GetAllWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Retrieve all subscribers from current configuration
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='customHeaders'>
+            /// Headers that will be added to request.
+            /// </param>
+            public static HttpOperationResponse GetAllWithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
+            {
+                return operations.GetAllWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
     }
 }

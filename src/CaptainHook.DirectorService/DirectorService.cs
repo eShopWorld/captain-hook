@@ -128,6 +128,11 @@ namespace CaptainHook.DirectorService
             return Task.FromResult(RequestReloadConfigurationResult.ReloadInProgress);
         }
 
+        public Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribersAsync()
+        {
+            return Task.FromResult(_subscriberConfigurations);
+        }
+
         private async void ExecuteConfigReload(object state)
         {
             var reloadConfigFinishedTimedEvent = new ReloadConfigFinishedEvent();
