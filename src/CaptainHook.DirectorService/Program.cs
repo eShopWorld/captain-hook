@@ -73,10 +73,6 @@ namespace CaptainHook.DirectorService
                     .As<IReaderServicesManager>()
                     .SingleInstance();
 
-                builder
-                    .RegisterType<ConfigurationMerger>()
-                    .SingleInstance();
-                
                 builder.RegisterModule<CosmosDbModule>();
                 builder.ConfigureCosmosDb(configuration.Settings.GetSection(CaptainHookConfigSection));
 
