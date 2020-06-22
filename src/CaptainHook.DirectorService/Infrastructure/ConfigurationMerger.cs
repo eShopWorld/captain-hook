@@ -17,7 +17,7 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// <param name="subscribersFromKeyVault">Subscriber definitions loaded from KeyVault</param>
         /// <param name="subscribersFromCosmos">Subscriber models retrieved from Cosmos</param>
         /// <returns>List of all subscribers converted to KeyVault structure</returns>
-        public IEnumerable<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<SubscriberEntity> subscribersFromCosmos)
+        public ReadOnlyCollection<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<SubscriberEntity> subscribersFromCosmos)
         {
             var onlyInKv = subscribersFromKeyVault
                 .Where(kvSubscriber => !subscribersFromCosmos.Any(cosmosSubscriber =>
@@ -25,7 +25,8 @@ namespace CaptainHook.DirectorService.Infrastructure
                     && kvSubscriber.SubscriberName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase)));
 
             var fromCosmos = subscribersFromCosmos.SelectMany(MapSubscriber);
-            return onlyInKv.Union(fromCosmos).ToList();
+            var union = onlyInKv.Union(fromCosmos).ToList();
+            return new ReadOnlyCollection<SubscriberConfiguration>(union);
         }
 
         private IEnumerable<SubscriberConfiguration> MapSubscriber(SubscriberEntity cosmosModel)

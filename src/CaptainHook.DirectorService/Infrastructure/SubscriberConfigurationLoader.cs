@@ -18,7 +18,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             _configurationMerger = configurationMerger ?? throw new ArgumentNullException(nameof(configurationMerger));
         }
 
-        public async Task<(IEnumerable<WebhookConfig>, IEnumerable<SubscriberConfiguration>)> LoadAsync()
+        public async Task<(IList<WebhookConfig>, IList<SubscriberConfiguration>)> LoadAsync()
         {
             var configuration = Configuration.Load();
             var subscribersFromKV = configuration.SubscriberConfigurations;

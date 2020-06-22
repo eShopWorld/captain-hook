@@ -57,7 +57,7 @@ namespace CaptainHook.DirectorService
         {
             var (webhookConfig, subscriberConfig) = await _subscriberConfigurationLoader.LoadAsync();
 
-            _webhookConfigurations = webhookConfig.ToList();            
+            _webhookConfigurations = webhookConfig;            
             _subscriberConfigurations = subscriberConfig.ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));
         }
 

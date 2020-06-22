@@ -6,6 +6,6 @@ namespace CaptainHook.DirectorService.Infrastructure.Interfaces
 {
     public interface ISubscriberConfigurationLoader
     {
-        Task<(IEnumerable<WebhookConfig>, IEnumerable<SubscriberConfiguration>)> LoadAsync();
+        Task<(IList<WebhookConfig>, IList<SubscriberConfiguration>)> LoadAsync();
     }
 }
