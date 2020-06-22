@@ -40,7 +40,7 @@ namespace CaptainHook.Api.Controllers
             {
                 var directorServiceUri = new Uri(ServiceNaming.DirectorServiceFullName);
                 var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
-                var subscribers = await directorServiceClient.GetAllSubscribers();
+                var subscribers = await directorServiceClient.GetAllSubscribersAsync();
 
                 HideCredentials(subscribers.Values);
 
@@ -53,7 +53,7 @@ namespace CaptainHook.Api.Controllers
             }
         }
 
-        private void HideCredentials(ICollection<SubscriberConfiguration> subscribers)
+        private void HideCredentials(IEnumerable<SubscriberConfiguration> subscribers)
         {
             foreach (var subscriber in subscribers)
             {

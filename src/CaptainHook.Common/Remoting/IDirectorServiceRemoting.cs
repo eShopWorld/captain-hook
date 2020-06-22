@@ -8,6 +8,6 @@ namespace CaptainHook.Common.Remoting
     public interface IDirectorServiceRemoting: IService
     {
         Task<RequestReloadConfigurationResult> RequestReloadConfigurationAsync();
-        Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribers();
+        Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribersAsync();
     }
 }

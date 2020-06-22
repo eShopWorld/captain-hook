@@ -119,7 +119,7 @@ namespace CaptainHook.DirectorService
             return Task.FromResult(RequestReloadConfigurationResult.ReloadInProgress);
         }
 
-        public Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribers()
+        public Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribersAsync()
         {
             return Task.FromResult(_subscriberConfigurations);
         }
