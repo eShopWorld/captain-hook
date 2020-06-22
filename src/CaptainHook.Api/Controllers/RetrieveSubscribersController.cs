@@ -8,7 +8,6 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
 using Eshopworld.Core;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 
@@ -33,7 +32,6 @@ namespace CaptainHook.Api.Controllers
         /// <response code="200">Subscribers retrieved properly</response>
         /// <response code="401">Unauthorized request</response>
         [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
             try
