@@ -17,13 +17,9 @@ namespace CaptainHook.DirectorService.Infrastructure
         public async Task<(IList<WebhookConfig>, IList<SubscriberConfiguration>)> LoadAsync()
         {
             var configurationMerger = new ConfigurationMerger();
-
             var configuration = Configuration.Load();
-
             var subscribersFromKV = configuration.SubscriberConfigurations;
-
             var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
-
             var merged = configurationMerger.Merge(subscribersFromKV.Values, subscribersFromCosmos);
 
             return (configuration.WebhookConfigurations, merged);
