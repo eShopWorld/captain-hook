@@ -7,11 +7,11 @@ using Autofac;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
-using CaptainHook.DirectorService.Infrastructure;
+using CaptainHook.Domain.Repositories;
+using CaptainHook.Storage.Cosmos;
 using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.Telemetry;
@@ -44,8 +44,10 @@ namespace CaptainHook.DirectorService
 
                 var builder = new ContainerBuilder();
 
-                builder.RegisterInstance(configuration.SubscriberConfigurations);
-                builder.RegisterInstance(configuration.WebhookConfigurations);
+                builder.RegisterType<SubscriberConfigurationLoader>();
+
+                builder.RegisterType<SubscriberRepository>()
+                    .As<ISubscriberRepository>();
 
                 builder.RegisterInstance(configurationSettings)
                        .SingleInstance();

@@ -12,6 +12,7 @@ using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
 using JetBrains.Annotations;
+using Kusto.Cloud.Platform.Utils;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
@@ -28,6 +29,7 @@ namespace CaptainHook.DirectorService
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IReaderServicesManager _readerServicesManager;
+        private readonly SubscriberConfigurationLoader _subscriberConfigurationLoader;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
         private IList<WebhookConfig> _webhookConfigurations;
 
@@ -42,15 +44,21 @@ namespace CaptainHook.DirectorService
             IBigBrother bigBrother,
             IReaderServicesManager readerServicesManager,
             IFabricClientWrapper fabricClientWrapper,
-            IDictionary<string, SubscriberConfiguration> subscriberConfigurations,
-            IList<WebhookConfig> webhookConfigurations)
+            SubscriberConfigurationLoader subscriberConfigurationLoader)
             : base(context)
         {
             _bigBrother = bigBrother;
             _fabricClientWrapper = fabricClientWrapper;
-            _subscriberConfigurations = subscriberConfigurations;
-            _webhookConfigurations = webhookConfigurations;
+            _subscriberConfigurationLoader = subscriberConfigurationLoader;
             _readerServicesManager = readerServicesManager;
+        }
+
+        private async Task LoadConfigurationAsync()
+        {
+            var result = await _subscriberConfigurationLoader.LoadAsync();
+
+            _webhookConfigurations = result.Item1;
+            _subscriberConfigurations = result.Item2.ToDictionary(x => x.SubscriberName);
         }
 
         /// <summary>
@@ -69,6 +77,8 @@ namespace CaptainHook.DirectorService
                 {
                     _refreshInProgress = true;
                 }
+
+                await LoadConfigurationAsync();
 
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
@@ -124,14 +134,12 @@ namespace CaptainHook.DirectorService
 
             try
             {
-                var configuration = Configuration.Load();
+                await LoadConfigurationAsync();
+
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(configuration.SubscriberConfigurations, configuration.WebhookConfigurations,
+                await _readerServicesManager.RefreshReadersAsync(_subscriberConfigurations, _webhookConfigurations,
                     _subscriberConfigurations, deployedServiceNames, _cancellationToken);
-
-                _subscriberConfigurations = configuration.SubscriberConfigurations;
-                _webhookConfigurations = configuration.WebhookConfigurations;
 
                 reloadConfigFinishedTimedEvent.IsSuccess = true;
             }
