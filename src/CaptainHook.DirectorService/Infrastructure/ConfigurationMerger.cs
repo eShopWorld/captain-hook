@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
+using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Domain.Entities;
 
 namespace CaptainHook.DirectorService.Infrastructure
