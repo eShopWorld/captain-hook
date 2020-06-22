@@ -46,8 +46,7 @@ namespace CaptainHook.DirectorService
 
                 builder.RegisterType<SubscriberConfigurationLoader>();
 
-                builder.RegisterType<SubscriberRepository>()
-                    .As<ISubscriberRepository>();
+                builder.RegisterModule<CosmosDbStorageModule>();                
 
                 builder.RegisterInstance(configurationSettings)
                        .SingleInstance();

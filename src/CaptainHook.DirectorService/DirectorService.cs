@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Fabric;
 using System.Fabric.Description;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -12,7 +13,6 @@ using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
 using JetBrains.Annotations;
-using Kusto.Cloud.Platform.Utils;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
@@ -57,8 +57,10 @@ namespace CaptainHook.DirectorService
         {
             var result = await _subscriberConfigurationLoader.LoadAsync();
 
-            _webhookConfigurations = result.Item1;
-            _subscriberConfigurations = result.Item2.ToDictionary(x => x.SubscriberName);
+            _webhookConfigurations = result.Item1;            
+            _subscriberConfigurations = result.Item2.ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));
+
+
         }
 
         /// <summary>
