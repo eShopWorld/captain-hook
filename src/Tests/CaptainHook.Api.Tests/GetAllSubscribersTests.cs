@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
 using CaptainHook.Api.Tests.Config;
-using CaptainHook.Common.Configuration;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CaptainHook.Api.Constants;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
@@ -15,14 +16,14 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 namespace CaptainHook.Api.Controllers
 {
     [Route("api/subscribers")]
-    [Authorize]
-    public class RetrieveSubscribersController : ControllerBase
+    [Authorize(Policy = AuthorisationPolicies.SubscribersAccess)]
+    public class SubscribersController : ControllerBase
     {
         private const string SecretDataReplacementString = "***";
 
         private readonly IBigBrother _bigBrother;
 
-        public RetrieveSubscribersController(IBigBrother bigBrother)
+        public SubscribersController(IBigBrother bigBrother)
         {
             _bigBrother = bigBrother;
         }
