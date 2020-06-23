@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
@@ -17,7 +18,7 @@ namespace CaptainHook.Tests.Director
     public class ConfigurationMergerTests
     {
         [Fact, IsLayer0]
-        public void OnlyKVSubscribers_AllInResult()
+        public async Task OnlyKVSubscribers_AllInResult()
         {
             var kvSubscribers = new[]
             {
@@ -26,7 +27,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
-            var result = new ConfigurationMerger(Mock.Of<ISecretManager>()).Merge(kvSubscribers, new List<SubscriberEntity>());
+            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(kvSubscribers, new List<SubscriberEntity>());
 
             using (new AssertionScope())
             {
@@ -38,7 +39,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact, IsLayer0]
-        public void OnlyCosmosSubscribers_AllInResult()
+        public async Task OnlyCosmosSubscribers_AllInResult()
         {
             var cosmosSubscribers = new[]
             {
@@ -47,7 +48,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector").Create(),
             };
 
-            var result = new ConfigurationMerger(Mock.Of<ISecretManager>()).Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -59,7 +60,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact, IsLayer0]
-        public void WhenSameEventsExistInKvSubscribersAndCosmosSubscribers_CosmosSubscribersMustOverrideKvSubscribers()
+        public async Task WhenSameEventsExistInKvSubscribersAndCosmosSubscribers_CosmosSubscribersMustOverrideKvSubscribers()
         {
             var kvSubscribers = new[]
             {
@@ -75,7 +76,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector").Create(),
             };
 
-            var result = new ConfigurationMerger(Mock.Of<ISecretManager>()).Merge(kvSubscribers, cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(kvSubscribers, cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -92,7 +93,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact, IsLayer0]
-        public void CosmosSubscriberWithAuthentication_ShouldBeMappedProperly()
+        public async Task CosmosSubscriberWithAuthentication_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
             {
@@ -114,8 +115,8 @@ namespace CaptainHook.Tests.Director
             var mock = new Mock<ISecretManager>();
             mock.Setup(m => m.GetSecretValueAsync("kv-secret-name")).ReturnsAsync("my-password");
 
-            var result = new ConfigurationMerger(mock.Object)
-                .Merge(Enumerable.Empty<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(mock.Object)
+                .MergeAsync(Enumerable.Empty<SubscriberConfiguration>(), cosmosSubscribers);
 
             var expectedConfiguration = new SubscriberConfiguration
             {
@@ -136,7 +137,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact(Skip = "Callback handling not needed as for now"), IsLayer0]
-        public void CosmosSubscriberWithCallback_ShouldBeMappedProperly()
+        public async Task CosmosSubscriberWithCallback_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
             {
@@ -145,7 +146,7 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var result = new ConfigurationMerger(Mock.Of<ISecretManager>()).Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -157,7 +158,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact(Skip = "DQL handling not needed as for now"), IsLayer0]
-        public void CosmosSubscriberWithDlq_ShouldBeMappedProperly()
+        public async Task CosmosSubscriberWithDlq_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
             {
@@ -167,7 +168,7 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var result = new ConfigurationMerger(Mock.Of<ISecretManager>()).Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {

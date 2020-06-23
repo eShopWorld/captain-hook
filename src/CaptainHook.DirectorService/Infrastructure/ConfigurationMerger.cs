@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
@@ -25,21 +26,34 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// <param name="subscribersFromKeyVault">Subscriber definitions loaded from KeyVault</param>
         /// <param name="subscribersFromCosmos">Subscriber models retrieved from Cosmos</param>
         /// <returns>List of all subscribers converted to KeyVault structure</returns>
-        public ReadOnlyCollection<SubscriberConfiguration> Merge(IEnumerable<SubscriberConfiguration> subscribersFromKeyVault, IEnumerable<SubscriberEntity> subscribersFromCosmos)
+        public async Task<ReadOnlyCollection<SubscriberConfiguration>> MergeAsync(
+            IEnumerable<SubscriberConfiguration> subscribersFromKeyVault,
+            IEnumerable<SubscriberEntity> subscribersFromCosmos)
         {
             var onlyInKv = subscribersFromKeyVault
                 .Where(kvSubscriber => !subscribersFromCosmos.Any(cosmosSubscriber =>
                     kvSubscriber.Name.Equals(cosmosSubscriber.ParentEvent.Name, StringComparison.InvariantCultureIgnoreCase)
                     && kvSubscriber.SubscriberName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase)));
 
-            var fromCosmos = subscribersFromCosmos.SelectMany(MapSubscriber);
+            async Task<IEnumerable<SubscriberConfiguration>> MapCosmosEntries()
+            {
+                var tasks = subscribersFromCosmos.Select(this.MapSubscriber).ToArray();
+                await Task.WhenAll(tasks);
+
+                return tasks.SelectMany(t => t.Result).ToArray();
+            }
+
+            var fromCosmos = await MapCosmosEntries();
             var union = onlyInKv.Union(fromCosmos).ToList();
             return new ReadOnlyCollection<SubscriberConfiguration>(union);
         }
 
-        private IEnumerable<SubscriberConfiguration> MapSubscriber(SubscriberEntity cosmosModel)
+        private async Task<IEnumerable<SubscriberConfiguration>> MapSubscriber(SubscriberEntity cosmosModel)
         {
-            yield return MapBasicSubscriberData(cosmosModel);
+            return new[]
+            {
+                await MapBasicSubscriberData(cosmosModel)
+            };
 
             // DLQ handling not needed now
             //var dlq = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
@@ -49,14 +63,14 @@ namespace CaptainHook.DirectorService.Infrastructure
             //}
         }
 
-        private SubscriberConfiguration MapBasicSubscriberData(SubscriberEntity cosmosModel)
+        private async Task<SubscriberConfiguration> MapBasicSubscriberData(SubscriberEntity cosmosModel)
         {
             var config = new SubscriberConfiguration
             {
                 Name = cosmosModel.ParentEvent.Name,
                 SubscriberName = cosmosModel.Name,
                 Uri = cosmosModel.Webhooks.Endpoints.First().Uri,
-                AuthenticationConfig = MapAuthentication(cosmosModel.Webhooks.Endpoints.FirstOrDefault()?.Authentication),
+                AuthenticationConfig = await MapAuthentication(cosmosModel.Webhooks.Endpoints.FirstOrDefault()?.Authentication),
                 // Callback handling not needed now
                 //Callback = MapCallback(cosmosModel),
             };
@@ -95,12 +109,12 @@ namespace CaptainHook.DirectorService.Infrastructure
         //    };
         //}
 
-        private AuthenticationConfig MapAuthentication(AuthenticationEntity cosmosAuthentication)
+        private async Task<AuthenticationConfig> MapAuthentication(AuthenticationEntity cosmosAuthentication)
         {
-            if (cosmosAuthentication == null)
+            if (cosmosAuthentication?.SecretStore?.SecretName == null)
                 return null;
 
-            var secretValue = _secretManager.GetSecretValueAsync(cosmosAuthentication.SecretStore.SecretName).Result;
+            var secretValue = await _secretManager.GetSecretValueAsync(cosmosAuthentication.SecretStore.SecretName);
 
             return new OidcAuthenticationConfig
             {

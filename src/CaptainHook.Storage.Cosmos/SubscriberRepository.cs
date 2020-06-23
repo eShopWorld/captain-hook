@@ -43,7 +43,7 @@ namespace CaptainHook.Storage.Cosmos
             var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
 
             return endpoints
-                .GroupBy(x => x.SubscriberName)
+                .GroupBy(x => x.SubscriberId)
                 .Select(x => Map(x));
         }
 
@@ -65,7 +65,7 @@ namespace CaptainHook.Storage.Cosmos
             var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
 
             return endpoints
-                .GroupBy(x => x.SubscriberName)
+                .GroupBy(x => x.SubscriberId)
                 .Select(x => Map(x));
         }
 
@@ -83,14 +83,21 @@ namespace CaptainHook.Storage.Cosmos
 
         private SubscriberEntity Map(IEnumerable<EndpointDocument> endpoints)
         {
-            var subscriberName = endpoints.First().SubscriberName;
-            var webhookSelectionRule = endpoints
+            var endpointDocuments = endpoints.ToArray();
+
+            var endpointDocument = endpointDocuments.First();
+            var webhookSelectionRule = endpointDocuments
                 .FirstOrDefault(x => x.WebhookType == WebhookType.Webhook)?
                 .WebhookSelectionRule;
 
-            var subscriber = new SubscriberEntity(subscriberName, webhookSelectionRule);
+            var eventEntity = new EventEntity(endpointDocument.EventName);
 
-            foreach (var endpoint in endpoints)
+            var subscriber = new SubscriberEntity(
+                endpointDocument.SubscriberName,
+                webhookSelectionRule,
+                eventEntity);
+
+            foreach (var endpoint in endpointDocuments)
             {
                 var domainEndpoint = Map(endpoint);
                 switch (endpoint.WebhookType)

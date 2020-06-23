@@ -14,7 +14,7 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
 {
     public class KeyVaultSecretManagerTests
     {
-        private readonly KeyVaultSecretManager _secretManager;
+        private readonly KeyVaultSecretProvider _secretProvider;
 
         private readonly Mock<SecretClient> _secretClientMock;
 
@@ -26,14 +26,14 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
             _secretClientMock = new Mock<SecretClient>();
             _secretClientMock.SetupGet(m => m.VaultUri).Returns(new Uri("https://abc.vault.test.com"));
 
-            _secretManager = new KeyVaultSecretManager(_bigBrotherMock.Object, _secretClientMock.Object);
+            _secretProvider = new KeyVaultSecretProvider(_bigBrotherMock.Object, _secretClientMock.Object);
         }
 
         [Fact, IsUnit]
         public void GetSecretValueAsync_NoSecretName_ExceptionThrown()
         {
             // Act
-            Func<Task<string>> secretFunction = async () => await _secretManager.GetSecretValueAsync(null);
+            Func<Task<string>> secretFunction = async () => await _secretProvider.GetSecretValueAsync(null);
 
             // Assert
             secretFunction.Should().Throw<ArgumentException>();
@@ -50,7 +50,7 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
                 .ReturnsAsync(Response.FromValue(new KeyVaultSecret(secretName, secretValue), null));
 
             // Act
-            var result = await _secretManager.GetSecretValueAsync(secretName);
+            var result = await _secretProvider.GetSecretValueAsync(secretName);
 
             // Assert
             result.Should().Be(secretValue);
@@ -66,7 +66,7 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
                 .Throws(new RequestFailedException("dummy"));
 
             // Act
-            Func<Task<string>> secretFunction = async () => await _secretManager.GetSecretValueAsync(secretName);
+            Func<Task<string>> secretFunction = async () => await _secretProvider.GetSecretValueAsync(secretName);
 
             // Assert
             secretFunction.Should().Throw<RequestFailedException>();
