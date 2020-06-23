@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
-using CaptainHook.DirectorService;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;

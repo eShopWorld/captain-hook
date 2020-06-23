@@ -7,12 +7,12 @@ using Autofac;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
-using CaptainHook.DirectorService.Utils;
+using CaptainHook.Domain.Repositories;
+using CaptainHook.Storage.Cosmos;
 using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.Telemetry;
@@ -45,8 +45,15 @@ namespace CaptainHook.DirectorService
 
                 var builder = new ContainerBuilder();
 
-                builder.RegisterInstance(configuration.SubscriberConfigurations);
-                builder.RegisterInstance(configuration.WebhookConfigurations);
+                builder.RegisterType<SubscriberConfigurationLoader>()
+                    .As<ISubscriberConfigurationLoader>()
+                    .SingleInstance();
+
+                builder.RegisterType<ConfigurationMerger>()
+                    .As<IConfigurationMerger>()
+                    .SingleInstance();
+
+                builder.RegisterModule<CosmosDbStorageModule>();                
 
                 builder.RegisterInstance(configurationSettings)
                        .SingleInstance();
@@ -72,7 +79,6 @@ namespace CaptainHook.DirectorService
                 builder.RegisterType<ReaderServicesManager>()
                     .As<IReaderServicesManager>()
                     .SingleInstance();
-
                 builder.RegisterModule<KeyVaultModule>();
                 builder.RegisterModule<CosmosDbModule>();
                 builder.ConfigureCosmosDb(configuration.Settings.GetSection(CaptainHookConfigSection));

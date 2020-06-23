@@ -4,7 +4,7 @@ using System.Linq;
 using CaptainHook.Common.Configuration;
 using Newtonsoft.Json;
 
-namespace CaptainHook.DirectorService.Utils
+namespace CaptainHook.DirectorService.Infrastructure
 {
     public class SubscriberConfigurationComparer
     {
