@@ -30,7 +30,7 @@ namespace CaptainHook.Common.Configuration.KeyVault
                 new Uri(Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable)),
                 new AzureServiceTokenCredential(),
                 secretClientOptions));
-            builder.RegisterType<KeyVaultSecretProvider>().As<ISecretManager>();
+            builder.RegisterType<KeyVaultSecretProvider>().As<ISecretProvider>();
         }
 
         private class AzureServiceTokenCredential: TokenCredential

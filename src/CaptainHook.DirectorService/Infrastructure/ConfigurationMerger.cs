@@ -13,11 +13,11 @@ namespace CaptainHook.DirectorService.Infrastructure
 {
     public class ConfigurationMerger : IConfigurationMerger
     {
-        private readonly ISecretManager _secretManager;
+        private readonly ISecretProvider _secretProvider;
 
-        public ConfigurationMerger(ISecretManager secretManager)
+        public ConfigurationMerger(ISecretProvider secretProvider)
         {
-            _secretManager = secretManager;
+            _secretProvider = secretProvider;
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             if (cosmosAuthentication?.SecretStore?.SecretName == null)
                 return null;
 
-            var secretValue = await _secretManager.GetSecretValueAsync(cosmosAuthentication.SecretStore.SecretName);
+            var secretValue = await _secretProvider.GetSecretValueAsync(cosmosAuthentication.SecretStore.SecretName);
 
             return new OidcAuthenticationConfig
             {

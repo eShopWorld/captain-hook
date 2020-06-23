@@ -6,7 +6,7 @@ using Eshopworld.Core;
 
 namespace CaptainHook.Common.Configuration.KeyVault
 {
-    public class KeyVaultSecretProvider: ISecretManager
+    public class KeyVaultSecretProvider: ISecretProvider
     {
         private readonly IBigBrother _bigBrother;
 

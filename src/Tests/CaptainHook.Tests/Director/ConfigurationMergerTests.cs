@@ -27,7 +27,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(kvSubscribers, new List<SubscriberEntity>());
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(kvSubscribers, new List<SubscriberEntity>());
 
             using (new AssertionScope())
             {
@@ -48,7 +48,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector").Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -76,7 +76,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector").Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(kvSubscribers, cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(kvSubscribers, cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -112,7 +112,7 @@ namespace CaptainHook.Tests.Director
                     ).Create(),
             };
 
-            var mock = new Mock<ISecretManager>();
+            var mock = new Mock<ISecretProvider>();
             mock.Setup(m => m.GetSecretValueAsync("kv-secret-name")).ReturnsAsync("my-password");
 
             var result = await new ConfigurationMerger(mock.Object)
@@ -146,7 +146,7 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -168,7 +168,7 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretManager>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {

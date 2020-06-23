@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace CaptainHook.Common.Configuration.KeyVault
 {
-    public interface ISecretManager
+    public interface ISecretProvider
     {
         Task<string> GetSecretValueAsync([NotNull] string secretName);
     }
