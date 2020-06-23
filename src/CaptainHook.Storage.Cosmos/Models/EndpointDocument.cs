@@ -10,13 +10,13 @@ namespace CaptainHook.Storage.Cosmos.Models
         public const string Type = "Endpoint";
         public static string GetPartitionKey(string eventName) => $"{Type}_{eventName}";
         
-        public static string GetDocumentId(string eventName, string subscriberName, string selector) => $"{eventName}_{subscriberName}_{selector}";
+        public static string GetDocumentId(string eventName, string subscriberName) => $"{eventName}_{subscriberName}";
 
         /// <summary>
         /// Identifier
         /// </summary>
         [JsonProperty("id")]
-        public string Id => GetDocumentId(EventName, SubscriberName, EndpointSelector);
+        public string Id => GetDocumentId(EventName, SubscriberName);
 
         /// <summary>
         /// Type of the document.
