@@ -44,13 +44,13 @@ namespace CaptainHook.DirectorService
             IBigBrother bigBrother,
             IReaderServicesManager readerServicesManager,
             IFabricClientWrapper fabricClientWrapper,
-            SubscriberConfigurationLoader subscriberConfigurationLoader)
+            ISubscriberConfigurationLoader subscriberConfigurationLoader)
             : base(context)
         {
-            _bigBrother = bigBrother;
-            _fabricClientWrapper = fabricClientWrapper;
-            _subscriberConfigurationLoader = subscriberConfigurationLoader;
-            _readerServicesManager = readerServicesManager;
+            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
+            _fabricClientWrapper = fabricClientWrapper ?? throw new ArgumentNullException(nameof(fabricClientWrapper));
+            _subscriberConfigurationLoader = subscriberConfigurationLoader ?? throw new ArgumentNullException(nameof(subscriberConfigurationLoader));
+            _readerServicesManager = readerServicesManager ?? throw new ArgumentNullException(nameof(readerServicesManager));
         }
 
         private async Task LoadConfigurationAsync()
