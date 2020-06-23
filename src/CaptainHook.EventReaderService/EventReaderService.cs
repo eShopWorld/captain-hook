@@ -174,7 +174,7 @@ namespace CaptainHook.EventReaderService
 
         protected override async Task OnCloseAsync(CancellationToken cancellationToken)
         {
-            _heartBeatTimer.Dispose();
+            _heartBeatTimer?.Dispose();
             _bigBrother.Publish(new ServiceDeactivatedEvent(Context, InFlightMessageCount));
             await base.OnCloseAsync(cancellationToken);
         }

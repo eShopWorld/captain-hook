@@ -44,7 +44,7 @@ namespace CaptainHook.DirectorService
             IBigBrother bigBrother,
             IReaderServicesManager readerServicesManager,
             IFabricClientWrapper fabricClientWrapper,
-            SubscriberConfigurationLoader subscriberConfigurationLoader)
+            ISubscriberConfigurationLoader subscriberConfigurationLoader)
             : base(context)
         {
             _bigBrother = bigBrother;
