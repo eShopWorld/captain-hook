@@ -32,7 +32,6 @@ namespace CaptainHook.Api.Controllers
         /// Retrieve all subscribers from current configuration
         /// </summary>
         /// <response code="200">Subscribers retrieved properly</response>
-        /// <response code="401">Unauthorized request</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
