@@ -10,14 +10,13 @@ namespace CaptainHook.Storage.Cosmos.Models
         public const string Type = "Endpoint";
         public static string GetPartitionKey(string eventName) => $"{Type}_{eventName}";
         
-        //change
-        public static string GetDocumentId(string eventName, string subscriberName, string selector) => $"{eventName}_{subscriberName}_{selector}";
+        public static string GetDocumentId(string eventName, string subscriberName) => $"{eventName}_{subscriberName}";
 
         /// <summary>
         /// Identifier
         /// </summary>
         [JsonProperty("id")]
-        public string Id => GetDocumentId(EventName, SubscriberName, EndpointSelector);
+        public string Id => GetDocumentId(EventName, SubscriberName);
 
         /// <summary>
         /// Type of the document.
@@ -52,26 +51,31 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Endpoint HTTP verb
         /// </summary>
+        [JsonProperty("httpVerb")]
         public string HttpVerb { get; set; }
 
         /// <summary>
         /// Webhook selector
         /// </summary>
+        [JsonProperty("webhookSelectionRule")]
         public string WebhookSelectionRule { get; set; }
 
         /// <summary>
         /// Subscriber name
         /// </summary>
+        [JsonProperty("subscriberName")]
         public string SubscriberName { get; set; }
 
         /// <summary>
         /// Webhook type (Webhook, Subscriber, DLQ)
         /// </summary>
+        [JsonProperty("webhookType")]
         public WebhookType WebhookType { get; set; }
 
         /// <summary>
         /// Event name
         /// </summary>
+        [JsonProperty("eventName")]
         public string EventName { get; set; }
 
         /// <summary>
