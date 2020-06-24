@@ -39,7 +39,7 @@ namespace CaptainHook.Api.Controllers
                 var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
                 var subscribers = await directorServiceClient.GetAllSubscribersAsync();
 
-                CredentialsCleaner.HideCredentials(subscribers.Values);
+                AuthenticationConfigSanitizer.Sanitize(subscribers.Values);
 
                 return Ok(subscribers);
             }

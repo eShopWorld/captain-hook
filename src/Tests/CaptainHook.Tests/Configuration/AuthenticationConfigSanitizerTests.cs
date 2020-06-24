@@ -7,7 +7,7 @@ using Xunit;
 
 namespace CaptainHook.Tests.Configuration
 {
-    public class CredentialsCleanerTests
+    public class AuthenticationConfigSanitizerTests
     {
         [Fact, IsLayer0]
         public void WhenSubscriberHasOidcAuth_ClientSecretShouldBeMasked()
@@ -16,7 +16,7 @@ namespace CaptainHook.Tests.Configuration
                 .WithOidcAuthentication()
                 .Create() };
 
-            CredentialsCleaner.HideCredentials(subscribers);
+            AuthenticationConfigSanitizer.Sanitize(subscribers);
 
             var auth = (OidcAuthenticationConfig)subscribers[0].AuthenticationConfig;
             auth.ClientSecret.Should().Be("***");
@@ -29,7 +29,7 @@ namespace CaptainHook.Tests.Configuration
                 .AddWebhookRequestRule(ruleBuilder => ruleBuilder.AddRoute(routeBuilder => routeBuilder.WithOidcAuthentication()))
                 .Create() };
 
-            CredentialsCleaner.HideCredentials(subscribers);
+            AuthenticationConfigSanitizer.Sanitize(subscribers);
 
             var auth = (OidcAuthenticationConfig)subscribers[0].WebhookRequestRules[0].Routes[0].AuthenticationConfig;
             auth.ClientSecret.Should().Be("***");
@@ -42,7 +42,7 @@ namespace CaptainHook.Tests.Configuration
                 .WithCallback(callbackBuilder => callbackBuilder.WithOidcAuthentication())
                 .Create() };
 
-            CredentialsCleaner.HideCredentials(subscribers);
+            AuthenticationConfigSanitizer.Sanitize(subscribers);
 
             var auth = (OidcAuthenticationConfig)subscribers[0].Callback.AuthenticationConfig;
             auth.ClientSecret.Should().Be("***");
@@ -56,7 +56,7 @@ namespace CaptainHook.Tests.Configuration
                     ruleBuilder => ruleBuilder.AddRoute(routeBuilder => routeBuilder.WithOidcAuthentication())))
                 .Create() };
 
-            CredentialsCleaner.HideCredentials(subscribers);
+            AuthenticationConfigSanitizer.Sanitize(subscribers);
 
             var auth = (OidcAuthenticationConfig)subscribers[0].Callback.WebhookRequestRules[0].Routes[0].AuthenticationConfig;
             auth.ClientSecret.Should().Be("***");
@@ -69,7 +69,7 @@ namespace CaptainHook.Tests.Configuration
                 .WithBasicAuthentication()
                 .Create() };
 
-            CredentialsCleaner.HideCredentials(subscribers);
+            AuthenticationConfigSanitizer.Sanitize(subscribers);
 
             var auth = (BasicAuthenticationConfig)subscribers[0].AuthenticationConfig;
             auth.Password.Should().Be("***");
@@ -82,7 +82,7 @@ namespace CaptainHook.Tests.Configuration
                 .AddWebhookRequestRule(ruleBuilder => ruleBuilder.AddRoute(routeBuilder => routeBuilder.WithBasicAuthentication()))
                 .Create() };
 
-            CredentialsCleaner.HideCredentials(subscribers);
+            AuthenticationConfigSanitizer.Sanitize(subscribers);
 
             var auth = (BasicAuthenticationConfig)subscribers[0].WebhookRequestRules[0].Routes[0].AuthenticationConfig;
             auth.Password.Should().Be("***");
@@ -95,7 +95,7 @@ namespace CaptainHook.Tests.Configuration
                 .WithCallback(callbackBuilder => callbackBuilder.WithBasicAuthentication())
                 .Create() };
 
-            CredentialsCleaner.HideCredentials(subscribers);
+            AuthenticationConfigSanitizer.Sanitize(subscribers);
 
             var auth = (BasicAuthenticationConfig)subscribers[0].Callback.AuthenticationConfig;
             auth.Password.Should().Be("***");
@@ -109,7 +109,7 @@ namespace CaptainHook.Tests.Configuration
                     ruleBuilder => ruleBuilder.AddRoute(routeBuilder => routeBuilder.WithBasicAuthentication())))
                 .Create() };
 
-            CredentialsCleaner.HideCredentials(subscribers);
+            AuthenticationConfigSanitizer.Sanitize(subscribers);
 
             var auth = (BasicAuthenticationConfig)subscribers[0].Callback.WebhookRequestRules[0].Routes[0].AuthenticationConfig;
             auth.Password.Should().Be("***");

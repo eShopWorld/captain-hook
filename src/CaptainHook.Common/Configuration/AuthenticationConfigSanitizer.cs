@@ -4,16 +4,16 @@ using CaptainHook.Common.Authentication;
 
 namespace CaptainHook.Common.Configuration
 {
-    public class CredentialsCleaner
+    public class AuthenticationConfigSanitizer
     {
         private const string SecretDataReplacementString = "***";
 
-        public static void HideCredentials(IEnumerable<SubscriberConfiguration> subscribers)
+        public static void Sanitize(IEnumerable<SubscriberConfiguration> subscribers)
         {
             foreach (var subscriber in subscribers)
             {
-                HideWebhookCredentials(subscriber);
-                HideWebhookCredentials(subscriber.Callback);
+                SanitizeWebhookCredentials(subscriber);
+                SanitizeWebhookCredentials(subscriber.Callback);
 
                 var routes = subscriber.WebhookRequestRules?.SelectMany(r => r.Routes) ?? Enumerable.Empty<WebhookConfigRoute>();
                 var callbackRoutes = subscriber.Callback?.WebhookRequestRules?.SelectMany(r => r.Routes) ?? Enumerable.Empty<WebhookConfigRoute>();
@@ -21,12 +21,12 @@ namespace CaptainHook.Common.Configuration
 
                 foreach (var route in allRoutes)
                 {
-                    HideWebhookCredentials(route);
+                    SanitizeWebhookCredentials(route);
                 }
             }
         }
 
-        private static void HideWebhookCredentials(WebhookConfig configuration)
+        private static void SanitizeWebhookCredentials(WebhookConfig configuration)
         {
             if (configuration == null)
                 return;
