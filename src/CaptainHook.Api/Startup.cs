@@ -137,6 +137,11 @@ namespace CaptainHook.Api
                     // See https://eshopworld.visualstudio.com/evo-core/_git/security-services-telemetry?path=%2FREADME.md&_a=preview
                     // x.AddJwtBearerEventsTelemetry(bb); 
                 });
+                services.AddAuthorization(options =>
+                {
+                    options.AddPolicy(Constants.AuthorisationPolicies.SubscribersAccess,
+                        policy => policy.RequireScope(Constants.AuthorisationScopes.ApiAllAccess));
+                });
             }
             catch (Exception e)
             {
