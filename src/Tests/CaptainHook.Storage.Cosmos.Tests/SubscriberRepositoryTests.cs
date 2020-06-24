@@ -97,7 +97,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .Setup(x => x.QueryAsync<EndpointDocument>(It.IsAny<CosmosQuery>()))
                 .ReturnsAsync(new List<EndpointDocument> { sampleDocument });
 
-            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, sampleDocument.WebhookSelectionRule, new EventEntity(eventName));
+            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberId, sampleDocument.SubscriberName, sampleDocument.WebhookSelectionRule, new EventEntity(eventName));
             var sampleAuthStoreEntity = new SecretStoreEntity(sampleDocument.Authentication.KeyVaultName, sampleDocument.Authentication.SecretName);
             var expectedAuthenticationEntity = new AuthenticationEntity(sampleDocument.Authentication.ClientId, sampleAuthStoreEntity, sampleDocument.Authentication.Uri, sampleDocument.Authentication.Type, sampleDocument.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(sampleDocument.Uri, expectedAuthenticationEntity, sampleDocument.HttpVerb, sampleDocument.EndpointSelector);

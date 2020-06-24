@@ -93,6 +93,7 @@ namespace CaptainHook.Storage.Cosmos
             var eventEntity = new EventEntity(endpointDocument.EventName);
 
             var subscriber = new SubscriberEntity(
+                endpointDocument.SubscriberId,
                 endpointDocument.SubscriberName,
                 webhookSelectionRule,
                 eventEntity);

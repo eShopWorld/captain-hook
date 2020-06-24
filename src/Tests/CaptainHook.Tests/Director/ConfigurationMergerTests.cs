@@ -53,9 +53,9 @@ namespace CaptainHook.Tests.Director
             using (new AssertionScope())
             {
                 result.Should().HaveCount(3);
-                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook");
-                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1");
-                result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook");
+                result.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "captain-hook");
+                result.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "subscriber1");
+                result.Should().Contain(x => x.EventType == "testevent.completed" && x.SubscriberName == "captain-hook");
             }
         }
 
@@ -82,13 +82,13 @@ namespace CaptainHook.Tests.Director
             {
                 result.Should().HaveCount(5);
 
-                result.Should().Contain(x => x.Name == "TESTevent" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/testevent/");
+                result.Should().Contain(x => x.EventType == "TESTevent" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/testevent/");
 
-                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://blah.blah.eshopworld.com");
-                result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://blah.blah.eshopworld.com");
+                result.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://blah.blah.eshopworld.com");
+                result.Should().Contain(x => x.EventType == "testevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://blah.blah.eshopworld.com");
 
-                result.Should().Contain(x => x.Name == "newtestevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://cosmos.eshopworld.com/newtestevent2/");
-                result.Should().Contain(x => x.Name == "newtestevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/newtestevent-completed/");
+                result.Should().Contain(x => x.EventType == "newtestevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://cosmos.eshopworld.com/newtestevent2/");
+                result.Should().Contain(x => x.EventType == "newtestevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/newtestevent-completed/");
             }
         }
 
@@ -99,6 +99,7 @@ namespace CaptainHook.Tests.Director
             {
                 new SubscriberBuilder()
                     .WithEvent("testevent")
+                    .WithSubscriberId("testevent-captain-hook")
                     .WithWebhook(
                         "https://cosmos.eshopworld.com/testevent/",
                         "POST",
@@ -120,7 +121,8 @@ namespace CaptainHook.Tests.Director
 
             var expectedConfiguration = new SubscriberConfiguration
             {
-                Name = "testevent",
+                Name = "testevent-captain-hook",
+                EventType = "testevent",
                 SubscriberName = "captain-hook",
                 Uri = "https://cosmos.eshopworld.com/testevent/",
                 HttpVerb = "POST",

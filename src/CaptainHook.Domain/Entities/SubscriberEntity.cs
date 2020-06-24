@@ -6,7 +6,12 @@
     public class SubscriberEntity
     {
         /// <summary>
-        /// Subscriber name
+        /// Unique identifier of the subscriber.
+        /// </summary>
+        public string SubscriberId { get; }
+
+        /// <summary>
+        /// Subscriber name.
         /// </summary>
         public string Name { get; }
 
@@ -20,10 +25,11 @@
         /// </summary>
         public WebhooksEntity Webhooks { get; }
 
-        public SubscriberEntity(string name) : this(name, null, null) { }
-        public SubscriberEntity(string name, string webhookSelectionRule) : this(name, webhookSelectionRule, null) { }
-        public SubscriberEntity(string name, string webhookSelectionRule, EventEntity parentEvent)
+        public SubscriberEntity(string subscriberId, string name) : this(subscriberId, name, null, null) { }
+        public SubscriberEntity(string subscriberId, string name, string webhookSelectionRule) : this(subscriberId, name, webhookSelectionRule, null) { }
+        public SubscriberEntity(string subscriberId, string name, string webhookSelectionRule, EventEntity parentEvent)
         {
+            SubscriberId = subscriberId;
             Name = name;
             Webhooks = new WebhooksEntity(webhookSelectionRule);
 
