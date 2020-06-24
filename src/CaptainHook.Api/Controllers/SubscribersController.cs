@@ -61,6 +61,11 @@ namespace CaptainHook.Api.Controllers
                 HideWebhookCredentials(subscriber.Callback);
 
                 var routes = subscriber.WebhookRequestRules.SelectMany(r => r.Routes);
+                if (subscriber.Callback != null)
+                {
+                    routes = routes.Union(subscriber.Callback.WebhookRequestRules.SelectMany(r => r.Routes));
+                }
+
                 foreach (var route in routes)
                 {
                     HideWebhookCredentials(route);
