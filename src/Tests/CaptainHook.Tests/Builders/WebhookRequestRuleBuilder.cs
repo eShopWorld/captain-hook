@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 
@@ -6,13 +7,13 @@ namespace CaptainHook.Tests.Builders
 {
     internal class WebhookRequestRuleBuilder
     {
-        private ParserLocation source;
-        private ParserLocation destination;
-        private List<WebhookConfigRoute> routes;
+        private ParserLocation _source;
+        private ParserLocation _destination;
+        private List<WebhookConfigRoute> _routes;
 
         public WebhookRequestRuleBuilder WithSource(string path = null, DataType type = DataType.Property, Location location = Location.Body)
         {
-            this.source = new ParserLocation
+            _source = new ParserLocation
             {
                 Path = path,
                 Location = location,
@@ -24,7 +25,7 @@ namespace CaptainHook.Tests.Builders
 
         public WebhookRequestRuleBuilder WithDestination(string path = null, DataType type = DataType.Property, Location location = Location.Body)
         {
-            this.destination = new ParserLocation
+            _destination = new ParserLocation
             {
                 Path = path,
                 Location = location,
@@ -34,11 +35,12 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
+        // TODO: remove or use version of this method which accepts WebhookConfigRouteBuilder
         public WebhookRequestRuleBuilder AddRoute(string selector, string uri)
         {
-            if (this.routes == null)
+            if (_routes == null)
             {
-                this.routes = new List<WebhookConfigRoute>();
+                _routes = new List<WebhookConfigRoute>();
             }
 
             var route = new WebhookConfigRoute
@@ -48,8 +50,21 @@ namespace CaptainHook.Tests.Builders
                 AuthenticationConfig = new BasicAuthenticationConfig(),
                 HttpVerb = "POST"
             };
-            this.routes.Add(route);
+            _routes.Add(route);
 
+            return this;
+        }
+
+        public WebhookRequestRuleBuilder AddRoute(Action<WebhookConfigRouteBuilder> routeBuilder)
+        {
+            if (_routes == null)
+            {
+                _routes = new List<WebhookConfigRoute>();
+            }
+
+            var builder = new WebhookConfigRouteBuilder();
+            routeBuilder(builder);
+            _routes.Add(builder.Create());
             return this;
         }
 
@@ -57,9 +72,9 @@ namespace CaptainHook.Tests.Builders
         {
             var rule = new WebhookRequestRule
             {
-                Source = this.source,
-                Destination = this.destination,
-                Routes = this.routes
+                Source = _source,
+                Destination = _destination,
+                Routes = _routes
             };
 
             return rule;

@@ -8,40 +8,40 @@ namespace CaptainHook.Tests.Builders
 {
     internal class SubscriberConfigurationBuilder
     {
-        private string type = "event1";
-        private string subscriberName = "captain-hook";
-        private string uri = "https://blah.blah.eshopworld.com";
-        private HttpMethod httpMethod = HttpMethod.Post;
-        private AuthenticationConfig authenticationConfig = new BasicAuthenticationConfig
+        private string _type = "event1";
+        private string _subscriberName = "captain-hook";
+        private string _uri = "https://blah.blah.eshopworld.com";
+        private HttpMethod _httpMethod = HttpMethod.Post;
+        private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
         {
             Type = AuthenticationType.Basic,
             Username = "user",
             Password = "password",
         };
-        private List<WebhookRequestRule> webhookRequestRules;
-        private WebhookConfig callback;
+        private List<WebhookRequestRule> _webhookRequestRules;
+        private WebhookConfig _callback;
 
         public SubscriberConfigurationBuilder WithType(string type)
         {
-            this.type = type;
+            _type = type;
             return this;
         }
 
         public SubscriberConfigurationBuilder WithSubscriberName(string subscriberName)
         {
-            this.subscriberName = subscriberName;
+            _subscriberName = subscriberName;
             return this;
         }
 
         public SubscriberConfigurationBuilder WithUri(string uri)
         {
-            this.uri = uri;
+            _uri = uri;
             return this;
         }
 
         public SubscriberConfigurationBuilder WithOidcAuthentication()
         {
-            this.authenticationConfig = new OidcAuthenticationConfig
+            _authenticationConfig = new OidcAuthenticationConfig
             {
                 Type = AuthenticationType.OIDC,
                 Uri = "https://blah-blah.sts.eshopworld.com",
@@ -53,9 +53,22 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
+        public SubscriberConfigurationBuilder WithBasicAuthentication()
+        {
+            _authenticationConfig = new BasicAuthenticationConfig
+            {
+                Type = AuthenticationType.Basic,
+                Username = "username",
+                Password = "password",
+            };
+
+            return this;
+        }
+
+        // TODO: remove or use version of this method which accepts SubscriberConfigurationBuilder
         public SubscriberConfigurationBuilder WithCallback(string uri = "https://callback.eshopworld.com")
         {
-            this.callback = new WebhookConfig
+            _callback = new WebhookConfig
             {
                 Name = "callback",
                 HttpMethod = HttpMethod.Post,
@@ -70,16 +83,24 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
+        public SubscriberConfigurationBuilder WithCallback(Action<SubscriberConfigurationBuilder> callbackBuilder)
+        {
+            var builder = new SubscriberConfigurationBuilder();
+            callbackBuilder(builder);
+            _callback = builder.Create();
+            return this;
+        }
+
         public SubscriberConfigurationBuilder AddWebhookRequestRule(Action<WebhookRequestRuleBuilder> ruleBuilder)
         {
-            if (this.webhookRequestRules == null)
+            if (_webhookRequestRules == null)
             {
-                this.webhookRequestRules = new List<WebhookRequestRule>();
+                _webhookRequestRules = new List<WebhookRequestRule>();
             }
 
-            var rb = new WebhookRequestRuleBuilder();
-            ruleBuilder(rb);
-            this.webhookRequestRules.Add(rb.Create());
+            var builder = new WebhookRequestRuleBuilder();
+            ruleBuilder(builder);
+            _webhookRequestRules.Add(builder.Create());
             return this;
         }
 
@@ -87,14 +108,14 @@ namespace CaptainHook.Tests.Builders
         {
             var subscriber = new SubscriberConfiguration
             {
-                Name = this.type,
-                EventType = this.type,
-                SubscriberName = this.subscriberName,
-                HttpMethod = this.httpMethod,
-                Uri = this.uri,
-                AuthenticationConfig = this.authenticationConfig,
-                Callback = this.callback,
-                WebhookRequestRules = this.webhookRequestRules,
+                Name = _type,
+                EventType = _type,
+                SubscriberName = _subscriberName,
+                HttpMethod = _httpMethod,
+                Uri = _uri,
+                AuthenticationConfig = _authenticationConfig,
+                Callback = _callback,
+                WebhookRequestRules = _webhookRequestRules,
             };
 
             return subscriber;
