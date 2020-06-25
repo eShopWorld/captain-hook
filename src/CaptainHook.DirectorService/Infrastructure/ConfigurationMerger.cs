@@ -67,7 +67,7 @@ namespace CaptainHook.DirectorService.Infrastructure
         {
             var config = new SubscriberConfiguration
             {
-                Name = cosmosModel.SubscriberId,
+                Name = $"{cosmosModel.ParentEvent.Name}-{cosmosModel.Name}",
                 SubscriberName = cosmosModel.Name,
                 EventType = cosmosModel.ParentEvent.Name,
                 Uri = cosmosModel.Webhooks.Endpoints.First().Uri,

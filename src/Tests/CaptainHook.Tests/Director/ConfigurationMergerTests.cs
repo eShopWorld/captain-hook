@@ -99,7 +99,6 @@ namespace CaptainHook.Tests.Director
             {
                 new SubscriberBuilder()
                     .WithEvent("testevent")
-                    .WithSubscriberId("testevent-captain-hook")
                     .WithWebhook(
                         "https://cosmos.eshopworld.com/testevent/",
                         "POST",

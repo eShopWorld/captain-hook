@@ -5,7 +5,6 @@ namespace CaptainHook.Tests.Builders
 {
     internal class SubscriberBuilder
     {
-        private string _subscriberId;
         private string _name = "captain-hook";
         private EventEntity _event;
         private readonly List<EndpointEntity> _webhooks = new List<EndpointEntity>();
@@ -15,12 +14,6 @@ namespace CaptainHook.Tests.Builders
         public SubscriberBuilder WithName(string name)
         {
             _name = name;
-            return this;
-        }
-
-        public SubscriberBuilder WithSubscriberId(string subscriberId)
-        {
-            _subscriberId = subscriberId;
             return this;
         }
 
@@ -53,7 +46,7 @@ namespace CaptainHook.Tests.Builders
 
         public SubscriberEntity Create()
         {
-            var subscriber = new SubscriberEntity(_subscriberId, _name);
+            var subscriber = new SubscriberEntity(_name);
             subscriber.SetParentEvent(_event);
 
             _webhooks.ForEach(x => subscriber.AddWebhookEndpoint(x));
