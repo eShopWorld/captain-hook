@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -32,7 +32,7 @@ namespace CaptainHook.DirectorService.Infrastructure
         {
             var onlyInKv = subscribersFromKeyVault
                 .Where(kvSubscriber => !subscribersFromCosmos.Any(cosmosSubscriber =>
-                    kvSubscriber.Name.Equals(cosmosSubscriber.ParentEvent.Name, StringComparison.InvariantCultureIgnoreCase)
+                    kvSubscriber.EventType.Equals(cosmosSubscriber.ParentEvent.Name, StringComparison.InvariantCultureIgnoreCase)
                     && kvSubscriber.SubscriberName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase)));
 
             async Task<IEnumerable<SubscriberConfiguration>> MapCosmosEntries()
@@ -67,13 +67,15 @@ namespace CaptainHook.DirectorService.Infrastructure
         {
             var config = new SubscriberConfiguration
             {
-                Name = cosmosModel.ParentEvent.Name,
+                Name = $"{cosmosModel.ParentEvent.Name}-{cosmosModel.Name}",
                 SubscriberName = cosmosModel.Name,
+                EventType = cosmosModel.ParentEvent.Name,
                 Uri = cosmosModel.Webhooks.Endpoints.First().Uri,
                 AuthenticationConfig = await MapAuthentication(cosmosModel.Webhooks.Endpoints.FirstOrDefault()?.Authentication),
                 // Callback handling not needed now
                 //Callback = MapCallback(cosmosModel),
             };
+
             return config;
         }
 

@@ -77,11 +77,5 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// </summary>
         [JsonProperty("eventName")]
         public string EventName { get; set; }
-
-        /// <summary>
-        /// Identifies the subscriber by event and name.
-        /// </summary>
-        [JsonProperty("subscriberId")]
-        public string SubscriberId => $"{EventName}_{SubscriberName}";
     }
 }

@@ -108,11 +108,10 @@ namespace CaptainHook.DirectorService.Infrastructure
             }
         }
 
-        private static byte[] BuildInitializationData(SubscriberConfiguration subscriber, IEnumerable<WebhookConfig> webhooks)
+        private static byte[] BuildInitializationData(SubscriberConfiguration subscriber, IEnumerable<WebhookConfig> _)
         {
-            var webhookConfig = webhooks.SingleOrDefault(x => x.Name == subscriber.Name);
             return EventReaderInitData
-                .FromSubscriberConfiguration(subscriber, webhookConfig)
+                .FromSubscriberConfiguration(subscriber, subscriber)
                 .ToByteArray();
         }
     }

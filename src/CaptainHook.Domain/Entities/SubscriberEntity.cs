@@ -6,7 +6,7 @@
     public class SubscriberEntity
     {
         /// <summary>
-        /// Subscriber name
+        /// Subscriber name.
         /// </summary>
         public string Name { get; }
 
@@ -39,10 +39,12 @@
         /// Adds an enpoint to the list of webhook endpoints
         /// </summary>
         /// <param name="endpointModel"></param>
-        public void AddWebhookEndpoint(EndpointEntity endpointModel)
+        public SubscriberEntity AddWebhookEndpoint(EndpointEntity endpointModel)
         {
             endpointModel.SetParentSubscriber(this);
             Webhooks.AddEndpoint(endpointModel);
+
+            return this;
         }
     }
 }

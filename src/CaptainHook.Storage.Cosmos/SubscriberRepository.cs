@@ -43,7 +43,7 @@ namespace CaptainHook.Storage.Cosmos
             var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
 
             return endpoints
-                .GroupBy(x => x.SubscriberId)
+                .GroupBy(x => new { x.EventName, x.SubscriberName })
                 .Select(x => Map(x));
         }
 
@@ -65,7 +65,7 @@ namespace CaptainHook.Storage.Cosmos
             var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
 
             return endpoints
-                .GroupBy(x => x.SubscriberId)
+                .GroupBy(x => new { x.EventName, x.SubscriberName })
                 .Select(x => Map(x));
         }
 
