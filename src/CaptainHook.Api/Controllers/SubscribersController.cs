@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Common;
-using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
 using Eshopworld.Core;
@@ -19,7 +16,7 @@ namespace CaptainHook.Api.Controllers
     [Authorize(Policy = AuthorisationPolicies.SubscribersAccess)]
     public class SubscribersController : ControllerBase
     {
-        private const string SecretDataReplacementString = "***";
+
 
         private readonly IBigBrother _bigBrother;
 
@@ -42,7 +39,7 @@ namespace CaptainHook.Api.Controllers
                 var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
                 var subscribers = await directorServiceClient.GetAllSubscribersAsync();
 
-                HideCredentials(subscribers.Values);
+                AuthenticationConfigSanitizer.Sanitize(subscribers.Values);
 
                 return Ok(subscribers);
             }
@@ -50,42 +47,6 @@ namespace CaptainHook.Api.Controllers
             {
                 _bigBrother.Publish(exception);
                 return BadRequest();
-            }
-        }
-
-        private void HideCredentials(IEnumerable<SubscriberConfiguration> subscribers)
-        {
-            foreach (var subscriber in subscribers)
-            {
-                HideWebhookCredentials(subscriber);
-                HideWebhookCredentials(subscriber.Callback);
-
-                var routes = subscriber.WebhookRequestRules.SelectMany(r => r.Routes);
-                if (subscriber.Callback != null)
-                {
-                    routes = routes.Union(subscriber.Callback.WebhookRequestRules.SelectMany(r => r.Routes));
-                }
-
-                foreach (var route in routes)
-                {
-                    HideWebhookCredentials(route);
-                }
-            }
-        }
-
-        private void HideWebhookCredentials(WebhookConfig configuration)
-        {
-            if (configuration == null)
-                return;
-
-            switch (configuration.AuthenticationConfig)
-            {
-                case OidcAuthenticationConfig oidcAuth:
-                    oidcAuth.ClientSecret = SecretDataReplacementString;
-                    break;
-                case BasicAuthenticationConfig basicAuth:
-                    basicAuth.Password = SecretDataReplacementString;
-                    break;
             }
         }
     }
