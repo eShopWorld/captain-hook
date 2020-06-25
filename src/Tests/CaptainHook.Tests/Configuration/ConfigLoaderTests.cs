@@ -9,7 +9,7 @@ namespace CaptainHook.Tests.Configuration
         [IsDev]
         public void ConfigNotEmpty()
         {
-            var configuration = Common.Configuration.Configuration.Load();
+            var configuration = CaptainHook.Common.Configuration.Configuration.Load();
 
             Assert.NotNull(configuration.Settings);
             Assert.NotEmpty(configuration.SubscriberConfigurations);

@@ -1,13 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Moq;
 using Xunit;
 
 namespace CaptainHook.Tests.Director
@@ -15,7 +18,7 @@ namespace CaptainHook.Tests.Director
     public class ConfigurationMergerTests
     {
         [Fact, IsLayer0]
-        public void OnlyKVSubscribers_AllInResult()
+        public async Task OnlyKVSubscribers_AllInResult()
         {
             var kvSubscribers = new[]
             {
@@ -24,7 +27,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
-            var result = new ConfigurationMerger().Merge(kvSubscribers, new List<SubscriberEntity>());
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(kvSubscribers, new List<SubscriberEntity>());
 
             using (new AssertionScope())
             {
@@ -36,7 +39,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact, IsLayer0]
-        public void OnlyCosmosSubscribers_AllInResult()
+        public async Task OnlyCosmosSubscribers_AllInResult()
         {
             var cosmosSubscribers = new[]
             {
@@ -45,19 +48,19 @@ namespace CaptainHook.Tests.Director
                 new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector").Create(),
             };
 
-            var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
                 result.Should().HaveCount(3);
-                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "captain-hook");
-                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1");
-                result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook");
+                result.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "captain-hook");
+                result.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "subscriber1");
+                result.Should().Contain(x => x.EventType == "testevent.completed" && x.SubscriberName == "captain-hook");
             }
         }
 
         [Fact, IsLayer0]
-        public void WhenSameEventsExistInKvSubscribersAndCosmosSubscribers_CosmosSubscribersMustOverrideKvSubscribers()
+        public async Task WhenSameEventsExistInKvSubscribersAndCosmosSubscribers_CosmosSubscribersMustOverrideKvSubscribers()
         {
             var kvSubscribers = new[]
             {
@@ -73,56 +76,69 @@ namespace CaptainHook.Tests.Director
                 new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector").Create(),
             };
 
-            var result = new ConfigurationMerger().Merge(kvSubscribers, cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(kvSubscribers, cosmosSubscribers);
 
             using (new AssertionScope())
             {
                 result.Should().HaveCount(5);
 
-                result.Should().Contain(x => x.Name == "TESTevent" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/testevent/");
+                result.Should().Contain(x => x.EventType == "TESTevent" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/testevent/");
 
-                result.Should().Contain(x => x.Name == "testevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://blah.blah.eshopworld.com");
-                result.Should().Contain(x => x.Name == "testevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://blah.blah.eshopworld.com");
+                result.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://blah.blah.eshopworld.com");
+                result.Should().Contain(x => x.EventType == "testevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://blah.blah.eshopworld.com");
 
-                result.Should().Contain(x => x.Name == "newtestevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://cosmos.eshopworld.com/newtestevent2/");
-                result.Should().Contain(x => x.Name == "newtestevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/newtestevent-completed/");
+                result.Should().Contain(x => x.EventType == "newtestevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://cosmos.eshopworld.com/newtestevent2/");
+                result.Should().Contain(x => x.EventType == "newtestevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/newtestevent-completed/");
             }
         }
 
         [Fact, IsLayer0]
-        public void CosmosSubscriberWithAuthentication_ShouldBeMappedProperly()
+        public async Task CosmosSubscriberWithAuthentication_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector",
-                        new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "verylongpassword"), "https://blah-blah.sts.eshopworld.com", "type", new string[] { "scope1" })
+                new SubscriberBuilder()
+                    .WithEvent("testevent")
+                    .WithWebhook(
+                        "https://cosmos.eshopworld.com/testevent/",
+                        "POST",
+                        "selector",
+                        new AuthenticationEntity(
+                            "captain-hook-id",
+                            new SecretStoreEntity("kvname", "kv-secret-name"),
+                            "https://blah-blah.sts.eshopworld.com",
+                            "type",
+                            new[] { "scope1" })
                     ).Create(),
             };
 
-            var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var mock = new Mock<ISecretProvider>();
+            mock.Setup(m => m.GetSecretValueAsync("kv-secret-name")).ReturnsAsync("my-password");
 
-            using (new AssertionScope())
+            var result = await new ConfigurationMerger(mock.Object)
+                .MergeAsync(Enumerable.Empty<SubscriberConfiguration>(), cosmosSubscribers);
+
+            var expectedConfiguration = new SubscriberConfiguration
             {
-                result.Should().HaveCount(1);
-                result.Should().Contain(x => x.Name == "testevent"
-                                             && x.SubscriberName == "captain-hook"
-                                             && IsOidcAuthentication(x, "captain-hook-id", "verylongpassword", "https://blah-blah.sts.eshopworld.com"));
-            }
-        }
+                Name = "testevent-captain-hook",
+                EventType = "testevent",
+                SubscriberName = "captain-hook",
+                Uri = "https://cosmos.eshopworld.com/testevent/",
+                HttpVerb = "POST",
+                AuthenticationConfig = new OidcAuthenticationConfig
+                {
+                    ClientId = "captain-hook-id",
+                    ClientSecret = "my-password",
+                    Uri = "https://blah-blah.sts.eshopworld.com",
+                    Scopes = new[] { "scope1" }
+                }
+            };
 
-        private bool IsOidcAuthentication(SubscriberConfiguration sc, string clientId, string secret, string uri)
-        {
-            var oidcAuth = sc.AuthenticationConfig as OidcAuthenticationConfig;
-            if (oidcAuth == null)
-            {
-                return false;
-            }
-
-            return oidcAuth.ClientId == clientId && oidcAuth.ClientSecret == secret && oidcAuth.Uri == uri;
+            result.Should().BeEquivalentTo(new[] { expectedConfiguration }, options => options.RespectingRuntimeTypes());
         }
 
         [Fact(Skip = "Callback handling not needed as for now"), IsLayer0]
-        public void CosmosSubscriberWithCallback_ShouldBeMappedProperly()
+        public async Task CosmosSubscriberWithCallback_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
             {
@@ -131,7 +147,7 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -143,7 +159,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact(Skip = "DQL handling not needed as for now"), IsLayer0]
-        public void CosmosSubscriberWithDlq_ShouldBeMappedProperly()
+        public async Task CosmosSubscriberWithDlq_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
             {
@@ -153,7 +169,7 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var result = new ConfigurationMerger().Merge(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
