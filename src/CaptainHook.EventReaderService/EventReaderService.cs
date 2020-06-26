@@ -196,11 +196,11 @@ namespace CaptainHook.EventReaderService
         /// </summary>
         internal int InFlightMessageCount => HandlerCount - _freeHandlers.Count;
 
-        private async Task SetupServiceBus()
+        private async Task SetupServiceBusAsync(CancellationToken cancellationToken)
         {
             ServicePointManager.DefaultConnectionLimit = 100;
 
-            await _serviceBusManager.CreateAsync(_settings.AzureSubscriptionId, _settings.ServiceBusNamespace, _initData.SubscriptionName, _initData.EventType);
+            await _serviceBusManager.CreateAsync(_settings.AzureSubscriptionId, _settings.ServiceBusNamespace, _initData.SubscriptionName, _initData.EventType, cancellationToken);
 
             var messageReceiver = _serviceBusManager.CreateMessageReceiver(_settings.ServiceBusConnectionString, _initData.EventType, _initData.SubscriptionName, _initData.DlqMode != null);
 
@@ -221,7 +221,7 @@ namespace CaptainHook.EventReaderService
             try
             {
                 _freeHandlers = Enumerable.Range(1, HandlerCount).ToConcurrentQueue();
-                await SetupServiceBus();
+                await SetupServiceBusAsync(cancellationToken);
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
@@ -239,14 +239,14 @@ namespace CaptainHook.EventReaderService
                         var readMessages = messages?.Count ?? 0;
                         _heartBeatStats.ReportMessagesRead(readMessages);
 
-                        await ServiceReceiversLifecycle();
+                        await ServiceReceiversLifecycle(cancellationToken);
 
                         if (readMessages == 0)
                         {
                             // ReSharper disable once MethodSupportsCancellation - no need to cancellation token here
 #if DEBUG
                             //this is done due to enable SF mocks to run as receiver call is not awaited and therefore RunAsync would never await
-                            await Task.Delay(TimeSpan.FromMilliseconds(10));
+                            await Task.Delay(TimeSpan.FromMilliseconds(10), cancellationToken);
 #endif
                             continue;
                         }
@@ -273,12 +273,10 @@ namespace CaptainHook.EventReaderService
                     {
                         BigBrother.Write(sbCommunicationException);
 
-                        await Policy.Handle<Exception>()
+                        await Policy.Handle<ServiceBusCommunicationException>()
                             .WaitAndRetryForeverAsync(exponentialBackoff,
                                 (exception, retryCount, timeSpan) =>
                                 {
-                                    BigBrother.Write(exception);
-
                                     _bigBrother.Publish(new ServiceBusReconnectionAttemptEvent
                                     {
                                         RetryCount = retryCount,
@@ -286,19 +284,19 @@ namespace CaptainHook.EventReaderService
                                         EventType = _initData.EventType
                                     });
                                 }
-                            ).ExecuteAsync(SetupServiceBus);
-                    }
-                    catch (Exception exception)
-                    {
-                        BigBrother.Write(exception);
+                            ).ExecuteAsync(ct => SetupServiceBusAsync(ct), cancellationToken);
                     }
                 }
 
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+            catch (OperationCanceledException)
+            {
                 _bigBrother.Publish(new Common.Telemetry.CancellationRequestedEvent { FabricId = $"{Context.ServiceName}:{Context.ReplicaId}" });
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                BigBrother.Write(e.ToExceptionEvent());
+                BigBrother.Write(exception);
             }
         }
 
@@ -322,12 +320,12 @@ namespace CaptainHook.EventReaderService
         /// //TODO: add doco
         /// </summary>
         /// <returns></returns>
-        private async Task ServiceReceiversLifecycle()
+        private async Task ServiceReceiversLifecycle(CancellationToken cancellationToken)
         {
             //detect new connection needed
             if (_activeMessageReader.ConsecutiveLongPollCount >= ConsecutiveLongPollThreshold)
             {
-                await ResetConnection();
+                await ResetConnection(cancellationToken);
             }
             //close exhausted phased out receivers
             var list = _messageReceivers.Where(r => r.Value != _activeMessageReader && (r.Value.ReceivedCount == 0 || DateTime.Now >= r.Value.ForceClosureAt)).ToList();
@@ -361,13 +359,13 @@ namespace CaptainHook.EventReaderService
             return (messages, _activeMessageReader.ReceiverId);
         }
 
-        private async Task ResetConnection()
+        private async Task ResetConnection(CancellationToken cancellationToken)
         {
             _bigBrother.Publish(new ServiceBusConnectionRecycleEvent { Entity = Context.ServiceName.ToString() });
 
             _activeMessageReader.ForceClosureAt = DateTime.Now.Add(ForcedReceiverCloseTimeout);
 
-            await SetupServiceBus();
+            await SetupServiceBusAsync(cancellationToken);
         }
 
         internal int GetFreeHandlerId()

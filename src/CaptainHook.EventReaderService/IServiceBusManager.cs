@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
@@ -16,8 +17,9 @@ namespace CaptainHook.EventReaderService
         /// <param name="serviceBusNamespace"></param>
         /// <param name="subscriptionName"></param>
         /// <param name="topicName"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task CreateAsync(string azureSubscriptionId, string serviceBusNamespace, string subscriptionName, string topicName);
+        Task CreateAsync(string azureSubscriptionId, string serviceBusNamespace, string subscriptionName, string topicName, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates a message receiver to the service bus namespace

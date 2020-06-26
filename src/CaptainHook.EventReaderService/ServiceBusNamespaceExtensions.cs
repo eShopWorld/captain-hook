@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
@@ -22,20 +23,24 @@ namespace CaptainHook.EventReaderService
         /// <param name="sbNamespace">The <see cref="IServiceBusNamespace"/> where we are creating the topic in.</param>
         /// <param name="name">The name of the topic that we are looking for.</param>
         /// <returns>The <see cref="ITopic"/> entity object that references the Azure topic.</returns>
-        public static async Task<ITopic> CreateTopicIfNotExists(this IServiceBusNamespace sbNamespace, string name)
+        public static async Task<ITopic> CreateTopicIfNotExists(this IServiceBusNamespace sbNamespace, string name, CancellationToken cancellationToken)
         {
-            await sbNamespace.RefreshAsync();
+            await sbNamespace.RefreshAsync(cancellationToken);
 
-            var topic = (await sbNamespace.Topics.ListAsync()).SingleOrDefault(t => t.Name == name.ToLowerInvariant());
+            var topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
+
+            var topic = topicsList.SingleOrDefault(t => t.Name == name.ToLowerInvariant());
             if (topic != null) return topic;
 
             await sbNamespace.Topics
                              .Define(name.ToLowerInvariant())
                              .WithDuplicateMessageDetection(TimeSpan.FromMinutes(10))
-                             .CreateAsync();
+                             .CreateAsync(cancellationToken);
 
-            await sbNamespace.RefreshAsync();
-            return (await sbNamespace.Topics.ListAsync()).Single(t => t.Name == name.ToLowerInvariant());
+            await sbNamespace.RefreshAsync(cancellationToken);
+
+            topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
+            return topicsList.Single(t => t.Name == name.ToLowerInvariant());
         }
 
         /// <summary>
@@ -44,11 +49,12 @@ namespace CaptainHook.EventReaderService
         /// <param name="topic">The <see cref="ITopic"/> that we are subscribing to.</param>
         /// <param name="name">The name of the subscription we are doing on the <see cref="ITopic"/>.</param>
         /// <returns>The <see cref="Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription"/> entity object that references the subscription.</returns>
-        public static async Task<Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription> CreateSubscriptionIfNotExists(this ITopic topic, string name)
+        public static async Task<Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription> CreateSubscriptionIfNotExists(this ITopic topic, string name, CancellationToken cancellationToken)
         {
-            await topic.RefreshAsync();
+            await topic.RefreshAsync(cancellationToken);
 
-            var subscription = (await topic.Subscriptions.ListAsync()).SingleOrDefault(s => s.Name == name.ToLowerInvariant());
+            var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
+            var subscription = subscriptionsList.SingleOrDefault(s => s.Name == name.ToLowerInvariant());
             if (subscription != null) return subscription;
 
             await topic.Subscriptions
@@ -56,10 +62,11 @@ namespace CaptainHook.EventReaderService
                        .WithMessageLockDurationInSeconds(60)
                        .WithExpiredMessageMovedToDeadLetterSubscription()
                        .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
-                       .CreateAsync();
+                       .CreateAsync(cancellationToken);
 
-            await topic.RefreshAsync();
-            return (await topic.Subscriptions.ListAsync()).Single(t => t.Name == name.ToLowerInvariant());
+            await topic.RefreshAsync(cancellationToken);
+            subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
+            return subscriptionsList.Single(t => t.Name == name.ToLowerInvariant());
         }
 
         /// <summary>
@@ -69,9 +76,11 @@ namespace CaptainHook.EventReaderService
         /// <param name="serviceBusNamespace">The Azure ServiceBus namespace name.</param>
         /// <param name="entityName">The name of the topic entity that we are working with.</param>
         /// <returns>The <see cref="ITopic"/> contract for use of future operation if required.</returns>
-        public static async Task<ITopic> SetupTopic(string azureSubscriptionId, string serviceBusNamespace, string entityName)
+        public static async Task<ITopic> SetupTopic(string azureSubscriptionId, string serviceBusNamespace, string entityName, CancellationToken cancellationToken)
         {
-            var token = new AzureServiceTokenProvider().GetAccessTokenAsync("https://management.core.windows.net/", string.Empty).Result;
+            var tokenProvider = new AzureServiceTokenProvider();
+            var token = await tokenProvider.GetAccessTokenAsync("https://management.core.windows.net/", string.Empty, cancellationToken);
+
             var tokenCredentials = new TokenCredentials(token);
 
             var client = RestClient.Configure()
@@ -80,17 +89,19 @@ namespace CaptainHook.EventReaderService
                                    .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty, AzureEnvironment.AzureGlobalCloud))
                                    .Build();
 
-            var sbNamespace = Azure.Authenticate(client, string.Empty)
-                                   .WithSubscription(azureSubscriptionId)
-                                   .ServiceBusNamespaces.List()
-                                   .SingleOrDefault(n => n.Name == serviceBusNamespace);
+            var sbNamespacesList = await Azure.Authenticate(client, string.Empty)
+                                              .WithSubscription(azureSubscriptionId)
+                                              .ServiceBusNamespaces
+                                              .ListAsync(cancellationToken: cancellationToken);
+
+            var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == serviceBusNamespace);
 
             if (sbNamespace == null)
             {
                 throw new InvalidOperationException($"Couldn't find the service bus namespace {serviceBusNamespace} in the subscription with ID {azureSubscriptionId}");
             }
 
-            return await sbNamespace.CreateTopicIfNotExists(entityName);
+            return await sbNamespace.CreateTopicIfNotExists(entityName, cancellationToken);
         }
 
     }
