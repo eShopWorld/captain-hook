@@ -93,7 +93,7 @@ namespace CaptainHook.DirectorService.Infrastructure
                     partitionScheme: new SingletonPartitionSchemeDescription(),
                     initializationData);
                 await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
-                _bigBrother.Publish(new ServiceCreatedEvent(name, JsonConvert.SerializeObject(subscriber)));
+                _bigBrother.Publish(new ServiceCreatedEvent(name));
             }
         }
 
@@ -108,11 +108,10 @@ namespace CaptainHook.DirectorService.Infrastructure
             }
         }
 
-        private static byte[] BuildInitializationData(SubscriberConfiguration subscriber, IEnumerable<WebhookConfig> webhooks)
+        private static byte[] BuildInitializationData(SubscriberConfiguration subscriber, IEnumerable<WebhookConfig> _)
         {
-            var webhookConfig = webhooks.SingleOrDefault(x => x.Name == subscriber.Name);
             return EventReaderInitData
-                .FromSubscriberConfiguration(subscriber, webhookConfig)
+                .FromSubscriberConfiguration(subscriber, subscriber)
                 .ToByteArray();
         }
     }

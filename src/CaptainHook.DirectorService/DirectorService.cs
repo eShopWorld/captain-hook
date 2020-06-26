@@ -53,12 +53,21 @@ namespace CaptainHook.DirectorService
             _readerServicesManager = readerServicesManager ?? throw new ArgumentNullException(nameof(readerServicesManager));
         }
 
-        private async Task LoadConfigurationAsync()
+        private async Task<(IList<WebhookConfig> newWebhookConfig, IDictionary<string, SubscriberConfiguration> newSubscriberConfigurations)> LoadConfigurationAsync()
         {
             var (webhookConfig, subscriberConfig) = await _subscriberConfigurationLoader.LoadAsync();
 
-            _webhookConfigurations = webhookConfig;            
-            _subscriberConfigurations = subscriberConfig.ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));
+            var newSubscriberConfigurations = subscriberConfig
+                .ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));
+
+            return (webhookConfig, newSubscriberConfigurations);
+        }
+
+        private async Task LoadConfigurationAndAssignAsync()
+        {
+            var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
+            _webhookConfigurations = newWebhookConfig;
+            _subscriberConfigurations = newSubscriberConfigurations;
         }
 
         /// <summary>
@@ -78,7 +87,7 @@ namespace CaptainHook.DirectorService
                     _refreshInProgress = true;
                 }
 
-                await LoadConfigurationAsync();
+                await LoadConfigurationAndAssignAsync();
 
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
@@ -139,12 +148,19 @@ namespace CaptainHook.DirectorService
 
             try
             {
-                await LoadConfigurationAsync();
+                var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
 
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(_subscriberConfigurations, _webhookConfigurations,
-                    _subscriberConfigurations, deployedServiceNames, _cancellationToken);
+                await _readerServicesManager.RefreshReadersAsync(
+                    newSubscriberConfigurations,
+                    newWebhookConfig,
+                    _subscriberConfigurations,
+                    deployedServiceNames,
+                    _cancellationToken);
+
+                _webhookConfigurations = newWebhookConfig;
+                _subscriberConfigurations = newSubscriberConfigurations;
 
                 reloadConfigFinishedTimedEvent.IsSuccess = true;
             }
