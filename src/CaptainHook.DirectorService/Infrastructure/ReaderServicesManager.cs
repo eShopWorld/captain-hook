@@ -93,7 +93,7 @@ namespace CaptainHook.DirectorService.Infrastructure
                     partitionScheme: new SingletonPartitionSchemeDescription(),
                     initializationData);
                 await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
-                _bigBrother.Publish(new ServiceCreatedEvent(name, JsonConvert.SerializeObject(subscriber)));
+                _bigBrother.Publish(new ServiceCreatedEvent(name));
             }
         }
 
