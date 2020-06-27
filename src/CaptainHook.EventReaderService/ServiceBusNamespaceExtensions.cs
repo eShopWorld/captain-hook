@@ -87,11 +87,12 @@ namespace CaptainHook.EventReaderService
                                    .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
                                    .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty, AzureEnvironment.AzureGlobalCloud))
                                    .Build();
-
-            var sbNamespacesList = await Azure.Authenticate(client, string.Empty)
-                                              .WithSubscription(azureSubscriptionId)
-                                              .ServiceBusNamespaces
-                                              .ListAsync(cancellationToken: cancellationToken);
+            
+            var sbNamespacesList = await Microsoft.Azure.Management.Fluent
+                                                  .Azure.Authenticate(client, string.Empty)
+                                                  .WithSubscription(azureSubscriptionId)
+                                                  .ServiceBusNamespaces
+                                                  .ListAsync(cancellationToken: cancellationToken);
 
             var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == serviceBusNamespace);
 
