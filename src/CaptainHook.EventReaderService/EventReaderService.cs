@@ -296,7 +296,7 @@ namespace CaptainHook.EventReaderService
             }
             catch (Exception exception)
             {
-                BigBrother.Write(exception);
+                _bigBrother.Publish(exception.ToExceptionEvent());
             }
         }
 
