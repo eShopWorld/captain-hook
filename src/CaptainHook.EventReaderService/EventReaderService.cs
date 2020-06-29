@@ -271,7 +271,7 @@ namespace CaptainHook.EventReaderService
                     }
                     catch (ServiceBusCommunicationException sbCommunicationException)
                     {
-                        BigBrother.Write(sbCommunicationException);
+                        _bigBrother.Publish(sbCommunicationException.ToExceptionEvent());
 
                         await Policy.Handle<ServiceBusCommunicationException>()
                             .WaitAndRetryForeverAsync(exponentialBackoff,
@@ -285,6 +285,10 @@ namespace CaptainHook.EventReaderService
                                     });
                                 }
                             ).ExecuteAsync(ct => SetupServiceBusAsync(ct), cancellationToken);
+                    }
+                    catch (Exception exception)
+                    {
+                        _bigBrother.Publish(exception.ToExceptionEvent());
                     }
                 }
 
