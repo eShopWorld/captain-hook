@@ -163,9 +163,9 @@ namespace CaptainHook.Tests.Services.Reliable
 
         [Theory]
         [IsLayer0]
-        [InlineData("test.type", 3, 10)]
-        [InlineData("test.type", 10, 10)]
-        [InlineData("test.type", 12, 12)]
+        [InlineData("test.type-subA", 3, 10)]
+        [InlineData("test.type-subA", 10, 10)]
+        [InlineData("test.type-subA", 12, 12)]
         public async Task CanAddMoreHandlersDynamically(string eventName, int messageCount, int expectedHandlerId)
         {
             //create mocked handlers based on the amount of messages passed in to the test

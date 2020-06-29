@@ -286,10 +286,6 @@ namespace CaptainHook.EventReaderService
                                 }
                             ).ExecuteAsync(ct => SetupServiceBusAsync(ct), cancellationToken);
                     }
-                    catch (Exception exception)
-                    {
-                        _bigBrother.Publish(exception.ToExceptionEvent());
-                    }
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -300,7 +296,7 @@ namespace CaptainHook.EventReaderService
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception.ToExceptionEvent());
+                _bigBrother.Publish(exception.ToExceptionEvent<EventReaderMainLoopExceptionEvent>());
             }
         }
 
