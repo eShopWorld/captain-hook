@@ -96,7 +96,8 @@ namespace CaptainHook.Tests.Services.Reliable
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<string>()));
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()));
 
             mockServiceBusProvider.Setup(s => s.CreateMessageReceiver(
                 It.IsAny<string>(),
@@ -135,7 +136,8 @@ namespace CaptainHook.Tests.Services.Reliable
                 It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
-                    It.IsAny<string>()));
+                    It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()));
 
             mockServiceBusProvider.Setup(s => s.CreateMessageReceiver(
                 It.IsAny<string>(),
@@ -161,9 +163,9 @@ namespace CaptainHook.Tests.Services.Reliable
 
         [Theory]
         [IsLayer0]
-        [InlineData("test.type", 3, 10)]
-        [InlineData("test.type", 10, 10)]
-        [InlineData("test.type", 12, 12)]
+        [InlineData("test.type-subA", 3, 10)]
+        [InlineData("test.type-subA", 10, 10)]
+        [InlineData("test.type-subA", 12, 12)]
         public async Task CanAddMoreHandlersDynamically(string eventName, int messageCount, int expectedHandlerId)
         {
             //create mocked handlers based on the amount of messages passed in to the test
@@ -192,7 +194,8 @@ namespace CaptainHook.Tests.Services.Reliable
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<string>()));
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()));
 
             mockServiceBusProvider.Setup(s => s.CreateMessageReceiver(
                 It.IsAny<string>(),
@@ -248,7 +251,8 @@ namespace CaptainHook.Tests.Services.Reliable
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<string>()));
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()));
 
             mockServiceBusManager.Setup(s => s.CreateMessageReceiver(
                 It.IsAny<string>(),
@@ -331,7 +335,8 @@ namespace CaptainHook.Tests.Services.Reliable
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<string>()));
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()));
 
             mockServiceBusProvider.Setup(s => s.CreateMessageReceiver(
                 It.IsAny<string>(),
@@ -389,7 +394,8 @@ namespace CaptainHook.Tests.Services.Reliable
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<string>(),
-                It.IsAny<string>()));
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()));
 
             mockServiceBusManager.Setup(s => s.CreateMessageReceiver(
                 It.IsAny<string>(),
