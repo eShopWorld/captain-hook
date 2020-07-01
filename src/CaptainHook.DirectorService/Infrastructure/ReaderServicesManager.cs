@@ -53,8 +53,9 @@ namespace CaptainHook.DirectorService.Infrastructure
         public async Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IEnumerable<string> deployedServicesNames, IEnumerable<WebhookConfig> webhooks, CancellationToken cancellationToken)
         {
             // we must delete previous instances also as they may have obsolete configuration
-            var servicesToCreate = subscribers.ToDictionary(s => _readerServiceNameGenerator.GenerateNewName(s.ToSubscriberNaming()), s => s);
-            var servicesToDelete = subscribers.SelectMany(s => _readerServiceNameGenerator.FindOldNames(s.ToSubscriberNaming(), deployedServicesNames));
+            var namesGenerator = new ReaderServiceHashSuffixedNameGenerator();
+            var servicesToCreate = subscribers.ToDictionary(s => namesGenerator.GenerateNewName(s), s => s);
+            var servicesToDelete = subscribers.SelectMany(s => namesGenerator.FindOldNames(s, deployedServicesNames));
 
             await CreateReaderServicesAsync(servicesToCreate, webhooks, cancellationToken);
             await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
