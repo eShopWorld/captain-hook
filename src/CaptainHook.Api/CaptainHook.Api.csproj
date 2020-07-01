@@ -17,9 +17,9 @@
     <!-- Adding in update for a sub dep until Ms fix the dep tree-->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.1.417" />
-    <PackageReference Include="Microsoft.ServiceFabric.Diagnostics.Internal" Version="4.1.417" />
-    <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="4.1.417" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.0.470" />
+    <PackageReference Include="Microsoft.ServiceFabric.Diagnostics.Internal" Version="4.0.470" />
+    <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="4.0.470" />
     <PackageReference Include="Autofac" Version="5.2.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Eshopworld.DevOps" Version="5.0.1" />
@@ -29,8 +29,8 @@
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.14.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.ServiceFabric.Native" Version="2.3.1" />
-    <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="4.1.417" />
-    <PackageReference Include="Microsoft.ServiceFabric.Services" Version="4.1.417" />
+    <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="4.0.470" />
+    <PackageReference Include="Microsoft.ServiceFabric.Services" Version="4.0.470" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
   </ItemGroup>
 
