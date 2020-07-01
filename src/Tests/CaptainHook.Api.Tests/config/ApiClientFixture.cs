@@ -1,5 +1,6 @@
 ﻿using System;
 using CaptainHook.Api.Client;
+using EShopworld.Security.Services.Testing.Settings;
 using EShopworld.Security.Services.Testing.Token;
 using Microsoft.Rest;
 
@@ -16,7 +17,13 @@ namespace CaptainHook.Api.Tests.Config
 
         public ICaptainHookClient GetApiClient()
         {
-            var token = new TokenCredentialsBuilder().Build();
+            var tb = new RefreshingTokenProviderOptions(
+                EnvironmentSettings.StsSettings.Issuer, 
+                EnvironmentSettings.StsSettings.Subject, 
+                EnvironmentSettings.StsSettings.ClientId, 
+                EnvironmentSettings.StsSettings.Scopes, 
+                EnvironmentSettings.StsSettings.Audience);
+            var token = new TokenCredentialsBuilder(tb).Build();
             return new CaptainHookClient(CaptainHookTestUri, token);
         }
 
