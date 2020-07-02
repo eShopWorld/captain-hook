@@ -237,7 +237,9 @@ namespace CaptainHook.Tests.Director
                 "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-a",
                 "fabric:/CaptainHook/EventReader.testevent-captain-hook-1XyvgNnSUnqLqKs79dCfku",
                 "fabric:/CaptainHook/EventReader.testevent-subscriber1-a",
+                "completely-random-service-which-should-not-be-orphaned-1",
                 "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-1fTs0vQq8JT0fMU6tZPL2z",
+                "completely-random-service-which-should-not-be-orphaned-2",
             };
 
             var webhooks = new[]
@@ -287,7 +289,9 @@ namespace CaptainHook.Tests.Director
                 VerifyFabricClientDeleteCalls(
                     "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-a",
                     "fabric:/CaptainHook/EventReader.testevent-subscriber1-a",
-                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-a");
+                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-a",
+                    "completely-random-service-which-should-not-be-orphaned-1",
+                    "completely-random-service-which-should-not-be-orphaned-1");
 
                 VerifyServiceCreatedEventPublished(
                     "fabric:/CaptainHook/EventReader.newtestevent-captain-hook",
@@ -297,10 +301,12 @@ namespace CaptainHook.Tests.Director
                 VerifyServiceDeletedEventPublished(
                     "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-a",
                     "fabric:/CaptainHook/EventReader.testevent-subscriber1-a",
-                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-a");
+                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-a",
+                    "completely-random-service-which-should-not-be-orphaned-1",
+                    "completely-random-service-which-should-not-be-orphaned-1");
 
                 _bigBrotherMock.Verify(b => b.Publish(
-                    It.Is<RefreshSubscribersEvent>(m => m.AddedCount == 1 && m.RemovedCount == 1 && m.ChangedCount == 2),
+                    It.Is<RefreshSubscribersEvent>(m => m.AddedCount == 1 && m.RemovedCount == 3 && m.ChangedCount == 2),
                     It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
             }
         }
