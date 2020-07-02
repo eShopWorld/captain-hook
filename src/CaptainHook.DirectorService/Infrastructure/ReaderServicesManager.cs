@@ -54,8 +54,28 @@ namespace CaptainHook.DirectorService.Infrastructure
         {
             // we must delete previous instances also as they may have obsolete configuration
             var namesGenerator = new ReaderServiceHashSuffixedNameGenerator();
-            var servicesToCreate = subscribers.ToDictionary(s => namesGenerator.GenerateNewName(s), s => s);
-            var servicesToDelete = subscribers.SelectMany(s => namesGenerator.FindOldNames(s, deployedServicesNames));
+            //var servicesToCreate = subscribers
+            //    .ToDictionary(s => namesGenerator.GenerateName(s), s => s)
+            //    .Where(x => !deployedServicesNames.Contains(x.Key))
+            //    .ToDictionary(x => x.Key, x => x.Value);
+
+            var desiredServices = subscribers.ToDictionary(s => namesGenerator.GenerateName(s), s => s);
+
+            var servicesToCreate = new Dictionary<string, SubscriberConfiguration>();
+            foreach (var (_, subscriber) in desiredServices)
+            {
+                var name = namesGenerator.GenerateName(subscriber);
+                if (!deployedServicesNames.Contains(name))
+                {
+                    servicesToCreate.Add(name, subscriber);
+                }
+            }
+
+            //var servicesToCreate = desiredServices.Where(x => !deployedServicesNames.Contains(x.Key));
+
+            //var servicesToDeleteForCurrentConfigurations = subscribers.SelectMany(s => namesGenerator.FindOldNames(s, deployedServicesNames));
+
+            var servicesToDelete = deployedServicesNames.Except(desiredServices.Keys);
 
             await CreateReaderServicesAsync(servicesToCreate, webhooks, cancellationToken);
             await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
