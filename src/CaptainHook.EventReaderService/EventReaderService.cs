@@ -38,6 +38,7 @@ namespace CaptainHook.EventReaderService
     public class EventReaderService : StatefulService, IEventReaderService
     {
         private const int BatchSize = 1; // make this dynamic - based on the number of active handlers - more handlers, lower batch
+        private const double DefaultInactivityTimeBeforeConnectionResetInMinutes = 5.0;
 
         private readonly IBigBrother _bigBrother;
         private readonly IServiceBusManager _serviceBusManager;
@@ -328,10 +329,15 @@ namespace CaptainHook.EventReaderService
         private async Task ServiceReceiversLifecycle(CancellationToken cancellationToken)
         {
             //detect new connection needed
-            if (_activeMessageReader.ConsecutiveLongPollCount >= ConsecutiveLongPollThreshold)
+            var pollThresholdReached = _activeMessageReader.ConsecutiveLongPollCount >= ConsecutiveLongPollThreshold;
+            var inactivityTimeoutReached =
+                _activeMessageReader.FirstTimeNoMessagesReadUtc?.AddMinutes(DefaultInactivityTimeBeforeConnectionResetInMinutes) <= DateTime.UtcNow;
+            
+            if (pollThresholdReached || inactivityTimeoutReached)
             {
                 await ResetConnection(cancellationToken);
             }
+
             //close exhausted phased out receivers
             var list = _messageReceivers.Where(r => r.Value != _activeMessageReader && (r.Value.ReceivedCount == 0 || DateTime.Now >= r.Value.ForceClosureAt)).ToList();
 
@@ -354,9 +360,14 @@ namespace CaptainHook.EventReaderService
             if (messages != null && messages.Count != 0)
             {
                 Interlocked.Add(ref _activeMessageReader.ReceivedCount, messages.Count);
+                _activeMessageReader.FirstTimeNoMessagesReadUtc = null;
+            }
+            else if (_activeMessageReader.FirstTimeNoMessagesReadUtc == null)
+            {
+                _activeMessageReader.FirstTimeNoMessagesReadUtc = DateTime.UtcNow;
             }
 
-            if (receiveSW.ElapsedMilliseconds > LongPollThreshold.TotalMilliseconds)
+            if (receiveSW.ElapsedMilliseconds > LongPollThreshold.TotalMilliseconds + 500)
                 _activeMessageReader.ConsecutiveLongPollCount++;
             else
                 _activeMessageReader.ConsecutiveLongPollCount = 0;
@@ -453,5 +464,6 @@ namespace CaptainHook.EventReaderService
         internal DateTime ForceClosureAt;
         internal Guid ReceiverId;
         internal int ConsecutiveLongPollCount;
+        internal DateTime? FirstTimeNoMessagesReadUtc;
     }
 }
