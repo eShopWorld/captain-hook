@@ -18,7 +18,6 @@ using Eshopworld.Telemetry.Configuration;
 using Eshopworld.Telemetry.Processors;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.OpenApi.Models;
-using TelemetrySettings = Eshopworld.Telemetry.Configuration.TelemetrySettings;
 using CaptainHook.Api.Helpers;
 
 namespace CaptainHook.Api
@@ -28,7 +27,7 @@ namespace CaptainHook.Api
     /// </summary>
     public class Startup
     {
-        private readonly TelemetrySettings _telemetrySettings = new TelemetrySettings();
+        private readonly string _instrumentationKey;
         private readonly IBigBrother _bb;
         private readonly IConfigurationRoot _configuration;
         private bool UseOpenApiV2 => true;
@@ -40,8 +39,8 @@ namespace CaptainHook.Api
         public Startup(IWebHostEnvironment env)
         {
             _configuration = EswDevOpsSdk.BuildConfiguration(env.ContentRootPath, env.EnvironmentName);
-            _configuration.GetSection("Telemetry").Bind(_telemetrySettings);
-            _bb = BigBrother.CreateDefault(_telemetrySettings.InstrumentationKey, _telemetrySettings.InternalKey);
+            _instrumentationKey = _configuration["InstrumentationKey"];
+            _bb = BigBrother.CreateDefault(_instrumentationKey, _instrumentationKey);
         }
 
         /// <summary>
@@ -52,7 +51,7 @@ namespace CaptainHook.Api
         /// <param name="builder">The <see cref="ContainerBuilder"/> to configure</param>
         public void ConfigureContainer(ContainerBuilder builder)
         {
-            builder.RegisterInstance(_telemetrySettings).SingleInstance();
+            builder.ConfigureTelemetryKeys(_instrumentationKey, _instrumentationKey);
             builder.RegisterModule<TelemetryModule>();
 
             builder.RegisterType<SuccessfulProbeFilterCriteria>()
@@ -67,7 +66,7 @@ namespace CaptainHook.Api
         {
             try
             {
-                services.AddApplicationInsightsTelemetry(_telemetrySettings.InstrumentationKey);
+                services.AddApplicationInsightsTelemetry(_instrumentationKey);
 
                 var serviceConfiguration = new ServiceConfigurationOptions();
                 _configuration.GetSection("ServiceConfigurationOptions").Bind(serviceConfiguration);
