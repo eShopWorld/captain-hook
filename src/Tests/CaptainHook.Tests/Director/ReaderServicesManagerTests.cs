@@ -83,6 +83,8 @@ namespace CaptainHook.Tests.Director
 
             var deployedServicesNames = new[]
             {
+                "fabric:/CaptainHook/CaptainHook.ApiPkg",
+                "fabric:/CaptainHook/CaptainHook.DirectorService",
                 "fabric:/CaptainHook/EventReader.oldtestevent.completed-captain-hook-10000000000000",
                 "fabric:/CaptainHook/EventReader.oldtestevent.completed-oldsubscriber-10000000000000",
                 "fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
@@ -130,6 +132,8 @@ namespace CaptainHook.Tests.Director
 
             var deployedServicesNames = new[]
             {
+                "fabric:/CaptainHook/CaptainHook.ApiPkg",
+                "fabric:/CaptainHook/CaptainHook.DirectorService",
                 "fabric:/CaptainHook/EventReader.oldtestevent.completed-captain-hook-abc",
                 "fabric:/CaptainHook/EventReader.oldtestevent.completed-oldsubscriber-abc",
                 "fabric:/CaptainHook/EventReader.testevent-captain-hook-abc",
@@ -172,6 +176,8 @@ namespace CaptainHook.Tests.Director
 
             var deployedServicesNames = new[]
             {
+                "fabric:/CaptainHook/CaptainHook.ApiPkg",
+                "fabric:/CaptainHook/CaptainHook.DirectorService",
                 "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-abc",
                 "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-abc",
                 "fabric:/CaptainHook/EventReader.testevent-captain-hook-1XyvgNnSUnqLqKs79dCfku",
@@ -233,13 +239,15 @@ namespace CaptainHook.Tests.Director
 
             var deployedServicesNames = new[]
             {
+                "fabric:/CaptainHook/CaptainHook.ApiPkg",
+                "fabric:/CaptainHook/CaptainHook.DirectorService",
                 "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-a",
                 "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-a",
                 "fabric:/CaptainHook/EventReader.testevent-captain-hook-1XyvgNnSUnqLqKs79dCfku",
                 "fabric:/CaptainHook/EventReader.testevent-subscriber1-a",
-                "completely-random-service-which-should-not-be-orphaned-1",
+                "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader1",
                 "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-1fTs0vQq8JT0fMU6tZPL2z",
-                "completely-random-service-which-should-not-be-orphaned-2",
+                "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader2",
             };
 
             var webhooks = new[]
@@ -290,8 +298,8 @@ namespace CaptainHook.Tests.Director
                     "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-a",
                     "fabric:/CaptainHook/EventReader.testevent-subscriber1-a",
                     "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-a",
-                    "completely-random-service-which-should-not-be-orphaned-1",
-                    "completely-random-service-which-should-not-be-orphaned-1");
+                    "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader1",
+                    "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader2");
 
                 VerifyServiceCreatedEventPublished(
                     "fabric:/CaptainHook/EventReader.newtestevent-captain-hook",
@@ -302,8 +310,8 @@ namespace CaptainHook.Tests.Director
                     "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-a",
                     "fabric:/CaptainHook/EventReader.testevent-subscriber1-a",
                     "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-a",
-                    "completely-random-service-which-should-not-be-orphaned-1",
-                    "completely-random-service-which-should-not-be-orphaned-1");
+                    "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader1",
+                    "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader2");
 
                 _bigBrotherMock.Verify(b => b.Publish(
                     It.Is<RefreshSubscribersEvent>(m => m.AddedCount == 1 && m.RemovedCount == 3 && m.ChangedCount == 2),

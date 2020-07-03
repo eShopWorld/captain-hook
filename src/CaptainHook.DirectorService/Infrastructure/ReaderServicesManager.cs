@@ -47,9 +47,9 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// <param name="webhooks">List of webhook configuration</param>
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns></returns>
-        public async Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, 
-            IEnumerable<string> deployedServicesNames, 
-            IEnumerable<WebhookConfig> webhooks, 
+        public async Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers,
+            IEnumerable<string> deployedServicesNames,
+            IEnumerable<WebhookConfig> webhooks,
             CancellationToken cancellationToken)
         {
             await DoTheJob(subscribers, webhooks, deployedServicesNames, cancellationToken);
@@ -69,19 +69,21 @@ namespace CaptainHook.DirectorService.Infrastructure
             await DoTheJob(newSubscribers, newWebhooks, deployedServicesNames, cancellationToken);
         }
 
-        private async Task DoTheJob(IEnumerable<SubscriberConfiguration> newSubscribers, 
-            IEnumerable<WebhookConfig> newWebhooks, 
+        private async Task DoTheJob(IEnumerable<SubscriberConfiguration> newSubscribers,
+            IEnumerable<WebhookConfig> newWebhooks,
             IEnumerable<string> deployedServicesNames,
             CancellationToken cancellationToken)
         {
             // Prepare service descriptions to compare
-            var desiredServices = newSubscribers.Select(c => new DesiredSubscriberDefinition(c)).ToList();
-            var existingServices = deployedServicesNames.Select(ds => new ExistingServiceDefinition(ds)).ToList();
+            var desiredReaders = newSubscribers.Select(c => new DesiredSubscriberDefinition(c)).ToList();
+            var existingReaders = deployedServicesNames
+                .Where(s => s.StartsWith($"fabric:/{Constants.CaptainHookApplication.ApplicationName}/{ServiceNaming.EventReaderServiceShortName}"))
+                .Select(s => new ExistingServiceDefinition(s)).ToList();
 
             // Detect changes
-            var changed = desiredServices.Where(d => existingServices.Any(e => d.ServiceName == e.ServiceName && d.FullServiceUri != e.FullServiceUri)).ToList();
-            var added = desiredServices.Where(d => existingServices.All(e => d.ServiceName != e.ServiceName)).ToList();
-            var deleted = existingServices.Where(e => desiredServices.All(d => e.ServiceName != d.ServiceName)).ToList();
+            var changed = desiredReaders.Where(d => existingReaders.Any(e => d.ServiceName == e.ServiceName && d.FullServiceUri != e.FullServiceUri)).ToList();
+            var added = desiredReaders.Where(d => existingReaders.All(e => d.ServiceName != e.ServiceName)).ToList();
+            var deleted = existingReaders.Where(e => desiredReaders.All(d => e.ServiceName != d.ServiceName)).ToList();
 
             // now we know the numbers, so we can publish event
             _bigBrother.Publish(new RefreshSubscribersEvent(added.Select(s => s.ServiceName),
@@ -89,8 +91,8 @@ namespace CaptainHook.DirectorService.Infrastructure
 
             // prepare to actual work
             var servicesToCreate = added.Union(changed).ToDictionary(dsd => dsd.FullServiceUri, kvp => kvp.SubscriberConfig);
-            var allServiceNamesToDelete = existingServices.Select(e => e.FullServiceUri)
-                .Except(desiredServices.Select(d => d.FullServiceUri));
+            var allServiceNamesToDelete = existingReaders.Select(e => e.FullServiceUri)
+                .Except(desiredReaders.Select(d => d.FullServiceUri));
 
             // actual work
             await CreateReaderServicesAsync(servicesToCreate, newWebhooks, cancellationToken);
