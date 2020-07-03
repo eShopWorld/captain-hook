@@ -19,6 +19,7 @@
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.ApiPkg" ServiceManifestVersion="1.0.0" />
     <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="KEYVAULT_URL" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
