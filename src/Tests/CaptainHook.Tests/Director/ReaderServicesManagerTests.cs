@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
@@ -19,26 +16,16 @@ namespace CaptainHook.Tests.Director
 {
     public class ReaderServicesManagerTests
     {
-        private readonly WebhookConfig[] _webhooks =
-        {
-            new WebhookConfig { Name = "testevent" },
-            new WebhookConfig { Name = "testevent.completed" }
-        };
-
         private readonly Mock<IBigBrother> _bigBrotherMock = new Mock<IBigBrother>();
         private readonly Mock<IFabricClientWrapper> _fabricClientMock = new Mock<IFabricClientWrapper>();
-        private readonly Mock<IDateTimeProvider> _dateTimeProviderMock = new Mock<IDateTimeProvider>();
 
         private ReaderServicesManager CreateReaderServiceManager()
         {
-            _dateTimeProviderMock.SetupGet(x => x.UtcNow)
-                .Returns(DateTimeOffset.MinValue.AddMilliseconds(10000000000000));
-            var generator = new ReaderServiceNameGenerator(_dateTimeProviderMock.Object);
-            return new ReaderServicesManager(_fabricClientMock.Object, _bigBrotherMock.Object, _dateTimeProviderMock.Object, generator);
+            return new ReaderServicesManager(_fabricClientMock.Object, _bigBrotherMock.Object);
         }
 
         [Fact, IsLayer0]
-        public async Task CreateReadersAsync_ForFreshEnvironment_ShouldCreateAllReadersAndPublishTelemetryEvents()
+        public async Task RefreshReadersAsync_ForFreshEnvironment_ShouldCreateAllReadersAndPublishTelemetryEvents()
         {
             var readerServiceManager = CreateReaderServiceManager();
 
@@ -51,7 +38,7 @@ namespace CaptainHook.Tests.Director
 
             var deployedServicesNames = Enumerable.Empty<string>();
 
-            await readerServiceManager.CreateReadersAsync(subscribersToCreate, deployedServicesNames, _webhooks, CancellationToken.None);
+            await readerServiceManager.RefreshReadersAsync(subscribersToCreate, deployedServicesNames, CancellationToken.None);
 
             using (new AssertionScope())
             {
@@ -66,11 +53,15 @@ namespace CaptainHook.Tests.Director
                     "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook");
 
                 VerifyServiceDeletedEventPublished();
+
+                _bigBrotherMock.Verify(b => b.Publish(
+                    It.Is<RefreshSubscribersEvent>(m => m.AddedCount == 3 && m.RemovedCount == 0 && m.ChangedCount == 0),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
             }
         }
 
         [Fact, IsLayer0]
-        public async Task CreateReadersAsync_ForExistingEnvironmentWithTimeBasedSuffixes_ShouldRegenerateAllReadersAndPublishTelemetryEvents()
+        public async Task RefreshReadersAsync_ForExistingEnvironmentWithTimeBasedSuffixes_ShouldRegenerateAllReadersAndPublishTelemetryEvents()
         {
             var readerServiceManager = CreateReaderServiceManager();
 
@@ -92,7 +83,7 @@ namespace CaptainHook.Tests.Director
                 "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000",
             };
 
-            await readerServiceManager.CreateReadersAsync(subscribersToCreate, deployedServicesNames, _webhooks, CancellationToken.None);
+            await readerServiceManager.RefreshReadersAsync(subscribersToCreate, deployedServicesNames, CancellationToken.None);
 
             using (new AssertionScope())
             {
@@ -115,11 +106,15 @@ namespace CaptainHook.Tests.Director
                     "fabric:/CaptainHook/EventReader.testevent-captain-hook-10000000000000",
                     "fabric:/CaptainHook/EventReader.testevent-subscriber1-10000000000001",
                     "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000");
+
+                _bigBrotherMock.Verify(b => b.Publish(
+                    It.Is<RefreshSubscribersEvent>(m => m.AddedCount == 0 && m.RemovedCount == 2 && m.ChangedCount == 3),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
             }
         }
 
         [Fact, IsLayer0]
-        public async Task CreateReadersAsync_ForExistingEnvironmentWithOnlyObsoleteReaders_ShouldRegenerateAllReadersAndPublishTelemetryEvents()
+        public async Task RefreshReadersAsync_ForExistingEnvironmentWithOnlyObsoleteReaders_ShouldRegenerateAllReadersAndPublishTelemetryEvents()
         {
             var readerServiceManager = CreateReaderServiceManager();
 
@@ -141,7 +136,7 @@ namespace CaptainHook.Tests.Director
                 "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-abc",
             };
 
-            await readerServiceManager.CreateReadersAsync(subscribersToCreate, deployedServicesNames, _webhooks, CancellationToken.None);
+            await readerServiceManager.RefreshReadersAsync(subscribersToCreate, deployedServicesNames, CancellationToken.None);
 
             using (new AssertionScope())
             {
@@ -166,33 +161,32 @@ namespace CaptainHook.Tests.Director
                     "fabric:/CaptainHook/EventReader.testevent-captain-hook-abc",
                     "fabric:/CaptainHook/EventReader.testevent-subscriber1-abc",
                     "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-abc");
+
+                _bigBrotherMock.Verify(b => b.Publish(
+                    It.Is<RefreshSubscribersEvent>(m => m.AddedCount == 3 && m.RemovedCount == 5 && m.ChangedCount == 0),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
             }
         }
 
         [Fact, IsLayer0]
-        public async Task CreateReadersAsync_ForExistingEnvironmentWithOneNewAndTwoChangedConfigurations_ShouldRegenerateOnlyChangedReadersAndPublishTelemetryEvent()
+        public async Task RefreshReadersAsync_ForExistingEnvironmentWithOneNewAndTwoChangedConfigurations_ShouldRefreshOnlyChangedReadersAndPublishTelemetryEvent()
         {
             var readerServiceManager = CreateReaderServiceManager();
 
-            var deployedServicesNames = new[]
+            var existingServicesNames = new[]
             {
                 "fabric:/CaptainHook/CaptainHook.ApiPkg",
                 "fabric:/CaptainHook/CaptainHook.DirectorService",
-                "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-abc",
-                "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-abc",
+                "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-a",
+                "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-a",
                 "fabric:/CaptainHook/EventReader.testevent-captain-hook-1XyvgNnSUnqLqKs79dCfku",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-abc",
+                "fabric:/CaptainHook/EventReader.testevent-subscriber1-a",
+                "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader1",
                 "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-1fTs0vQq8JT0fMU6tZPL2z",
+                "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader2",
             };
 
-            var webhooks = new[]
-            {
-                new WebhookConfig { Name = "testevent"},
-                new WebhookConfig { Name = "testevent.completed"},
-                new WebhookConfig { Name = "oldtestevent"}
-            };
-
-            var newSubscribersMap = new[]
+            var subscribers = new[]
             {
                 // Not touch:
                 new SubscriberConfigurationBuilder().WithType("testevent").WithCallback().Create(),
@@ -206,86 +200,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("newtestevent").WithCallback().Create(),
             };
 
-            await readerServiceManager.CreateReadersAsync(newSubscribersMap, deployedServicesNames, webhooks, CancellationToken.None);
-
-            using (new AssertionScope())
-            {
-                VerifyFabricClientCreateCalls(
-                    "fabric:/CaptainHook/EventReader.newtestevent-captain-hook",
-                    "fabric:/CaptainHook/EventReader.testevent-subscriber1",
-                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook");
-
-                VerifyFabricClientDeleteCalls(
-                    "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-abc",
-                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-abc",
-                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-abc");
-
-                VerifyServiceCreatedEventPublished(
-                    "fabric:/CaptainHook/EventReader.newtestevent-captain-hook",
-                    "fabric:/CaptainHook/EventReader.testevent-subscriber1",
-                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook");
-
-                VerifyServiceDeletedEventPublished(
-                    "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-abc",
-                    "fabric:/CaptainHook/EventReader.testevent-subscriber1-abc",
-                    "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-abc");
-            }
-        }
-
-        [Fact, IsLayer0]
-        public async Task RefreshReadersAsync_ForExistingEnvironment_ShouldCallFabricClientWrapperAndPublishTelemetryEvent()
-        {
-            var readerServiceManager = CreateReaderServiceManager();
-
-            var deployedServicesNames = new[]
-            {
-                "fabric:/CaptainHook/CaptainHook.ApiPkg",
-                "fabric:/CaptainHook/CaptainHook.DirectorService",
-                "fabric:/CaptainHook/EventReader.oldtestevent-captain-hook-a",
-                "fabric:/CaptainHook/EventReader.oldtestevent-oldsubscriber-a",
-                "fabric:/CaptainHook/EventReader.testevent-captain-hook-1XyvgNnSUnqLqKs79dCfku",
-                "fabric:/CaptainHook/EventReader.testevent-subscriber1-a",
-                "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader1",
-                "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-1fTs0vQq8JT0fMU6tZPL2z",
-                "fabric:/CaptainHook/EventReader.very.old.and.obsolete.reader2",
-            };
-
-            var webhooks = new[]
-            {
-                new WebhookConfig { Name = "testevent"},
-                new WebhookConfig { Name = "testevent.completed"},
-                new WebhookConfig { Name = "oldtestevent"}
-            };
-
-            var currentSubscribersMap = new Dictionary<string, SubscriberConfiguration>
-            {
-                // To delete:
-                ["oldtestevent;oldsubscriber"] = new SubscriberConfigurationBuilder().WithType("oldtestevent").WithSubscriberName("oldsubscriber").Create(),
-
-                // Not touch:
-                ["testevent;captain-hook"] = new SubscriberConfigurationBuilder().WithType("testevent").WithCallback().Create(),
-                ["testevent.completed;captain-hook"] = new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
-
-                // To create and delete:
-                ["testevent;subscriber1"] = new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("subscriber1").Create(),
-                ["oldtestevent;captain-hook"] = new SubscriberConfigurationBuilder().WithType("oldtestevent").WithCallback().Create(),
-            };
-
-            var newSubscribersMap = new Dictionary<string, SubscriberConfiguration>
-            {
-                // Not touch:
-                ["testevent;captain-hook"] = new SubscriberConfigurationBuilder().WithType("testevent").WithCallback().Create(),
-                ["testevent.completed;captain-hook"] = new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
-
-                // To create and delete:
-                ["testevent;subscriber1"] = new SubscriberConfigurationBuilder().WithType("testevent").WithCallback().WithSubscriberName("subscriber1").Create(),
-                ["oldtestevent;captain-hook"] = new SubscriberConfigurationBuilder().WithType("oldtestevent").WithCallback().WithOidcAuthentication().Create(),
-
-                // To create:
-                ["newtestevent;captain-hook"] = new SubscriberConfigurationBuilder().WithType("newtestevent").WithCallback().Create(),
-            };
-
-            await readerServiceManager.RefreshReadersAsync(newSubscribersMap.Values, webhooks, currentSubscribersMap, deployedServicesNames, CancellationToken.None);
+            await readerServiceManager.RefreshReadersAsync(subscribers, existingServicesNames, CancellationToken.None);
 
             using (new AssertionScope())
             {

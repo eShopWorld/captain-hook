@@ -102,7 +102,7 @@ namespace CaptainHook.DirectorService
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 }
 
-                await _readerServicesManager.CreateReadersAsync(_subscriberConfigurations.Values, serviceList, _webhookConfigurations, cancellationToken);
+                await _readerServicesManager.RefreshReadersAsync(_subscriberConfigurations.Values, serviceList, cancellationToken);
             }
             catch (Exception exception)
             {
@@ -152,12 +152,7 @@ namespace CaptainHook.DirectorService
 
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(
-                    newSubscriberConfigurations.Values,
-                    newWebhookConfig,
-                    _subscriberConfigurations,
-                    deployedServiceNames,
-                    _cancellationToken);
+                await _readerServicesManager.RefreshReadersAsync(newSubscriberConfigurations.Values, deployedServiceNames, _cancellationToken);
 
                 _webhookConfigurations = newWebhookConfig;
                 _subscriberConfigurations = newSubscriberConfigurations;
