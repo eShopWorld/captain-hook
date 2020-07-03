@@ -277,7 +277,7 @@ namespace CaptainHook.Tests.Director
                 ["newtestevent;captain-hook"] = new SubscriberConfigurationBuilder().WithType("newtestevent").WithCallback().Create(),
             };
 
-            await readerServiceManager.RefreshReadersAsync(newSubscribersMap, webhooks, currentSubscribersMap, deployedServicesNames, CancellationToken.None);
+            await readerServiceManager.RefreshReadersAsync(newSubscribersMap.Values, webhooks, currentSubscribersMap, deployedServicesNames, CancellationToken.None);
 
             using (new AssertionScope())
             {

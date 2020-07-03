@@ -153,7 +153,7 @@ namespace CaptainHook.DirectorService
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
                 await _readerServicesManager.RefreshReadersAsync(
-                    newSubscriberConfigurations,
+                    newSubscriberConfigurations.Values,
                     newWebhookConfig,
                     _subscriberConfigurations,
                     deployedServiceNames,
