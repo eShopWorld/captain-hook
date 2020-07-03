@@ -1,15 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Fabric.Description;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Base62;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
+using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
@@ -117,7 +121,16 @@ namespace CaptainHook.DirectorService.Infrastructure
             {
                 SubscriberConfig = subscriberConfig;
                 ServiceName = ServiceNaming.EventReaderServiceFullUri(subscriberConfig.EventType, subscriberConfig.SubscriberName, subscriberConfig.DLQMode.HasValue);
-                ServiceNameWithSuffix = $"{ServiceName}-{HashCalculator.GetEncodedHash(subscriberConfig)}";
+                ServiceNameWithSuffix = $"{ServiceName}-{GetEncodedHash(subscriberConfig)}";
+            }
+
+            private static string GetEncodedHash(SubscriberConfiguration configuration)
+            {
+                var md5 = new MD5CryptoServiceProvider();
+                var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(configuration));
+                var hash = md5.ComputeHash(bytes);
+                var encoded = hash.ToBase62();
+                return encoded;
             }
         }
     }
