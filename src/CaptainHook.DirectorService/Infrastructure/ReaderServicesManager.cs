@@ -78,88 +78,25 @@ namespace CaptainHook.DirectorService.Infrastructure
         public async Task RefreshReadersAsync(IDictionary<string, SubscriberConfiguration> newSubscribers, IEnumerable<WebhookConfig> newWebhooks,
             IDictionary<string, SubscriberConfiguration> currentSubscribers, IEnumerable<string> deployedServicesNames, CancellationToken cancellationToken)
         {
-            var desiredSubscriberConfigs = newSubscribers;
+            // Prepare service descriptions to compare
+            var desiredServices = newSubscribers.Values.Select(c => new DesiredSubscriberDefinition(c)).ToList();
+            var existingServices = deployedServicesNames.Select(ds => new ExistingServiceDefinition(ds)).ToList();
 
-            // Prepare service names to compare
-            var desiredServices = new Dictionary<string, SubscriberConfiguration>();
-            var desiredServiceNames = new List<SubscriberNamesDescription>();
-
-            foreach (var (subscriberName, subscriberConfig) in desiredSubscriberConfigs)
-            {
-                var serviceName = ServiceNaming.EventReaderServiceFullUri(subscriberConfig.EventType, subscriberConfig.SubscriberName, subscriberConfig.DLQMode.HasValue);
-                var suffix = HashCalculator.GetEncodedHash(subscriberConfig);
-
-                var subscriberNamesDescription = new SubscriberNamesDescription(subscriberName, serviceName, suffix);
-                desiredServiceNames.Add(subscriberNamesDescription);
-                desiredServices.Add(serviceName, subscriberConfig);
-            }
-
-            var currentServicesNames = deployedServicesNames.Select(ds => new CurrentServiceNameDescription(ds)).ToList();
-
-            // Detect changes based on passed configuration
-            var notChanged = desiredServiceNames
-                .Where(desired => currentServicesNames.Any(current => desired.ServiceName == current.ServiceName && desired.FullServiceUri == current.FullServiceUri))
-                .ToList();
-
-            var changed = desiredServiceNames
-                .Where(desired => currentServicesNames.Any(current => desired.ServiceName == current.ServiceName && desired.FullServiceUri != current.FullServiceUri))
-                .ToList();
-
-            var added = desiredServiceNames
-                .Where(desired => currentServicesNames.All(current => desired.ServiceName != current.ServiceName))
-                .ToList();
-
-            var deleted = currentServicesNames
-                .Where(current => desiredServiceNames.All(desired => current.ServiceName != desired.ServiceName))
-                .ToList();
+            // Detect changes
+            var changed = desiredServices.Where(d => existingServices.Any(e => d.ServiceName == e.ServiceName && d.FullServiceUri != e.FullServiceUri)).ToList();
+            var added = desiredServices.Where(d => existingServices.All(e => d.ServiceName != e.ServiceName)).ToList();
+            var deleted = existingServices.Where(e => desiredServices.All(d => e.ServiceName != d.ServiceName)).ToList();
 
             // now we know the numbers, so we can publish event
-            // TODO: add more information, like readers url for each event and so
-            _bigBrother.Publish(new RefreshSubscribersEvent(added.Select(s => s.Subscriber), deleted.Select(s => s.ServiceName), changed.Select(s => s.Subscriber)));
+            _bigBrother.Publish(new RefreshSubscribersEvent(added.Select(s => s.ServiceName), deleted.Select(s => s.ServiceName), changed.Select(s => s.ServiceName)));
 
             // prepare to actual work
-            //var allServiceNamesToDelete = deleted.Select(x => x.FullServiceUri).Union(changed.Select(x => x.FullServiceUri));
-            var allServiceNamePairsToCreate = added.Union(changed);
-            var servicesToCreate = allServiceNamePairsToCreate.ToDictionary(description => description.FullServiceUri, description => desiredServices[description.ServiceName]);
-
-            var allServiceNamesToDelete = currentServicesNames.Select(s => s.FullServiceUri)
-                .Except(desiredServiceNames.Select(d => d.FullServiceUri));
+            var servicesToCreate = added.Union(changed).ToDictionary(dsd => dsd.FullServiceUri, kvp => kvp.SubscriberConfig);
+            var allServiceNamesToDelete = existingServices.Select(e => e.FullServiceUri).Except(desiredServices.Select(d => d.FullServiceUri));
 
             // actual work
             await CreateReaderServicesAsync(servicesToCreate, newWebhooks, cancellationToken);
             await DeleteReaderServicesAsync(allServiceNamesToDelete, cancellationToken);
-        }
-
-        private class CurrentServiceNameDescription
-        {
-            public string ServiceName { get; }
-            public string FullServiceUri { get; }
-
-            public CurrentServiceNameDescription(string fullServiceUri)
-            {
-                ServiceName = RemoveSuffix(fullServiceUri);
-                FullServiceUri = fullServiceUri;
-            }
-
-            private string RemoveSuffix(string serviceName)
-            {
-                return Regex.Replace(serviceName, "(|-a|-b|-\\d{14}|-[a-zA-Z0-9]{22})$", string.Empty);
-            }
-        }
-
-        private class SubscriberNamesDescription
-        {
-            public string Subscriber { get; }
-            public string ServiceName { get; }
-            private string Suffix { get; }
-            public string FullServiceUri => $"{ServiceName}-{Suffix}";
-
-            public SubscriberNamesDescription(string subscriber, string service, string suffix)
-            {
-                Subscriber = subscriber;
-                ServiceName = service;
-                Suffix = suffix;
-            }
         }
 
         private async Task CreateReaderServicesAsync(IDictionary<string, SubscriberConfiguration> subscribers, IEnumerable<WebhookConfig> webhooks, CancellationToken cancellationToken)
@@ -195,6 +132,38 @@ namespace CaptainHook.DirectorService.Infrastructure
             return EventReaderInitData
                 .FromSubscriberConfiguration(subscriber, subscriber)
                 .ToByteArray();
+        }
+
+        private class ExistingServiceDefinition
+        {
+            public string ServiceName { get; }
+            public string FullServiceUri { get; }
+
+            public ExistingServiceDefinition(string fullServiceUri)
+            {
+                ServiceName = RemoveSuffix(fullServiceUri);
+                FullServiceUri = fullServiceUri;
+            }
+
+            private string RemoveSuffix(string serviceName)
+            {
+                return Regex.Replace(serviceName, "(|-a|-b|-\\d{14}|-[a-zA-Z0-9]{22})$", string.Empty);
+            }
+        }
+
+        private class DesiredSubscriberDefinition
+        {
+            public SubscriberConfiguration SubscriberConfig { get; }
+            public string ServiceName { get; }
+            private string Suffix { get; }
+            public string FullServiceUri => $"{ServiceName}-{Suffix}";
+
+            public DesiredSubscriberDefinition(SubscriberConfiguration subscriberConfig)
+            {
+                SubscriberConfig = subscriberConfig;
+                ServiceName = ServiceNaming.EventReaderServiceFullUri(subscriberConfig.EventType, subscriberConfig.SubscriberName, subscriberConfig.DLQMode.HasValue);
+                Suffix = HashCalculator.GetEncodedHash(subscriberConfig);
+            }
         }
     }
 }
