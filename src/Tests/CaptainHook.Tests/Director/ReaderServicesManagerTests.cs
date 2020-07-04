@@ -238,7 +238,7 @@ namespace CaptainHook.Tests.Director
             foreach (var serviceName in serviceNames)
             {
                 _bigBrotherMock.Verify (b => b.Publish(
-                        It.Is<ReaderServicesDeletionEvent> (m => m.DeletedNames.Contains (serviceName) || m.Failed.Any (f => f.Name == serviceName)), 
+                        It.Is<ReaderServicesDeletionEvent> (m => m.DeletedNames.Contains (serviceName) || m.Failed.Contains (serviceName)), 
                         It.IsAny<string>(), 
                         It.IsAny<string>(), 
                         It.IsAny<int>()), 
