@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Fabric;
 using System.Fabric.Description;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -9,10 +10,8 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Extensions;
-using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
-using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
@@ -21,6 +20,19 @@ namespace CaptainHook.DirectorService.Infrastructure
     /// </summary>
     public class ReaderServicesManager : IReaderServicesManager
     {
+        readonly struct ReaderTask
+        {
+            public readonly string Name;
+            public readonly Task Task;
+
+            public ReaderTask (string name, Task task)
+            {
+                Name = name;
+                Task = task;
+            }
+
+        }
+
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IBigBrother _bigBrother;
         private readonly IDateTimeProvider _dateTimeProvider;
@@ -99,12 +111,40 @@ namespace CaptainHook.DirectorService.Infrastructure
 
         private async Task DeleteReaderServicesAsync(IEnumerable<string> oldNames, CancellationToken cancellationToken)
         {
-            foreach (var oldName in oldNames)
-            {
-                if (cancellationToken.IsCancellationRequested) return;
+            var toDelete = oldNames.ToHashSet ();
 
-                await _fabricClientWrapper.DeleteServiceAsync(oldName, cancellationToken);
-                _bigBrother.Publish(new ServiceDeletedEvent(oldName));
+            while (toDelete.Any ())
+            {
+
+                var tasks = toDelete
+                    .Select (name => new ReaderTask(name, _fabricClientWrapper.DeleteServiceAsync (name, cancellationToken)))
+                    .ToArray ();
+
+                var deletionEvent = new ReaderServicesDeletionEvent ();
+
+                try
+                {
+                    await Task.WhenAll (tasks.Select (t => t.Task));
+                    toDelete.Clear ();
+
+                    deletionEvent.SetDeletedNames (tasks.Select (t => t.Name));
+                    _bigBrother.Publish (deletionEvent);
+                }
+                catch (Exception)
+                {
+                    var completedTasks = tasks
+                        .Where (t => t.Task.Exception == null || t.Task.Exception.InnerExceptions.OfType<FabricServiceNotFoundException> ().Any ())
+                        .ToArray ();
+
+                    var failedTasks = tasks.Except (completedTasks);
+
+                    deletionEvent.SetDeletedNames (completedTasks.Select (t => t.Name));
+                    deletionEvent.SetFailed (failedTasks.Select (t => new FailedReaderServiceDeletion (t.Name, t.Task.Exception.Message)));
+
+                    _bigBrother.Publish (deletionEvent);
+
+                    toDelete.ExceptWith (completedTasks.Select (t => t.Name));
+                }
             }
         }
 

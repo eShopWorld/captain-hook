@@ -228,11 +228,21 @@ namespace CaptainHook.Tests.Director
 
         private void VerifyServiceDeletedEventPublished(params string[] serviceNames)
         {
-            _bigBrotherMock.Verify(b => b.Publish(It.IsAny<ServiceDeletedEvent>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(serviceNames.Length));
+            _bigBrotherMock.Verify (b => b.Publish(
+                    It.IsAny<ReaderServicesDeletionEvent>(), 
+                    It.IsAny<string>(), 
+                    It.IsAny<string>(), 
+                    It.IsAny<int>()), 
+                Times.Exactly (serviceNames.Length > 0? 1: 0));
 
             foreach (var serviceName in serviceNames)
             {
-                _bigBrotherMock.Verify(b => b.Publish(It.Is<ServiceDeletedEvent>(m => m.ReaderName == serviceName), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+                _bigBrotherMock.Verify (b => b.Publish(
+                        It.Is<ReaderServicesDeletionEvent> (m => m.DeletedNames.Contains (serviceName) || m.Failed.Any (f => f.Name == serviceName)), 
+                        It.IsAny<string>(), 
+                        It.IsAny<string>(), 
+                        It.IsAny<int>()), 
+                    Times.Once);
             }
         }
     }

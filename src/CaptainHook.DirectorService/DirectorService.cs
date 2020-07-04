@@ -106,8 +106,8 @@ namespace CaptainHook.DirectorService
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception);
-                throw;
+                _bigBrother.Publish(exception.ToExceptionEvent ());
+                throw; // should this really be rethrown?
             }
             finally
             {
