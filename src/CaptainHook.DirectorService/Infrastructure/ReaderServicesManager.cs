@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Fabric.Description;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Base62;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
-using CaptainHook.DirectorService.Extensions;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
 
@@ -35,41 +38,15 @@ namespace CaptainHook.DirectorService.Infrastructure
 
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IBigBrother _bigBrother;
-        private readonly IDateTimeProvider _dateTimeProvider;
-        private readonly IReaderServiceNameGenerator _readerServiceNameGenerator;
 
         /// <summary>
         /// Creates a ReaderServiceManager instance
         /// </summary>
         /// <param name="fabricClientWrapper">Fabric Client</param>
-        public ReaderServicesManager(
-            IFabricClientWrapper fabricClientWrapper,
-            IBigBrother bigBrother,
-            IDateTimeProvider dateTimeProvider,
-            IReaderServiceNameGenerator readerServiceNameGenerator)
+        public ReaderServicesManager(IFabricClientWrapper fabricClientWrapper, IBigBrother bigBrother)
         {
             _fabricClientWrapper = fabricClientWrapper;
             _bigBrother = bigBrother;
-            _dateTimeProvider = dateTimeProvider;
-            _readerServiceNameGenerator = readerServiceNameGenerator;
-        }
-
-        /// <summary>
-        /// Creates new instance of readers. Also deletes obsolete and no longer configured ones.
-        /// </summary>
-        /// <param name="subscribers">List of subscribers to create</param>
-        /// <param name="deployedServicesNames">List of currently deployed services names</param>
-        /// <param name="webhooks">List of webhook configuration</param>
-        /// <param name="cancellationToken">Cancellation token</param>
-        /// <returns></returns>
-        public async Task CreateReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IEnumerable<string> deployedServicesNames, IEnumerable<WebhookConfig> webhooks, CancellationToken cancellationToken)
-        {
-            // we must delete previous instances also as they may have obsolete configuration
-            var servicesToCreate = subscribers.ToDictionary(s => _readerServiceNameGenerator.GenerateNewName(s.ToSubscriberNaming()), s => s);
-            var servicesToDelete = subscribers.SelectMany(s => _readerServiceNameGenerator.FindOldNames(s.ToSubscriberNaming(), deployedServicesNames));
-
-            await CreateReaderServicesAsync(servicesToCreate, webhooks, cancellationToken);
-            await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
         }
 
         /// <summary>
@@ -78,27 +55,41 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// </summary>
         /// <param name="newSubscribers">Target subscribers to create</param>
         /// <param name="deployedServicesNames">List of currently deployed services names</param>
-        /// <param name="currentSubscribers">List of currently deployed subscribers</param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task RefreshReadersAsync(IDictionary<string, SubscriberConfiguration> newSubscribers, IEnumerable<WebhookConfig> newWebhooks, IDictionary<string, SubscriberConfiguration> currentSubscribers, IEnumerable<string> deployedServicesNames, CancellationToken cancellationToken)
+        public async Task RefreshReadersAsync(IEnumerable<SubscriberConfiguration> newSubscribers, IEnumerable<string> deployedServicesNames, CancellationToken cancellationToken)
         {
-            var comparisonResult = new SubscriberConfigurationComparer().Compare(currentSubscribers, newSubscribers);
-            _bigBrother.Publish(new RefreshSubscribersEvent(comparisonResult));
+            // Describe the situation
+            var desiredReaders = newSubscribers.Select(c => new DesiredReaderDefinition(c)).ToList();
+            var existingReaders = deployedServicesNames
+                .Where(s => s.StartsWith($"fabric:/{Constants.CaptainHookApplication.ApplicationName}/{ServiceNaming.EventReaderServiceShortName}", StringComparison.InvariantCultureIgnoreCase))
+                .Select(s => new ExistingReaderDefinition(s)).ToList();
 
-            var servicesToCreate = comparisonResult.Added.Values.Union(comparisonResult.Changed.Values).ToDictionary(s => _readerServiceNameGenerator.GenerateNewName(s.ToSubscriberNaming()), s => s);
-            var servicesToDelete = comparisonResult.Removed.Values.Union(comparisonResult.Changed.Values).SelectMany(s => _readerServiceNameGenerator.FindOldNames(s.ToSubscriberNaming(), deployedServicesNames));
+            // Detect changes
+            var changed = desiredReaders.Where(d => existingReaders.Any(e => d.ServiceName == e.ServiceName && d.ServiceNameWithSuffix != e.ServiceNameWithSuffix)).ToList();
+            var added = desiredReaders.Where(d => existingReaders.All(e => d.ServiceName != e.ServiceName)).ToList();
+            var deleted = existingReaders.Where(e => desiredReaders.All(d => e.ServiceName != d.ServiceName)).ToList();
 
-            await CreateReaderServicesAsync(servicesToCreate, newWebhooks, cancellationToken);
-            await DeleteReaderServicesAsync(servicesToDelete, cancellationToken);
+            // now we know the numbers, so we can publish event
+            _bigBrother.Publish(new RefreshSubscribersEvent(added.Select(s => s.ServiceName), deleted.Select(s => s.ServiceName), changed.Select(s => s.ServiceName)));
+
+            // prepare to actual work (put changed to added, delete everything except desired)
+            var servicesToCreate = added.Union(changed).ToDictionary(dsd => dsd.ServiceNameWithSuffix, kvp => kvp.SubscriberConfig);
+            var allServiceNamesToDelete = existingReaders.Select(e => e.ServiceNameWithSuffix).Except(desiredReaders.Select(d => d.ServiceNameWithSuffix));
+
+            // actual work
+            await CreateReaderServicesAsync(servicesToCreate, cancellationToken);
+            await DeleteReaderServicesAsync(allServiceNamesToDelete, cancellationToken);
         }
 
-        private async Task CreateReaderServicesAsync(IDictionary<string, SubscriberConfiguration> subscribers, IEnumerable<WebhookConfig> webhooks, CancellationToken cancellationToken)
+        private async Task CreateReaderServicesAsync(IDictionary<string, SubscriberConfiguration> subscribers, CancellationToken cancellationToken)
         {
             foreach (var (name, subscriber) in subscribers)
             {
                 if (cancellationToken.IsCancellationRequested) return;
 
-                var initializationData = BuildInitializationData(subscriber, webhooks);
+                var initializationData = EventReaderInitData.FromSubscriberConfiguration(subscriber, subscriber).ToByteArray();
+
                 var description = new ServiceCreationDescription(
                     serviceName: name,
                     serviceTypeName: ServiceNaming.EventReaderServiceType,
@@ -148,11 +139,43 @@ namespace CaptainHook.DirectorService.Infrastructure
             }
         }
 
-        private static byte[] BuildInitializationData(SubscriberConfiguration subscriber, IEnumerable<WebhookConfig> _)
+        private class ExistingReaderDefinition
         {
-            return EventReaderInitData
-                .FromSubscriberConfiguration(subscriber, subscriber)
-                .ToByteArray();
+            private static readonly Regex RemoveSuffixRegex = new Regex("(|-a|-b|-\\d{14}|-[a-zA-Z0-9]{22})$", RegexOptions.Compiled);
+
+            public string ServiceName { get; }
+            public string ServiceNameWithSuffix { get; }
+
+            public ExistingReaderDefinition(string serviceNameWithSuffix)
+            {
+                ServiceName = RemoveSuffixRegex.Replace(serviceNameWithSuffix, string.Empty);
+                ServiceNameWithSuffix = serviceNameWithSuffix;
+            }
+        }
+
+        private class DesiredReaderDefinition
+        {
+            public SubscriberConfiguration SubscriberConfig { get; }
+            public string ServiceName { get; }
+            public string ServiceNameWithSuffix { get; }
+
+            public DesiredReaderDefinition(SubscriberConfiguration subscriberConfig)
+            {
+                SubscriberConfig = subscriberConfig;
+                ServiceName = ServiceNaming.EventReaderServiceFullUri(subscriberConfig.EventType, subscriberConfig.SubscriberName, subscriberConfig.DLQMode.HasValue);
+                ServiceNameWithSuffix = $"{ServiceName}-{GetEncodedHash(subscriberConfig)}";
+            }
+
+            private static string GetEncodedHash(SubscriberConfiguration configuration)
+            {
+                using (var md5 = new MD5CryptoServiceProvider())
+                {
+                    var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(configuration));
+                    var hash = md5.ComputeHash(bytes);
+                    var encoded = hash.ToBase62();
+                    return encoded;
+                }
+            }
         }
     }
 }

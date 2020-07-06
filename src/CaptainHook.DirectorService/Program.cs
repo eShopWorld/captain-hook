@@ -67,14 +67,6 @@ namespace CaptainHook.DirectorService
                     .As<IFabricClientWrapper>()
                     .SingleInstance();
 
-                builder.RegisterType<DateTimeProvider>()
-                    .As<IDateTimeProvider>()
-                    .SingleInstance();
-
-                builder.RegisterType<ReaderServiceNameGenerator>()
-                    .As<IReaderServiceNameGenerator>()
-                    .SingleInstance();
-
                 builder.RegisterType<ReaderServicesManager>()
                     .As<IReaderServicesManager>()
                     .SingleInstance();
