@@ -49,7 +49,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             // Describe the situation
             var desiredReaders = newSubscribers.Select(c => new DesiredReaderDefinition(c)).ToList();
             var existingReaders = deployedServicesNames
-                .Where(s => s.StartsWith($"fabric:/{Constants.CaptainHookApplication.ApplicationName}/{ServiceNaming.EventReaderServiceShortName}", StringComparison.InvariantCultureIgnoreCase))
+                .Where(s => s.StartsWith($"fabric:/{Constants.CaptainHookApplication.ApplicationName}/{ServiceNaming.EventReaderServiceShortName}", StringComparison.OrdinalIgnoreCase))
                 .Select(s => new ExistingReaderDefinition(s)).ToList();
 
             // Detect changes
