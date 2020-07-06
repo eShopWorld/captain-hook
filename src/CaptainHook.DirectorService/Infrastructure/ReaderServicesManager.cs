@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Fabric.Description;
 using System.Linq;
 using System.Security.Cryptography;
@@ -48,7 +49,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             // Describe the situation
             var desiredReaders = newSubscribers.Select(c => new DesiredReaderDefinition(c)).ToList();
             var existingReaders = deployedServicesNames
-                .Where(s => s.StartsWith($"fabric:/{Constants.CaptainHookApplication.ApplicationName}/{ServiceNaming.EventReaderServiceShortName}"))
+                .Where(s => s.StartsWith($"fabric:/{Constants.CaptainHookApplication.ApplicationName}/{ServiceNaming.EventReaderServiceShortName}", StringComparison.InvariantCultureIgnoreCase))
                 .Select(s => new ExistingReaderDefinition(s)).ToList();
 
             // Detect changes
@@ -126,11 +127,13 @@ namespace CaptainHook.DirectorService.Infrastructure
 
             private static string GetEncodedHash(SubscriberConfiguration configuration)
             {
-                var md5 = new MD5CryptoServiceProvider();
-                var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(configuration));
-                var hash = md5.ComputeHash(bytes);
-                var encoded = hash.ToBase62();
-                return encoded;
+                using (var md5 = new MD5CryptoServiceProvider())
+                {
+                    var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(configuration));
+                    var hash = md5.ComputeHash(bytes);
+                    var encoded = hash.ToBase62();
+                    return encoded;
+                }
             }
         }
     }
