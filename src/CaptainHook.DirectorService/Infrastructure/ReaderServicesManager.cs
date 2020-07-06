@@ -174,7 +174,7 @@ namespace CaptainHook.DirectorService.Infrastructure
                     var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(configuration));
                     var hash = md5.ComputeHash(bytes);
                     var encoded = hash.ToBase62();
-                    return encoded;
+                    return encoded.PadRight (22, '0');
                 }
             }
         }

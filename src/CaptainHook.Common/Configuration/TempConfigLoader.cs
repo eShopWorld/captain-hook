@@ -12,14 +12,6 @@ namespace CaptainHook.Common.Configuration
     /// </summary>
     public static class TempConfigLoader
     {
-        private static SecretClient GetClient ()
-        {
-            return new SecretClient (
-                new Uri (Environment.GetEnvironmentVariable (ConfigurationSettings.KeyVaultUriEnvVariable)),
-                new AzureServiceTokenCredential (),
-                new SecretClientOptions ());
-        }
-
         public static IConfigurationRoot Load ()
         {
             var client = GetClient ();
@@ -53,11 +45,17 @@ namespace CaptainHook.Common.Configuration
                 .Build ();
         }
 
+        private static SecretClient GetClient ()
+        {
+            return new SecretClient (
+                new Uri (Environment.GetEnvironmentVariable (ConfigurationSettings.KeyVaultUriEnvVariable)),
+                new AzureServiceTokenCredential (),
+                new SecretClientOptions ());
+        }
+
         private static KeyValuePair<string, string> AddEntry (SecretClient client, string kvPath)
         {
-            var items = kvPath.Split ("--");
-            var configKey = string.Join (":", items);
-
+            var configKey = kvPath.Replace ("--", ":");
             return new KeyValuePair<string, string> (configKey, GetSecretValue (client, kvPath));
         }
 
