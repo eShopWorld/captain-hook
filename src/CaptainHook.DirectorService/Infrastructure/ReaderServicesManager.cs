@@ -15,6 +15,7 @@ using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
+using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
