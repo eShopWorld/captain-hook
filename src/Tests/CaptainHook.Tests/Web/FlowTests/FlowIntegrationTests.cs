@@ -17,7 +17,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             
         }
 
-        [Fact, IsLayer2]
+        [Fact, IsIntegration]
         public async Task RunAllTests()
         {
             await Task.WhenAll(BasicWebHookFlowAuthNoRoutePostVerbTest(), BasicCallbackFlowAuthNoRoutePostVerbTest(),

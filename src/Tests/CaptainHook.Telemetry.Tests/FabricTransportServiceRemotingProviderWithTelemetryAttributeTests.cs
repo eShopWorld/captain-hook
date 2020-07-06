@@ -8,7 +8,7 @@ namespace CaptainHook.Telemetry.Tests
 {
     public class FabricTransportServiceRemotingProviderWithTelemetryAttributeTests
     {
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void FabricTransportServiceRemotingProviderWithTelemetryAttributeCreatesRemotingListener()
         {
             var attr = new FabricTransportServiceRemotingProviderWithTelemetryAttribute();
@@ -18,7 +18,7 @@ namespace CaptainHook.Telemetry.Tests
             dict.Should().NotBeEmpty();
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void FabricTransportServiceRemotingProviderWithTelemetryAttributeDoesNotAcceptV2_1Listener()
         {
             var attr = new FabricTransportServiceRemotingProviderWithTelemetryAttribute

@@ -11,7 +11,7 @@ namespace CaptainHook.Tests.Web.WebHooks
 {
     public class HttpClientFactoryTests
     {
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [MemberData(nameof(Data))]
         public void CanGetHttpClient(WebhookConfig config)

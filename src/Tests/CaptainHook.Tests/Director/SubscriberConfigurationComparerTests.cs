@@ -22,7 +22,7 @@ namespace CaptainHook.Tests.Director
             ["event3-captain-hook"] = new SubscriberConfigurationBuilder().WithType("event3").WithSubscriberName("captain-hook").Create(),
         };
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void NoChangesDone_NoChangesDetected()
         {
             var newConfigs = new Dictionary<string, SubscriberConfiguration>
@@ -45,7 +45,7 @@ namespace CaptainHook.Tests.Director
             result.Changed.Should().BeEmpty();
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void NewSubscriber_ShouldBeInAddedList()
         {
             var newConfigs = new Dictionary<string, SubscriberConfiguration>
@@ -69,7 +69,7 @@ namespace CaptainHook.Tests.Director
             result.Changed.Should().BeEmpty();
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void RemovedSubscriber_ShouldBeInRemovedList()
         {
             var newConfigs = new Dictionary<string, SubscriberConfiguration>
@@ -87,7 +87,7 @@ namespace CaptainHook.Tests.Director
             result.Changed.Should().BeEmpty();
         }
 
-        [Theory, IsLayer0]
+        [Theory, IsUnit]
         [MemberData(nameof(ChangedSubscribers))]
         public void ExistingSubscriberChange_ShouldBeInChangedList(SubscriberConfiguration changedSubscriber)
         {

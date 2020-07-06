@@ -29,7 +29,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             _cancellationToken = new CancellationToken();
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [MemberData(nameof(CreationData))]
         public async Task ChecksHttpCreationVerbs(WebhookConfig config, HttpMethod httpMethod, string payload, HttpStatusCode expectedResponseCode, string expectedResponseBody)
@@ -61,7 +61,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             Assert.Equal(1, mockHttp.GetMatchCount(request));
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [MemberData(nameof(GetData))]
         public async Task ChecksHttpGetVerb(WebhookConfig config, HttpMethod httpMethod, string payload, HttpStatusCode expectedResponseCode, string expectedResponseBody)

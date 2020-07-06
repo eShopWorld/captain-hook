@@ -91,7 +91,7 @@ namespace CaptainHook.Tests.Services.Reliable
         }
 
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public void CanPassSubscriberConfiguration()
         {
             var buffer = EventReaderInitData

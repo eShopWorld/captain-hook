@@ -33,7 +33,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             _cancellationToken = new CancellationToken();
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task ExecuteHappyPathRawContract()
         {
@@ -87,7 +87,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             Assert.True(messageDelivered);
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task ExecuteHappyPathRawContract_DeliveryFailure()
         {
@@ -141,7 +141,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             Assert.False(messageDelivered);
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task ExecuteDeliveryFailurePath()
         {

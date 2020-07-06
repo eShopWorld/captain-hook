@@ -51,7 +51,7 @@ namespace CaptainHook.Tests.Director
                 .Returns(currentTime.AddMilliseconds(milliseconds));
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task CreateReadersAsync_ForFreshEnvironment_ShouldCallFabricClientWrapper()
         {
             var readerServiceManager = CreateReaderServiceManager();
@@ -76,7 +76,7 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task CreateReadersAsync_ForExistingEnvironment_ShouldCallFabricClientWrapper()
         {
             var readerServiceManager = CreateReaderServiceManager();
@@ -114,7 +114,7 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task RefreshReadersAsync_ForExistingEnvironment_ShouldCallFabricClientWrapperAndPublishTelemetryEvent()
         {
             var readerServiceManager = CreateReaderServiceManager();

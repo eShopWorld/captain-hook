@@ -17,7 +17,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         {
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task HasSource()
         {
             PrepareCommand();
@@ -25,7 +25,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             AllWebhookRequestRules.Should().Contain(x => x["Source"] is JObject);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task HasDestination()
         {
             PrepareCommand();
@@ -33,7 +33,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             AllWebhookRequestRules.Should().Contain(x => x["Destination"] is JObject);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task HasRoutes()
         {
             PrepareCommand();

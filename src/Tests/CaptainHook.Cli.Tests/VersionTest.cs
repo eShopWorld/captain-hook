@@ -12,7 +12,7 @@ namespace CaptainHook.Cli.Tests
         {
         }
 
-        [Fact, IsLayer2]
+        [Fact, IsUnit]
         public void CheckVersionMatch()
         {
             CommandLineApplication app = new CommandLineApplication<CaptainHook.Cli.Program>(Console);

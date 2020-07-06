@@ -9,7 +9,7 @@ namespace CaptainHook.Tests.Configuration
 {
     public class AuthenticationConfigSanitizerTests
     {
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void WhenSubscriberHasOidcAuth_ClientSecretShouldBeMasked()
         {
             var subscribers = new[] { new SubscriberConfigurationBuilder()
@@ -22,7 +22,7 @@ namespace CaptainHook.Tests.Configuration
             auth.ClientSecret.Should().Be("***");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void WhenSubscriberRouteHasOidcAuth_ClientSecretShouldBeMasked()
         {
             var subscribers = new[] { new SubscriberConfigurationBuilder()
@@ -35,7 +35,7 @@ namespace CaptainHook.Tests.Configuration
             auth.ClientSecret.Should().Be("***");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void WhenCallbackHasOidcAuth_ClientSecretShouldBeMasked()
         {
             var subscribers = new[] { new SubscriberConfigurationBuilder()
@@ -48,7 +48,7 @@ namespace CaptainHook.Tests.Configuration
             auth.ClientSecret.Should().Be("***");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void WhenCallbackRouteHasOidcAuth_ClientSecretShouldBeMasked()
         {
             var subscribers = new[] { new SubscriberConfigurationBuilder()
@@ -62,7 +62,7 @@ namespace CaptainHook.Tests.Configuration
             auth.ClientSecret.Should().Be("***");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void WhenSubscriberHasBasicAuth_PasswordShouldBeMasked()
         {
             var subscribers = new[] { new SubscriberConfigurationBuilder()
@@ -75,7 +75,7 @@ namespace CaptainHook.Tests.Configuration
             auth.Password.Should().Be("***");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void WhenSubscriberRouteHasBasicAuth_PasswordShouldBeMasked()
         {
             var subscribers = new[] { new SubscriberConfigurationBuilder()
@@ -88,7 +88,7 @@ namespace CaptainHook.Tests.Configuration
             auth.Password.Should().Be("***");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void WhenCallbackHasBasicAuth_PasswordShouldBeMasked()
         {
             var subscribers = new[] { new SubscriberConfigurationBuilder()
@@ -101,7 +101,7 @@ namespace CaptainHook.Tests.Configuration
             auth.Password.Should().Be("***");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void WhenCallbackRouteHasBasicAuth_PasswordShouldBeMasked()
         {
             var subscribers = new[] { new SubscriberConfigurationBuilder()

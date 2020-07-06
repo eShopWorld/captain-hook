@@ -38,7 +38,7 @@ namespace CaptainHook.Tests.Director
             _readerServiceNameGenerator = new ReaderServiceNameGenerator(_dateTimeProvider);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void CanGenerateServiceName()
         {
             Mock.Get(_dateTimeProvider).SetupGet(s => s.UtcNow).Returns(BaseTime);
@@ -48,7 +48,7 @@ namespace CaptainHook.Tests.Director
             newName.Should().Be(FullEventName(suffix: GetMillisecondsAsString(BaseTime)));
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void CanGenerateSubsequentServiceNames()
         {
             var serviceList = new string[] { };
@@ -69,18 +69,11 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [InlineData("a")]
         [InlineData("b")]
         [InlineData("12345678901234")]
-        //[InlineData("-a")]
-        //[InlineData("d")]
-        //[InlineData("--")]
-        //[InlineData("\\")]
-        //[InlineData("1234567890123412345678901234")]
-        //[InlineData("a12345678901234")]
-        //[InlineData("12345678901234a")]
         public void CanFindOldServiceNames(string suffix)
         {
             var serviceList = new[]
@@ -99,7 +92,7 @@ namespace CaptainHook.Tests.Director
                 FullEventName(EventTypeName1, suffix));
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [InlineData("-a")]
         [InlineData("d")]
