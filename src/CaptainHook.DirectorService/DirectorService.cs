@@ -11,6 +11,7 @@ using CaptainHook.Common.Remoting;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
+using CaptainHook.DirectorService.ReaderServiceManagement;
 using Eshopworld.Core;
 using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
@@ -29,20 +30,23 @@ namespace CaptainHook.DirectorService
         private readonly IBigBrother _bigBrother;
         private readonly IFabricClientWrapper _fabricClientWrapper;
         private readonly IReaderServicesManager _readerServicesManager;
+        private readonly IReaderServiceChangesDetector _readerServiceChangeDetector;
         private readonly ISubscriberConfigurationLoader _subscriberConfigurationLoader;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
-        private IList<WebhookConfig> _webhookConfigurations;
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
         /// </summary>
         /// <param name="context">The injected <see cref="StatefulServiceContext"/>.</param>
         /// <param name="bigBrother">The injected <see cref="IBigBrother"/> telemetry interface.</param>
+        /// <param name="readerServicesManager">reader service manager</param>
+        /// <param name="readerServiceChangeDetector">reader service change detector</param>
         /// <param name="fabricClientWrapper">The injected <see cref="IFabricClientWrapper"/>.</param>
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
             IReaderServicesManager readerServicesManager,
+            IReaderServiceChangesDetector readerServiceChangeDetector,
             IFabricClientWrapper fabricClientWrapper,
             ISubscriberConfigurationLoader subscriberConfigurationLoader)
             : base(context)
@@ -51,6 +55,7 @@ namespace CaptainHook.DirectorService
             _fabricClientWrapper = fabricClientWrapper ?? throw new ArgumentNullException(nameof(fabricClientWrapper));
             _subscriberConfigurationLoader = subscriberConfigurationLoader ?? throw new ArgumentNullException(nameof(subscriberConfigurationLoader));
             _readerServicesManager = readerServicesManager ?? throw new ArgumentNullException(nameof(readerServicesManager));
+            _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException (nameof (readerServiceChangeDetector));
         }
 
         private async Task<(IList<WebhookConfig> newWebhookConfig, IDictionary<string, SubscriberConfiguration> newSubscriberConfigurations)> LoadConfigurationAsync()
@@ -65,8 +70,8 @@ namespace CaptainHook.DirectorService
 
         private async Task LoadConfigurationAndAssignAsync()
         {
+            //todo: remove the webhookconfig
             var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
-            _webhookConfigurations = newWebhookConfig;
             _subscriberConfigurations = newSubscriberConfigurations;
         }
 
@@ -102,7 +107,8 @@ namespace CaptainHook.DirectorService
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 }
 
-                await _readerServicesManager.RefreshReadersAsync(_subscriberConfigurations.Values, serviceList, cancellationToken);
+                var changes = _readerServiceChangeDetector.DetectChanges (_subscriberConfigurations.Values, serviceList);
+                await _readerServicesManager.RefreshReadersAsync(changes, cancellationToken);
             }
             catch (Exception exception)
             {
@@ -148,13 +154,14 @@ namespace CaptainHook.DirectorService
 
             try
             {
+                //todo: remove the webhookconfig
                 var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
 
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                await _readerServicesManager.RefreshReadersAsync(newSubscriberConfigurations.Values, deployedServiceNames, _cancellationToken);
+                var changes = _readerServiceChangeDetector.DetectChanges (newSubscriberConfigurations.Values, deployedServiceNames);
+                await _readerServicesManager.RefreshReadersAsync (changes, _cancellationToken);
 
-                _webhookConfigurations = newWebhookConfig;
                 _subscriberConfigurations = newSubscriberConfigurations;
 
                 reloadConfigFinishedTimedEvent.IsSuccess = true;
