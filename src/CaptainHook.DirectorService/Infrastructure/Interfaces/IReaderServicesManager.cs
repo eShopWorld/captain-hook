@@ -15,6 +15,6 @@ namespace CaptainHook.DirectorService.Infrastructure.Interfaces
         /// <param name="deployedServicesNames">List of currently deployed services names</param>
         /// <param name="cancellationToken">A cancellation token</param>
         /// <returns></returns>
-        Task RefreshReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IEnumerable<string> deployedServicesNames, CancellationToken cancellationToken);
+        Task RefreshReadersAsync(IEnumerable<SubscriberConfiguration> subscribers, IEnumerable<string> deployedServicesNames, bool inRelease, CancellationToken cancellationToken);
     }
 }

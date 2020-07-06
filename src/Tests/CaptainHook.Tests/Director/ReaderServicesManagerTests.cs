@@ -38,7 +38,7 @@ namespace CaptainHook.Tests.Director
 
             var deployedServicesNames = Enumerable.Empty<string>();
 
-            await readerServiceManager.RefreshReadersAsync(subscribersToCreate, deployedServicesNames, CancellationToken.None);
+            await readerServiceManager.RefreshReadersAsync(subscribersToCreate, deployedServicesNames, true, CancellationToken.None);
 
             using (new AssertionScope())
             {
@@ -83,7 +83,7 @@ namespace CaptainHook.Tests.Director
                 "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-10000000000000",
             };
 
-            await readerServiceManager.RefreshReadersAsync(subscribersToCreate, deployedServicesNames, CancellationToken.None);
+            await readerServiceManager.RefreshReadersAsync(subscribersToCreate, deployedServicesNames,false,  CancellationToken.None);
 
             using (new AssertionScope())
             {
@@ -136,7 +136,7 @@ namespace CaptainHook.Tests.Director
                 "fabric:/CaptainHook/EventReader.testevent.completed-captain-hook-abc",
             };
 
-            await readerServiceManager.RefreshReadersAsync(subscribersToCreate, deployedServicesNames, CancellationToken.None);
+            await readerServiceManager.RefreshReadersAsync(subscribersToCreate, deployedServicesNames, false, CancellationToken.None);
 
             using (new AssertionScope())
             {
@@ -200,7 +200,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("newtestevent").WithCallback().Create(),
             };
 
-            await readerServiceManager.RefreshReadersAsync(subscribers, existingServicesNames, CancellationToken.None);
+            await readerServiceManager.RefreshReadersAsync(subscribers, existingServicesNames, false, CancellationToken.None);
 
             using (new AssertionScope())
             {

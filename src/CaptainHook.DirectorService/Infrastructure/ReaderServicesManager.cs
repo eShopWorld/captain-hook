@@ -44,7 +44,8 @@ namespace CaptainHook.DirectorService.Infrastructure
         /// <param name="deployedServicesNames">List of currently deployed services names</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task RefreshReadersAsync(IEnumerable<SubscriberConfiguration> newSubscribers, IEnumerable<string> deployedServicesNames, CancellationToken cancellationToken)
+        public async Task RefreshReadersAsync(IEnumerable<SubscriberConfiguration> newSubscribers, IEnumerable<string> deployedServicesNames, bool inRelease,
+            CancellationToken cancellationToken)
         {
             // Describe the situation
             var desiredReaders = newSubscribers.Select(c => new DesiredReaderDefinition(c)).ToList();
@@ -57,16 +58,17 @@ namespace CaptainHook.DirectorService.Infrastructure
             var added = desiredReaders.Where(d => existingReaders.All(e => d.ServiceName != e.ServiceName)).ToList();
             var deleted = existingReaders.Where(e => desiredReaders.All(d => e.ServiceName != d.ServiceName)).ToList();
 
-            // now we know the numbers, so we can publish event
-            _bigBrother.Publish(new RefreshSubscribersEvent(added.Select(s => s.ServiceName), deleted.Select(s => s.ServiceName), changed.Select(s => s.ServiceName)));
-
             // prepare to actual work (put changed to added, delete everything except desired)
             var servicesToCreate = added.Union(changed).ToDictionary(dsd => dsd.ServiceNameWithSuffix, kvp => kvp.SubscriberConfig);
-            var allServiceNamesToDelete = existingReaders.Select(e => e.ServiceNameWithSuffix).Except(desiredReaders.Select(d => d.ServiceNameWithSuffix));
+            var serviceNamesToDelete = existingReaders.Select(e => e.ServiceNameWithSuffix).Except(desiredReaders.Select(d => d.ServiceNameWithSuffix));
+
+            // now we know the numbers, so we can publish event
+            _bigBrother.Publish(new RefreshSubscribersEvent(added.Select(s => s.ServiceName), deleted.Select(s => s.ServiceName), changed.Select(s => s.ServiceName),
+                servicesToCreate.Select(s => s.Key), serviceNamesToDelete, inRelease));
 
             // actual work
             await CreateReaderServicesAsync(servicesToCreate, cancellationToken);
-            await DeleteReaderServicesAsync(allServiceNamesToDelete, cancellationToken);
+            await DeleteReaderServicesAsync(serviceNamesToDelete, cancellationToken);
         }
 
         private async Task CreateReaderServicesAsync(IDictionary<string, SubscriberConfiguration> subscribers, CancellationToken cancellationToken)
