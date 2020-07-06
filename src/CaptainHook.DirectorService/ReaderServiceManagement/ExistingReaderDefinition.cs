@@ -7,7 +7,7 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
     /// </summary>
     public readonly struct ExistingReaderDefinition
     {
-        private static readonly Regex RemoveSuffixRegex = new Regex ("(|-a|-b|-\\d{14}|-[a-zA-Z0-9]{22})$", RegexOptions.Compiled);
+        private static readonly Regex RemoveSuffixRegex = new Regex ("(|-a|-b|-\\d{14}|-[a-zA-Z0-9]{20,22})$", RegexOptions.Compiled);
 
         /// <summary>
         /// Bare Reader Service name, without the suffix (non-versioned)
