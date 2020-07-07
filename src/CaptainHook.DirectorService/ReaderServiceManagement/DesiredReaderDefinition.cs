@@ -42,7 +42,7 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
         {
             return IsValid 
                    && reader.IsValid
-                   && ServiceName.Equals (reader.ServiceName, StringComparison.CurrentCultureIgnoreCase);
+                   && ServiceName.Equals (reader.ServiceName, StringComparison.OrdinalIgnoreCase);
         }
 
         public bool IsUnchanged (ExistingReaderDefinition reader)
