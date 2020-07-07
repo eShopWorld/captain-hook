@@ -23,10 +23,6 @@ namespace CaptainHook.Common.Configuration
                 AddEntry (client, "ServiceBusConnectionString"),
                 AddEntry (client, "InstrumentationKey"),
 
-                AddEntry (client, "CaptainHook--ServiceBusSubscriptionId"),
-                AddEntry (client, "CaptainHook--ServiceBusConnectionString"),
-                AddEntry (client, "CaptainHook--ServiceBusNamespace"),
-
                 AddEntry (client, "CaptainHook--ApiName"),
                 AddEntry (client, "CaptainHook--ApiSecret"),
                 AddEntry (client, "CaptainHook--Authority"),

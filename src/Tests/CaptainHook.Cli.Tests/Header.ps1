@@ -33,9 +33,6 @@ setConfig 'ServiceBusNamespace' 'aaa-bbb-cc' $KeyVault
 setConfig 'ServiceBusConnectionString' 'Endpoint=sb://aaa-bbb-cc.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcdefghijklmnopqrstuvwxyz' $KeyVault
 
 setConfig 'InstrumentationKey' 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' $KeyVault
-setConfig 'CaptainHook--ServiceBusSubscriptionId' 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee' $KeyVault
-setConfig 'CaptainHook--ServiceBusConnectionString' 'Endpoint=sb://aaa-bbb-cc.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=abcdefghijklmnopqrstuvwxyz' $KeyVault 
-setConfig 'CaptainHook--ServiceBusNamespace' 'aaa-bbb-cc' $KeyVault
 
 setConfig 'CaptainHook--ApiName' 'Captain Hook' $KeyVault
 setConfig 'CaptainHook--ApiSecret' 'verylongandsecuresecret' $KeyVault
