@@ -4,9 +4,9 @@
     <Parameter Name="KeyVault_Base_Uri" Value="https://esw-tooling-ci-we.vault.azure.net/" />
     <Parameter Name="AspNetCore_Environment" Value="CI" />
     <Parameter Name="CaptainHook.DirectorService_PartitionCount" Value="1" />
-    <Parameter Name="CaptainHook.DirectorService_MinReplicaSetSize" Value="3" />
+    <Parameter Name="CaptainHook.DirectorService_MinReplicaSetSize" Value="2" />
     <Parameter Name="CaptainHook.DirectorService_TargetReplicaSetSize" Value="3" />
-    <Parameter Name="CaptainHook.DirectorService_DefaultMinReplicaSetSize" Value="3"/>
+    <Parameter Name="CaptainHook.DirectorService_DefaultMinReplicaSetSize" Value="2"/>
     <Parameter Name="CaptainHook.DirectorService_DefaultTargetReplicaSetSize" Value="3"/>
     <Parameter Name="CaptainHook.DirectorService_DefaultPartitionCount" Value="1"/>
   </Parameters>

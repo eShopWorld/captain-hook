@@ -3,11 +3,11 @@
   <Parameters>
     <Parameter Name="KeyVault_Base_Uri" DefaultValue="N/A" />
     <Parameter Name="AspNetCore_Environment" DefaultValue="N/A" />
-    <Parameter Name="CaptainHook.DirectorService_DefaultMinReplicaSetSize" DefaultValue="3"/>
+    <Parameter Name="CaptainHook.DirectorService_DefaultMinReplicaSetSize" DefaultValue="2"/>
     <Parameter Name="CaptainHook.DirectorService_DefaultTargetReplicaSetSize" DefaultValue="3"/>
     <Parameter Name="CaptainHook.DirectorService_DefaultPartitionCount" DefaultValue="1"/>
     <Parameter Name="CaptainHook.DirectorService_DefaultPlacementConstraints" DefaultValue=""/>
-    <Parameter Name="CaptainHook.DirectorService_MinReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="CaptainHook.DirectorService_MinReplicaSetSize" DefaultValue="2" />
     <Parameter Name="CaptainHook.DirectorService_PartitionCount" DefaultValue="1" />
     <Parameter Name="CaptainHook.DirectorService_TargetReplicaSetSize" DefaultValue="3" />
     <Parameter Name="CosmosDb_Tooling_ConnectionString" DefaultValue="" />
