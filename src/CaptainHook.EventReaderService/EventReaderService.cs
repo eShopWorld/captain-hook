@@ -62,9 +62,9 @@ namespace CaptainHook.EventReaderService
         internal ConcurrentDictionary<Guid, MessageReceiverWrapper> _messageReceivers = new ConcurrentDictionary<Guid, MessageReceiverWrapper>();
         internal MessageReceiverWrapper _activeMessageReader;
 
-        private static int retryCeilingSeconds = 60;
-        private readonly Func<int, TimeSpan> exponentialBackoff = x =>
-            TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, retryCeilingSeconds));
+        private static int _retryCeilingSeconds = 60;
+        private static readonly Func<int, TimeSpan> _exponentialBackoff = x =>
+            TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, _retryCeilingSeconds));
 
         private Timer _heartBeatTimer;
 
@@ -269,28 +269,20 @@ namespace CaptainHook.EventReaderService
                                 .Handle(messageData);
                         }
                     }
-                    catch (ServiceBusCommunicationException sbCommunicationException)
+                    catch (ServiceBusException serviceBusException)
                     {
-                        _bigBrother.Publish(sbCommunicationException.ToExceptionEvent());
+                        _bigBrother.Publish(serviceBusException.ToExceptionEvent());
 
-                        await Policy.Handle<ServiceBusCommunicationException>()
-                            .WaitAndRetryForeverAsync(exponentialBackoff,
-                                (exception, retryCount, timeSpan) =>
-                                {
-                                    _bigBrother.Publish(new ServiceBusReconnectionAttemptEvent
-                                    {
-                                        RetryCount = retryCount,
-                                        SubscriptionName = _initData.SubscriptionName,
-                                        EventType = _initData.EventType
-                                    });
-                                }
-                            ).ExecuteAsync(ct => SetupServiceBusAsync(ct), cancellationToken);
+                        await Policy
+                            .Handle<ServiceBusException>()
+                            .WaitAndRetryForeverAsync(_exponentialBackoff, OnServiceBusExceptionRetryAsync)
+                            .ExecuteAsync(ct => SetupServiceBusAsync(ct), cancellationToken);
                     }
                     catch (Exception exception)
                     {
-                        _bigBrother.Publish(exception.ToExceptionEvent<EventReaderRunAsyncExceptionEvent>());
+                        _bigBrother.Publish(new EventReaderRunAsyncSwallowedExceptionEvent());
+                        _bigBrother.Publish(exception.ToExceptionEvent());
                     }
-
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -303,6 +295,16 @@ namespace CaptainHook.EventReaderService
             {
                 _bigBrother.Publish(exception.ToExceptionEvent());
             }
+        }
+
+        private void OnServiceBusExceptionRetryAsync(Exception exception, int retryCount, TimeSpan interval)
+        {
+            this._bigBrother.Publish(new ServiceBusReconnectionAttemptEvent
+            {
+                RetryCount = retryCount,
+                SubscriptionName = _initData.SubscriptionName,
+                EventType = _initData.EventType
+            });
         }
 
         private MessageData BuildMessageData(Message message)
