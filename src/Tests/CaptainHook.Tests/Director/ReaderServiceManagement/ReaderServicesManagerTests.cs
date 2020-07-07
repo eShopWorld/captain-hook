@@ -200,12 +200,12 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
         private void VerifyServiceCreatedEventPublished(params string[] serviceNames)
         {
-            _bigBrotherMock.Verify(b => b.Publish(It.IsAny<ServiceCreatedEvent>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(serviceNames.Length));
+            _bigBrotherMock.Verify(b => b.Publish(It.IsAny<ReaderServiceCreatedEvent>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Exactly(serviceNames.Length));
 
             foreach (var serviceName in serviceNames)
             {
                 _bigBrotherMock.Verify(b => b.Publish (
-                        It.Is<ServiceCreatedEvent> (m => m.ReaderName == serviceName), 
+                        It.Is<ReaderServiceCreatedEvent> (m => m.ReaderName == serviceName), 
                         It.IsAny<string>(), 
                         It.IsAny<string>(), 
                         It.IsAny<int>()), 

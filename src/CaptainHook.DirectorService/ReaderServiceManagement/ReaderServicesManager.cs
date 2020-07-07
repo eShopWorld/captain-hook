@@ -48,6 +48,23 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
 
         public async Task RefreshReadersAsync (IEnumerable<ReaderChangeInfo> changeSet, CancellationToken cancellationToken)
         {
+            LogEvent (changeSet);
+
+            var servicesToCreate = changeSet
+                .Where (change => (change.ChangeType & ReaderChangeType.ToBeCreated) != 0)
+                .Select (change => change.NewReader)
+                .ToDictionary (reader => reader.ServiceNameWithSuffix, reader => reader.SubscriberConfig);
+
+            var allServiceNamesToDelete = changeSet
+                .Where (change => (change.ChangeType & ReaderChangeType.ToBeRemoved) != 0)
+                .Select (change => change.OldReader.ServiceNameWithSuffix);
+
+            await CreateReaderServicesAsync (servicesToCreate, cancellationToken);
+            await DeleteReaderServicesAsync (allServiceNamesToDelete, cancellationToken);
+        }
+
+        private void LogEvent (IEnumerable<ReaderChangeInfo> changeSet)
+        {
             var added = changeSet
                 .Where (change => change.ChangeType == ReaderChangeType.ToBeCreated)
                 .Select (change => change.NewReader.ServiceName);
@@ -61,18 +78,6 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
                 .Select (change => change.NewReader.ServiceName);
 
             _bigBrother.Publish (new RefreshSubscribersEvent (added, deleted, updated));
-
-            var servicesToCreate = changeSet
-                .Where (change => (change.ChangeType & ReaderChangeType.ToBeCreated) != 0)
-                .Select (change => change.NewReader)
-                .ToDictionary (reader => reader.ServiceNameWithSuffix, reader => reader.SubscriberConfig);
-
-            var allServiceNamesToDelete = changeSet
-                .Where (change => (change.ChangeType & ReaderChangeType.ToBeRemoved) != 0)
-                .Select (change => change.OldReader.ServiceNameWithSuffix);
-
-            await CreateReaderServicesAsync (servicesToCreate, cancellationToken);
-            await DeleteReaderServicesAsync (allServiceNamesToDelete, cancellationToken);
         }
 
         private async Task CreateReaderServicesAsync(IDictionary<string, SubscriberConfiguration> subscribers, CancellationToken cancellationToken)
@@ -88,8 +93,15 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
                     serviceTypeName: ServiceNaming.EventReaderServiceType,
                     partitionScheme: new SingletonPartitionSchemeDescription(),
                     initializationData);
-                await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
-                _bigBrother.Publish(new ServiceCreatedEvent(name));
+                try
+                {
+                    await _fabricClientWrapper.CreateServiceAsync (description, cancellationToken);
+                    _bigBrother.Publish (new ReaderServiceCreatedEvent (name));
+                }
+                catch (Exception e)
+                {
+                    _bigBrother.Publish (new ReaderServiceCreationFailedEvent (name, e));
+                }
             }
         }
 
