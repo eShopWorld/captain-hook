@@ -26,7 +26,7 @@ namespace CaptainHook.Tests.Director
             _subscriberConfigurationLoader = new SubscriberConfigurationLoader(_subscriberRepositoryMock.Object, _configurationMergerMock.Object);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsDev]
         public async Task MergeIsInvoked()
         {
             var result = await _subscriberConfigurationLoader.LoadAsync();

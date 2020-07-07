@@ -8,6 +8,8 @@ using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Rest;
+using Polly;
+using Polly.Retry;
 
 namespace CaptainHook.EventReaderService
 {
@@ -16,19 +18,23 @@ namespace CaptainHook.EventReaderService
     /// </summary>
     public static class ServiceBusNamespaceExtensions
     {
+        private static int _retryCeilingSeconds = 30;
+        private static Func<int, TimeSpan> _exponentialBackoff = x =>
+            TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, _retryCeilingSeconds));
+        private static AsyncRetryPolicy<ITopic> _findTopicPolicy = Policy
+            .HandleResult<ITopic>(b => b == null)
+            .WaitAndRetryForeverAsync(_exponentialBackoff);
+
         /// <summary>
         /// Creates a specific topic if it doesn't exist in the target namespace.
         /// </summary>
         /// <param name="sbNamespace">The <see cref="IServiceBusNamespace"/> where we are creating the topic in.</param>
         /// <param name="name">The name of the topic that we are looking for.</param>
         /// <returns>The <see cref="ITopic"/> entity object that references the Azure topic.</returns>
-        public static async Task<ITopic> CreateTopicIfNotExists(this IServiceBusNamespace sbNamespace, string name, CancellationToken cancellationToken)
+        public static async Task<ITopic> CreateTopicIfNotExists(this IServiceBusNamespace sbNamespace, string name, CancellationToken cancellationToken = default)
         {
-            await sbNamespace.RefreshAsync(cancellationToken);
+            var topic = await FindTopicAsync(sbNamespace, name, cancellationToken);
 
-            var topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
-
-            var topic = topicsList.SingleOrDefault(t => t.Name == name.ToLowerInvariant());
             if (topic != null) return topic;
 
             await sbNamespace.Topics
@@ -36,10 +42,15 @@ namespace CaptainHook.EventReaderService
                              .WithDuplicateMessageDetection(TimeSpan.FromMinutes(10))
                              .CreateAsync(cancellationToken);
 
-            await sbNamespace.RefreshAsync(cancellationToken);
+            return await _findTopicPolicy.ExecuteAsync(ct => FindTopicAsync(sbNamespace, name, ct), cancellationToken);
 
-            topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
-            return topicsList.Single(t => t.Name == name.ToLowerInvariant());
+        }
+
+        private static async Task<ITopic> FindTopicAsync(IServiceBusNamespace sbNamespace, string name, CancellationToken cancellationToken = default)
+        {
+            await sbNamespace.RefreshAsync(cancellationToken);
+            var topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
+            return topicsList.SingleOrDefault(t => t.Name == name.ToLowerInvariant());
         }
 
         /// <summary>
