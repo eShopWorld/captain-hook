@@ -55,7 +55,6 @@ namespace CaptainHook.Tests.Web.WebHooks
             var requestBuilder = new RequestBuilder(mockBigBrother.Object);
             var requestLogger = new RequestLogger(mockBigBrother.Object);
             var handlerFactory = new EventHandlerFactory(mockBigBrother.Object, 
-                new IndexDictionary<string, SubscriberConfiguration>(), new IndexDictionary<string, WebhookConfig>(), 
                 httpClientBuilder, mockAuthHandlerFactory.Object, requestLogger, requestBuilder);
 
             var webhookResponseHandler = new WebhookResponseHandler(

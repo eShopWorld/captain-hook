@@ -4,8 +4,15 @@ using Microsoft.Extensions.Hosting;
 
 namespace CaptainHook.Api
 {
+    /// <summary>
+    /// Swagger factory
+    /// </summary>
     public class SwaggerHostFactory
     {
+        /// <summary>
+        /// Create host
+        /// </summary>
+        /// <returns></returns>
         public static IHost CreateHost()
         {
             return Host

@@ -20,6 +20,7 @@ namespace CaptainHook.Tests.Builders
         };
         private List<WebhookRequestRule> _webhookRequestRules;
         private WebhookConfig _callback;
+        private bool _asDlq;
 
         public SubscriberConfigurationBuilder WithType(string type)
         {
@@ -36,6 +37,12 @@ namespace CaptainHook.Tests.Builders
         public SubscriberConfigurationBuilder WithUri(string uri)
         {
             _uri = uri;
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder AsDLQ (bool asDlq = true)
+        {
+            _asDlq = asDlq;
             return this;
         }
 
@@ -116,9 +123,11 @@ namespace CaptainHook.Tests.Builders
                 AuthenticationConfig = _authenticationConfig,
                 Callback = _callback,
                 WebhookRequestRules = _webhookRequestRules,
+                DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode: (SubscriberDlqMode?) null
             };
 
             return subscriber;
         }
+
     }
 }

@@ -2,8 +2,6 @@
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
-    
-
     public class ServiceCreationDescription
     {
         public string ServiceName { get; }

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using Eshopworld.Core;
-using JetBrains.Annotations;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {

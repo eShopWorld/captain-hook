@@ -9,6 +9,21 @@ using TokenCredential = Azure.Core.TokenCredential;
 
 namespace CaptainHook.Common.Configuration.KeyVault
 {
+
+    internal class AzureServiceTokenCredential : TokenCredential
+    {
+        public override async ValueTask<AccessToken> GetTokenAsync (TokenRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var token = await new AzureServiceTokenProvider ().GetAccessTokenAsync ("https://vault.azure.net", string.Empty);
+            return new AccessToken (token, DateTimeOffset.UtcNow.AddMinutes (5.0));
+        }
+
+        public override AccessToken GetToken (TokenRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            return GetTokenAsync (requestContext, cancellationToken).Result;
+        }
+    }
+
     public class KeyVaultModule: Module
     {
         protected override void Load(ContainerBuilder builder)
@@ -31,20 +46,6 @@ namespace CaptainHook.Common.Configuration.KeyVault
                 new AzureServiceTokenCredential(),
                 secretClientOptions));
             builder.RegisterType<KeyVaultSecretProvider>().As<ISecretProvider>();
-        }
-
-        private class AzureServiceTokenCredential: TokenCredential
-        {
-            public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
-            {
-                var token = await new AzureServiceTokenProvider().GetAccessTokenAsync("https://vault.azure.net", string.Empty);
-                return new AccessToken(token, DateTimeOffset.UtcNow.AddMinutes(5.0));
-            }
-
-            public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
-            {
-                return GetTokenAsync(requestContext, cancellationToken).Result;
-            }
         }
     }
 }

@@ -11,7 +11,7 @@ using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
-using CaptainHook.Domain.Repositories;
+using CaptainHook.DirectorService.ReaderServiceManagement;
 using CaptainHook.Storage.Cosmos;
 using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Extensions;
@@ -31,11 +31,11 @@ namespace CaptainHook.DirectorService
         {
             try
             {
-                var configuration = Configuration.Load();
+                var appSettings = TempConfigLoader.Load ();
 
-                var configurationSettings = new ConfigurationSettings();
-                configuration.Settings.Bind(configurationSettings);
-                
+                var configurationSettings = new ConfigurationSettings ();
+                appSettings.Bind (configurationSettings);
+
                 //Get configs from the Config Package
                 var activationContext = FabricRuntime.GetActivationContext();
                 var defaultServicesSettings = ConfigFabricCodePackage(activationContext);
@@ -68,20 +68,17 @@ namespace CaptainHook.DirectorService
                     .As<IFabricClientWrapper>()
                     .SingleInstance();
 
-                builder.RegisterType<DateTimeProvider>()
-                    .As<IDateTimeProvider>()
-                    .SingleInstance();
-
-                builder.RegisterType<ReaderServiceNameGenerator>()
-                    .As<IReaderServiceNameGenerator>()
-                    .SingleInstance();
-
                 builder.RegisterType<ReaderServicesManager>()
                     .As<IReaderServicesManager>()
                     .SingleInstance();
+
+                builder.RegisterType<ReaderServiceChangesDetector> ()
+                    .As<IReaderServiceChangesDetector> ()
+                    .SingleInstance ();
+
                 builder.RegisterModule<KeyVaultModule>();
                 builder.RegisterModule<CosmosDbModule>();
-                builder.ConfigureCosmosDb(configuration.Settings.GetSection(CaptainHookConfigSection));
+                builder.ConfigureCosmosDb (appSettings.GetSection (CaptainHookConfigSection));
 
                 builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
                 builder.RegisterStatefulService<DirectorService>(ServiceNaming.DirectorServiceType);

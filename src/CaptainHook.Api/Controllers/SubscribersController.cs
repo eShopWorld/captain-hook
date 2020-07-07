@@ -12,6 +12,9 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace CaptainHook.Api.Controllers
 {
+    /// <summary>
+    /// Subscribers controller
+    /// </summary>
     [Route("api/subscribers")]
     [Authorize(Policy = AuthorisationPolicies.SubscribersAccess)]
     public class SubscribersController : ControllerBase
@@ -20,6 +23,10 @@ namespace CaptainHook.Api.Controllers
 
         private readonly IBigBrother _bigBrother;
 
+        /// <summary>
+        /// ctor
+        /// </summary>
+        /// <param name="bigBrother"></param>
         public SubscribersController(IBigBrother bigBrother)
         {
             _bigBrother = bigBrother;

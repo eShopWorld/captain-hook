@@ -1,5 +1,4 @@
 ﻿using System;
-using Autofac.Features.Indexed;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
@@ -10,8 +9,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class EventHandlerFactory : IEventHandlerFactory
     {
         private readonly IBigBrother _bigBrother;
-        private readonly IIndex<string, SubscriberConfiguration> _subscriberConfigurations;
-        private readonly IIndex<string, WebhookConfig> _webHookConfig;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
         private readonly IRequestLogger _requestLogger;
@@ -19,20 +16,16 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public EventHandlerFactory(
             IBigBrother bigBrother,
-            IIndex<string, SubscriberConfiguration> subscriberConfigurations,
-            IIndex<string, WebhookConfig> webHookConfig,
             IHttpClientFactory httpClientFactory,
             IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestLogger requestLogger,
             IRequestBuilder requestBuilder)
         {
             _bigBrother = bigBrother;
-            _subscriberConfigurations = subscriberConfigurations;
             _httpClientFactory = httpClientFactory;
             _requestLogger = requestLogger;
             _requestBuilder = requestBuilder;
             _authenticationHandlerFactory = authenticationHandlerFactory;
-            _webHookConfig = webHookConfig;
         }
 
         /// <inheritdoc />
@@ -47,13 +40,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var subscriberConfig = messageData.SubscriberConfig;
             if (subscriberConfig == null)
             {
-                // for backward compatibility, if "old" version of reader send MessageData without SubscriberConfig, try to load it from configuration as it was previously
-                if (!_subscriberConfigurations.TryGetValue(SubscriberConfiguration.Key(messageData.Type, messageData.SubscriberName), out subscriberConfig))
-                {
-                    throw new Exception($"Boom, handler event type '{messageData.Type}' was not found, cannot process the message");
-                }
-
-                messageData.SubscriberConfig = subscriberConfig;
+                throw new Exception($"Boom, handler event type '{messageData.Type}' was not found, cannot process the message");
             }
 
             if (subscriberConfig.Callback != null)
@@ -81,11 +68,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         {
             if (webhookConfig == null)
             {
-                // for backward compatibility, if "old" version of reader send MessageData without WebhookConfig, try to load it from configuration as it was previously
-                if (!_webHookConfig.TryGetValue(webHookName.ToLowerInvariant(), out webhookConfig))
-                {
-                    throw new Exception("Boom, handler webhook not found cannot process the message");
-                }
+                throw new Exception("Boom, handler webhook not found cannot process the message");
             }
 
             return new GenericWebhookHandler(
