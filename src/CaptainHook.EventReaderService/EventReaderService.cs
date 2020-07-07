@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Fabric;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,6 +36,7 @@ namespace CaptainHook.EventReaderService
     public class EventReaderService : StatefulService, IEventReaderService
     {
         private const int BatchSize = 1; // make this dynamic - based on the number of active handlers - more handlers, lower batch
+        private const double DefaultInactivityTimeBeforeConnectionResetInMinutes = 5.0;
 
         private readonly IBigBrother _bigBrother;
         private readonly IServiceBusManager _serviceBusManager;
@@ -52,10 +51,8 @@ namespace CaptainHook.EventReaderService
         //todo move this to config driven in the code package
         internal int HandlerCount = 10;
 
-        ///defines behavior of new connection - any poll above <see cref="LongPollThreshold"/> will add to the <see cref="MessageReceiverWrapper.ConsecutiveLongPollCount"/> 
-        ///and if <see cref="consecutiveLongPollThreshold"/> is reached, new active receiver is created
-        private readonly TimeSpan LongPollThreshold = TimeSpan.FromMilliseconds(5000);
-        private readonly int ConsecutiveLongPollThreshold = 10;
+        private readonly TimeSpan _longPollThreshold = TimeSpan.FromMilliseconds(5000);
+
         //force time out timespan for phased out receivers
         private readonly TimeSpan ForcedReceiverCloseTimeout = TimeSpan.FromMinutes(2);
 
@@ -329,11 +326,14 @@ namespace CaptainHook.EventReaderService
         /// <returns></returns>
         private async Task ServiceReceiversLifecycle(CancellationToken cancellationToken)
         {
-            //detect new connection needed
-            if (_activeMessageReader.ConsecutiveLongPollCount >= ConsecutiveLongPollThreshold)
+            var inactivityTimeoutReached =
+                _activeMessageReader.FirstTimeNoMessagesReadUtc?.AddMinutes(DefaultInactivityTimeBeforeConnectionResetInMinutes) <= DateTime.UtcNow;
+            
+            if (inactivityTimeoutReached)
             {
                 await ResetConnection(cancellationToken);
             }
+
             //close exhausted phased out receivers
             var list = _messageReceivers.Where(r => r.Value != _activeMessageReader && (r.Value.ReceivedCount == 0 || DateTime.Now >= r.Value.ForceClosureAt)).ToList();
 
@@ -346,22 +346,17 @@ namespace CaptainHook.EventReaderService
 
         private async Task<(IList<Message> messages, Guid activeReader)> ReceiveMessagesFromActiveReceiver()
         {
-            var receiveSW = new Stopwatch();
-            receiveSW.Start();
-
-            var messages = await _activeMessageReader.Receiver.ReceiveAsync(BatchSize, LongPollThreshold);
-
-            receiveSW.Stop();
+            var messages = await _activeMessageReader.Receiver.ReceiveAsync(BatchSize, _longPollThreshold);
 
             if (messages != null && messages.Count != 0)
             {
                 Interlocked.Add(ref _activeMessageReader.ReceivedCount, messages.Count);
+                _activeMessageReader.FirstTimeNoMessagesReadUtc = null;
             }
-
-            if (receiveSW.ElapsedMilliseconds > LongPollThreshold.TotalMilliseconds)
-                _activeMessageReader.ConsecutiveLongPollCount++;
-            else
-                _activeMessageReader.ConsecutiveLongPollCount = 0;
+            else if (_activeMessageReader.FirstTimeNoMessagesReadUtc == null)
+            {
+                _activeMessageReader.FirstTimeNoMessagesReadUtc = DateTime.UtcNow;
+            }
 
             return (messages, _activeMessageReader.ReceiverId);
         }
@@ -440,20 +435,12 @@ namespace CaptainHook.EventReaderService
         }
     }
 
-    public static class PropertyExtensions
-    {
-        public static object GetProperty(this object _this, string propertyName)
-        {
-            return _this.GetType().GetTypeInfo().GetDeclaredProperty(propertyName)?.GetValue(_this);
-        }
-    };
-
     internal class MessageReceiverWrapper
     {
         internal IMessageReceiver Receiver;
         internal int ReceivedCount;
         internal DateTime ForceClosureAt;
         internal Guid ReceiverId;
-        internal int ConsecutiveLongPollCount;
+        internal DateTime? FirstTimeNoMessagesReadUtc;
     }
 }
