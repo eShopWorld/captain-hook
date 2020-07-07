@@ -9,7 +9,7 @@ namespace CaptainHook.Tests.Configuration
         [IsDev]
         public void ConfigNotEmpty()
         {
-            var configuration = CaptainHook.Common.Configuration.Configuration.Load();
+            var configuration = CaptainHook.Common.Configuration.Configuration.Load("https://esw-tooling-ci-we.vault.azure.net/");
 
             Assert.NotNull(configuration.Settings);
             Assert.NotEmpty(configuration.SubscriberConfigurations);

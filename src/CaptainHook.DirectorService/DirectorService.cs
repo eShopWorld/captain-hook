@@ -17,6 +17,7 @@ using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
+using ConfigurationSettings = CaptainHook.Common.Configuration.ConfigurationSettings;
 
 namespace CaptainHook.DirectorService
 {
@@ -60,7 +61,8 @@ namespace CaptainHook.DirectorService
 
         private async Task<(IList<WebhookConfig> newWebhookConfig, IDictionary<string, SubscriberConfiguration> newSubscriberConfigurations)> LoadConfigurationAsync()
         {
-            var (webhookConfig, subscriberConfig) = await _subscriberConfigurationLoader.LoadAsync();
+            var keyVaultUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
+            var (webhookConfig, subscriberConfig) = await _subscriberConfigurationLoader.LoadAsync(keyVaultUri);
 
             var newSubscriberConfigurations = subscriberConfig
                 .ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));

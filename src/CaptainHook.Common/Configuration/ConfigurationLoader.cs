@@ -12,13 +12,13 @@ namespace CaptainHook.Common.Configuration
         /// Loads configuration from Environment and KeyVault
         /// </summary>
         /// <returns>All application configuration properties</returns>
-        public static IConfigurationRoot Load()
+        public static IConfigurationRoot Load(string keyVaultUri)
         {
-            var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
+            //var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
 
             var root = new ConfigurationBuilder()
                 .AddAzureKeyVault(
-                    kvUri,
+                    keyVaultUri,
                     new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
                     new DefaultKeyVaultSecretManager())
                 .AddEnvironmentVariables()
