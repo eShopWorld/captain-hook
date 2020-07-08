@@ -18,9 +18,9 @@ namespace CaptainHook.DirectorService.Infrastructure
             _configurationMerger = configurationMerger ?? throw new ArgumentNullException(nameof(configurationMerger));
         }
 
-        public async Task<(IList<WebhookConfig>, IList<SubscriberConfiguration>)> LoadAsync()
+        public async Task<(IList<WebhookConfig>, IList<SubscriberConfiguration>)> LoadAsync(string keyVaultUri)
         {
-            var configuration = Configuration.Load();
+            var configuration = Configuration.Load(keyVaultUri);
             var subscribersFromKV = configuration.SubscriberConfigurations;
             var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
             var merged = await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos);

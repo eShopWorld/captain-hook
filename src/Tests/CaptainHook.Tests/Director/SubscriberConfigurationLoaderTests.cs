@@ -29,7 +29,7 @@ namespace CaptainHook.Tests.Director
         [Fact, IsDev]
         public async Task MergeIsInvoked()
         {
-            var result = await _subscriberConfigurationLoader.LoadAsync();
+            var result = await _subscriberConfigurationLoader.LoadAsync(TestConstants.TestKeyVaultUri);
             _configurationMergerMock.Verify(x => x.MergeAsync(It.IsAny<IEnumerable<SubscriberConfiguration>>(), It.IsAny<IEnumerable<SubscriberEntity>>()));
         }
     }

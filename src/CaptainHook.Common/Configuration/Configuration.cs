@@ -30,17 +30,18 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// Load configuration settings and domain events 
         /// </summary>
+        /// <param name="keyVaultUri"></param>
         /// <returns>An instance holding the configuration settings and domain events</returns>
-        public static Configuration Load()
+        public static Configuration Load(string keyVaultUri)
         {
             var result = new Configuration();
-            result.Settings = ConfigurationLoader.Load();
+            result.Settings = ConfigurationLoader.Load(keyVaultUri);
             result.InitSubscribersAndWebhook();
 
             // result.LoadFromCosmosDb();
 
             return result;
-        }
+        } 
 
         private void InitSubscribersAndWebhook()
         {
