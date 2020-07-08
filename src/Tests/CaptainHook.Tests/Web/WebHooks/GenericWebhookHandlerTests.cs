@@ -212,5 +212,88 @@ namespace CaptainHook.Tests.Web.WebHooks
             await genericWebhookHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
             Assert.Equal(1, mockHttp.GetMatchCount(dlqEndpointRequest));
         }
+
+        [Fact, IsUnit]
+        public async Task CallAsync_WithModelTransformWithoutRoutes_CreatesCorrectPayload ()
+        {
+            var payloadStr = @"
+        {""TenantCode"":""TARTEC"",
+            ""Response"":{
+                ""TenantCode"":""TARTEC"",
+                ""BrandOrderReference"":""37219693"",
+                ""EShopWorldOrderNumber"":""5001014519956"",
+                ""DeliveryCountryIso"":""AU"",
+                ""TransactionReference"":""00000000 -0000-0000-0000-000000000000"",
+                ""Code"":0,
+                ""Message"":null
+            },
+            ""CallerMemberName"":null,
+            ""CallerFilePath"":null,
+            ""CallerLineNumber"":0
+        }";
+            var jPayload = JsonConvert.DeserializeObject (payloadStr) as JObject;
+            var payload = JsonConvert.SerializeObject (jPayload, Formatting.None);
+
+            var messageData = new MessageData (payload, "test-type", "invoice", "replyTo") { 
+                CorrelationId = Guid.NewGuid ().ToString (),
+                ServiceBusMessageId = Guid.NewGuid ().ToString ()
+            };
+
+            var config = new WebhookConfig
+            {
+                Uri = "http://localhost/webhook",
+                HttpMethod = HttpMethod.Post,
+                EventType = "Event1",
+                AuthenticationConfig = new AuthenticationConfig (),
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                   new WebhookRequestRule
+                   {
+                       Source = new ParserLocation
+                       {
+                           Path = "$.Response",
+                           Location = Location.Body,
+                           RuleAction = RuleAction.Add,
+                           Type = DataType.Model
+                       },
+                       Destination = new ParserLocation
+                       {
+                           Path = null,
+                           Location = Location.Body,
+                           RuleAction = RuleAction.Add,
+                           Type = DataType.Model
+                       }
+                   }
+                }
+            };
+
+            var expectedPayload = jPayload["Response"].ToString (Formatting.None);
+            var mockHttp = new MockHttpMessageHandler ();
+            var webhookRequest = mockHttp.When (HttpMethod.Post, $"{config.Uri}")
+                .WithContentType ("application/json", expectedPayload)
+                .Respond (HttpStatusCode.OK, "application/json", string.Empty);
+
+            var mockBigBrother = new Mock<IBigBrother> ();
+            var httpClients = new Dictionary<string, HttpClient> { { new Uri (config.Uri).Host, mockHttp.ToHttpClient () } };
+
+            var httpClientBuilder = new HttpClientFactory (httpClients);
+            var requestBuilder = new RequestBuilder (Mock.Of<IBigBrother> ());
+            var requestLogger = new RequestLogger (mockBigBrother.Object);
+
+            var genericWebhookHandler = new GenericWebhookHandler (
+                httpClientBuilder,
+                new Mock<IAuthenticationHandlerFactory> ().Object,
+                requestBuilder,
+                requestLogger,
+                mockBigBrother.Object,
+                config);
+
+            var messageDelivered = await genericWebhookHandler.CallAsync (messageData, new Dictionary<string, object> (), _cancellationToken);
+
+            Assert.Equal (1, mockHttp.GetMatchCount (webhookRequest));
+            Assert.True (messageDelivered);
+        }
+
+
     }
 }

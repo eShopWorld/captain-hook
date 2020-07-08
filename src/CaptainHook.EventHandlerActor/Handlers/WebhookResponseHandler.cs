@@ -52,7 +52,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             var response = await httpClient.SendRequestReliablyAsync(httpMethod, uri, headers, payload, cancellationToken);
 
-            await _requestLogger.LogAsync(httpClient, response, messageData, uri, httpMethod, headers);
+            await _requestLogger.LogAsync(httpClient, response, messageData, payload, uri, httpMethod, headers, config);
 
             //do not proceed to callback if response indicates "delivery failure"
             if (response.IsDeliveryFailure())

@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -11,9 +12,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             HttpClient httpClient,
             HttpResponseMessage response,
             MessageData messageData,
+            string actualPayload,
             Uri uri,
             HttpMethod httpMethod,
-            WebHookHeaders headers
+            WebHookHeaders headers,
+            WebhookConfig config
         );
     }
 }
