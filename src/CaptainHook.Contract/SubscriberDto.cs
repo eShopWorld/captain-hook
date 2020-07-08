@@ -7,5 +7,7 @@
         public string EventName { get; set; }
 
         public WebhooksDto Webhooks { get; set; }
+        
+        public int SomeInt { get; set; }
     }
 }

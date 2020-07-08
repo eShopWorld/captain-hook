@@ -13,12 +13,14 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
+using CaptainHook.Api.Controllers;
 using CaptainHook.Api.Core;
 using Eshopworld.Telemetry.Configuration;
 using Eshopworld.Telemetry.Processors;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.OpenApi.Models;
 using CaptainHook.Api.Helpers;
+using FluentValidation.AspNetCore;
 
 namespace CaptainHook.Api
 {
@@ -85,6 +87,10 @@ namespace CaptainHook.Api
                 
                 services.AddApiVersioning();
                 services.AddHealthChecks();
+
+                services
+                    .AddMvc()
+                    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SubscriberDtoValidator>());
 
                 // Get XML documentation
                 var path = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
