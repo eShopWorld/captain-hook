@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Autofac;
 using Eshopworld.Core;
 using Eshopworld.DevOps;
@@ -21,6 +22,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.OpenApi.Models;
 using CaptainHook.Api.Helpers;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CaptainHook.Api
 {
@@ -77,20 +79,52 @@ namespace CaptainHook.Api
                 {
                     var policy = ScopePolicy.Create(serviceConfiguration.RequiredScopes.ToArray());
 
-                    var filter = EnvironmentHelper.IsInFabric ? 
-                        (IFilterMetadata) new AuthorizeFilter(policy): 
+                    var filter = EnvironmentHelper.IsInFabric ?
+                        (IFilterMetadata)new AuthorizeFilter(policy) :
                         new AllowAnonymousFilter();
 
                     options.Filters.Add(filter);
 
                 }).AddNewtonsoftJson();
-                
+
                 services.AddApiVersioning();
                 services.AddHealthChecks();
 
                 services
                     .AddMvc()
+                    //.ConfigureApiBehaviorOptions(options =>
+                    //{
+                    //    options.InvalidModelStateResponseFactory = c =>
+                    //    {
+                    //        var errors = string.Join('\n', c.ModelState.Values.Where(v => v.Errors.Count > 0)
+                    //            .SelectMany(v => v.Errors)
+                    //            .Select(v => v.ErrorMessage));
+
+                    //        return new BadRequestObjectResult(new
+                    //        {
+                    //            ErrorCode = "Your validation error code",
+                    //            Message = errors
+                    //        });
+                    //    };
+                    //})
                     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SubscriberDtoValidator>());
+
+
+                //services.Configure<ApiBehaviorOptions>(o =>
+                //{
+                //    o.InvalidModelStateResponseFactory = c =>
+                //    {
+                //        var errors = string.Join('\n', c.ModelState.Values.Where(v => v.Errors.Count > 0)
+                //            .SelectMany(v => v.Errors)
+                //            .Select(v => v.ErrorMessage));
+
+                //        return new BadRequestObjectResult(new
+                //        {
+                //            ErrorCode = "Your validation error code",
+                //            Message = errors
+                //        });
+                //    };
+                //});
 
                 // Get XML documentation
                 var path = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
@@ -183,7 +217,8 @@ namespace CaptainHook.Api
 #endif
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => {
+            app.UseEndpoints(endpoints =>
+            {
                 endpoints.MapControllers();
             });
         }

@@ -19,10 +19,9 @@ namespace CaptainHook.Api.Controllers
     /// </summary>
     [Route("api/subscribers")]
     [Authorize(Policy = AuthorisationPolicies.SubscribersAccess)]
+    [ApiController]
     public class SubscribersController : ControllerBase
     {
-
-
         private readonly IBigBrother _bigBrother;
 
         /// <summary>
@@ -62,22 +61,24 @@ namespace CaptainHook.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveSubscriberAsync([FromBody] SubscriberDto dto)
         {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    return Ok();
-                }
-                else
-                {
-                    return BadRequest();
-                }
-            }
-            catch (Exception exception)
-            {
-                _bigBrother.Publish(exception);
-                return BadRequest();
-            }
+            return Ok();
+
+            //try
+            //{
+            //    if (ModelState.IsValid)
+            //    {
+            //        return Ok();
+            //    }
+            //    else
+            //    {
+            //        return BadRequest();
+            //    }
+            //}
+            //catch (Exception exception)
+            //{
+            //    _bigBrother.Publish(exception);
+            //    return BadRequest();
+            //}
         }
     }
 
