@@ -87,7 +87,7 @@ namespace CaptainHook.Api
 
                 }).AddNewtonsoftJson();
 
-                services.AddApiVersioning();
+                services.AddApiVersioning(options => options.AssumeDefaultVersionWhenUnspecified = true);
                 services.AddHealthChecks();
 
                 services
@@ -109,22 +109,21 @@ namespace CaptainHook.Api
                     //})
                     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SubscriberDtoValidator>());
 
+                services.Configure<ApiBehaviorOptions>(o =>
+                {
+                    o.InvalidModelStateResponseFactory = c =>
+                    {
+                        var errors = string.Join('\n', c.ModelState.Values.Where(v => v.Errors.Count > 0)
+                            .SelectMany(v => v.Errors)
+                            .Select(v => v.ErrorMessage));
 
-                //services.Configure<ApiBehaviorOptions>(o =>
-                //{
-                //    o.InvalidModelStateResponseFactory = c =>
-                //    {
-                //        var errors = string.Join('\n', c.ModelState.Values.Where(v => v.Errors.Count > 0)
-                //            .SelectMany(v => v.Errors)
-                //            .Select(v => v.ErrorMessage));
-
-                //        return new BadRequestObjectResult(new
-                //        {
-                //            ErrorCode = "Your validation error code",
-                //            Message = errors
-                //        });
-                //    };
-                //});
+                        return new BadRequestObjectResult(new
+                        {
+                            ErrorCode = "Your validation error code",
+                            Message = errors
+                        });
+                    };
+                });
 
                 // Get XML documentation
                 var path = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
