@@ -16,7 +16,7 @@ namespace CaptainHook.Tests.Services.Actors
     public class EventHandlerActorTests
     {
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public async Task CheckHasTimerAfterHandleCall()
         {
             var bigBrotherMock = new Mock<IBigBrother>().Object;

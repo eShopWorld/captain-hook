@@ -7,7 +7,7 @@ namespace CaptainHook.Tests.Configuration
 {
     public class WebhookConfigTests
     {
-        [Theory, IsLayer0]
+        [Theory, IsUnit]
         [InlineData("POST")]
         [InlineData("PUT")]
         [InlineData("GET")]
@@ -21,7 +21,7 @@ namespace CaptainHook.Tests.Configuration
             Assert.Equal(sut.HttpMethod.Method, verb);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         // ReSharper disable once InconsistentNaming
         public void CheckHttpMethodDefaultsToPOST()
         {
@@ -29,7 +29,7 @@ namespace CaptainHook.Tests.Configuration
             Assert.Equal(sut.HttpMethod, HttpMethod.Post);
         }
 
-        [Theory, IsLayer0]
+        [Theory, IsUnit]
         [InlineData("")]
         [InlineData(null)]
         public void HttpVerbDoesNotProjectNullOrEmptyString(string input)

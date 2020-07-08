@@ -22,7 +22,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
 
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldProcessFilesInCorrectOrder()
         {
             var expected = new[]
@@ -44,7 +44,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             actual.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldProcessHeaderAndIncludeInOutput()
         {
             fileSystem.AddFile(@"C:\Test\header.ps1", "abcde\r\ndef from header");

@@ -21,7 +21,7 @@ namespace CaptainHook.Cli.Tests.Integration
             this.outputHelper = outputHelper;
         }
 
-        [Fact(Skip = "Doesn't work in ADO, only to manual run"), IsLayer1]
+        [Fact(Skip = "Doesn't work in ADO, only to manual run"), IsUnit]
         public void OutputFileShouldBeSameAsInputFile()
         {
             string tempPath = Path.GetTempPath();

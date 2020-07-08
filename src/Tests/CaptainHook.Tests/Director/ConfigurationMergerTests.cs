@@ -17,7 +17,7 @@ namespace CaptainHook.Tests.Director
 {
     public class ConfigurationMergerTests
     {
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task OnlyKVSubscribers_AllInResult()
         {
             var kvSubscribers = new[]
@@ -38,7 +38,7 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task OnlyCosmosSubscribers_AllInResult()
         {
             var cosmosSubscribers = new[]
@@ -59,7 +59,7 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task WhenSameEventsExistInKvSubscribersAndCosmosSubscribers_CosmosSubscribersMustOverrideKvSubscribers()
         {
             var kvSubscribers = new[]
@@ -92,7 +92,7 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task CosmosSubscriberWithAuthentication_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
@@ -137,7 +137,7 @@ namespace CaptainHook.Tests.Director
             result.Should().BeEquivalentTo(new[] { expectedConfiguration }, options => options.RespectingRuntimeTypes());
         }
 
-        [Fact(Skip = "Callback handling not needed as for now"), IsLayer0]
+        [Fact(Skip = "Callback handling not needed as for now"), IsUnit]
         public async Task CosmosSubscriberWithCallback_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
@@ -158,7 +158,7 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [Fact(Skip = "DQL handling not needed as for now"), IsLayer0]
+        [Fact(Skip = "DQL handling not needed as for now"), IsUnit]
         public async Task CosmosSubscriberWithDlq_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]

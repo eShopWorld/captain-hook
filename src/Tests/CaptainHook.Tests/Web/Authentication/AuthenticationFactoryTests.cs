@@ -34,7 +34,7 @@ namespace CaptainHook.Tests.Web.Authentication
         /// </summary>
         /// <param name="config"></param>
         /// <param name="expectedHandler"></param>
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [MemberData(nameof(AuthenticationTestData))]
         public async Task GetTokenProvider(WebhookConfig config, IAuthenticationHandler expectedHandler)
@@ -50,7 +50,7 @@ namespace CaptainHook.Tests.Web.Authentication
         /// <summary>
         /// 
         /// </summary>
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [MemberData(nameof(NoneAuthenticationTestData))]
         public async Task NoAuthentication(WebhookConfig config)

@@ -73,7 +73,7 @@ namespace CaptainHook.Tests.Services.Reliable
         /// <param name="messageCount">limit to simulate the number of messages in the queue in the mock</param>
         /// <returns></returns>
         [Theory]
-        [IsLayer0]
+        [IsUnit]
         [InlineData("test.type", "test.type-1", 1, 1)]
         public async Task CanGetMessage(string eventName, string handlerName, int expectedHandleCount, int messageCount)
         {
@@ -124,7 +124,7 @@ namespace CaptainHook.Tests.Services.Reliable
         }
 
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public async Task CanCancelService()
         {
             _mockMessageProvider.Setup(s => s.ReceiveAsync(
@@ -162,7 +162,7 @@ namespace CaptainHook.Tests.Services.Reliable
         }
 
         [Theory]
-        [IsLayer0]
+        [IsUnit]
         [InlineData("test.type-subA", 3, 10)]
         [InlineData("test.type-subA", 10, 10)]
         [InlineData("test.type-subA", 12, 12)]
@@ -221,7 +221,7 @@ namespace CaptainHook.Tests.Services.Reliable
         }
 
         [Theory]
-        [IsLayer0]
+        [IsUnit]
         [InlineData("test.type", "test.type-1", 1, 1, true, 0)]
         [InlineData("test.type", "test.type-1", 1, 1, false, 0)]
         public async Task CanDeleteMessageFromSubscription(
@@ -292,7 +292,7 @@ namespace CaptainHook.Tests.Services.Reliable
         }
 
         [Theory]
-        [IsLayer0]
+        [IsUnit]
         [InlineData("test.type", "test.type-1",  1)]
         [InlineData("test.type", "test.type-2",  5)]
         public async Task InitSubscriberDataIsPassedToHandlers(string eventName, string handlerName, int messageCount)
@@ -366,7 +366,7 @@ namespace CaptainHook.Tests.Services.Reliable
         /// </summary>
         /// <returns></returns>
         [Theory(Skip ="no longer applicable as state is not being transferred")]
-        [IsLayer0]
+        [IsUnit]
         [InlineData("test.type", 1)]
         [InlineData("test.type", 10)]
         public async Task PromoteActivateSecondaryToPrimary(string eventName, int messageCount)

@@ -12,7 +12,7 @@ namespace CaptainHook.Tests.Services
 {
     public class MessageDataDataSerializationTests
     {
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void DataContractSerializer_ShouldSerialize_MessageData()
         {
             var webhookConfig = new WebhookConfig
