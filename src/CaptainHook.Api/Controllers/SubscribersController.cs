@@ -87,7 +87,7 @@ namespace CaptainHook.Api.Controllers
     {
         public SubscriberDtoValidator()
         {
-            RuleFor(x => x.Name).NotEmpty();
+            RuleFor(x => x.Name).NotEmpty().WithErrorCode("ERR01").WithMessage("Provide a Name, please!");
             RuleFor(x => x.EventName).Length(2, 10);
             RuleFor(x => x.Webhooks).NotNull().SetValidator(new WebhooksDtoValidator());
         }

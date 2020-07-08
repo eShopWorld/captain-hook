@@ -92,38 +92,38 @@ namespace CaptainHook.Api
 
                 services
                     .AddMvc()
-                    //.ConfigureApiBehaviorOptions(options =>
-                    //{
-                    //    options.InvalidModelStateResponseFactory = c =>
-                    //    {
-                    //        var errors = string.Join('\n', c.ModelState.Values.Where(v => v.Errors.Count > 0)
-                    //            .SelectMany(v => v.Errors)
-                    //            .Select(v => v.ErrorMessage));
+                    .ConfigureApiBehaviorOptions(options =>
+                    {
+                        options.InvalidModelStateResponseFactory = c =>
+                        {
+                            var errors = c.ModelState.Values.Where(v => v.Errors.Count > 0)
+                                .SelectMany(v => v.Errors)
+                                .Select(v => v.ErrorMessage);
 
-                    //        return new BadRequestObjectResult(new
-                    //        {
-                    //            ErrorCode = "Your validation error code",
-                    //            Message = errors
-                    //        });
-                    //    };
-                    //})
+                            return new BadRequestObjectResult(new
+                            {
+                                Message = "Request is invalid",
+                                Failures = errors
+                            });
+                        };
+                    })
                     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SubscriberDtoValidator>());
 
-                services.Configure<ApiBehaviorOptions>(o =>
-                {
-                    o.InvalidModelStateResponseFactory = c =>
-                    {
-                        var errors = string.Join('\n', c.ModelState.Values.Where(v => v.Errors.Count > 0)
-                            .SelectMany(v => v.Errors)
-                            .Select(v => v.ErrorMessage));
+                //services.Configure<ApiBehaviorOptions>(o =>
+                //{
+                //    o.InvalidModelStateResponseFactory = c =>
+                //    {
+                //        var errors = string.Join('\n', c.ModelState.Values.Where(v => v.Errors.Count > 0)
+                //            .SelectMany(v => v.Errors)
+                //            .Select(v => v.ErrorMessage));
 
-                        return new BadRequestObjectResult(new
-                        {
-                            ErrorCode = "Your validation error code",
-                            Message = errors
-                        });
-                    };
-                });
+                //        return new BadRequestObjectResult(new
+                //        {
+                //            ErrorCode = "Your validation error code",
+                //            Message = errors
+                //        });
+                //    };
+                //});
 
                 // Get XML documentation
                 var path = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
