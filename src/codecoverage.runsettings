@@ -28,7 +28,8 @@
                 <ModulePath>.*fluentassertions.*</ModulePath>
                 <ModulePath>.*tests.*</ModulePath>
                 <ModulePath>.*moq.*</ModulePath>
-                <ModulePath>CaptainHook.Test.dll</ModulePath>
+                <ModulePath>.*Tests.dll</ModulePath>
+                <ModulePath>.*Benchmark.dll</ModulePath>
               </Exclude>
             </ModulePaths>
 
