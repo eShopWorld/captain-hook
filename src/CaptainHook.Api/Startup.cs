@@ -1,28 +1,30 @@
 using System;
 using System.IO;
-using System.Linq;
+using System.Reflection;
 using Autofac;
+using CaptainHook.Api.Core;
+using CaptainHook.Api.Helpers;
+using CaptainHook.Domain.Handlers.Subscribers;
+using CaptainHook.Domain.RequestValidators;
+using CaptainHook.Storage.Cosmos;
 using Eshopworld.Core;
+using Eshopworld.Data.CosmosDb;
 using Eshopworld.DevOps;
-using Eshopworld.Web;
 using Eshopworld.Telemetry;
+using Eshopworld.Telemetry.Configuration;
+using Eshopworld.Telemetry.Processors;
+using Eshopworld.Web;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
-using CaptainHook.Api.Controllers;
-using CaptainHook.Api.Core;
-using Eshopworld.Telemetry.Configuration;
-using Eshopworld.Telemetry.Processors;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.OpenApi.Models;
-using CaptainHook.Api.Helpers;
-using FluentValidation.AspNetCore;
-using Microsoft.AspNetCore.Mvc;
 
 namespace CaptainHook.Api
 {
@@ -60,6 +62,36 @@ namespace CaptainHook.Api
 
             builder.RegisterType<SuccessfulProbeFilterCriteria>()
                 .As<ITelemetryFilterCriteria>();
+
+            builder.RegisterModule<CosmosDbStorageModule>();
+            builder.RegisterModule<CosmosDbModule>();
+
+            // Mediator itself
+            builder
+                .RegisterType<Mediator>()
+                .As<IMediator>()
+                .InstancePerLifetimeScope();
+
+            // request & notification handlers
+            builder.Register<ServiceFactory>(context =>
+            {
+                var c = context.Resolve<IComponentContext>();
+                return t => c.Resolve(t);
+            });
+
+            // finally register our custom code (individually, or via assembly scanning)
+            // - requests & handlers as transient, i.e. InstancePerDependency()
+            // - pre/post-processors as scoped/per-request, i.e. InstancePerLifetimeScope()
+            // - behaviors as transient, i.e. InstancePerDependency()
+            builder.RegisterAssemblyTypes(typeof(AddSubscriberRequestHandler).GetTypeInfo().Assembly).AsImplementedInterfaces(); // via assembly scan
+            //builder.RegisterType<MyHandler>().AsImplementedInterfaces().InstancePerDependency();          // or individually
+
+            // For all the validators, register them with dependency injection as scoped
+            AssemblyScanner.FindValidatorsInAssembly(typeof(AddSubscriberRequestValidator).Assembly)
+              //.ForEach(item => services.AddScoped(item.InterfaceType, item.ValidatorType));
+              .ForEach(item => builder.RegisterType(item.ValidatorType).As(item.InterfaceType));
+
+            builder.RegisterGeneric(typeof(ValidatorPipelineBehavior<,>)).As(typeof(IPipelineBehavior<,>));
         }
 
         /// <summary>
@@ -90,24 +122,24 @@ namespace CaptainHook.Api
                 services.AddApiVersioning(options => options.AssumeDefaultVersionWhenUnspecified = true);
                 services.AddHealthChecks();
 
-                services
-                    .AddMvc()
-                    .ConfigureApiBehaviorOptions(options =>
-                    {
-                        options.InvalidModelStateResponseFactory = c =>
-                        {
-                            var errors = c.ModelState.Values.Where(v => v.Errors.Count > 0)
-                                .SelectMany(v => v.Errors)
-                                .Select(v => v.ErrorMessage);
+                //services
+                //    .AddMvc()
+                //    .ConfigureApiBehaviorOptions(options =>
+                //    {
+                //        options.InvalidModelStateResponseFactory = c =>
+                //        {
+                //            var errors = c.ModelState.Values.Where(v => v.Errors.Count > 0)
+                //                .SelectMany(v => v.Errors)
+                //                .Select(v => v.ErrorMessage);
 
-                            return new BadRequestObjectResult(new
-                            {
-                                Message = "Request is invalid",
-                                Failures = errors
-                            });
-                        };
-                    })
-                    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SubscriberDtoValidator>());
+                //            return new BadRequestObjectResult(new
+                //            {
+                //                Message = "Request is invalid",
+                //                Failures = errors
+                //            });
+                //        };
+                //    })
+                //    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SubscriberDtoValidator>());
 
                 // Get XML documentation
                 var path = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");

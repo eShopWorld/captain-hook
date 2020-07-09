@@ -4,11 +4,11 @@ using CaptainHook.Api.Constants;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
-using CaptainHook.Contract;
+using CaptainHook.Domain.RequestValidators;
 using CaptainHook.Domain.Services;
 using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using Eshopworld.Core;
-using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -26,15 +26,16 @@ namespace CaptainHook.Api.Controllers
     public class SubscribersController : ControllerBase
     {
         private readonly IBigBrother _bigBrother;
-        private readonly SubscribersService _subscribersService;
+        private readonly IMediator _mediator;
 
         /// <summary>
         /// ctor
         /// </summary>
         /// <param name="bigBrother"></param>
-        public SubscribersController(IBigBrother bigBrother)
+        public SubscribersController(IBigBrother bigBrother, IMediator mediator)
         {
             _bigBrother = bigBrother;
+            _mediator = mediator;
         }
 
         /// <summary>
@@ -66,57 +67,18 @@ namespace CaptainHook.Api.Controllers
         [Route("getbyevent")]
         public async Task<IActionResult> GetByEvent([FromQuery] string eventName)
         {
-            var subscribers = await _subscribersService.GetByEvent(eventName);
-
-            return subscribers.Match<IActionResult>(
-                error => BadRequest(error), 
-                data => Ok(data)
-            );
+            return Ok("will be soon");
         }
 
         [HttpPost]
-        public IActionResult SaveSubscriber([FromBody] SubscriberDto dto)
+        public async Task<IActionResult> SaveSubscriber([FromBody] AddSubscriberRequest request)
         {
-            //var result = subscriberService.AddSubscriber(dto);
-            //return Ok(result.Data);
+            var response = await _mediator.Send(request);
 
-            var result = _subscribersService.AddSubscriber(dto);
-
-            if (result.IsError)
-            {
-                return BadRequest(result.Error);
-            }
-            else
-            {
-                return Ok(result.Data);
-            }
-        }
-    }
-
-    public class SubscriberDtoValidator : AbstractValidator<SubscriberDto>
-    {
-        public SubscriberDtoValidator()
-        {
-            RuleFor(x => x.Name).NotEmpty().WithErrorCode("foobar").WithMessage("Provide a Name, please!");
-            RuleFor(x => x.EventName).Length(2, 10);
-            RuleFor(x => x.Webhooks).NotNull().SetValidator(new WebhooksDtoValidator());
-        }
-    }
-
-    public class WebhooksDtoValidator : AbstractValidator<WebhooksDto>
-    {
-        public WebhooksDtoValidator()
-        {
-            RuleFor(x => x.SelectionRule).MinimumLength(10).Must(p => p.StartsWith("sel"));
-            RuleForEach(x => x.Endpoints).NotEmpty().SetValidator(new EndpointValidator());
-        }
-    }
-
-    public class EndpointValidator : AbstractValidator<EndpointDto>
-    {
-        public EndpointValidator()
-        {
-            RuleFor(x => x.Selector).NotEmpty();
+            return response.Match<IActionResult>(
+                error => BadRequest(error),
+                data => Ok(data)
+            );
         }
     }
 }

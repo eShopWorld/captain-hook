@@ -17,6 +17,7 @@
     <!-- Adding in update for a sub dep until Ms fix the dep tree-->
     <PackageReference Include="FluentValidation" Version="9.0.0" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="MediatR" Version="8.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
     <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.0.470" />
@@ -44,6 +45,7 @@
     <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
     <ProjectReference Include="..\CaptainHook.Contract\CaptainHook.Contract.csproj" />
     <ProjectReference Include="..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
+    <ProjectReference Include="..\CaptainHook.Storage.Cosmos\CaptainHook.Storage.Cosmos.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -68,10 +70,6 @@
     <Content Update="appsettings.TEST.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Validators\" />
   </ItemGroup>
 
   <Target Name="IncludeDocFile" BeforeTargets="PrepareForPublish">
