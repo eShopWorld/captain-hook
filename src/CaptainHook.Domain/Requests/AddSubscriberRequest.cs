@@ -1,8 +1,8 @@
 ﻿using System;
-using CaptainHook.Domain.Services;
+using CaptainHook.Domain.Common;
 using MediatR;
 
-namespace CaptainHook.Domain.RequestValidators
+namespace CaptainHook.Domain.Requests
 {
     public class AddSubscriberRequest : IRequest<EitherErrorOr<Guid>>
     {

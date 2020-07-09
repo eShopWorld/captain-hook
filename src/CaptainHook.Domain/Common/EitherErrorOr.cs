@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CaptainHook.Domain.Services
+namespace CaptainHook.Domain.Common
 {
     public class EitherErrorOr<TData>
     {

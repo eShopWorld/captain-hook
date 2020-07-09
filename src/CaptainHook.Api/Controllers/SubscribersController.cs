@@ -4,8 +4,9 @@ using CaptainHook.Api.Constants;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
+using CaptainHook.Contract;
+using CaptainHook.Domain.Requests;
 using CaptainHook.Domain.RequestValidators;
-using CaptainHook.Domain.Services;
 using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using Eshopworld.Core;
 using MediatR;
@@ -63,16 +64,22 @@ namespace CaptainHook.Api.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("getbyevent")]
-        public async Task<IActionResult> GetByEvent([FromQuery] string eventName)
-        {
-            return Ok("will be soon");
-        }
+        //[HttpGet]
+        //[Route("getbyevent")]
+        //public async Task<IActionResult> GetByEvent([FromQuery] string eventName)
+        //{
+        //    return Ok("will be soon");
+        //}
 
         [HttpPost]
-        public async Task<IActionResult> SaveSubscriber([FromBody] AddSubscriberRequest request)
+        public async Task<IActionResult> SaveSubscriber([FromBody] SubscriberDto dto)
         {
+            var request = new AddSubscriberRequest
+            {
+                Name = dto.Name, 
+                EventName = dto.EventName
+            };
+
             var response = await _mediator.Send(request);
 
             return response.Match<IActionResult>(

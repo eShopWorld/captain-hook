@@ -4,8 +4,7 @@ using System.Reflection;
 using Autofac;
 using CaptainHook.Api.Core;
 using CaptainHook.Api.Helpers;
-using CaptainHook.Domain.Handlers.Subscribers;
-using CaptainHook.Domain.RequestValidators;
+using CaptainHook.Domain;
 using CaptainHook.Storage.Cosmos;
 using Eshopworld.Core;
 using Eshopworld.Data.CosmosDb;
@@ -14,8 +13,6 @@ using Eshopworld.Telemetry;
 using Eshopworld.Telemetry.Configuration;
 using Eshopworld.Telemetry.Processors;
 using Eshopworld.Web;
-using FluentValidation;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -63,35 +60,9 @@ namespace CaptainHook.Api
             builder.RegisterType<SuccessfulProbeFilterCriteria>()
                 .As<ITelemetryFilterCriteria>();
 
+            builder.RegisterModule<DomainModule>();
             builder.RegisterModule<CosmosDbStorageModule>();
             builder.RegisterModule<CosmosDbModule>();
-
-            // Mediator itself
-            builder
-                .RegisterType<Mediator>()
-                .As<IMediator>()
-                .InstancePerLifetimeScope();
-
-            // request & notification handlers
-            builder.Register<ServiceFactory>(context =>
-            {
-                var c = context.Resolve<IComponentContext>();
-                return t => c.Resolve(t);
-            });
-
-            // finally register our custom code (individually, or via assembly scanning)
-            // - requests & handlers as transient, i.e. InstancePerDependency()
-            // - pre/post-processors as scoped/per-request, i.e. InstancePerLifetimeScope()
-            // - behaviors as transient, i.e. InstancePerDependency()
-            builder.RegisterAssemblyTypes(typeof(AddSubscriberRequestHandler).GetTypeInfo().Assembly).AsImplementedInterfaces(); // via assembly scan
-            //builder.RegisterType<MyHandler>().AsImplementedInterfaces().InstancePerDependency();          // or individually
-
-            // For all the validators, register them with dependency injection as scoped
-            AssemblyScanner.FindValidatorsInAssembly(typeof(AddSubscriberRequestValidator).Assembly)
-              //.ForEach(item => services.AddScoped(item.InterfaceType, item.ValidatorType));
-              .ForEach(item => builder.RegisterType(item.ValidatorType).As(item.InterfaceType));
-
-            builder.RegisterGeneric(typeof(ValidatorPipelineBehavior<,>)).As(typeof(IPipelineBehavior<,>));
         }
 
         /// <summary>

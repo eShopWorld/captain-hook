@@ -1,6 +1,6 @@
-﻿namespace CaptainHook.Domain.Services
+﻿namespace CaptainHook.Domain.Common
 {
-    public class BusinessError
+    public class BusinessError : ErrorBase
     {
         public string Message { get; }
 
@@ -8,5 +8,10 @@
         {
             Message = message;
         }
+    }
+
+    public abstract class ErrorBase
+    {
+
     }
 }

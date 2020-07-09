@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Domain.RequestValidators;
-using CaptainHook.Domain.Services;
+using CaptainHook.Domain.Common;
+using CaptainHook.Domain.Requests;
 using MediatR;
 
 namespace CaptainHook.Domain.Handlers.Subscribers
