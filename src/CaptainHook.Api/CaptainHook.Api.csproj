@@ -43,6 +43,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
     <ProjectReference Include="..\CaptainHook.Contract\CaptainHook.Contract.csproj" />
+    <ProjectReference Include="..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

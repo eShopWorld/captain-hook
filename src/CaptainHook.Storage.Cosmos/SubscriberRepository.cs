@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using CaptainHook.Domain.Repositories;
+using CaptainHook.Domain.Services;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
 
@@ -37,36 +38,43 @@ namespace CaptainHook.Storage.Cosmos
             _cosmosDbRepository.UseCollection(CollectionName);
         }
 
-        public async Task<IEnumerable<SubscriberEntity>> GetAllSubscribersAsync()
+        public async Task<EitherErrorOr<IEnumerable<SubscriberEntity>>> GetAllSubscribersAsync()
         {
             var query = _endpointQueryBuilder.BuildSelectAllSubscribersEndpoints();
             var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
 
             return endpoints
                 .GroupBy(x => new { x.EventName, x.SubscriberName })
-                .Select(x => Map(x));
+                .Select(x => Map(x))
+                .ToList();
         }
 
-        public Task<IEnumerable<SubscriberEntity>> GetSubscribersListAsync(string eventName)
+        public async Task<EitherErrorOr<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName)
         {
             if (string.IsNullOrWhiteSpace(eventName))
             {
                 throw new ArgumentNullException(nameof(eventName));
             }
 
-            return GetSubscribersListInternalAsync(eventName);
+            if (eventName == "none")
+            {
+                return new BusinessError("Can't find event with empty name");
+            }
+
+            return await GetSubscribersListInternalAsync(eventName);
         }
 
         #region Private methods
 
-        private async Task<IEnumerable<SubscriberEntity>> GetSubscribersListInternalAsync(string eventName)
+        private async Task<EitherErrorOr<IEnumerable<SubscriberEntity>>> GetSubscribersListInternalAsync(string eventName)
         {
             var query = _endpointQueryBuilder.BuildSelectSubscribersListEndpoints(eventName);
             var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
 
             return endpoints
                 .GroupBy(x => new { x.EventName, x.SubscriberName })
-                .Select(x => Map(x));
+                .Select(x => Map(x))
+                .ToList();
         }
 
         private EndpointEntity Map(EndpointDocument endpoint)
