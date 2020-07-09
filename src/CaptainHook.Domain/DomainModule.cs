@@ -25,9 +25,9 @@ namespace CaptainHook.Domain
             });
 
             builder
-                    .RegisterAssemblyTypes(typeof(AddSubscriberRequestHandler).GetTypeInfo().Assembly)
-                    .AsClosedTypesOf(typeof(IRequestHandler<,>))
-                    .AsImplementedInterfaces();
+                .RegisterAssemblyTypes(typeof(AddSubscriberRequestHandler).GetTypeInfo().Assembly)
+                .AsClosedTypesOf(typeof(IRequestHandler<,>))
+                .AsImplementedInterfaces();
 
             //builder.RegisterAssemblyTypes(typeof(AddSubscriberRequestHandler).GetTypeInfo().Assembly).AsImplementedInterfaces();
 

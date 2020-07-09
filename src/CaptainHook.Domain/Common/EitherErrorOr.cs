@@ -2,13 +2,17 @@
 
 namespace CaptainHook.Domain.Common
 {
-    public class EitherErrorOr<TData>
+    public abstract class EitherErrorOr
     {
-        public BusinessError Error { get; }
+    }
+
+    public class EitherErrorOr<TData> : EitherErrorOr
+    {
+        public ErrorBase Error { get; }
         public TData Data { get; }
         public bool IsError => Error != null;
 
-        public EitherErrorOr(BusinessError error)
+        public EitherErrorOr(ErrorBase error)
         {
             Error = error;
         }
@@ -18,7 +22,7 @@ namespace CaptainHook.Domain.Common
             Data = data;
         }
 
-        public T Match<T>(Func<BusinessError, T> leftFunc, Func<TData, T> rightFunc)
+        public T Match<T>(Func<ErrorBase, T> leftFunc, Func<TData, T> rightFunc)
         {
             return IsError ? leftFunc(Error) : rightFunc(Data);
         }
@@ -28,7 +32,7 @@ namespace CaptainHook.Domain.Common
             return action(Data);
         }
 
-        public static implicit operator EitherErrorOr<TData>(BusinessError error) => new EitherErrorOr<TData>(error);
+        public static implicit operator EitherErrorOr<TData>(ErrorBase error) => new EitherErrorOr<TData>(error);
 
         public static implicit operator EitherErrorOr<TData>(TData data) => new EitherErrorOr<TData>(data);
     }

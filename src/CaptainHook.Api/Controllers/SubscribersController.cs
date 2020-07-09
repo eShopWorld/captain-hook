@@ -5,6 +5,7 @@ using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
 using CaptainHook.Contract;
+using CaptainHook.Domain.Common;
 using CaptainHook.Domain.Requests;
 using CaptainHook.Domain.RequestValidators;
 using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
