@@ -24,11 +24,19 @@ namespace CaptainHook.Domain
                 return t => c.Resolve(t);
             });
 
-            builder.RegisterAssemblyTypes(typeof(AddSubscriberRequestHandler).GetTypeInfo().Assembly).AsImplementedInterfaces();
+            builder
+                    .RegisterAssemblyTypes(typeof(AddSubscriberRequestHandler).GetTypeInfo().Assembly)
+                    .AsClosedTypesOf(typeof(IRequestHandler<,>))
+                    .AsImplementedInterfaces();
+
+            //builder.RegisterAssemblyTypes(typeof(AddSubscriberRequestHandler).GetTypeInfo().Assembly).AsImplementedInterfaces();
 
             // For all the validators, register them with dependency injection as scoped
-            AssemblyScanner.FindValidatorsInAssembly(typeof(AddSubscriberRequestValidator).Assembly)
-              .ForEach(item => builder.RegisterType(item.ValidatorType).As(item.InterfaceType));
+            var validatorsInAssembly = AssemblyScanner.FindValidatorsInAssembly(typeof(AddSubscriberRequestValidator).Assembly);
+            foreach (var validator in validatorsInAssembly)
+            {
+                builder.RegisterType(validator.ValidatorType).As(validator.InterfaceType);
+            }
 
             builder.RegisterGeneric(typeof(ValidatorPipelineBehavior<,>)).As(typeof(IPipelineBehavior<,>));
         }
