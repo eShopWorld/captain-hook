@@ -65,19 +65,29 @@ namespace CaptainHook.Api.Controllers
             }
         }
 
-        //[HttpGet]
-        //[Route("getbyevent")]
-        //public async Task<IActionResult> GetByEvent([FromQuery] string eventName)
-        //{
-        //    return Ok("will be soon");
-        //}
+        [HttpGet]
+        [Route("getbyevent")]
+        public async Task<IActionResult> GetByEvent([FromQuery] string eventName)
+        {
+            var query = new GetSubscribersForEventQuery
+            {
+                Name = eventName,
+            };
+
+            var response = await _mediator.Send(query);
+
+            return response.Match<IActionResult>(
+               error => BadRequest(error),
+               data => Ok(data)
+           );
+        }
 
         [HttpPost]
         public async Task<IActionResult> SaveSubscriber([FromBody] SubscriberDto dto)
         {
             var request = new AddSubscriberRequest
             {
-                Name = dto.Name, 
+                Name = dto.Name,
                 EventName = dto.EventName
             };
 

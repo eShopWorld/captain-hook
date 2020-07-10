@@ -41,7 +41,7 @@ namespace CaptainHook.Common.Configuration
                 .Build ();
         }
 
-        private static SecretClient GetClient ()
+        private static SecretClient GetClient () 
         {
             return new SecretClient (
                 new Uri (Environment.GetEnvironmentVariable (ConfigurationSettings.KeyVaultUriEnvVariable)),

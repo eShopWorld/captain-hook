@@ -4,10 +4,13 @@ using System.Reflection;
 using Autofac;
 using CaptainHook.Api.Core;
 using CaptainHook.Api.Helpers;
+using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Domain;
 using CaptainHook.Storage.Cosmos;
 using Eshopworld.Core;
 using Eshopworld.Data.CosmosDb;
+using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.DevOps;
 using Eshopworld.Telemetry;
 using Eshopworld.Telemetry.Configuration;
@@ -62,8 +65,16 @@ namespace CaptainHook.Api
 
             builder.RegisterModule<DomainModule>();
             builder.RegisterModule<CosmosDbStorageModule>();
+            builder.RegisterModule<KeyVaultModule>();
             builder.RegisterModule<CosmosDbModule>();
+
+            var appSettings = TempConfigLoader.Load();
+            var configurationSettings = new ConfigurationSettings();
+            appSettings.Bind(configurationSettings);
+            builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
         }
+
+        private const string CaptainHookConfigSection = "CaptainHook";
 
         /// <summary>
         /// configure services to be used by the asp.net runtime
