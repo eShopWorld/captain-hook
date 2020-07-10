@@ -90,7 +90,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         /// Tests the whole flow for a webhook handler with a callback
         /// </summary>
         /// <returns></returns>
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task CheckWebhookCall()
         {
@@ -124,7 +124,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         /// Tests the whole flow for a webhook handler with a callback
         /// </summary>
         /// <returns></returns>
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task CheckCallbackCall()
         {
@@ -161,7 +161,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         /// Tests the whole flow for a webhook handler with a callback, with callback failing and message considered "not delivered"
         /// </summary>
         /// <returns>task</returns>
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task CheckCallbackFailurePath()
         {
@@ -198,7 +198,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         /// Tests the whole flow for a webhook handler with a callback, with hook failing and message considered "not delivered" and callback not invoked
         /// </summary>
         /// <returns>task</returns>
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task CheckHookFailureDoesNotInvokeCallback()
         {
@@ -235,7 +235,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         /// Tests the whole flow for a webhook handler with a callback
         /// </summary>
         /// <returns></returns>
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task GoodCheckMultiRouteSelection()
         {
@@ -277,7 +277,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         /// Tests the whole flow for a webhook handler with a callback
         /// </summary>
         /// <returns></returns>
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task BadCheckMultiRouteSelection()
         {
@@ -311,7 +311,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         /// Tests the whole flow for a webhook handler with a callback
         /// </summary>
         /// <returns></returns>
-        [IsLayer0]
+        [IsUnit]
         [Fact]
         public async Task BadCheckMultiRouteSelectionNoSelector()
         {

@@ -15,8 +15,8 @@ namespace CaptainHook.Telemetry.Tests
 {
     public class ContainerBuilderExtensionsTests
     {
-        [Fact, IsLayer0]
-        public void AddStatefullServiceTelemetryRegistersNecessaryCompoents()
+        [Fact, IsUnit]
+        public void AddStatefulServiceTelemetryRegistersNecessaryCompoents()
         {
             var containerBuilder = new ContainerBuilder();
 
@@ -33,8 +33,8 @@ namespace CaptainHook.Telemetry.Tests
             containerBuilder.Properties.ContainsKey("__ServiceFabricRegistered").Should().BeTrue();
         }
 
-        [Fact, IsLayer0]
-        public void AddStatefullServiceTelemetryRegistersTelemetryConfiguration()
+        [Fact, IsUnit]
+        public void AddStatefulServiceTelemetryRegistersTelemetryConfiguration()
         {
             var instrumentationKey = Guid.NewGuid().ToString();
             var internalKey = Guid.NewGuid().ToString();

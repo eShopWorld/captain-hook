@@ -17,7 +17,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             return result;
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildEventHandlerTypeAndName()
         {
             string eventHandlerConfig = @"{
@@ -36,7 +36,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildEventHandlerTypeAndNameForMultipleEvents()
         {
             var eventHandlerConfig = @"{
@@ -62,7 +62,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildWebHookConfigNameAndUrl()
         {
             var eventHandlerConfig = @"{
@@ -85,7 +85,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildWebHookConfigOidcAuthenticationConfig()
         {
             var eventHandlerConfig = @"{
@@ -116,7 +116,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldUnderstandNoneAuthenticationNodeAsNoneAuthenticationConfig()
         {
             var eventHandlerConfig = @"{
@@ -137,7 +137,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildWebHookConfigWebhookRequestRule()
         {
             var eventHandlerConfig = @"{
@@ -175,7 +175,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildWebHookConfigWebhookConfigRoutes()
         {
             var eventHandlerConfig = @"{
@@ -261,7 +261,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildCallbackConfigName()
         {
             var eventHandlerConfig = @"{
@@ -280,7 +280,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildCallbackConfigOidcAuthenticationConfig()
         {
             var eventHandlerConfig = @"{
@@ -311,7 +311,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildCallbackConfigWebhookRequestRule()
         {
             var eventHandlerConfig = @"{
@@ -351,7 +351,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldIgnoreEmptyDestination()
         {
             var eventHandlerConfig = @"{
@@ -378,7 +378,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildCallbackConfigWebhookConfigRoutes()
         {
             var eventHandlerConfig = @"{
@@ -464,7 +464,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildSubscriberConfigDetails()
         {
             var eventHandlerConfig = @"{
@@ -491,7 +491,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildSubscriberConfigWebhookRequestRules()
         {
             var eventHandlerConfig = @"{
@@ -529,7 +529,7 @@ namespace CaptainHook.Cli.Tests.GeneratePowerShell
             result.Should().Equal(expected);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public void ShouldBuildSubscriberConfigRequestRoutes()
         {
             var eventHandlerConfig = @"{

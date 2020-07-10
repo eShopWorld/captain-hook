@@ -14,7 +14,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         {
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task NullInputFilePathThrowsError()
         {
             PrepareCommand(null, null);
@@ -22,7 +22,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             await Assert.ThrowsAsync<ArgumentNullException>(result);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task EmptyInputFilePathThrowsError()
         {
             PrepareCommand(string.Empty, null);
@@ -30,7 +30,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             await Assert.ThrowsAsync<ArgumentException>(result);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task FileNotFoundReturnsError()
         {
             PrepareCommand("NonExistentFile", null);
@@ -38,7 +38,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             result.Should().Be(1);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task GeneratesTwoEventFiles()
         {
             PrepareCommand();
@@ -46,7 +46,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             FileSystem.Directory.GetFiles(OutputFolderPath).Count().Should().Be(2);
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task FileNamesAreCorrect()
         {
             PrepareCommand();
@@ -55,7 +55,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
             FileSystem.FileExists(@"C:\output\event-2-activity1.domain.infrastructure.domainevents.platformactivitycreatedomainevent.json").Should().BeTrue();
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task FileContainsJson()
         {
             PrepareCommand();

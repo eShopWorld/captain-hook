@@ -8,7 +8,7 @@ namespace CaptainHook.Tests.Web.WebHooks
 {
     public class HttpResponseMessageTests
     {
-        [Theory, IsLayer0]
+        [Theory, IsUnit]
         [InlineData(HttpStatusCode.InternalServerError, true)]
         [InlineData(HttpStatusCode.NotImplemented, true)]
         [InlineData(HttpStatusCode.BadGateway, true)]

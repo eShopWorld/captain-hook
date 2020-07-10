@@ -17,7 +17,7 @@ namespace CaptainHook.Tests.Json
         }
 
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public void OidcAuthentication_ShouldBeDeserializedProperly()
         {
             string data = @"{
@@ -45,7 +45,7 @@ namespace CaptainHook.Tests.Json
         }
 
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public void BasicAuthentication_ShouldBeDeserializedProperly()
         {
             string data = @"{
@@ -67,7 +67,7 @@ namespace CaptainHook.Tests.Json
         }
 
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public void NoneAuthentication_ShouldBeDeserializedProperly()
         {
             string data = @"{
@@ -84,7 +84,7 @@ namespace CaptainHook.Tests.Json
         }
 
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public void CustomAuthentication_ShouldBeDeserializedProperly()
         {
             string data = @"{
@@ -101,7 +101,7 @@ namespace CaptainHook.Tests.Json
         }
 
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public void UnknownAuthentication_ShouldThrowAnException()
         {
             string data = @"{

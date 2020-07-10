@@ -13,7 +13,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         {
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task NameIsCorrect()
         {
             PrepareCommand();
@@ -22,7 +22,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
                 .Should().Be("activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task TypeIsCorrect()
         {
             PrepareCommand();
@@ -31,7 +31,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
                 .Should().Be("activity1.domain.infrastructure.domainevents.activityconfirmationdomainevent");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task HasWebhookConfigSection()
         {
             PrepareCommand();
@@ -40,7 +40,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
                 .Should().BeOfType<JObject>();
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task HasCallbackConfigSection()
         {
             PrepareCommand();
@@ -49,7 +49,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
                 .Should().BeOfType<JObject>();
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task SupportsHeartBeatConfig()
         {
             PrepareCommand();

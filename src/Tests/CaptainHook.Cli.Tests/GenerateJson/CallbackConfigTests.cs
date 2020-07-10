@@ -15,7 +15,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         {
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task NameIsCorrect()
         {
             PrepareCommand();
@@ -24,7 +24,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
                 .Should().Be("activity1.domain.infrastructure.domainevents.activityorderconfirmationdomainevent-callback");
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task HasRequestRulesSection()
         {
             PrepareCommand();

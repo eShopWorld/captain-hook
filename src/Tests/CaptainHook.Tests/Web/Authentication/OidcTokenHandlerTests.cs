@@ -28,7 +28,7 @@ namespace CaptainHook.Tests.Web.Authentication
             _cancellationToken = new CancellationToken();
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [InlineData("6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282")]
         public async Task AuthorisationTokenSuccess(string expectedAccessToken)
@@ -78,7 +78,7 @@ namespace CaptainHook.Tests.Web.Authentication
         /// <param name="expectedStsCallCount"></param>
         /// <param name="expectedToken"></param>
         /// <returns></returns>
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [InlineData(0, 5, 1, "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282")]
         [InlineData(1, 5, 1, "6015CF7142BA060F5026BE9CC442C12ED7F0D5AECCBAA0678DEEBC51C6A1B282")]

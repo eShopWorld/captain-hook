@@ -14,7 +14,7 @@ namespace CaptainHook.Tests.Configuration
 {
     public class RequestBuilderTests
     {
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [InlineData("GET")]
         [InlineData("POST")]
@@ -53,7 +53,7 @@ namespace CaptainHook.Tests.Configuration
             Assert.True(headers.RequestHeaders.ContainsKey(Constants.Headers.IdempotencyKey));
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [MemberData(nameof(UriData))]
         public void UriConstructionTests(WebhookConfig config, string payload, string expectedUri)
@@ -63,7 +63,7 @@ namespace CaptainHook.Tests.Configuration
             Assert.Equal(new Uri(expectedUri), uri);
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [MemberData(nameof(PayloadData))]
         public void PayloadConstructionTests(
@@ -77,7 +77,7 @@ namespace CaptainHook.Tests.Configuration
             Assert.Equal(expectedPayload, requestPayload);
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [MemberData(nameof(HttpVerbData))]
         public void HttpVerbSelectionTests(
@@ -90,7 +90,7 @@ namespace CaptainHook.Tests.Configuration
             Assert.Equal(expectedVerb, selectedVerb);
         }
 
-        [IsLayer0]
+        [IsUnit]
         [Theory]
         [MemberData(nameof(AuthenticationSchemeData))]
         public void AuthenticationSchemeSelectionTests(

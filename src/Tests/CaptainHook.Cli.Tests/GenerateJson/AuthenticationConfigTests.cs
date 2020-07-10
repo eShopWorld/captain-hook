@@ -17,7 +17,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         {
         }
 
-        [Fact, IsLayer0]
+        [Fact, IsUnit]
         public async Task HasValidType()
         {
             PrepareCommand();
@@ -27,7 +27,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         }
 
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public async Task IsValidOidc()
         {
             PrepareCommand();
@@ -43,7 +43,7 @@ namespace CaptainHook.Cli.Tests.GenerateJson
         }
 
         [Fact]
-        [IsLayer0]
+        [IsUnit]
         public async Task EmptyAuthConfigIsSerialized()
         {
             PrepareCommand();
