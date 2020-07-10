@@ -4,6 +4,7 @@ using CaptainHook.Domain.RequestValidators;
 using FluentValidation;
 using MediatR;
 using System.Reflection;
+using CaptainHook.Domain.Infrastructure;
 
 namespace CaptainHook.Domain
 {
@@ -11,13 +12,11 @@ namespace CaptainHook.Domain
     {
         protected override void Load(ContainerBuilder builder)
         {
-            // Mediator itself
             builder
                 .RegisterType<Mediator>()
                 .As<IMediator>()
                 .InstancePerLifetimeScope();
 
-            // request & notification handlers
             builder.Register<ServiceFactory>(context =>
             {
                 var c = context.Resolve<IComponentContext>();
@@ -29,9 +28,6 @@ namespace CaptainHook.Domain
                 .AsClosedTypesOf(typeof(IRequestHandler<,>))
                 .AsImplementedInterfaces();
 
-            //builder.RegisterAssemblyTypes(typeof(AddSubscriberRequestHandler).GetTypeInfo().Assembly).AsImplementedInterfaces();
-
-            // For all the validators, register them with dependency injection as scoped
             var validatorsInAssembly = AssemblyScanner.FindValidatorsInAssembly(typeof(AddSubscriberRequestValidator).Assembly);
             foreach (var validator in validatorsInAssembly)
             {

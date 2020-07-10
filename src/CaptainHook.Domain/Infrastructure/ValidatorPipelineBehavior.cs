@@ -7,7 +7,7 @@ using CaptainHook.Domain.Common;
 using FluentValidation;
 using MediatR;
 
-namespace CaptainHook.Domain.Handlers.Subscribers
+namespace CaptainHook.Domain.Infrastructure
 {
     public class ValidatorPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     {
@@ -29,7 +29,7 @@ namespace CaptainHook.Domain.Handlers.Subscribers
 
             if (validationFailures.Any())
             {
-                var failures = validationFailures.Select(x => new Failure { Code = x.ErrorCode, Message = x.ErrorMessage, Property = x.PropertyName}).ToList();
+                var failures = validationFailures.Select(x => new Failure { Code = x.ErrorCode, Message = x.ErrorMessage, Property = x.PropertyName }).ToList();
                 var validationError = new ValidationError("Invalid request", failures);
                 return Task.FromResult((TResponse)Activator.CreateInstance(typeof(TResponse), validationError));
             }

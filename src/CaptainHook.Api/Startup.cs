@@ -93,25 +93,6 @@ namespace CaptainHook.Api
                 services.AddApiVersioning(options => options.AssumeDefaultVersionWhenUnspecified = true);
                 services.AddHealthChecks();
 
-                //services
-                //    .AddMvc()
-                //    .ConfigureApiBehaviorOptions(options =>
-                //    {
-                //        options.InvalidModelStateResponseFactory = c =>
-                //        {
-                //            var errors = c.ModelState.Values.Where(v => v.Errors.Count > 0)
-                //                .SelectMany(v => v.Errors)
-                //                .Select(v => v.ErrorMessage);
-
-                //            return new BadRequestObjectResult(new
-                //            {
-                //                Message = "Request is invalid",
-                //                Failures = errors
-                //            });
-                //        };
-                //    })
-                //    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<SubscriberDtoValidator>());
-
                 // Get XML documentation
                 var path = Path.Combine(AppContext.BaseDirectory, $"{Assembly.GetExecutingAssembly().GetName().Name}.xml");
 

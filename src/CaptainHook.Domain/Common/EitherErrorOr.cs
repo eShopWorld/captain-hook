@@ -2,11 +2,7 @@
 
 namespace CaptainHook.Domain.Common
 {
-    public abstract class EitherErrorOr
-    {
-    }
-
-    public class EitherErrorOr<TData> : EitherErrorOr
+    public class EitherErrorOr<TData>
     {
         public ErrorBase Error { get; }
         public TData Data { get; }
