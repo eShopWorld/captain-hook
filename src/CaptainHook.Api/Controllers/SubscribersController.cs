@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Common;
@@ -76,10 +78,23 @@ namespace CaptainHook.Api.Controllers
 
             var response = await _mediator.Send(query);
 
-            return response.Match<IActionResult>(
-               error => BadRequest(error),
+            return response.Match(
+               error => HandleQueryError(error),
                data => Ok(data)
            );
+        }
+
+        private IActionResult HandleQueryError(ErrorBase error)
+        {
+            switch (error)
+            {
+                case EntityNotFoundError notFoundError:
+                    return new NotFoundObjectResult(notFoundError);
+                case BusinessError businessError:
+                    return new BadRequestObjectResult(businessError);
+                default:
+                    return StatusCode(StatusCodes.Status418ImATeapot, error);
+            }
         }
 
         [HttpPost]

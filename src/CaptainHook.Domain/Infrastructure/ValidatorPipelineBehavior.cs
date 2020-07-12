@@ -29,8 +29,8 @@ namespace CaptainHook.Domain.Infrastructure
 
             if (validationFailures.Any())
             {
-                var failures = validationFailures.Select(x => new Failure { Code = x.ErrorCode, Message = x.ErrorMessage, Property = x.PropertyName }).ToList();
-                var validationError = new ValidationError("Invalid request", failures);
+                var failures = validationFailures.Select(x => new Failure(x.ErrorCode, x.ErrorMessage, x.PropertyName));
+                var validationError = new ValidationError("Invalid request", failures.ToArray());
                 return Task.FromResult((TResponse)Activator.CreateInstance(typeof(TResponse), validationError));
             }
 

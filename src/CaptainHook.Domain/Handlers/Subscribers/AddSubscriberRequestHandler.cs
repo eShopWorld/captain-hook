@@ -41,8 +41,8 @@ namespace CaptainHook.Domain.Handlers.Subscribers
             }
 
             var subscriberEntities = await _repository.GetSubscribersListAsync(query.Name);
-            var subscribers = subscriberEntities.IfValid(x => x.Select(s => new SubscriberDto { Name = s.Name }));
-            return subscribers.ToList();
+            var dtos = subscriberEntities.IfValid(x => x.Select(s => new SubscriberDto { Name = s.Name }).ToList());
+            return dtos;
         }
     }
 }

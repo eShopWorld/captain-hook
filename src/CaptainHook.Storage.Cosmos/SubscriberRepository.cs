@@ -49,24 +49,27 @@ namespace CaptainHook.Storage.Cosmos
                 .ToList();
         }
 
-        public async Task<EitherErrorOr<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName)
+        public async Task<EitherErrorOr<List<SubscriberEntity>>> GetSubscribersListAsync(string eventName)
         {
             if (string.IsNullOrWhiteSpace(eventName))
             {
                 throw new ArgumentNullException(nameof(eventName));
             }
 
-            if (eventName == "none")
+            var subscribers = await GetSubscribersListInternalAsync(eventName);
+
+            var materialized = subscribers.ToList();
+            if (!materialized.Any())
             {
-                return new BusinessError("Can't find event with empty name");
+                return new EntityNotFoundError(nameof(SubscriberEntity), eventName);
             }
 
-            return await GetSubscribersListInternalAsync(eventName);
+            return materialized;
         }
 
         #region Private methods
 
-        private async Task<EitherErrorOr<IEnumerable<SubscriberEntity>>> GetSubscribersListInternalAsync(string eventName)
+        private async Task<IEnumerable<SubscriberEntity>> GetSubscribersListInternalAsync(string eventName)
         {
             var query = _endpointQueryBuilder.BuildSelectSubscribersListEndpoints(eventName);
             var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);

@@ -23,9 +23,14 @@ namespace CaptainHook.Domain.Common
             return IsError ? leftFunc(Error) : rightFunc(Data);
         }
 
-        public TResult IfValid<TResult>(Func<TData, TResult> action)
+        public EitherErrorOr<TResult> IfValid<TResult>(Func<TData, TResult> action)
         {
-            return action(Data);
+            if (action == null)
+            {
+                throw new ArgumentNullException(nameof(action));
+            }
+
+            return !IsError ? (EitherErrorOr<TResult>) action(Data) : Error;
         }
 
         public static implicit operator EitherErrorOr<TData>(ErrorBase error) => new EitherErrorOr<TData>(error);
