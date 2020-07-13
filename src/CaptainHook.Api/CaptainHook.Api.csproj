@@ -24,7 +24,6 @@
     <PackageReference Include="Microsoft.ServiceFabric.Services.Remoting" Version="4.0.470" />
     <PackageReference Include="Autofac" Version="5.2.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
-    <PackageReference Include="Eshopworld.DevOps" Version="5.0.1" />
     <PackageReference Include="Eshopworld.Telemetry" Version="3.1.4" />
     <PackageReference Include="Eshopworld.Web" Version="4.0.1" />
     <PackageReference Include="IdentityServer4" Version="4.0.1" />

@@ -20,7 +20,6 @@
     </EntryPoint>
     <EnvironmentVariables>
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="Development"/>
-      <EnvironmentVariable Name="KEYVAULT_URL" Value="N/A" />
       <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="N/A" />
     </EnvironmentVariables>
   </CodePackage>

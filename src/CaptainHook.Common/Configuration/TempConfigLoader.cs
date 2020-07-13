@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Azure.Security.KeyVault.Secrets;
 using CaptainHook.Common.Configuration.KeyVault;
+using Eshopworld.DevOps;
 using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.Common.Configuration
@@ -37,6 +38,8 @@ namespace CaptainHook.Common.Configuration
             var builder = new ConfigurationBuilder ();
             return builder
                 .AddInMemoryCollection (entries)
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile($"appsettings.{EswDevOpsSdk.GetEnvironmentName()}.json", optional: true)
                 .AddEnvironmentVariables ()
                 .Build ();
         }
