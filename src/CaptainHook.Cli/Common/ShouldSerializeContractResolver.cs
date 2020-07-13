@@ -1,4 +1,5 @@
 ﻿using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -20,7 +21,9 @@ namespace CaptainHook.Cli.Common
             JsonProperty property = base.CreateProperty(member, memberSerialization);
 
             // don't serialize empty collections
-            if (property.PropertyType != typeof(string) && property.PropertyType.GetInterface(nameof(IEnumerable)) != null)
+            if (property.PropertyType != typeof(string) 
+                && property.PropertyType.GetInterface(nameof(IEnumerable)) != null 
+                && property.DeclaringType != typeof(SourceParserLocation))
             {
                 property.ShouldSerialize =
                     instance => (instance?.GetType().GetProperty(property.PropertyName).GetValue(instance) as IEnumerable<object>)?.Count() > 0;
