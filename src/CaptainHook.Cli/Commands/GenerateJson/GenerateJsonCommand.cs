@@ -30,7 +30,7 @@ namespace CaptainHook.Cli.Commands.GenerateJson
             DefaultValueHandling = DefaultValueHandling.Ignore,
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             ContractResolver = new ShouldSerializeContractResolver(),
-            Converters = new List<JsonConverter> { new StringEnumConverter() }
+            Converters = { new StringEnumConverter() }
         };
 
         public GenerateJsonCommand(IFileSystem fileSystem)

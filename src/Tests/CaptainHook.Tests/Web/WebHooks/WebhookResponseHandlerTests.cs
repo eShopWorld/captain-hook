@@ -361,7 +361,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -372,7 +372,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "TransportModel",
                             Type = DataType.Model
@@ -398,7 +398,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -410,7 +410,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpStatusCode
                         },
@@ -421,7 +421,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpContent
                         },
@@ -443,7 +443,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -454,7 +454,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "BrandType"
                         },
@@ -478,7 +478,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "TransportModel",
                             Type = DataType.Model
@@ -504,7 +504,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -515,7 +515,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpStatusCode
                         },
@@ -526,7 +526,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpContent
                         },
@@ -562,7 +562,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -573,7 +573,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "BrandType"
                         },
@@ -597,7 +597,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "TransportModel",
                             Type = DataType.Model
@@ -624,7 +624,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -636,7 +636,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpStatusCode,
                         },
@@ -647,7 +647,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpContent
                         },

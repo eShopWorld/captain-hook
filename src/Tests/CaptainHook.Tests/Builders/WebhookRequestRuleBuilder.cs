@@ -7,13 +7,13 @@ namespace CaptainHook.Tests.Builders
 {
     internal class WebhookRequestRuleBuilder
     {
-        private ParserLocation _source;
+        private SourceParserLocation _source;
         private ParserLocation _destination;
         private List<WebhookConfigRoute> _routes;
 
         public WebhookRequestRuleBuilder WithSource(string path = null, DataType type = DataType.Property, Location location = Location.Body)
         {
-            _source = new ParserLocation
+            _source = new SourceParserLocation
             {
                 Path = path,
                 Location = location,
