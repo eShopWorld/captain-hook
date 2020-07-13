@@ -59,21 +59,20 @@ namespace CaptainHook.DirectorService
             _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException (nameof (readerServiceChangeDetector));
         }
 
-        private async Task<(IList<WebhookConfig> newWebhookConfig, IDictionary<string, SubscriberConfiguration> newSubscriberConfigurations)> LoadConfigurationAsync()
+        private async Task<IDictionary<string, SubscriberConfiguration>> LoadConfigurationAsync()
         {
             var keyVaultUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
-            var (webhookConfig, subscriberConfig) = await _subscriberConfigurationLoader.LoadAsync(keyVaultUri);
+            var subscriberConfig = await _subscriberConfigurationLoader.LoadAsync(keyVaultUri);
 
             var newSubscriberConfigurations = subscriberConfig
                 .ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));
 
-            return (webhookConfig, newSubscriberConfigurations);
+            return newSubscriberConfigurations;
         }
 
         private async Task LoadConfigurationAndAssignAsync()
         {
-            //todo: remove the webhookconfig
-            var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
+            var newSubscriberConfigurations = await LoadConfigurationAsync();
             _subscriberConfigurations = newSubscriberConfigurations;
         }
 
@@ -156,8 +155,7 @@ namespace CaptainHook.DirectorService
 
             try
             {
-                //todo: remove the webhookconfig
-                var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
+                var newSubscriberConfigurations = await LoadConfigurationAsync();
 
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 

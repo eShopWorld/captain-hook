@@ -11,21 +11,25 @@ namespace CaptainHook.DirectorService.Infrastructure
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IConfigurationMerger _configurationMerger;
+        private readonly IConfigurationLoader _configurationLoader;
 
-        public SubscriberConfigurationLoader(ISubscriberRepository subscriberRepository, IConfigurationMerger configurationMerger)
+        public SubscriberConfigurationLoader(
+            ISubscriberRepository subscriberRepository,
+            IConfigurationMerger configurationMerger,
+            IConfigurationLoader configurationLoader)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _configurationMerger = configurationMerger ?? throw new ArgumentNullException(nameof(configurationMerger));
+            _configurationLoader = configurationLoader ?? throw new ArgumentNullException(nameof(configurationLoader));
         }
 
-        public async Task<(IList<WebhookConfig>, IList<SubscriberConfiguration>)> LoadAsync(string keyVaultUri)
+        public async Task<IList<SubscriberConfiguration>> LoadAsync(string keyVaultUri)
         {
-            var configuration = Configuration.Load(keyVaultUri);
+            var configuration = _configurationLoader.Load(keyVaultUri);
             var subscribersFromKV = configuration.SubscriberConfigurations;
             var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
-            var merged = await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos);
-
-            return (configuration.WebhookConfigurations, merged);
+            
+            return await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos);
         }
     }
 }
