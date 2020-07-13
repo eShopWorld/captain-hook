@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Domain.Common;
+using CaptainHook.Domain.Errors;
+using CaptainHook.Domain.Results;
 using FluentValidation;
 using MediatR;
 

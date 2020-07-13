@@ -1,7 +1,7 @@
 ﻿using CaptainHook.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CaptainHook.Domain.Common;
+using CaptainHook.Domain.Results;
 
 namespace CaptainHook.Domain.Repositories
 {

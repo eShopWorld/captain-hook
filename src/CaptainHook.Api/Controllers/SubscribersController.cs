@@ -7,9 +7,11 @@ using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
 using CaptainHook.Contract;
-using CaptainHook.Domain.Common;
+using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Requests;
+using CaptainHook.Domain.Requests.Subscribers;
 using CaptainHook.Domain.RequestValidators;
+using CaptainHook.Domain.Results;
 using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
 using Eshopworld.Core;
 using MediatR;
@@ -38,8 +40,8 @@ namespace CaptainHook.Api.Controllers
         /// <param name="bigBrother"></param>
         public SubscribersController(IBigBrother bigBrother, IMediator mediator)
         {
-            _bigBrother = bigBrother;
-            _mediator = mediator;
+            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
         /// <summary>

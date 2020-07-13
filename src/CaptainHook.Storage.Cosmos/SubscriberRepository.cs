@@ -4,8 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
-using CaptainHook.Domain.Common;
+using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
+using CaptainHook.Domain.Results;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
 
