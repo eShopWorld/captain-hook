@@ -10,6 +10,7 @@ using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.EventHandlerActor.Handlers.Requests;
 using CaptainHook.Tests.Web.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Platform.Messages;
@@ -70,7 +71,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClients = new Dictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
-            var requestBuilder = new RequestBuilder(Mock.Of<IBigBrother>());
+            var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
             var requestLogger = new RequestLogger(mockBigBrother.Object);
 
             var genericWebhookHandler = new GenericWebhookHandler(
@@ -124,7 +125,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClients = new Dictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
-            var requestBuilder = new RequestBuilder(Mock.Of<IBigBrother>());
+            var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
             var requestLogger = new RequestLogger(mockBigBrother.Object);
 
             var genericWebhookHandler = new GenericWebhookHandler(
@@ -198,7 +199,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClients = new Dictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
-            var requestBuilder = new RequestBuilder(Mock.Of<IBigBrother>());
+            var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
             var requestLogger = new RequestLogger(mockBigBrother.Object);
 
             var genericWebhookHandler = new GenericWebhookHandler(

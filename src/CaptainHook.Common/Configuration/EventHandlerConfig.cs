@@ -334,7 +334,8 @@ namespace CaptainHook.Common.Configuration
     {
         Replace = 1,
         Add = 2,
-        Route = 3
+        Route = 3,
+        RouteAndReplace = 4
     }
 
     public enum Location

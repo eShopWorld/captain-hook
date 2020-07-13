@@ -10,13 +10,13 @@ using Eshopworld.Platform.Messages;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace CaptainHook.EventHandlerActor.Handlers
+namespace CaptainHook.EventHandlerActor.Handlers.Requests
 {
-    public class RequestBuilder : IRequestBuilder
+    public class DefaultRequestBuilder : IRequestBuilder
     {
         private readonly IBigBrother bb;
 
-        public RequestBuilder(IBigBrother _bb)
+        public DefaultRequestBuilder(IBigBrother _bb)
         {
             bb = _bb;
         }
@@ -25,7 +25,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
         public Uri BuildUri(WebhookConfig config, string payload)
         {
             if (config == null) throw new ArgumentNullException(nameof(config));
+            return BuildUriFromExistingConfig(config, payload);
+        }
 
+        protected virtual Uri BuildUriFromExistingConfig(WebhookConfig config, string payload)
+        {
             var uri = config.Uri;
 
             //build the uri from the routes first
@@ -44,7 +48,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
                 if (string.IsNullOrWhiteSpace(selector))
                 {
-                    PublishUnrouatableEvent("routing path value in message payload is null or empty" );
+                    PublishUnrouatableEvent("routing path value in message payload is null or empty");
                     return null;
                 }
 
