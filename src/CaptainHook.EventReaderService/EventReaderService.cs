@@ -339,8 +339,11 @@ namespace CaptainHook.EventReaderService
 
             foreach (var item in list)
             {
-                //await item.Value.Receiver.CloseAsync(); 
-                _messageReceivers.Remove(item.Key, out _);
+                _messageReceivers.Remove(item.Key, out var receiverItem);
+                if (receiverItem?.Receiver != null)
+                {
+                    await receiverItem.Receiver.CloseAsync();
+                }
             }
         }
 
