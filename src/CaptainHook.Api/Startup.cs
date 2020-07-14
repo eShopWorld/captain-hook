@@ -19,6 +19,7 @@ using Eshopworld.Telemetry.Processors;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.OpenApi.Models;
 using CaptainHook.Api.Helpers;
+using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.Api
 {
@@ -35,10 +36,9 @@ namespace CaptainHook.Api
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="env">hosting environment</param>
-        public Startup(IWebHostEnvironment env)
-        {
-            _configuration = EswDevOpsSdk.BuildConfiguration(env.ContentRootPath, env.EnvironmentName);
+        public Startup()
+        {            
+            _configuration = TempConfigLoader.Load();
             _instrumentationKey = _configuration["InstrumentationKey"];
             _bb = BigBrother.CreateDefault(_instrumentationKey, _instrumentationKey);
         }

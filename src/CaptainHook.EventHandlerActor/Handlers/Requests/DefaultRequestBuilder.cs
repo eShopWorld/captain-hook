@@ -14,11 +14,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
 {
     public class DefaultRequestBuilder : IRequestBuilder
     {
-        private readonly IBigBrother bb;
+        private readonly IBigBrother _bigBrother;
 
-        public DefaultRequestBuilder(IBigBrother _bb)
+        public DefaultRequestBuilder(IBigBrother bigBrother)
         {
-            bb = _bb;
+            _bigBrother = bigBrother;
         }
 
         /// <inheritdoc />
@@ -42,13 +42,13 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
                     selector = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
                 }
 
-                void PublishUnrouatableEvent(string message)
+                void PublishUnroutableEvent(string message)
                 {
-                    bb.Publish(new UnroutableMessageEvent { EventType = config.EventType, Selector = selector, SubscriberName = config.Name, Message = message });
+                    _bigBrother.Publish(new UnroutableMessageEvent { EventType = config.EventType, Selector = selector, SubscriberName = config.Name, Message = message });
                 }
                 if (string.IsNullOrWhiteSpace(selector))
                 {
-                    PublishUnrouatableEvent("routing path value in message payload is null or empty");
+                    PublishUnroutableEvent("routing path value in message payload is null or empty");
                     return null;
                 }
 
@@ -56,7 +56,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
                 var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(selector, StringComparison.OrdinalIgnoreCase));
                 if (route == null)
                 {
-                    PublishUnrouatableEvent("route mapping/selector not found between config and the properties on the domain object");
+                    PublishUnroutableEvent("route mapping/selector not found between config and the properties on the domain object");
                     return null;
                 }
                 uri = route.Uri;
@@ -88,7 +88,8 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
         private static string CombineUriAndResourceId(string uri, string parameter)
         {
             var position = uri.LastIndexOfSafe('/');
-            uri = position == uri.Length - 1 ? $"{uri}{parameter}" : $"{uri}/{parameter}";
+            var encodedParameter = Uri.EscapeDataString(parameter);
+            uri = position == uri.Length - 1 ? $"{uri}{encodedParameter}" : $"{uri}/{encodedParameter}";
             return uri;
         }
 
