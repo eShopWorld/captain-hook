@@ -49,7 +49,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                    new WebhookRequestRule
                    {
-                       Source = new ParserLocation
+                       Source = new SourceParserLocation
                        {
                            Path = "OrderCode"
                        },
@@ -103,7 +103,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                    new WebhookRequestRule
                    {
-                       Source = new ParserLocation
+                       Source = new SourceParserLocation
                        {
                            Path = "OrderCode"
                        },
@@ -160,7 +160,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                    new WebhookRequestRule
                    {
-                       Source = new ParserLocation
+                       Source = new SourceParserLocation
                        {
                            Path = "OrderCode"
                        },
