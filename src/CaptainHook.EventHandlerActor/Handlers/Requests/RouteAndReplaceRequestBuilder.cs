@@ -61,7 +61,8 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
                     var valueFromPayload = RetrieveValueFromPayload(value);
                     if (!string.IsNullOrEmpty(valueFromPayload))
                     {
-                        yield return new KeyValuePair<string, string>(key, valueFromPayload);
+                        var escapedValue = Uri.EscapeDataString(valueFromPayload);
+                        yield return new KeyValuePair<string, string>(key, escapedValue);
                     }
                 }
             }
