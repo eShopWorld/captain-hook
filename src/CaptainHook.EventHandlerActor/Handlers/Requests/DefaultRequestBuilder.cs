@@ -14,11 +14,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
 {
     public class DefaultRequestBuilder : IRequestBuilder
     {
-        protected readonly IBigBrother bb;
+        protected readonly IBigBrother BigBrother;
 
-        public DefaultRequestBuilder(IBigBrother _bb)
+        public DefaultRequestBuilder(IBigBrother bigBrother)
         {
-            bb = _bb;
+            BigBrother = bigBrother;
         }
 
         /// <inheritdoc />
@@ -77,7 +77,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
 
         protected void PublishUnroutableEvent(WebhookConfig config, string message, string selector = null)
         {
-            bb.Publish(new UnroutableMessageEvent
+            BigBrother.Publish(new UnroutableMessageEvent
             {
                 EventType = config.EventType,
                 Selector = selector,
@@ -95,7 +95,8 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
         private static string CombineUriAndResourceId(string uri, string parameter)
         {
             var position = uri.LastIndexOfSafe('/');
-            uri = position == uri.Length - 1 ? $"{uri}{parameter}" : $"{uri}/{parameter}";
+            var encodedParameter = Uri.EscapeDataString(parameter);
+            uri = position == uri.Length - 1 ? $"{uri}{encodedParameter}" : $"{uri}/{encodedParameter}";
             return uri;
         }
 

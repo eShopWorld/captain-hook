@@ -203,7 +203,7 @@ namespace CaptainHook.Common.Configuration
         {
             get
             {
-                return IsMainConfiguration ? "callbackconfig" : $"subscribers:{CollectionIndex+1}:callbackconfig"; //convention is 1-based index
+                return IsMainConfiguration ? "callbackconfig" : $"subscribers:{CollectionIndex+1}:callback"; //convention is 1-based index
             }
         }
     }

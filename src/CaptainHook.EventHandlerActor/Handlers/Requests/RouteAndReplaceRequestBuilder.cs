@@ -48,7 +48,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
                 catch (Exception ex)
                 {
                     // send unroutable event instead
-                    bb.Publish(ex.ToExceptionEvent());
+                    BigBrother.Publish(ex.ToExceptionEvent());
                 }
 
                 return null;
