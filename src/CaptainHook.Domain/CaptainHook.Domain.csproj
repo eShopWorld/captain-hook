@@ -15,8 +15,4 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\CaptainHook.Contract\CaptainHook.Contract.csproj" />
-  </ItemGroup>
-
 </Project>
