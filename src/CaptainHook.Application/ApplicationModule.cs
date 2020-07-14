@@ -1,14 +1,14 @@
-﻿using Autofac;
-using CaptainHook.Domain.Handlers.Subscribers;
-using CaptainHook.Domain.RequestValidators;
+﻿using System.Reflection;
+using Autofac;
+using CaptainHook.Application.Handlers.Subscribers;
+using CaptainHook.Application.Infrastructure;
+using CaptainHook.Application.RequestValidators;
 using FluentValidation;
 using MediatR;
-using System.Reflection;
-using CaptainHook.Domain.Infrastructure;
 
-namespace CaptainHook.Domain
+namespace CaptainHook.Application
 {
-    public class DomainModule : Autofac.Module
+    public class ApplicationModule : Autofac.Module
     {
         protected override void Load(ContainerBuilder builder)
         {

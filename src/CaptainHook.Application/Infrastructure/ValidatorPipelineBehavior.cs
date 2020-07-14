@@ -8,7 +8,7 @@ using CaptainHook.Domain.Results;
 using FluentValidation;
 using MediatR;
 
-namespace CaptainHook.Domain.Infrastructure
+namespace CaptainHook.Application.Infrastructure
 {
     public class ValidatorPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     {

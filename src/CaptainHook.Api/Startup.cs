@@ -4,6 +4,7 @@ using System.Reflection;
 using Autofac;
 using CaptainHook.Api.Core;
 using CaptainHook.Api.Helpers;
+using CaptainHook.Application;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Domain;
@@ -63,7 +64,7 @@ namespace CaptainHook.Api
             builder.RegisterType<SuccessfulProbeFilterCriteria>()
                 .As<ITelemetryFilterCriteria>();
 
-            builder.RegisterModule<DomainModule>();
+            builder.RegisterModule<ApplicationModule>();
             builder.RegisterModule<CosmosDbStorageModule>();
             builder.RegisterModule<KeyVaultModule>();
             builder.RegisterModule<CosmosDbModule>();

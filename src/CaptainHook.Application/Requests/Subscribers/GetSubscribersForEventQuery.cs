@@ -3,7 +3,7 @@ using CaptainHook.Contract;
 using CaptainHook.Domain.Results;
 using MediatR;
 
-namespace CaptainHook.Domain.Requests.Subscribers
+namespace CaptainHook.Application.Requests.Subscribers
 {
     public class GetSubscribersForEventQuery : IRequest<EitherErrorOr<List<SubscriberDto>>>
     {

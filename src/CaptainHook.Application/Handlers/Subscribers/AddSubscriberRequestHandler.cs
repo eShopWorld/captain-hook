@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Domain.Errors;
-using CaptainHook.Domain.Requests;
-using CaptainHook.Domain.Requests.Subscribers;
 using CaptainHook.Domain.Results;
 using MediatR;
 
-namespace CaptainHook.Domain.Handlers.Subscribers
+namespace CaptainHook.Application.Handlers.Subscribers
 {
     public class AddSubscriberRequestHandler : IRequestHandler<AddSubscriberRequest, EitherErrorOr<Guid>>
     {

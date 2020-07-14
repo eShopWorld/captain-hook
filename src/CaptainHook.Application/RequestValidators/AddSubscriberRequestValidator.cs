@@ -1,8 +1,7 @@
-﻿using CaptainHook.Domain.Requests;
-using CaptainHook.Domain.Requests.Subscribers;
+﻿using CaptainHook.Application.Requests.Subscribers;
 using FluentValidation;
 
-namespace CaptainHook.Domain.RequestValidators
+namespace CaptainHook.Application.RequestValidators
 {
     public class AddSubscriberRequestValidator : AbstractValidator<AddSubscriberRequest>
     {

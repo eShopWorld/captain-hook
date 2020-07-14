@@ -2,14 +2,14 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
-using CaptainHook.Domain.Requests.Subscribers;
 using CaptainHook.Domain.Results;
 using MediatR;
 
-namespace CaptainHook.Domain.Handlers.Subscribers
+namespace CaptainHook.Application.Handlers.Subscribers
 {
     public class GetSubscribersForEventQueryHandler : IRequestHandler<GetSubscribersForEventQuery, EitherErrorOr<List<SubscriberDto>>>
     {
