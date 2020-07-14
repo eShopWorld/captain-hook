@@ -302,6 +302,72 @@ namespace CaptainHook.Tests.Configuration
                         },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
                     "https://blah.blah.brand3.eshopworld.com/webhook"
+                },
+                new object[]
+                {
+                    new WebhookConfig
+                        {
+                            Name = "Webhook5",
+                            HttpMethod = HttpMethod.Post,
+                            Uri = "https://blah.blah.eshopworld.com/webhook/",
+                            WebhookRequestRules = new List<WebhookRequestRule>
+                            {
+                                new WebhookRequestRule
+                                {
+                                    Source = new ParserLocation
+                                    {
+                                        Path = "OrderCode"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        Location = Location.Uri
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Source = new ParserLocation
+                                    {
+                                        Path = "BrandType"
+                                    },
+                                    Destination = new ParserLocation
+                                    {
+                                        RuleAction = RuleAction.Route
+                                    },
+                                    Routes = new List<WebhookConfigRoute>
+                                    {
+                                        new WebhookConfigRoute
+                                        {
+                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
+                                            HttpMethod = HttpMethod.Post,
+                                            Selector = "Brand1",
+                                            AuthenticationConfig = new AuthenticationConfig
+                                            {
+                                                Type = AuthenticationType.None
+                                            }
+                                        },
+                                        new WebhookConfigRoute
+                                        {
+                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
+                                            HttpMethod = HttpMethod.Put,
+                                            Selector = "Brand2",
+                                            AuthenticationConfig = new AuthenticationConfig
+                                            {
+                                                Type = AuthenticationType.None
+                                            }
+                                        }
+                                    }
+                                },
+                                new WebhookRequestRule
+                                {
+                                    Source = new ParserLocation
+                                    {
+                                        Path = "OrderConfirmationRequestDto"
+                                    }
+                                }
+                            }
+                        },
+                    "{\"OrderCode\":\"DEV13:00026804\", \"BrandType\":\"Brand1\"}",
+                    "https://blah.blah.brand1.eshopworld.com/webhook/DEV13%3A00026804"
                 }
             };
 
