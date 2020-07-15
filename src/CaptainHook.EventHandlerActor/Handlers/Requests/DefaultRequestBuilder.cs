@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -238,6 +238,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
         {
             if (webhookConfig == null) throw new ArgumentNullException(nameof(webhookConfig));
 
+            return SelectWebhookConfigCore(webhookConfig, payload);
+        }
+
+        protected virtual WebhookConfig SelectWebhookConfigCore(WebhookConfig webhookConfig, string payload)
+        {
             var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Destination.RuleAction == RuleAction.Route);
             if (rules == null)
             {
