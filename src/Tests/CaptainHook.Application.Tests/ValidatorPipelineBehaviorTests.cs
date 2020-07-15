@@ -34,7 +34,7 @@ namespace CaptainHook.Application.Tests
 
             var result = await _mediator.Send(request);
 
-            result.Should().BeOfType<EitherErrorOr<DivideResult>>().Which.IsError.Should().BeTrue();
+            result.Should().BeOfType<OperationResult<DivideResult>>().Which.IsError.Should().BeTrue();
         }
 
         [Fact, IsUnit]
@@ -44,11 +44,11 @@ namespace CaptainHook.Application.Tests
 
             var result = await _mediator.Send(request);
 
-            result.Should().BeOfType<EitherErrorOr<DivideResult>>().Which.IsError.Should().BeFalse();
+            result.Should().BeOfType<OperationResult<DivideResult>>().Which.IsError.Should().BeFalse();
         }
 
 
-        public class DivideRequest : IRequest<EitherErrorOr<DivideResult>>
+        public class DivideRequest : IRequest<OperationResult<DivideResult>>
         {
             public double Dividend { get; set; }
             public double Divisor { get; set; }
@@ -59,9 +59,9 @@ namespace CaptainHook.Application.Tests
             public double Quotient { get; set; }
         }
 
-        private class DivideRequestHandler : IRequestHandler<DivideRequest, EitherErrorOr<DivideResult>>
+        private class DivideRequestHandler : IRequestHandler<DivideRequest, OperationResult<DivideResult>>
         {
-            public async Task<EitherErrorOr<DivideResult>> Handle(DivideRequest request, CancellationToken cancellationToken)
+            public async Task<OperationResult<DivideResult>> Handle(DivideRequest request, CancellationToken cancellationToken)
             {
                 return new DivideResult { Quotient = request.Dividend / request.Divisor };
             }

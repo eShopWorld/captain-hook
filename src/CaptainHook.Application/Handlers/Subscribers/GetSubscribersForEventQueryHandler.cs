@@ -11,7 +11,7 @@ using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
-    public class GetSubscribersForEventQueryHandler : IRequestHandler<GetSubscribersForEventQuery, EitherErrorOr<List<SubscriberDto>>>
+    public class GetSubscribersForEventQueryHandler : IRequestHandler<GetSubscribersForEventQuery, OperationResult<List<SubscriberDto>>>
     {
         private readonly ISubscriberRepository _repository;
 
@@ -20,7 +20,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             _repository = repository;
         }
 
-        public async Task<EitherErrorOr<List<SubscriberDto>>> Handle(GetSubscribersForEventQuery query, CancellationToken cancellationToken)
+        public async Task<OperationResult<List<SubscriberDto>>> Handle(GetSubscribersForEventQuery query, CancellationToken cancellationToken)
         {
             if (query.Name == "error")
             {

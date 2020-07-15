@@ -2,18 +2,18 @@
 
 namespace CaptainHook.Domain.Results
 {
-    public class EitherErrorOr<TData>
+    public class OperationResult<TData>
     {
         public ErrorBase Error { get; }
         public TData Data { get; }
         public bool IsError => Error != null;
 
-        public EitherErrorOr(ErrorBase error)
+        public OperationResult(ErrorBase error)
         {
             Error = error;
         }
 
-        public EitherErrorOr(TData data)
+        public OperationResult(TData data)
         {
             Data = data;
         }
@@ -23,18 +23,18 @@ namespace CaptainHook.Domain.Results
             return IsError ? leftFunc(Error) : rightFunc(Data);
         }
 
-        public EitherErrorOr<TResult> IfValid<TResult>(Func<TData, TResult> action)
+        public OperationResult<TResult> IfValid<TResult>(Func<TData, TResult> action)
         {
             if (action == null)
             {
                 throw new ArgumentNullException(nameof(action));
             }
 
-            return !IsError ? (EitherErrorOr<TResult>) action(Data) : Error;
+            return !IsError ? (OperationResult<TResult>) action(Data) : Error;
         }
 
-        public static implicit operator EitherErrorOr<TData>(ErrorBase error) => new EitherErrorOr<TData>(error);
+        public static implicit operator OperationResult<TData>(ErrorBase error) => new OperationResult<TData>(error);
 
-        public static implicit operator EitherErrorOr<TData>(TData data) => new EitherErrorOr<TData>(data);
+        public static implicit operator OperationResult<TData>(TData data) => new OperationResult<TData>(data);
     }
 }

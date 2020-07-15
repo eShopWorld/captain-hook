@@ -8,9 +8,9 @@ using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
-    public class AddSubscriberRequestHandler : IRequestHandler<AddSubscriberRequest, EitherErrorOr<Guid>>
+    public class AddSubscriberRequestHandler : IRequestHandler<AddSubscriberRequest, OperationResult<Guid>>
     {
-        public async Task<EitherErrorOr<Guid>> Handle(AddSubscriberRequest request, CancellationToken cancellationToken)
+        public async Task<OperationResult<Guid>> Handle(AddSubscriberRequest request, CancellationToken cancellationToken)
         {
             if (request.Name == "error")
             {

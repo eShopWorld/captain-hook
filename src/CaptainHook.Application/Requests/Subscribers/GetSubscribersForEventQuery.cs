@@ -5,7 +5,7 @@ using MediatR;
 
 namespace CaptainHook.Application.Requests.Subscribers
 {
-    public class GetSubscribersForEventQuery : IRequest<EitherErrorOr<List<SubscriberDto>>>
+    public class GetSubscribersForEventQuery : IRequest<OperationResult<List<SubscriberDto>>>
     {
         public string Name { get; set; }
     }
