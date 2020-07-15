@@ -9,7 +9,6 @@ using TokenCredential = Azure.Core.TokenCredential;
 
 namespace CaptainHook.Common.Configuration.KeyVault
 {
-
     internal class AzureServiceTokenCredential : TokenCredential
     {
         public override async ValueTask<AccessToken> GetTokenAsync (TokenRequestContext requestContext, CancellationToken cancellationToken)

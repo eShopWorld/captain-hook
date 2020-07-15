@@ -12,7 +12,7 @@ namespace CaptainHook.Domain.Repositories
         /// </summary>
         /// <param name="eventName">The event name</param>
         /// <returns></returns>
-        public Task<OperationResult<List<SubscriberEntity>>> GetSubscribersListAsync(string eventName);
+        public Task<OperationResult<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName);
 
         /// <summary>
         /// Get all the subscribers

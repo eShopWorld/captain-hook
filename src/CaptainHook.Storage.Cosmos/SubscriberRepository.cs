@@ -50,7 +50,7 @@ namespace CaptainHook.Storage.Cosmos
                 .ToList();
         }
 
-        public async Task<OperationResult<List<SubscriberEntity>>> GetSubscribersListAsync(string eventName)
+        public async Task<OperationResult<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName)
         {
             if (string.IsNullOrWhiteSpace(eventName))
             {
