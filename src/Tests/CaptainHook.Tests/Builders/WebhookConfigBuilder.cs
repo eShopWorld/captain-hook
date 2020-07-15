@@ -57,6 +57,17 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
+        public WebhookConfigBuilder SetWebhookRequestRule(Action<WebhookRequestRuleBuilder> ruleBuilder)
+        {            
+            var builder = new WebhookRequestRuleBuilder();
+            ruleBuilder(builder);
+            _webhookRequestRules = new List<WebhookRequestRule>
+            {
+                builder.Create()
+            };
+            return this;
+        }
+
         public WebhookConfigBuilder AddWebhookRequestRule(Action<WebhookRequestRuleBuilder> ruleBuilder)
         {
             if (_webhookRequestRules == null)

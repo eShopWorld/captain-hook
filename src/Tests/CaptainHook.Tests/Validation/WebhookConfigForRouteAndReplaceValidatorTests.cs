@@ -15,11 +15,12 @@ namespace CaptainHook.Tests.Validation
         private static WebhookConfigBuilder GetValidWebhookConfigBuilder()
         {
             var webhookConfigBuilder = new WebhookConfigBuilder()
-                .AddWebhookRequestRule(rb => rb
+                .SetWebhookRequestRule(rb => rb
                     .WithSource(sb => sb
                         .WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace)
                         .AddReplace("selector", "something"))
-                    .WithDestination(ruleAction: RuleAction.RouteAndReplace));
+                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                );
 
             return webhookConfigBuilder;
         }
@@ -27,16 +28,12 @@ namespace CaptainHook.Tests.Validation
         [Fact, IsUnit]
         public void When_WebhookConfig_is_valid_for_RouteAndReplace_then_no_failures_should_be_returned()
         {
-            var webhookConfigBuilder = GetValidWebhookConfigBuilder();
-
-            var webhookConfig = webhookConfigBuilder.Create();
+            var webhookConfig = GetValidWebhookConfigBuilder().Create();
 
             var result = _validator.Validate(webhookConfig);
 
             result.IsValid.Should().BeTrue();
         }
-
-
 
         [Theory, IsUnit]
         [InlineData(RuleAction.Add)]
@@ -44,14 +41,14 @@ namespace CaptainHook.Tests.Validation
         [InlineData(RuleAction.Route)]
         public void When_no_Rule_has_Destination_RuleAction_set_to_RouteAndReplace_then_validation_should_fail(RuleAction ruleAction)
         {
-            var webhookConfig = new WebhookConfigBuilder()
-                .AddWebhookRequestRule(rb => rb.WithDestination(ruleAction: ruleAction))
+            var webhookConfig = GetValidWebhookConfigBuilder()
+                .SetWebhookRequestRule(rb => rb.WithDestination(ruleAction: ruleAction))
                 .Create();
 
             var result = _validator.Validate(webhookConfig);
 
             result.IsValid.Should().BeFalse();
-            result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(WebhookRequestRule.Destination));
+            result.Errors.Count.Should().Be(1);
         }
 
         [Fact, IsUnit]
