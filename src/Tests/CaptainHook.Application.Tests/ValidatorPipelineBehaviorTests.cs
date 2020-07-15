@@ -1,3 +1,4 @@
+using Eshopworld.Tests.Core;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,17 +27,17 @@ namespace CaptainHook.Application.Tests
             _mediator = container.Resolve<IMediator>();
         }
 
-        [Fact]
+        [Fact, IsUnit]
         public async void For_invalid_request_should_call_validator_and_return_Error()
         {
             var request = new DivideRequest { Dividend = 6, Divisor = 0 };
 
-            var result =await _mediator.Send(request);
+            var result = await _mediator.Send(request);
 
             result.Should().BeOfType<EitherErrorOr<DivideResult>>().Which.IsError.Should().BeTrue();
         }
 
-        [Fact]
+        [Fact, IsUnit]
         public async void For_valid_request_should_call_validator_and_return_data()
         {
             var request = new DivideRequest { Dividend = 6, Divisor = 2 };
