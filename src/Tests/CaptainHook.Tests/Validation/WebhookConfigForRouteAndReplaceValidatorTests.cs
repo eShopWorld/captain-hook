@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Validation;
 using CaptainHook.Tests.Builders;
@@ -41,9 +42,10 @@ namespace CaptainHook.Tests.Validation
         [InlineData(RuleAction.Route)]
         public void When_no_Rule_has_Destination_RuleAction_set_to_RouteAndReplace_then_validation_should_fail(RuleAction ruleAction)
         {
-            var webhookConfig = GetValidWebhookConfigBuilder()
-                .SetWebhookRequestRule(rb => rb.WithDestination(ruleAction: ruleAction))
-                .Create();
+            var webhookConfig = GetValidWebhookConfigBuilder().Create();
+            webhookConfig.WebhookRequestRules[0].Destination.RuleAction = ruleAction;
+                //.SetWebhookRequestRule(rb => rb.WithDestination(ruleAction: ruleAction))
+                //.Create();
 
             var result = _validator.Validate(webhookConfig);
 
@@ -54,31 +56,49 @@ namespace CaptainHook.Tests.Validation
         [Fact, IsUnit]
         public void When_Replace_does_not_contain_an_item_with_key_selector_then_validation_should_fail()
         {
-            var webhookConfig = new WebhookConfigBuilder()
-                .AddWebhookRequestRule(rb => rb
-                   .WithSource(sb => sb.WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace).AddReplace("not-selector", "something"))
-                   .WithDestination(ruleAction: RuleAction.RouteAndReplace))
-               .Create();
+            var webhookConfig = GetValidWebhookConfigBuilder().Create();
+            webhookConfig.WebhookRequestRules[0].Source.Replace = new Dictionary<string, string>
+            {
+                ["not-selector"] = "something"
+            };
+                
+               // new WebhookConfigBuilder()
+               // .AddWebhookRequestRule(rb => rb
+               //    .WithSource(sb => sb.WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace).AddReplace("not-selector", "something"))
+               //    .WithDestination(ruleAction: RuleAction.RouteAndReplace))
+               //.Create();
 
             var result = _validator.Validate(webhookConfig);
 
             result.IsValid.Should().BeFalse();
-            result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(SourceParserLocation.Replace));
+            result.Errors.Count.Should().Be(1);
+
+            //result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(SourceParserLocation.Replace));
         }
 
-        [Fact, IsUnit]
-        public void When_Replace_contains_an_item_with_key_selector_but_with_empty_value_then_validation_should_fail()
+        [Theory, IsUnit]
+        [InlineData(null)]
+        [InlineData("")]
+        public void When_Replace_contains_an_item_with_key_selector_but_with_empty_value_then_validation_should_fail(string invalidValue)
         {
-            var webhookConfig = new WebhookConfigBuilder()
-              .AddWebhookRequestRule(rb => rb
-                 .WithSource(sb => sb.WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace).AddReplace("selector", string.Empty))
-                 .WithDestination(ruleAction: RuleAction.RouteAndReplace))
-             .Create();
+            var webhookConfig = GetValidWebhookConfigBuilder().Create();
+            webhookConfig.WebhookRequestRules[0].Source.Replace = new Dictionary<string, string>
+            {
+                ["selector"] = invalidValue
+            };
+
+            //var webhookConfig = new WebhookConfigBuilder()
+            //  .AddWebhookRequestRule(rb => rb
+            //     .WithSource(sb => sb.WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace).AddReplace("selector", string.Empty))
+            //     .WithDestination(ruleAction: RuleAction.RouteAndReplace))
+            // .Create();
 
             var result = _validator.Validate(webhookConfig);
 
             result.IsValid.Should().BeFalse();
-            result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(SourceParserLocation.Replace));
+            result.Errors.Count.Should().Be(1);
+
+            //result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(SourceParserLocation.Replace));
         }
 
         [Fact, IsUnit]
