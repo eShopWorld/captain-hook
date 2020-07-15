@@ -17,6 +17,8 @@ namespace CaptainHook.EventHandlerActor.Validation
                     rules.Any(rule => rule.Destination?.RuleAction == RuleAction.RouteAndReplace)
                     && rules.Any(rule => rule.Source.Replace.Any(kvp => kvp.Key == "selector" && !string.IsNullOrEmpty(kvp.Value)))
                 );
+
+            RuleForEach(x => x.WebhookRequestRules).Must(rule => rule.Source.Location == Location.Body);
         }
     }
 

@@ -44,8 +44,6 @@ namespace CaptainHook.Tests.Validation
         {
             var webhookConfig = GetValidWebhookConfigBuilder().Create();
             webhookConfig.WebhookRequestRules[0].Destination.RuleAction = ruleAction;
-                //.SetWebhookRequestRule(rb => rb.WithDestination(ruleAction: ruleAction))
-                //.Create();
 
             var result = _validator.Validate(webhookConfig);
 
@@ -61,19 +59,11 @@ namespace CaptainHook.Tests.Validation
             {
                 ["not-selector"] = "something"
             };
-                
-               // new WebhookConfigBuilder()
-               // .AddWebhookRequestRule(rb => rb
-               //    .WithSource(sb => sb.WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace).AddReplace("not-selector", "something"))
-               //    .WithDestination(ruleAction: RuleAction.RouteAndReplace))
-               //.Create();
 
             var result = _validator.Validate(webhookConfig);
 
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
-
-            //result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(SourceParserLocation.Replace));
         }
 
         [Theory, IsUnit]
@@ -87,24 +77,26 @@ namespace CaptainHook.Tests.Validation
                 ["selector"] = invalidValue
             };
 
-            //var webhookConfig = new WebhookConfigBuilder()
-            //  .AddWebhookRequestRule(rb => rb
-            //     .WithSource(sb => sb.WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace).AddReplace("selector", string.Empty))
-            //     .WithDestination(ruleAction: RuleAction.RouteAndReplace))
-            // .Create();
+            var result = _validator.Validate(webhookConfig);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Count.Should().Be(1);
+        }
+
+        [Theory, IsUnit]
+        [InlineData(Location.Uri)]
+        [InlineData(Location.Header)]
+        [InlineData(Location.HttpContent)]
+        [InlineData(Location.HttpStatusCode)]
+        public void When_Source_Location_is_not_Body_then_validation_should_fail(Location location)
+        {
+            var webhookConfig = GetValidWebhookConfigBuilder().Create();
+            webhookConfig.WebhookRequestRules[0].Source.Location = location;
 
             var result = _validator.Validate(webhookConfig);
 
             result.IsValid.Should().BeFalse();
             result.Errors.Count.Should().Be(1);
-
-            //result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(SourceParserLocation.Replace));
-        }
-
-        [Fact, IsUnit]
-        public void When_Source_Location_is_not_Body_then_validation_should_fail()
-        {
-
         }
 
         [Fact, IsUnit]
