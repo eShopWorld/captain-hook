@@ -1,4 +1,5 @@
-﻿using CaptainHook.Common.Configuration;
+﻿using System.Linq;
+using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Validation;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Tests.Core;
@@ -11,36 +12,76 @@ namespace CaptainHook.Tests.Validation
     {
         private readonly WebhookConfigForRouteAndReplaceValidator _validator = new WebhookConfigForRouteAndReplaceValidator();
 
+        private static WebhookConfigBuilder GetValidWebhookConfigBuilder()
+        {
+            var webhookConfigBuilder = new WebhookConfigBuilder()
+                .AddWebhookRequestRule(rb => rb
+                    .WithSource(sb => sb
+                        .WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace)
+                        .AddReplace("selector", "something"))
+                    .WithDestination(ruleAction: RuleAction.RouteAndReplace));
+
+            return webhookConfigBuilder;
+        }
+
         [Fact, IsUnit]
         public void When_WebhookConfig_is_valid_for_RouteAndReplace_then_no_failures_should_be_returned()
         {
-            var webhookConfig = new WebhookConfigBuilder().Create();
+            var webhookConfigBuilder = GetValidWebhookConfigBuilder();
+
+            var webhookConfig = webhookConfigBuilder.Create();
 
             var result = _validator.Validate(webhookConfig);
 
             result.IsValid.Should().BeTrue();
         }
 
-        [Fact, IsUnit]
-        public void When_no_Rule_has_Destination_RuleAction_set_to_RouteAndReplace_then_validation_should_fail()
+
+
+        [Theory, IsUnit]
+        [InlineData(RuleAction.Add)]
+        [InlineData(RuleAction.Replace)]
+        [InlineData(RuleAction.Route)]
+        public void When_no_Rule_has_Destination_RuleAction_set_to_RouteAndReplace_then_validation_should_fail(RuleAction ruleAction)
         {
-            var webhookConfig = new WebhookConfigBuilder().Create();
+            var webhookConfig = new WebhookConfigBuilder()
+                .AddWebhookRequestRule(rb => rb.WithDestination(ruleAction: ruleAction))
+                .Create();
 
             var result = _validator.Validate(webhookConfig);
 
             result.IsValid.Should().BeFalse();
+            result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(WebhookRequestRule.Destination));
         }
 
         [Fact, IsUnit]
         public void When_Replace_does_not_contain_an_item_with_key_selector_then_validation_should_fail()
         {
+            var webhookConfig = new WebhookConfigBuilder()
+                .AddWebhookRequestRule(rb => rb
+                   .WithSource(sb => sb.WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace).AddReplace("not-selector", "something"))
+                   .WithDestination(ruleAction: RuleAction.RouteAndReplace))
+               .Create();
 
+            var result = _validator.Validate(webhookConfig);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(SourceParserLocation.Replace));
         }
 
         [Fact, IsUnit]
         public void When_Replace_contains_an_item_with_key_selector_but_with_empty_value_then_validation_should_fail()
         {
+            var webhookConfig = new WebhookConfigBuilder()
+              .AddWebhookRequestRule(rb => rb
+                 .WithSource(sb => sb.WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace).AddReplace("selector", string.Empty))
+                 .WithDestination(ruleAction: RuleAction.RouteAndReplace))
+             .Create();
 
+            var result = _validator.Validate(webhookConfig);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().ContainSingle(failure => failure.PropertyName == nameof(SourceParserLocation.Replace));
         }
 
         [Fact, IsUnit]
