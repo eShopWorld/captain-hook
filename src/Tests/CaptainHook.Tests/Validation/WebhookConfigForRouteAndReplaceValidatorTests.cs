@@ -16,11 +16,15 @@ namespace CaptainHook.Tests.Validation
         private static WebhookConfigBuilder GetValidWebhookConfigBuilder()
         {
             var webhookConfigBuilder = new WebhookConfigBuilder()
-                .SetWebhookRequestRule(rb => rb
-                    .WithSource(sb => sb
+                .SetWebhookRequestRule(ruleBuilder => ruleBuilder
+                    .WithSource(sourceBuilder => sourceBuilder
                         .WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace)
-                        .AddReplace("selector", "something"))
+                        .AddReplace("selector", "something")
+                        .AddReplace("action", "something-else")
+                        .AddReplace("orderCode", "other-value")
+                    )
                     .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                    .AddRoute(routeBuilder => routeBuilder.WithUri("https://api-{selector}.company.com/api/v2/{action}/Put/{orderCode}"))
                 );
 
             return webhookConfigBuilder;
@@ -67,23 +71,6 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Theory, IsUnit]
-        [InlineData(null)]
-        [InlineData("")]
-        public void When_Replace_contains_an_item_with_key_selector_but_with_empty_value_then_validation_should_fail(string invalidValue)
-        {
-            var webhookConfig = GetValidWebhookConfigBuilder().Create();
-            webhookConfig.WebhookRequestRules[0].Source.Replace = new Dictionary<string, string>
-            {
-                ["selector"] = invalidValue
-            };
-
-            var result = _validator.Validate(webhookConfig);
-
-            result.IsValid.Should().BeFalse();
-            result.Errors.Count.Should().Be(1);
-        }
-
-        [Theory, IsUnit]
         [InlineData(Location.Uri)]
         [InlineData(Location.Header)]
         [InlineData(Location.HttpContent)]
@@ -99,15 +86,40 @@ namespace CaptainHook.Tests.Validation
             result.Errors.Count.Should().Be(1);
         }
 
-        [Fact, IsUnit]
-        public void When_Replace_contains_empty_values_then_validation_should_fail()
+        [Theory, IsUnit]
+        [InlineData("selector", null)]
+        [InlineData("selector", "")]
+        [InlineData("non-selector", null)]
+        [InlineData("non-selector", "")]
+        public void When_Replace_contains_empty_values_then_validation_should_fail(string key, string invalidValue)
         {
+            var webhookConfig = GetValidWebhookConfigBuilder().Create();
+            webhookConfig.WebhookRequestRules[0].Source.Replace = new Dictionary<string, string>
+            {
+                [key] = invalidValue
+            };
 
+            var result = _validator.Validate(webhookConfig);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Count.Should().Be(1);
         }
 
-        [Fact, IsUnit]
+        [Fact(Skip = "verify if needed"), IsUnit]
         public void When_Replace_does_not_contain_key_which_exist_in_Route_Uri_then_validation_should_fail()
         {
+            var webhookConfig = GetValidWebhookConfigBuilder().Create();
+            webhookConfig.WebhookRequestRules[0].Routes[0].Uri = "https://test-api-{selector}.company.com/api/v2/{action-WebHook}/Put/{orderCode}";
+            webhookConfig.WebhookRequestRules[0].Source.Replace = new Dictionary<string, string>
+            {
+                ["selector"] = "something",
+                ["action"] = "other-action"
+            };
+
+            var result = _validator.Validate(webhookConfig);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Count.Should().Be(1);
         }
 
         [Fact, IsUnit]

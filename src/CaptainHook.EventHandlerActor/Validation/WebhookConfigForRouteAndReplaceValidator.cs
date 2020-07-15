@@ -12,13 +12,17 @@ namespace CaptainHook.EventHandlerActor.Validation
         {
             //RuleFor(x => x.WebhookRequestRules).SetValidator(new WebhookRequestRulesValidator());
 
+            //RuleFor(x => x.WebhookRequestRules).Must((config, list, arg3) => { } )
+
             RuleFor(x => x.WebhookRequestRules)
                 .Must(rules =>
                     rules.Any(rule => rule.Destination?.RuleAction == RuleAction.RouteAndReplace)
-                    && rules.Any(rule => rule.Source.Replace.Any(kvp => kvp.Key == "selector" && !string.IsNullOrEmpty(kvp.Value)))
+                    && rules.All(rule => rule.Source.Replace.ContainsKey("selector"))
                 );
 
-            RuleForEach(x => x.WebhookRequestRules).Must(rule => rule.Source.Location == Location.Body);
+            RuleForEach(x => x.WebhookRequestRules).SetValidator(new WebhookRequestRuleValidator());
+
+            //RuleForEach(x => x.WebhookRequestRules).Must(rule => rule.Source.Location == Location.Body);
         }
     }
 
@@ -28,24 +32,27 @@ namespace CaptainHook.EventHandlerActor.Validation
         {
             RuleFor(rules =>
                 rules.Any(rule => rule.Destination.RuleAction == RuleAction.RouteAndReplace)
-                //&& rules.Any(rule => rule.Source.Replace.Any(x => x.Key == "selector"))
+                && rules.Any(rule => rule.Source.Replace.Any(kvp => kvp.Key == "selector" && !string.IsNullOrEmpty(kvp.Value)))
                 );
+
+            //RuleForEach(rules => rules).Must(rule => rule.Source.Location == Location.Body);
         }
     }
 
-    //public class WebhookRequestRuleValidator : AbstractValidator<WebhookRequestRule>
-    //{
-    //    public WebhookRequestRuleValidator()
-    //    {
-    //        RuleFor(x => x.Source).NotNull().SetValidator(new SourceParserLocationValidator());
-    //    }
-    //}
+    public class WebhookRequestRuleValidator : AbstractValidator<WebhookRequestRule>
+    {
+        public WebhookRequestRuleValidator()
+        {
+            //RuleFor(x => x.Source.Location).Equal(Location.Body);
+            RuleFor(x => x.Source).NotNull().SetValidator(new SourceParserLocationValidator());
+        }
+    }
 
-    //public class SourceParserLocationValidator : AbstractValidator<SourceParserLocation>
-    //{
-    //    public SourceParserLocationValidator()
-    //    {
-    //        RuleFor(x => x.)
-    //    }
-    //}
+    public class SourceParserLocationValidator : AbstractValidator<SourceParserLocation>
+    {
+        public SourceParserLocationValidator()
+        {
+            RuleFor(x => x.Location).Equal(Location.Body);
+        }
+    }
 }
