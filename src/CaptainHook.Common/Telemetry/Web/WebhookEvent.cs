@@ -11,7 +11,7 @@ namespace CaptainHook.Common.Telemetry.Web
         {
         }
 
-        public WebhookEvent(string eventHandlerActorId, string type, string message, string uri, HttpMethod httpMethod, HttpStatusCode statusCode, string correlationId)
+        public WebhookEvent(string eventHandlerActorId, string type, string message, string uri, HttpMethod httpMethod, HttpStatusCode statusCode, string correlationId, string webhookRules)
         {
             EventHandlerActorId = eventHandlerActorId;
             Type = type;
@@ -20,6 +20,7 @@ namespace CaptainHook.Common.Telemetry.Web
             Message = message;
             StatusCode = statusCode;
             CorrelationId = correlationId;
+            WebhookRules = webhookRules;
         }
 
         public string EventHandlerActorId { get; set; }
@@ -35,5 +36,10 @@ namespace CaptainHook.Common.Telemetry.Web
         public HttpStatusCode StatusCode { get; set; }
 
         public string CorrelationId { get; set; }
+
+        /// <summary>
+        /// Without routes information, just source/dest rules
+        /// </summary>
+        public string WebhookRules { get; set; }
     }
 }

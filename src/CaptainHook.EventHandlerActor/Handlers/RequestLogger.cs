@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
+using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers
 {
@@ -25,11 +28,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
             HttpClient httpClient,
             HttpResponseMessage response,
             MessageData messageData,
+            string actualPayload,
             Uri uri,
             HttpMethod httpMethod,
-            WebHookHeaders headers
+            WebHookHeaders headers,
+            WebhookConfig config
         )
         {
+            var webhookRules = CollectRules (config);
+
             if (response.IsSuccessStatusCode)
             {
                 // request was successful
@@ -40,7 +47,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     uri.AbsoluteUri,
                     httpMethod,
                     response.StatusCode,
-                    messageData.CorrelationId));
+                    messageData.CorrelationId,
+                    webhookRules));
             }
             else
             {
@@ -50,17 +58,25 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     response.Headers.ToString(),
                     messageData.Payload ?? string.Empty,
                     await GetPayloadAsync(response),
+                    actualPayload,
                     messageData.EventHandlerActorId,
                     messageData.Type,
                     $"Response status code {response.StatusCode}",
                     uri.AbsoluteUri,
                     httpMethod,
                     response.StatusCode,
-                    messageData.CorrelationId)
+                    messageData.CorrelationId,
+                    webhookRules)
                 {
                     AuthToken = response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? headers?.RequestHeaders?[Constants.Headers.Authorization] : string.Empty
                 });
             }
+        }
+
+        private string CollectRules (WebhookConfig config)
+        {
+            var list = config?.WebhookRequestRules?.Select (rule => (src: rule.Source, dest: rule.Destination)).ToArray ();
+            return list == null ? null: JsonConvert.SerializeObject (list, Formatting.None);
         }
 
         private static async Task<string> GetPayloadAsync(HttpResponseMessage response)
