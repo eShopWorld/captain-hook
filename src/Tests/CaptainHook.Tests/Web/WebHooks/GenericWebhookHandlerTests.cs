@@ -178,7 +178,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var dlqEndpointRequest = mockHttp.Expect(HttpMethod.Put, $"{config.Uri}/{metaData["OrderCode"]}")
                 .With((m) =>
                 {
-                //check event type header
+                    //check event type header
                     IEnumerable<string> evTypeValues = new List<string>();
                     var evType = m.Headers.TryGetValues(Constants.Headers.EventType, out evTypeValues);
                     evTypeValues.Should().Contain(typeof(NewtonsoftDeliveryStatusMessage).FullName.ToLowerInvariant());
@@ -215,7 +215,7 @@ namespace CaptainHook.Tests.Web.WebHooks
         }
 
         [Fact, IsUnit]
-        public async Task CallAsync_WithModelTransformWithoutRoutes_CreatesCorrectPayload ()
+        public async Task CallAsync_WithModelTransformWithoutRoutes_CreatesCorrectPayload()
         {
             var payloadStr = @"
         {""TenantCode"":""TARTEC"",
@@ -232,12 +232,13 @@ namespace CaptainHook.Tests.Web.WebHooks
             ""CallerFilePath"":null,
             ""CallerLineNumber"":0
         }";
-            var jPayload = JsonConvert.DeserializeObject (payloadStr) as JObject;
-            var payload = JsonConvert.SerializeObject (jPayload, Formatting.None);
+            var jPayload = JsonConvert.DeserializeObject(payloadStr) as JObject;
+            var payload = JsonConvert.SerializeObject(jPayload, Formatting.None);
 
-            var messageData = new MessageData (payload, "test-type", "invoice", "replyTo") { 
-                CorrelationId = Guid.NewGuid ().ToString (),
-                ServiceBusMessageId = Guid.NewGuid ().ToString ()
+            var messageData = new MessageData(payload, "test-type", "invoice", "replyTo")
+            {
+                CorrelationId = Guid.NewGuid().ToString(),
+                ServiceBusMessageId = Guid.NewGuid().ToString()
             };
 
             var config = new WebhookConfig
@@ -245,12 +246,12 @@ namespace CaptainHook.Tests.Web.WebHooks
                 Uri = "http://localhost/webhook",
                 HttpMethod = HttpMethod.Post,
                 EventType = "Event1",
-                AuthenticationConfig = new AuthenticationConfig (),
+                AuthenticationConfig = new AuthenticationConfig(),
                 WebhookRequestRules = new List<WebhookRequestRule>
                 {
                    new WebhookRequestRule
                    {
-                       Source = new ParserLocation
+                       Source = new SourceParserLocation
                        {
                            Path = "$.Response",
                            Location = Location.Body,
@@ -268,31 +269,31 @@ namespace CaptainHook.Tests.Web.WebHooks
                 }
             };
 
-            var expectedPayload = jPayload["Response"].ToString (Formatting.None);
-            var mockHttp = new MockHttpMessageHandler ();
-            var webhookRequest = mockHttp.When (HttpMethod.Post, $"{config.Uri}")
-                .WithContentType ("application/json", expectedPayload)
-                .Respond (HttpStatusCode.OK, "application/json", string.Empty);
+            var expectedPayload = jPayload["Response"].ToString(Formatting.None);
+            var mockHttp = new MockHttpMessageHandler();
+            var webhookRequest = mockHttp.When(HttpMethod.Post, $"{config.Uri}")
+                .WithContentType("application/json", expectedPayload)
+                .Respond(HttpStatusCode.OK, "application/json", string.Empty);
 
-            var mockBigBrother = new Mock<IBigBrother> ();
-            var httpClients = new Dictionary<string, HttpClient> { { new Uri (config.Uri).Host, mockHttp.ToHttpClient () } };
+            var mockBigBrother = new Mock<IBigBrother>();
+            var httpClients = new Dictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } };
 
-            var httpClientBuilder = new HttpClientFactory (httpClients);
-            var requestBuilder = new RequestBuilder (Mock.Of<IBigBrother> ());
-            var requestLogger = new RequestLogger (mockBigBrother.Object);
+            var httpClientBuilder = new HttpClientFactory(httpClients);
+            var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
+            var requestLogger = new RequestLogger(mockBigBrother.Object);
 
-            var genericWebhookHandler = new GenericWebhookHandler (
+            var genericWebhookHandler = new GenericWebhookHandler(
                 httpClientBuilder,
-                new Mock<IAuthenticationHandlerFactory> ().Object,
+                new Mock<IAuthenticationHandlerFactory>().Object,
                 requestBuilder,
                 requestLogger,
                 mockBigBrother.Object,
                 config);
 
-            var messageDelivered = await genericWebhookHandler.CallAsync (messageData, new Dictionary<string, object> (), _cancellationToken);
+            var messageDelivered = await genericWebhookHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            Assert.Equal (1, mockHttp.GetMatchCount (webhookRequest));
-            Assert.True (messageDelivered);
+            Assert.Equal(1, mockHttp.GetMatchCount(webhookRequest));
+            Assert.True(messageDelivered);
         }
 
 
