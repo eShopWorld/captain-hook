@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
+using CaptainHook.Domain.Results;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
 
@@ -37,24 +39,33 @@ namespace CaptainHook.Storage.Cosmos
             _cosmosDbRepository.UseCollection(CollectionName);
         }
 
-        public async Task<IEnumerable<SubscriberEntity>> GetAllSubscribersAsync()
+        public async Task<OperationResult<IEnumerable<SubscriberEntity>>> GetAllSubscribersAsync()
         {
             var query = _endpointQueryBuilder.BuildSelectAllSubscribersEndpoints();
             var endpoints = await _cosmosDbRepository.QueryAsync<EndpointDocument>(query);
 
             return endpoints
                 .GroupBy(x => new { x.EventName, x.SubscriberName })
-                .Select(x => Map(x));
+                .Select(x => Map(x))
+                .ToList();
         }
 
-        public Task<IEnumerable<SubscriberEntity>> GetSubscribersListAsync(string eventName)
+        public async Task<OperationResult<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName)
         {
             if (string.IsNullOrWhiteSpace(eventName))
             {
                 throw new ArgumentNullException(nameof(eventName));
             }
 
-            return GetSubscribersListInternalAsync(eventName);
+            var subscribers = await GetSubscribersListInternalAsync(eventName);
+
+            var materialized = subscribers.ToList();
+            if (!materialized.Any())
+            {
+                return new EntityNotFoundError(nameof(SubscriberEntity), eventName);
+            }
+
+            return materialized;
         }
 
         #region Private methods
@@ -66,7 +77,8 @@ namespace CaptainHook.Storage.Cosmos
 
             return endpoints
                 .GroupBy(x => new { x.EventName, x.SubscriberName })
-                .Select(x => Map(x));
+                .Select(x => Map(x))
+                .ToList();
         }
 
         private EndpointEntity Map(EndpointDocument endpoint)

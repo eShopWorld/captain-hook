@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="5.2.0" />
+    <PackageReference Include="FluentValidation" Version="9.0.0" />
+    <PackageReference Include="MediatR" Version="8.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Contract\CaptainHook.Contract.csproj" />
+    <ProjectReference Include="..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

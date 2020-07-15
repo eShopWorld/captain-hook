@@ -1,6 +1,7 @@
 ﻿using CaptainHook.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CaptainHook.Domain.Results;
 
 namespace CaptainHook.Domain.Repositories
 {
@@ -11,12 +12,12 @@ namespace CaptainHook.Domain.Repositories
         /// </summary>
         /// <param name="eventName">The event name</param>
         /// <returns></returns>
-        public Task<IEnumerable<SubscriberEntity>> GetSubscribersListAsync(string eventName);
+        public Task<OperationResult<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName);
 
         /// <summary>
         /// Get all the subscribers
         /// </summary>
         /// <returns></returns>
-        public Task<IEnumerable<SubscriberEntity>> GetAllSubscribersAsync();
+        public Task<OperationResult<IEnumerable<SubscriberEntity>>> GetAllSubscribersAsync();
     }
 }
