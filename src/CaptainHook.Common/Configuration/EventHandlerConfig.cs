@@ -264,14 +264,14 @@ namespace CaptainHook.Common.Configuration
         public WebhookRequestRule()
         {
             Routes = new List<WebhookConfigRoute>();
-            Source = new ParserLocation();
+            Source = new SourceParserLocation();
             Destination = new ParserLocation();
         }
 
         /// <summary>
         /// ie from payload, header, etc etc
         /// </summary>
-        public ParserLocation Source { get; set; }
+        public SourceParserLocation Source { get; set; }
 
         /// <summary>
         /// ie uri, body, header
@@ -293,6 +293,7 @@ namespace CaptainHook.Common.Configuration
         public string Selector { get; set; }
     }
 
+    [KnownType(typeof(SourceParserLocation))]
     public class ParserLocation
     {
         /// <summary>
@@ -333,7 +334,8 @@ namespace CaptainHook.Common.Configuration
     {
         Replace = 1,
         Add = 2,
-        Route = 3
+        Route = 3,
+        RouteAndReplace = 4
     }
 
     public enum Location

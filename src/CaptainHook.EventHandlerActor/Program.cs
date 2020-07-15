@@ -7,6 +7,7 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.EventHandlerActor.Handlers.Requests;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 
@@ -30,14 +31,9 @@ namespace CaptainHook.EventHandlerActor
 
                 builder.RegisterInstance(configurationSettings)
                     .SingleInstance();
-
-                builder.RegisterType<EventHandlerFactory>().As<IEventHandlerFactory>().SingleInstance();
-                builder.RegisterType<AuthenticationHandlerFactory>().As<IAuthenticationHandlerFactory>().SingleInstance();
-                builder.RegisterType<HttpClientFactory>().As<IHttpClientFactory>();
-                builder.RegisterType<RequestLogger>().As<IRequestLogger>();
-                builder.RegisterType<RequestBuilder>().As<IRequestBuilder>();
-
                 builder.RegisterActor<EventHandlerActor>();
+
+                builder.RegisterModule<HandlerModule>();
 
                 using (builder.Build())
                 {

@@ -1,11 +1,10 @@
-﻿using CaptainHook.Common.Authentication;
+﻿using CaptainHook.Common.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 
 namespace CaptainHook.Cli.Common
@@ -18,6 +17,12 @@ namespace CaptainHook.Cli.Common
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             JsonProperty property = base.CreateProperty(member, memberSerialization);
+
+            // when declaring type is SourceParserLocation, serialize with default config
+            if (property.DeclaringType == typeof(SourceParserLocation))
+            {
+                return property;
+            }
 
             // don't serialize empty collections
             if (property.PropertyType != typeof(string) && property.PropertyType.GetInterface(nameof(IEnumerable)) != null)

@@ -47,7 +47,7 @@ namespace CaptainHook.Tests.Services
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "ActivityConfirmationRequestDto",
                             Type = DataType.Model
@@ -59,7 +59,7 @@ namespace CaptainHook.Tests.Services
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "TenantCode"
                         },

@@ -38,12 +38,12 @@ namespace CaptainHook.Benchmark
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation {Path = "OrderCode"},
+                        Source = new SourceParserLocation {Path = "OrderCode"},
                         Destination = new ParserLocation {Location = Location.Uri}
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation {Path = "BrandType"},
+                        Source = new SourceParserLocation {Path = "BrandType"},
                         Destination = new ParserLocation
                         {
                             RuleAction = RuleAction.Route
@@ -72,7 +72,7 @@ namespace CaptainHook.Benchmark
                             }
                         }
                     },
-                    new WebhookRequestRule {Source = new ParserLocation {Path = "OrderConfirmationRequestDto"}}
+                    new WebhookRequestRule {Source = new SourceParserLocation {Path = "OrderConfirmationRequestDto"}}
                 }
             };
 

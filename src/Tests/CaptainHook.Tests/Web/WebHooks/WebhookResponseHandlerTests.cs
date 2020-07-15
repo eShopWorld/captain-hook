@@ -11,6 +11,7 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Message;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
+using CaptainHook.EventHandlerActor.Handlers.Requests;
 using CaptainHook.Tests.Web.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
@@ -52,7 +53,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             Mock<IAuthenticationHandlerFactory> mockAuthHandlerFactory)
         {
             var httpClientBuilder = new HttpClientFactory(httpClients);
-            var requestBuilder = new RequestBuilder(mockBigBrother.Object);
+            var requestBuilder = new DefaultRequestBuilder(mockBigBrother.Object);
             var requestLogger = new RequestLogger(mockBigBrother.Object);
             var handlerFactory = new EventHandlerFactory(mockBigBrother.Object, 
                 httpClientBuilder, mockAuthHandlerFactory.Object, requestLogger, requestBuilder);
@@ -361,7 +362,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -372,7 +373,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "TransportModel",
                             Type = DataType.Model
@@ -398,7 +399,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -410,7 +411,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpStatusCode
                         },
@@ -421,7 +422,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpContent
                         },
@@ -443,7 +444,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -454,7 +455,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "BrandType"
                         },
@@ -478,7 +479,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "TransportModel",
                             Type = DataType.Model
@@ -504,7 +505,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -515,7 +516,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpStatusCode
                         },
@@ -526,7 +527,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpContent
                         },
@@ -562,7 +563,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -573,7 +574,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "BrandType"
                         },
@@ -597,7 +598,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "TransportModel",
                             Type = DataType.Model
@@ -624,7 +625,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 {
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Path = "OrderCode"
                         },
@@ -636,7 +637,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpStatusCode,
                         },
@@ -647,7 +648,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                     },
                     new WebhookRequestRule
                     {
-                        Source = new ParserLocation
+                        Source = new SourceParserLocation
                         {
                             Type = DataType.HttpContent
                         },
