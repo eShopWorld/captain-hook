@@ -14,11 +14,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
 {
     public class DefaultRequestBuilder : IRequestBuilder
     {
-        private readonly IBigBrother _bigBrother;
+        protected readonly IBigBrother BigBrother;
 
         public DefaultRequestBuilder(IBigBrother bigBrother)
         {
-            _bigBrother = bigBrother;
+            BigBrother = bigBrother;
         }
 
         /// <inheritdoc />
@@ -42,13 +42,9 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
                     selector = ModelParser.ParsePayloadPropertyAsString(rules.Source.Path, payload);
                 }
 
-                void PublishUnroutableEvent(string message)
-                {
-                    _bigBrother.Publish(new UnroutableMessageEvent { EventType = config.EventType, Selector = selector, SubscriberName = config.Name, Message = message });
-                }
                 if (string.IsNullOrWhiteSpace(selector))
                 {
-                    PublishUnroutableEvent("routing path value in message payload is null or empty");
+                    this.PublishUnroutableEvent(config, "routing path value in message payload is null or empty");
                     return null;
                 }
 
@@ -56,7 +52,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
                 var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(selector, StringComparison.OrdinalIgnoreCase));
                 if (route == null)
                 {
-                    PublishUnroutableEvent("route mapping/selector not found between config and the properties on the domain object");
+                    this.PublishUnroutableEvent(config, "route mapping/selector not found between config and the properties on the domain object", selector);
                     return null;
                 }
                 uri = route.Uri;
@@ -77,6 +73,17 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
             var parameter = ModelParser.ParsePayloadPropertyAsString(uriRules.Source.Path, payload);
             uri = CombineUriAndResourceId(uri, parameter);
             return new Uri(uri);
+        }
+
+        protected void PublishUnroutableEvent(WebhookConfig config, string message, string selector = null)
+        {
+            BigBrother.Publish(new UnroutableMessageEvent
+            {
+                EventType = config.EventType,
+                Selector = selector,
+                SubscriberName = config.Name,
+                Message = message
+            });
         }
 
         /// <summary>

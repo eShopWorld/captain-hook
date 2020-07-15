@@ -64,16 +64,6 @@ namespace CaptainHook.Tests.Configuration
         }
 
         [IsUnit]
-        [Theory(Skip = "Not implemented yet")]
-        [MemberData(nameof(UriData_RouteAndReplace))]
-        public void UriConstructionRouteAndReplaceTests(WebhookConfig config, string payload, string expectedUri)
-        {
-            var uri = new RouteAndReplaceRequestBuilder(Mock.Of<IBigBrother>()).BuildUri(config, payload);
-
-            Assert.Equal(new Uri(expectedUri), uri);
-        }
-
-        [IsUnit]
         [Theory]
         [MemberData(nameof(PayloadData))]
         public void PayloadConstructionTests(
@@ -379,121 +369,6 @@ namespace CaptainHook.Tests.Configuration
                     "{\"OrderCode\":\"DEV13:00026804\", \"BrandType\":\"Brand1\"}",
                     "https://blah.blah.brand1.eshopworld.com/webhook/DEV13%3A00026804"
                 },
-            };
-
-        public static IEnumerable<object[]> UriData_RouteAndReplace =>
-            new List<object[]>
-            {
-                new object[]
-                {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook1",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Replace = new Dictionary<string, string>
-                                        {
-                                            { "selector",  "$.TenantCode"},
-                                            { "orderCode",  "$.OrderCode"}
-                                        }
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.{selector}.eshopworld.com/webhook/{orderCode}",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.{selector}.eshopworld.com/webhook/{orderCode}",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\", \"TenantCode\":\"tenant1\"}",
-                    "https://blah.blah.tenant1.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
-                },
-                new object[]
-                {
-                    new WebhookConfig
-                    {
-                        Name = "Webhook2",
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Replace = new Dictionary<string, string>
-                                    {
-                                        { "selector",  "$.TenantCode"},
-                                        { "orderCode",  "$.OrderCode"}
-                                    }
-                                }
-                            }
-                        },
-                        Uri = "https://blah.blah.{selector}.eshopworld.com/webhook/{orderCode}",
-                        HttpMethod = HttpMethod.Post,
-                        AuthenticationConfig = new AuthenticationConfig
-                        {
-                            Type = AuthenticationType.None
-                        }
-
-                    },
-                    "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\", \"TenantCode\":\"tenant1\"}",
-                    "https://blah.blah.tenant1.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
-                },
-                new object[]
-                {
-                    new WebhookConfig
-                    {
-                        Name = "Webhook3",
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Replace = new Dictionary<string, string>
-                                    {
-                                        { "selector",  "$.TenantCode"},
-                                        { "orderCode",  "$.OrderCode"}
-                                    }
-                                }
-                            }
-                        },
-                        Uri = "https://blah.blah.{selector}.eshopworld.com/webhook/{orderCode}",
-                        HttpMethod = HttpMethod.Post,
-                        AuthenticationConfig = new AuthenticationConfig
-                        {
-                            Type = AuthenticationType.None
-                        }
-
-                    },
-                    "{\"OrderCode\":\"DEV13:00026804\", \"BrandType\":\"Brand2\", \"TenantCode\":\"tenant1\"}",
-                    "https://blah.blah.tenant1.eshopworld.com/webhook/DEV13%3A00026804"
-                }
             };
 
         public static IEnumerable<object[]> PayloadData =>
