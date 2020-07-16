@@ -44,7 +44,7 @@ namespace CaptainHook.Tests.Validation
             var rule = GetValidWebhookRequestRuleBuilder().Create();
             rule.Destination.RuleAction = ruleAction;
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(ParserLocation.RuleAction));
         }
 
         [Theory, IsUnit]
@@ -54,7 +54,7 @@ namespace CaptainHook.Tests.Validation
             var rule = GetValidWebhookRequestRuleBuilder().Create();
             rule.Source.Location = location;
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(SourceParserLocation.Location));
         }
 
         [Fact, IsUnit]
@@ -71,7 +71,7 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{not-selector}.company.com/order/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(SourceParserLocation.Replace));
         }
 
         [Theory, IsUnit]
@@ -88,7 +88,7 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.company.com/"))
                 .Create();
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(SourceParserLocation.Replace));
         }
 
         [Theory, IsUnit]
@@ -106,7 +106,7 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.company.com/custom/{custom-selector}"))
                 .Create();
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(SourceParserLocation.Replace));
         }
 
         [Fact, IsUnit]
@@ -123,7 +123,7 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://test-api-{selector}.company.com/api/v2/{missing-action}/Put/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(WebhookConfigRoute.Uri));
         }
 
         [Theory, IsUnit]
@@ -140,7 +140,7 @@ namespace CaptainHook.Tests.Validation
                     .WithUri(invalidValue))
                 .Create();
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(WebhookConfigRoute.Uri));
         }
 
         [Fact, IsUnit]
@@ -160,7 +160,7 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.other-company.com/order/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(WebhookRequestRule.Routes));
         }
 
         [Theory, IsUnit]
@@ -178,7 +178,7 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.company.com/order/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(WebhookConfigRoute.Selector));
         }
 
         [Fact, IsUnit]
@@ -201,7 +201,7 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.yet-another-company.com/order/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule);
+            VerifySingleFailure(rule, nameof(WebhookRequestRule.Routes));
         }
 
         public static IEnumerable<object[]> EmptyStrings =>
@@ -212,13 +212,14 @@ namespace CaptainHook.Tests.Validation
                 new object[] { "   " },
            };
 
-        private void VerifySingleFailure(WebhookRequestRule rule)
+        private void VerifySingleFailure(WebhookRequestRule rule, string propertyName)
         {
             var result = new WebhookRequestRuleForRouteAndReplaceValidator().Validate(rule);
 
             using var assertionScope = new AssertionScope();
             result.IsValid.Should().BeFalse();
             result.Errors.Should().HaveCount(1);
+            result.Errors[0].PropertyName.Should().EndWith(propertyName);
         }
     }
 }
