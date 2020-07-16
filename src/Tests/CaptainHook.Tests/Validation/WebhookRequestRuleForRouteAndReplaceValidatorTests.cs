@@ -38,16 +38,19 @@ namespace CaptainHook.Tests.Validation
         [Fact, IsUnit]
         public void When_Replace_does_not_contain_an_item_with_key_selector_then_validation_should_fail()
         {
-            var rule = GetValidWebhookRequestRuleBuilder().Create();
-            rule.Source.Replace = new Dictionary<string, string>
-            {
-                ["not-selector"] = "something"
-            };
+            var rule = new WebhookRequestRuleBuilder()
+                .WithSource(sourceBuilder => sourceBuilder
+                    .WithLocation(Location.Body)
+                    .AddReplace("not-selector", "something")
+                    .AddReplace("orderCode", "other-value"))
+                .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                .AddRoute(routeBuilder => routeBuilder
+                    .WithSelector("*")
+                    .WithUri("https://api-{not-selector}.company.com/order/{orderCode}"))
+                .Create();
 
             VerifySingleFailure(rule);
         }
-
-
 
         [Theory, IsUnit]
         [InlineData(RuleAction.Route)]
@@ -128,17 +131,21 @@ namespace CaptainHook.Tests.Validation
             VerifySingleFailure(rule);
         }
 
-        [Fact, IsUnit]
-        public void When_Route_does_not_contain_Uri_then_validation_should_fail()
+        [Theory, IsUnit]
+        [InlineData(null)]
+        [InlineData("")]
+        public void When_Route__contains_empty_Uri_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
                 .WithSource(sourceBuilder => sourceBuilder
                     .WithLocation(Location.Body)
                     .AddReplace("selector", "something")
-                    .AddReplace("orderCode", "other-value"))
+                    //.AddReplace("orderCode", "other-value")
+                )
                 .WithDestination(ruleAction: RuleAction.RouteAndReplace)
                 .AddRoute(routeBuilder => routeBuilder
-                    .WithSelector("*"))
+                    .WithSelector("*")
+                    .WithUri(invalidValue))
                 .Create();
 
             VerifySingleFailure(rule);
