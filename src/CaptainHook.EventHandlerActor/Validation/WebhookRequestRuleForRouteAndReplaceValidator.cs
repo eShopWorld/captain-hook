@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using CaptainHook.Common.Configuration;
+using CaptainHook.EventHandlerActor.Handlers.Requests;
 using FluentValidation;
 
 namespace CaptainHook.EventHandlerActor.Validation
@@ -25,9 +26,8 @@ namespace CaptainHook.EventHandlerActor.Validation
         {
             public SourceParserLocationValidator()
             {
-                RuleFor(x => x.Location).Equal(Location.Body);
                 RuleFor(x => x.Path).Null();
-                RuleFor(x => x.Replace).Must(kvp => kvp?.ContainsKey("selector") == true);
+                RuleFor(x => x.Replace).Must(kvp => kvp?.ContainsKey(RouteAndReplaceRequestBuilder.SelectorKeyName) == true);
                 RuleFor(x => x.Replace).Must(kvp => kvp?.Values.All(v => !string.IsNullOrWhiteSpace(v)) == true);
             }
         }

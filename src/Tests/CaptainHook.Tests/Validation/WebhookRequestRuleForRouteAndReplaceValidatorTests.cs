@@ -46,16 +46,6 @@ namespace CaptainHook.Tests.Validation
             VerifySingleFailure(rule, nameof(ParserLocation.RuleAction));
         }
 
-        [Theory, IsUnit]
-        [GetInvalidEnumValues(Location.Body)]
-        public void When_Source_Location_is_not_Body_then_validation_should_fail(Location location)
-        {
-            var rule = GetValidWebhookRequestRuleBuilder().Create();
-            rule.Source.Location = location;
-
-            VerifySingleFailure(rule, nameof(SourceParserLocation.Location));
-        }
-
         [Fact, IsUnit]
         public void When_Source_Path_is_not_null_then_validation_should_fail()
         {
