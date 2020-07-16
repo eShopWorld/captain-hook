@@ -2,7 +2,6 @@
 using System.Linq;
 using CaptainHook.Common.Configuration;
 using FluentValidation;
-using FluentValidation.Validators;
 
 namespace CaptainHook.EventHandlerActor.Validation
 {
@@ -10,49 +9,17 @@ namespace CaptainHook.EventHandlerActor.Validation
     {
         public WebhookConfigForRouteAndReplaceValidator()
         {
-            //RuleFor(x => x.WebhookRequestRules).SetValidator(new WebhookRequestRulesValidator());
-
-            //RuleFor(x => x.WebhookRequestRules).Must((config, list, arg3) => { } )
-
             RuleFor(x => x.WebhookRequestRules)
-                .Must(rules =>
-                    rules.Any(rule => rule.Destination?.RuleAction == RuleAction.RouteAndReplace)
-                    && rules.All(rule => rule.Source.Replace.ContainsKey("selector"))
-                );
+                .NotEmpty().Must(ContainAtLeastOneRuleWithRouteAndReplace);
 
-            RuleForEach(x => x.WebhookRequestRules).SetValidator(new WebhookRequestRuleValidator());
-
-            //RuleForEach(x => x.WebhookRequestRules).Must(rule => rule.Source.Location == Location.Body);
+            RuleForEach(x => x.WebhookRequestRules)
+                .Where(x => x.Destination?.RuleAction == RuleAction.RouteAndReplace)
+                .SetValidator(new WebhookRequestRuleForRouteAndReplaceValidator());
         }
-    }
 
-    public class WebhookRequestRulesValidator : AbstractValidator<List<WebhookRequestRule>>
-    {
-        public WebhookRequestRulesValidator()
+        private static bool ContainAtLeastOneRuleWithRouteAndReplace(List<WebhookRequestRule> rules)
         {
-            RuleFor(rules =>
-                rules.Any(rule => rule.Destination.RuleAction == RuleAction.RouteAndReplace)
-                && rules.Any(rule => rule.Source.Replace.Any(kvp => kvp.Key == "selector" && !string.IsNullOrEmpty(kvp.Value)))
-                );
-
-            //RuleForEach(rules => rules).Must(rule => rule.Source.Location == Location.Body);
-        }
-    }
-
-    public class WebhookRequestRuleValidator : AbstractValidator<WebhookRequestRule>
-    {
-        public WebhookRequestRuleValidator()
-        {
-            //RuleFor(x => x.Source.Location).Equal(Location.Body);
-            RuleFor(x => x.Source).NotNull().SetValidator(new SourceParserLocationValidator());
-        }
-    }
-
-    public class SourceParserLocationValidator : AbstractValidator<SourceParserLocation>
-    {
-        public SourceParserLocationValidator()
-        {
-            RuleFor(x => x.Location).Equal(Location.Body);
+            return rules.Any(rule => rule.Destination?.RuleAction == RuleAction.RouteAndReplace);
         }
     }
 }
