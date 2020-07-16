@@ -1,6 +1,7 @@
 ﻿using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Validation;
 using CaptainHook.Tests.Builders;
+using CaptainHook.Tests.TestsInfrastructure;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Xunit;
@@ -38,8 +39,21 @@ namespace CaptainHook.Tests.Validation
             result.IsValid.Should().BeTrue();
         }
 
+        [Theory, IsUnit]
+        [GetInvalidEnumValues(RuleAction.RouteAndReplace)]
+        public void When_no_Rule_has_Destination_RuleAction_set_to_RouteAndReplace_then_validation_should_fail(RuleAction ruleAction)
+        {
+            var webhookConfig = GetValidWebhookConfigBuilder().Create();
+            webhookConfig.WebhookRequestRules[0].Destination.RuleAction = ruleAction;
+
+            var result = _validator.Validate(webhookConfig);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Count.Should().Be(1);
+        }
+
         [Fact, IsUnit]
-        public void When_WebhookConfig_contains_more_rules_then_no_failures_should_be_returned()
+        public void When_WebhookConfig_contains_another_rule_with_Destination_RuleAction_Route_then_validation_should_fail()
         {
             var webhookConfigBuilder = new WebhookConfigBuilder()
                 .AddWebhookRequestRule(ruleBuilder => ruleBuilder
@@ -63,7 +77,7 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Fact, IsUnit]
-        public void When_WebhookConfig_contains_more_rules_then_no_failures_should_be_returned2()
+        public void When_WebhookConfig_contains_another_rule_with_Destination_RuleAction_Add_and_Location_Uri_then_validation_should_fail()
         {
             var webhookConfigBuilder = new WebhookConfigBuilder()
                 .AddWebhookRequestRule(ruleBuilder => ruleBuilder
@@ -84,21 +98,6 @@ namespace CaptainHook.Tests.Validation
             var result = _validator.Validate(webhookConfig);
 
             result.IsValid.Should().BeFalse();
-        }
-
-        [Theory, IsUnit]
-        [InlineData(RuleAction.Add)]
-        [InlineData(RuleAction.Replace)]
-        [InlineData(RuleAction.Route)]
-        public void When_no_Rule_has_Destination_RuleAction_set_to_RouteAndReplace_then_validation_should_fail(RuleAction ruleAction)
-        {
-            var webhookConfig = GetValidWebhookConfigBuilder().Create();
-            webhookConfig.WebhookRequestRules[0].Destination.RuleAction = ruleAction;
-
-            var result = _validator.Validate(webhookConfig);
-
-            result.IsValid.Should().BeFalse();
-            result.Errors.Count.Should().Be(1);
         }
     }
 }

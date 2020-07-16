@@ -6,12 +6,12 @@ using Xunit.Sdk;
 
 namespace CaptainHook.Tests.TestsInfrastructure
 {
-    public class InvalidEnumValuesAttribute : DataAttribute
+    public class GetInvalidEnumValuesAttribute : DataAttribute
     {
         private readonly object[] _validEnumValues;
         private readonly Type _enumType;
 
-        public InvalidEnumValuesAttribute(params object[] validEnumValues)
+        public GetInvalidEnumValuesAttribute(params object[] validEnumValues)
         {
             if (validEnumValues == null || validEnumValues?.Length == 0)
                 throw new ArgumentException("At least one valid enum value must be provided", nameof(validEnumValues));

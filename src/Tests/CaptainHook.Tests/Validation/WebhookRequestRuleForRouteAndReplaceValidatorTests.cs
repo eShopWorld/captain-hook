@@ -5,7 +5,6 @@ using CaptainHook.Tests.Builders;
 using CaptainHook.Tests.TestsInfrastructure;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using FluentAssertions.Execution;
 using Xunit;
 
 namespace CaptainHook.Tests.Validation
@@ -38,7 +37,7 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Theory, IsUnit]
-        [InvalidEnumValues(RuleAction.RouteAndReplace)]
+        [GetInvalidEnumValues(RuleAction.RouteAndReplace)]
         public void When_Destination_Location_is_not_RouteAndReplace_then_validation_should_fail(RuleAction ruleAction)
         {
             var rule = GetValidWebhookRequestRuleBuilder().Create();
@@ -48,7 +47,7 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Theory, IsUnit]
-        [InvalidEnumValues(Location.Body)]
+        [GetInvalidEnumValues(Location.Body)]
         public void When_Source_Location_is_not_Body_then_validation_should_fail(Location location)
         {
             var rule = GetValidWebhookRequestRuleBuilder().Create();
@@ -224,11 +223,7 @@ namespace CaptainHook.Tests.Validation
         private void VerifySingleFailure(WebhookRequestRule rule, string propertyName)
         {
             var result = new WebhookRequestRuleForRouteAndReplaceValidator().Validate(rule);
-
-            using var assertionScope = new AssertionScope();
-            result.IsValid.Should().BeFalse();
-            result.Errors.Should().HaveCount(1);
-            result.Errors[0].PropertyName.Should().EndWith(propertyName);
+            result.AssertSingleFailure(propertyName);
         }
     }
 }
