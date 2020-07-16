@@ -1,8 +1,10 @@
-﻿using CaptainHook.Common.Configuration;
+﻿using System.Collections.Generic;
+using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Validation;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Xunit;
 
 namespace CaptainHook.Tests.Validation
@@ -13,7 +15,7 @@ namespace CaptainHook.Tests.Validation
         {
             var ruleBuilder = new WebhookRequestRuleBuilder()
                 .WithSource(sourceBuilder => sourceBuilder
-                    .WithLocation(Location.Body)
+                    .WithLocation(Location.Body).WithPath(null)
                     .AddReplace("selector", "something")
                     .AddReplace("orderCode", "other-value"))
                 .WithDestination(ruleAction: RuleAction.RouteAndReplace)
@@ -77,8 +79,7 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Theory, IsUnit]
-        [InlineData(null)]
-        [InlineData("")]
+        [MemberData(nameof(EmptyStrings))]
         public void When_Replace_contains_default_selector_with_empty_value_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
@@ -95,8 +96,7 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Theory, IsUnit]
-        [InlineData(null)]
-        [InlineData("")]
+        [MemberData(nameof(EmptyStrings))]
         public void When_Replace_contains_nondefault_selector_with_empty_value_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
@@ -131,8 +131,7 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Theory, IsUnit]
-        [InlineData(null)]
-        [InlineData("")]
+        [MemberData(nameof(EmptyStrings))]
         public void When_Route_contains_empty_Uri_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
@@ -169,8 +168,7 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Theory, IsUnit]
-        [InlineData(null)]
-        [InlineData("")]
+        [MemberData(nameof(EmptyStrings))]
         public void When_Route_Uri_selector_is_empty_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
@@ -210,12 +208,21 @@ namespace CaptainHook.Tests.Validation
             VerifySingleFailure(rule);
         }
 
+        public static IEnumerable<object[]> EmptyStrings =>
+           new List<object[]>
+           {
+                new object[] { null },
+                new object[] { string.Empty },
+                new object[] { "   " },
+           };
+
         private void VerifySingleFailure(WebhookRequestRule rule)
         {
             var result = new WebhookRequestRuleForRouteAndReplaceValidator().Validate(rule);
 
+            using var assertionScope = new AssertionScope();
             result.IsValid.Should().BeFalse();
-            result.Errors.Count.Should().Be(1);
+            result.Errors.Should().HaveCount(1);
         }
     }
 }
