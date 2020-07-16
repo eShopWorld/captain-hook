@@ -17,14 +17,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
         private readonly Mock<ICosmosDbRepository> _cosmosDbRepositoryMock;
         private readonly Mock<ISubscriberQueryBuilder> _queryBuilderMock;
 
-        private readonly SubscriberRepository repository;
+        private readonly SubscriberRepository _repository;
 
         public SubscriberRepositoryTests()
         {
             _cosmosDbRepositoryMock = new Mock<ICosmosDbRepository>();
             _queryBuilderMock = new Mock<ISubscriberQueryBuilder>();
 
-            repository = new SubscriberRepository(_cosmosDbRepositoryMock.Object, _queryBuilderMock.Object);
+            _repository = new SubscriberRepository(_cosmosDbRepositoryMock.Object, _queryBuilderMock.Object);
         }
 
         [Theory, IsUnit]
@@ -34,7 +34,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         public async Task InvalidEventNameThrowsException(string eventName)
         {
             // Act
-            Task act() => repository.GetSubscribersListAsync(eventName);
+            Task act() => _repository.GetSubscribersListAsync(eventName);
 
             // Assert
             await Assert.ThrowsAsync<ArgumentNullException>(act);
@@ -47,7 +47,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var eventName = "eventName";
 
             // Act
-            var result = await repository.GetSubscribersListAsync(eventName);
+            var result = await _repository.GetSubscribersListAsync(eventName);
 
             // Assert
             _queryBuilderMock.Verify(x => x.BuildSelectSubscribersListEndpoints(eventName));
@@ -60,7 +60,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var eventName = "eventName";
 
             // Act
-            var result = await repository.GetSubscribersListAsync(eventName);
+            var result = await _repository.GetSubscribersListAsync(eventName);
 
             // Assert
             _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<EndpointDocument>(It.IsAny<CosmosQuery>()));
@@ -101,14 +101,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
             expectedSubscriberEntity.AddWebhookEndpoint(expectedEndpointEntity);
 
             // Act
-            var result = await repository.GetSubscribersListAsync(eventName);
+            var result = await _repository.GetSubscribersListAsync(eventName);
 
             // Assert
-            result.Should().BeEquivalentTo(new [] { expectedSubscriberEntity }, options => options.IgnoringCyclicReferences());
+            result.Data.Should().BeEquivalentTo(new [] { expectedSubscriberEntity }, options => options.IgnoringCyclicReferences());
         }
 
         [Fact, IsUnit]
-        public async Task TestMethodName()
+        public async Task GetSubscribersListAsync_should_map_EndpointDocument_to_SubscriberEntity_correctly()
         {
             // Arrange
             const string eventName = "eventName";
@@ -159,7 +159,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .ReturnsAsync(response);
 
             // Act
-            var result = await repository.GetSubscribersListAsync(eventName);
+            var result = await _repository.GetSubscribersListAsync(eventName);
 
             // Assert
             var expected = new[]
@@ -186,7 +186,8 @@ namespace CaptainHook.Storage.Cosmos.Tests
                         "GET",
                         "selector2"))
             };
-            result.Should().BeEquivalentTo(expected, options => options.IgnoringCyclicReferences());
+
+            result.Data.Should().BeEquivalentTo(expected, options => options.IgnoringCyclicReferences());
         }
     }
 }

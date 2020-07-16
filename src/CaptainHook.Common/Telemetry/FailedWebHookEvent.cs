@@ -15,23 +15,29 @@ namespace CaptainHook.Common.Telemetry
             string responseHeaders,
             string requestBody, 
             string responseBody, 
+            string messagePayload,
             string eventHandlerActorId,
             string type, 
             string message, 
             string uri, 
             HttpMethod httpMethod, 
             HttpStatusCode statusCode, 
-            string correlationId) : base(eventHandlerActorId, type, message, uri, httpMethod, statusCode, correlationId)
+            string correlationId,
+            string webhookRules) 
+            : base(eventHandlerActorId, type, message, uri, httpMethod, statusCode, correlationId, webhookRules)
         {
             RequestHeaders = requestHeaders;
             ResponseHeaders = responseHeaders;
             RequestBody = requestBody;
             ResponseBody = responseBody;
+            MessagePayload = messagePayload;
         }
 
         public string RequestHeaders { get; set; }
 
         public string ResponseHeaders { get; set; }
+
+        public string MessagePayload { get; set; }
 
         public string RequestBody { get; set; }
 

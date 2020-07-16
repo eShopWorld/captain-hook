@@ -1,24 +1,31 @@
 using System;
 using System.IO;
+using System.Reflection;
 using Autofac;
+using CaptainHook.Api.Core;
+using CaptainHook.Api.Helpers;
+using CaptainHook.Application;
+using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Configuration.KeyVault;
+using CaptainHook.Domain;
+using CaptainHook.Storage.Cosmos;
 using Eshopworld.Core;
+using Eshopworld.Data.CosmosDb;
+using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.DevOps;
-using Eshopworld.Web;
 using Eshopworld.Telemetry;
+using Eshopworld.Telemetry.Configuration;
+using Eshopworld.Telemetry.Processors;
+using Eshopworld.Web;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
-using CaptainHook.Api.Core;
-using Eshopworld.Telemetry.Configuration;
-using Eshopworld.Telemetry.Processors;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.OpenApi.Models;
-using CaptainHook.Api.Helpers;
 using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.Api
@@ -56,7 +63,19 @@ namespace CaptainHook.Api
 
             builder.RegisterType<SuccessfulProbeFilterCriteria>()
                 .As<ITelemetryFilterCriteria>();
+
+            builder.RegisterModule<ApplicationModule>();
+            builder.RegisterModule<CosmosDbStorageModule>();
+            builder.RegisterModule<KeyVaultModule>();
+            builder.RegisterModule<CosmosDbModule>();
+
+            var appSettings = TempConfigLoader.Load();
+            var configurationSettings = new ConfigurationSettings();
+            appSettings.Bind(configurationSettings);
+            builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
         }
+
+        private const string CaptainHookConfigSection = "CaptainHook";
 
         /// <summary>
         /// configure services to be used by the asp.net runtime
@@ -75,15 +94,15 @@ namespace CaptainHook.Api
                 {
                     var policy = ScopePolicy.Create(serviceConfiguration.RequiredScopes.ToArray());
 
-                    var filter = EnvironmentHelper.IsInFabric ? 
-                        (IFilterMetadata) new AuthorizeFilter(policy): 
+                    var filter = EnvironmentHelper.IsInFabric ?
+                        (IFilterMetadata)new AuthorizeFilter(policy) :
                         new AllowAnonymousFilter();
 
                     options.Filters.Add(filter);
 
                 }).AddNewtonsoftJson();
-                
-                services.AddApiVersioning();
+
+                services.AddApiVersioning(options => options.AssumeDefaultVersionWhenUnspecified = true);
                 services.AddHealthChecks();
 
                 // Get XML documentation
@@ -177,7 +196,8 @@ namespace CaptainHook.Api
 #endif
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => {
+            app.UseEndpoints(endpoints =>
+            {
                 endpoints.MapControllers();
             });
         }

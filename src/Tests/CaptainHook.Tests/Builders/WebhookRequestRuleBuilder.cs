@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.Tests.Builders
@@ -11,46 +10,24 @@ namespace CaptainHook.Tests.Builders
         private ParserLocation _destination;
         private List<WebhookConfigRoute> _routes;
 
-        public WebhookRequestRuleBuilder WithSource(string path = null, DataType type = DataType.Property, Location location = Location.Body)
+        public WebhookRequestRuleBuilder WithSource(Action<SourceParserLocationBuilder> sourceBuilder)
         {
-            _source = new SourceParserLocation
-            {
-                Path = path,
-                Location = location,
-                Type = type,
-            };
-
+            var builder = new SourceParserLocationBuilder();
+            sourceBuilder(builder);
+            _source = builder.Create();
             return this;
         }
 
-        public WebhookRequestRuleBuilder WithDestination(string path = null, DataType type = DataType.Property, Location location = Location.Body)
+        public WebhookRequestRuleBuilder WithDestination(string path = null, DataType type = DataType.Property,
+            Location location = Location.Body, RuleAction ruleAction = RuleAction.Route)
         {
             _destination = new ParserLocation
             {
                 Path = path,
                 Location = location,
                 Type = type,
+                RuleAction = ruleAction
             };
-
-            return this;
-        }
-
-        // TODO: remove or use version of this method which accepts WebhookConfigRouteBuilder
-        public WebhookRequestRuleBuilder AddRoute(string selector, string uri)
-        {
-            if (_routes == null)
-            {
-                _routes = new List<WebhookConfigRoute>();
-            }
-
-            var route = new WebhookConfigRoute
-            {
-                Selector = selector,
-                Uri = uri,
-                AuthenticationConfig = new BasicAuthenticationConfig(),
-                HttpVerb = "POST"
-            };
-            _routes.Add(route);
 
             return this;
         }

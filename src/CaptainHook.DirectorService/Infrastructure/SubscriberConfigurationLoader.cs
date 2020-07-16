@@ -23,7 +23,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             var configuration = Configuration.Load(keyVaultUri);
             var subscribersFromKV = configuration.SubscriberConfigurations;
             var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
-            var merged = await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos);
+            var merged = await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos.Data);
 
             return (configuration.WebhookConfigurations, merged);
         }
