@@ -1,4 +1,5 @@
-﻿using CaptainHook.Common.Authentication;
+﻿using System.Reflection.Metadata;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.Tests.Builders
@@ -7,6 +8,7 @@ namespace CaptainHook.Tests.Builders
     {
         private string _selector;
         private string _uri;
+        private string _httpVerb = "POST";
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig();
 
         public WebhookConfigRouteBuilder WithSelector(string selector)
@@ -47,6 +49,23 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
+        public WebhookConfigRouteBuilder WithNoAuthentication()
+        {
+            _authenticationConfig = new AuthenticationConfig
+            {
+                Type = AuthenticationType.None
+            };
+
+            return this;
+        }
+
+        public WebhookConfigRouteBuilder WithHttpVerb(string verb)
+        {
+            _httpVerb = verb;
+
+            return this;
+        }
+
         public WebhookConfigRoute Create()
         {
             var route = new WebhookConfigRoute
@@ -54,7 +73,7 @@ namespace CaptainHook.Tests.Builders
                 Selector = _selector,
                 Uri = _uri,
                 AuthenticationConfig = _authenticationConfig,
-                HttpVerb = "POST"
+                HttpVerb = _httpVerb
             };
 
             return route;

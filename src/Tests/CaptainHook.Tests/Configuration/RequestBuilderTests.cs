@@ -5,6 +5,7 @@ using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers.Requests;
+using CaptainHook.Tests.Builders;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -23,30 +24,15 @@ namespace CaptainHook.Tests.Configuration
         [InlineData("DELETE")]
         public void IdempotencyKeyHeaderTests_Get(string method)
         {
-            var config = new WebhookConfig
-            {
-                Name = "Webhook2",
-                EventType =  "eventType",
-                HttpMethod = HttpMethod.Get,
-                Uri = "https://blah.blah.eshopworld.com/webhook/",
-                AuthenticationConfig = new OidcAuthenticationConfig(),
-                WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "OrderCode"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Location = Location.Uri,
-
-                                }
-                            }
-                        }
-            };
-            config.HttpMethod = new HttpMethod(method);
+            var config = new WebhookConfigBuilder()
+                .WithHttpVerb(method)
+                .WithType("eventType")
+                .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                .WithOidcAuthentication()
+                .AddWebhookRequestRule(rule => rule
+                    .WithSource(source => source.WithPath("OrderCode"))
+                    .WithDestination(location: Location.Uri))
+                .Create();
 
             var messageData = new MessageData("blah", "blahtype", "blahsubscriber", "blahReplyTo", false) { ServiceBusMessageId = Guid.NewGuid().ToString(), CorrelationId = Guid.NewGuid().ToString() };
 
@@ -119,264 +105,99 @@ namespace CaptainHook.Tests.Configuration
             {
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook1",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rules => rules
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     "https://blah.blah.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook2",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        }
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderConfirmationRequestDto"
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .AddWebhookRequestRule(ruleBuilder => ruleBuilder
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand2.eshopworld.com/webhook")
+                                .WithSelector("Brand2")
+                                .WithNoAuthentication()))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderConfirmationRequestDto")))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     "https://blah.blah.brand1.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook3",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .AddWebhookRequestRule(ruleBuilder => ruleBuilder
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand2.eshopworld.com/webhook")
+                                .WithSelector("Brand2")
+                                .WithNoAuthentication()))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderConfirmationRequestDto")))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
                     "https://blah.blah.brand2.eshopworld.com/webhook/9744b831-df2c-4d59-9d9d-691f4121f73a"
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook4",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand3.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand3.eshopworld.com/webhook")
+                                .WithSelector("Brand2")
+                                .WithNoAuthentication()))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
                     "https://blah.blah.brand3.eshopworld.com/webhook"
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook5",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        }
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderConfirmationRequestDto"
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .AddWebhookRequestRule(ruleBuilder => ruleBuilder
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand2.eshopworld.com/webhook")
+                                .WithSelector("Brand2")
+                                .WithNoAuthentication()))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderConfirmationRequestDto")))
+                        .Create(),
                     "{\"OrderCode\":\"DEV13:00026804\", \"BrandType\":\"Brand1\"}",
                     "https://blah.blah.brand1.eshopworld.com/webhook/DEV13%3A00026804"
                 },
@@ -387,246 +208,102 @@ namespace CaptainHook.Tests.Configuration
             {
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook1",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .WithType("Webhook1")
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rules => rules
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .WithNoAuthentication()
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
-                    new WebhookConfig
-                    {
-                        Name = "Webhook1",
-                        HttpMethod = HttpMethod.Post,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "OrderCode"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Location = Location.Uri
-                                }
-                            }
-                        }
-                    }
+                    new WebhookConfigBuilder()
+                        .WithType("Webhook1")
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rules => rules
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .WithNoAuthentication()
+                        .Create()
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook2",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        }
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderConfirmationRequestDto"
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .AddWebhookRequestRule(ruleBuilder => ruleBuilder
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand2.eshopworld.com/webhook")
+                                .WithSelector("Brand2")
+                                .WithNoAuthentication()))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderConfirmationRequestDto")))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
-                    new WebhookConfigRoute
-                    {
-                        Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                        HttpMethod = HttpMethod.Post,
-                        Selector = "Brand1",
-                        AuthenticationConfig = new AuthenticationConfig
-                        {
-                            Type = AuthenticationType.None
-                        }
-                    }
+                    new WebhookConfigRouteBuilder()
+                        .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                        .WithHttpVerb("POST")
+                        .WithSelector("Brand1")
+                        .WithNoAuthentication()
+                        .Create()
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook3",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .AddWebhookRequestRule(ruleBuilder => ruleBuilder
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand2.eshopworld.com/webhook")
+                                .WithHttpVerb("PUT")
+                                .WithSelector("Brand2")
+                                .WithNoAuthentication()))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
-                    new WebhookConfigRoute
-                    {
-                        Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                        HttpMethod = HttpMethod.Put,
-                        Selector = "Brand2",
-                        AuthenticationConfig = new AuthenticationConfig
-                        {
-                            Type = AuthenticationType.None
-                        }
-                    }
+                    new WebhookConfigRouteBuilder()
+                        .WithUri("https://blah.blah.brand2.eshopworld.com/webhook")
+                        .WithHttpVerb("PUT")
+                        .WithSelector("Brand2")
+                        .WithNoAuthentication()
+                        .Create()
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook4",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand3.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand3.eshopworld.com/webhook")
+                                .WithHttpVerb("PUT")
+                                .WithSelector("Brand2")
+                                .WithNoAuthentication()))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
-                    new WebhookConfigRoute
-                    {
-                        Uri = "https://blah.blah.brand3.eshopworld.com/webhook",
-                        HttpMethod = HttpMethod.Put,
-                        Selector = "Brand2",
-                        AuthenticationConfig = new AuthenticationConfig
-                        {
-                            Type = AuthenticationType.None
-                        }
-                    }
+                    new WebhookConfigRouteBuilder()
+                        .WithUri("https://blah.blah.brand3.eshopworld.com/webhook")
+                        .WithHttpVerb("PUT")
+                        .WithSelector("Brand2")
+                        .WithNoAuthentication()
+                        .Create()
                 }
             };
 
@@ -635,143 +312,57 @@ namespace CaptainHook.Tests.Configuration
             {
                 new object[]
                 {
-                    new WebhookConfig
-                    {
-                        Name = "Webhook1",
-                        HttpMethod = HttpMethod.Post,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "InnerModel"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    RuleAction = RuleAction.Replace,
-                                    Type = DataType.Model
-                                }
-                            }
-                        }
-                    },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("InnerModel"))
+                            .WithDestination(type: DataType.Model, ruleAction: RuleAction.Replace))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
                     new Dictionary<string, object> (),
                     "{\"Msg\":\"Buy this thing\"}"
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                    {
-                        Name = "Webhook1",
-                        HttpMethod = HttpMethod.Post,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "InnerModel"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Path = "Payload",
-                                    Type = DataType.Model
-                                }
-                            },
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "OrderCode"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Path = "OrderCode",
-                                    Type = DataType.Model
-                                }
-                            }
-                        }
-                    },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("InnerModel"))
+                            .WithDestination(type: DataType.Model, path: "Payload"))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(type: DataType.Model, path: "OrderCode"))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
                     new Dictionary<string, object>(),
                     "{\"Payload\":{\"Msg\":\"Buy this thing\"},\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\"}"
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                    {
-                        Name = "Webhook1",
-                        HttpMethod = HttpMethod.Post,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "OrderCode"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Path = "OrderCode"
-                                }
-                            },
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Type = DataType.HttpStatusCode,
-                                    Location = Location.HttpStatusCode
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Path = "HttpStatusCode",
-                                    Type = DataType.Property
-                                }
-                            },
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Type = DataType.HttpContent
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Path = "Content",
-                                    Type = DataType.Model
-                                }
-                            }
-                        }
-                    },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(path: "OrderCode"))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithType(DataType.HttpStatusCode).WithLocation(Location.HttpStatusCode))
+                            .WithDestination(type: DataType.Property, path: "HttpStatusCode"))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithType(DataType.HttpContent))
+                            .WithDestination(type: DataType.Model, path: "Content"))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
                     new Dictionary<string, object>{{"HttpStatusCode", 200}, {"HttpResponseContent", "{\"Msg\":\"Buy this thing\"}" } },
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\",\"HttpStatusCode\":200,\"Content\":{\"Msg\":\"Buy this thing\"}}"
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                    {
-                        Name = "Webhook1",
-                        HttpMethod = HttpMethod.Post,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "InnerModel"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Type = DataType.Model
-                                }
-                            }
-                        }
-                    },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("InnerModel"))
+                            .WithDestination(type: DataType.Model))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\", \"InnerModel\": {\"Msg\":\"Buy this thing\"}}",
                     new Dictionary<string, object>(),
                     "{\"Msg\":\"Buy this thing\"}"
@@ -783,85 +374,36 @@ namespace CaptainHook.Tests.Configuration
             {
                 new object[]
                 {
-                    new WebhookConfig
-                    {
-                        Name = "Webhook1",
-                        HttpMethod = HttpMethod.Post,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "OrderCode"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Location = Location.Uri
-                                }
-                            }
-                        }
-                    },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     HttpMethod.Post
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook3",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri,
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithHttpVerb("POST")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand2.eshopworld.com/webhook")
+                                .WithHttpVerb("PUT")
+                                .WithSelector("Brand2")
+                                .WithNoAuthentication()))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
                     HttpMethod.Put
                 }
@@ -872,171 +414,71 @@ namespace CaptainHook.Tests.Configuration
             {
                 new object[]
                 {
-                    new WebhookConfig
-                    {
-                        Name = "Webhook1",
-                        HttpMethod = HttpMethod.Post,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "OrderCode"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Location = Location.Uri
-                                }
-                            }
-                        }
-                    },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .WithNoAuthentication()
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     AuthenticationType.None
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                    {
-                        Name = "Webhook2",
-                        HttpMethod = HttpMethod.Post,
-                        Uri = "https://blah.blah.eshopworld.com/webhook/",
-                        AuthenticationConfig = new OidcAuthenticationConfig(),
-                        WebhookRequestRules = new List<WebhookRequestRule>
-                        {
-                            new WebhookRequestRule
-                            {
-                                Source = new SourceParserLocation
-                                {
-                                    Path = "OrderCode"
-                                },
-                                Destination = new ParserLocation
-                                {
-                                    Location = Location.Uri,
-
-                                }
-                            }
-                        }
-                    },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .WithOidcAuthentication()
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     AuthenticationType.OIDC
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook3",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri,
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.Basic
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .WithOidcAuthentication()
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand2.eshopworld.com/webhook")
+                                .WithSelector("Brand2")
+                                .WithBasicAuthentication()))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\"}",
                     AuthenticationType.Basic
                 },
                 new object[]
                 {
-                    new WebhookConfig
-                        {
-                            Name = "Webhook4",
-                            HttpMethod = HttpMethod.Post,
-                            Uri = "https://blah.blah.eshopworld.com/webhook/",
-                            WebhookRequestRules = new List<WebhookRequestRule>
-                            {
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "OrderCode"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        Location = Location.Uri,
-                                    }
-                                },
-                                new WebhookRequestRule
-                                {
-                                    Source = new SourceParserLocation
-                                    {
-                                        Path = "BrandType"
-                                    },
-                                    Destination = new ParserLocation
-                                    {
-                                        RuleAction = RuleAction.Route
-                                    },
-                                    Routes = new List<WebhookConfigRoute>
-                                    {
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand1.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Post,
-                                            Selector = "Brand1",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.None
-                                            }
-                                        },
-                                        new WebhookConfigRoute
-                                        {
-                                            Uri = "https://blah.blah.brand2.eshopworld.com/webhook",
-                                            HttpMethod = HttpMethod.Put,
-                                            Selector = "Brand2",
-                                            AuthenticationConfig = new AuthenticationConfig
-                                            {
-                                                Type = AuthenticationType.Basic
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
+                    new WebhookConfigBuilder()
+                        .WithUri("https://blah.blah.eshopworld.com/webhook/")
+                        .WithOidcAuthentication()
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("OrderCode"))
+                            .WithDestination(location: Location.Uri))
+                        .AddWebhookRequestRule(rule => rule
+                            .WithSource(source => source.WithPath("BrandType"))
+                            .WithDestination(ruleAction: RuleAction.Route)
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand1.eshopworld.com/webhook")
+                                .WithSelector("Brand1")
+                                .WithNoAuthentication())
+                            .AddRoute(route => route
+                                .WithUri("https://blah.blah.brand2.eshopworld.com/webhook")
+                                .WithSelector("Brand2")
+                                .WithBasicAuthentication()))
+                        .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand1\"}",
                     AuthenticationType.None
                 }

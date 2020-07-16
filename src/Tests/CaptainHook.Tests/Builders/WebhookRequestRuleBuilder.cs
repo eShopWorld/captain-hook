@@ -18,8 +18,11 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
-        public WebhookRequestRuleBuilder WithDestination(string path = null, DataType type = DataType.Property,
-            Location location = Location.Body, RuleAction ruleAction = RuleAction.Route)
+        public WebhookRequestRuleBuilder WithDestination(
+            string path = null,
+            DataType type = DataType.Property,
+            Location location = Location.Body,
+            RuleAction ruleAction = RuleAction.Add)
         {
             _destination = new ParserLocation
             {
