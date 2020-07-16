@@ -29,7 +29,7 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Fact, IsUnit]
-        public void When_WebhookConfig_contains_one_proper_ReouteAndReplace_rule_then_no_failures_should_be_returned()
+        public void When_WebhookConfig_contains_one_proper_RouteAndReplace_rule_then_no_failures_should_be_returned()
         {
             var webhookConfig = GetValidWebhookConfigBuilder().Create();
 

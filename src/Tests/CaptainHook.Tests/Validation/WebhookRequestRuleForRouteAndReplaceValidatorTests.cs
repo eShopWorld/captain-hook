@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using CaptainHook.Common.Configuration;
+﻿using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Validation;
 using CaptainHook.Tests.Builders;
 using Eshopworld.Tests.Core;
@@ -35,23 +34,6 @@ namespace CaptainHook.Tests.Validation
             result.IsValid.Should().BeTrue();
         }
 
-        [Fact, IsUnit]
-        public void When_Replace_does_not_contain_an_item_with_key_selector_then_validation_should_fail()
-        {
-            var rule = new WebhookRequestRuleBuilder()
-                .WithSource(sourceBuilder => sourceBuilder
-                    .WithLocation(Location.Body)
-                    .AddReplace("not-selector", "something")
-                    .AddReplace("orderCode", "other-value"))
-                .WithDestination(ruleAction: RuleAction.RouteAndReplace)
-                .AddRoute(routeBuilder => routeBuilder
-                    .WithSelector("*")
-                    .WithUri("https://api-{not-selector}.company.com/order/{orderCode}"))
-                .Create();
-
-            VerifySingleFailure(rule);
-        }
-
         [Theory, IsUnit]
         [InlineData(RuleAction.Route)]
         [InlineData(RuleAction.Replace)]
@@ -73,6 +55,23 @@ namespace CaptainHook.Tests.Validation
         {
             var rule = GetValidWebhookRequestRuleBuilder().Create();
             rule.Source.Location = location;
+
+            VerifySingleFailure(rule);
+        }
+
+        [Fact, IsUnit]
+        public void When_Replace_does_not_contain_an_item_with_key_selector_then_validation_should_fail()
+        {
+            var rule = new WebhookRequestRuleBuilder()
+                .WithSource(sourceBuilder => sourceBuilder
+                    .WithLocation(Location.Body)
+                    .AddReplace("not-selector", "something")
+                    .AddReplace("orderCode", "other-value"))
+                .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                .AddRoute(routeBuilder => routeBuilder
+                    .WithSelector("*")
+                    .WithUri("https://api-{not-selector}.company.com/order/{orderCode}"))
+                .Create();
 
             VerifySingleFailure(rule);
         }
@@ -134,14 +133,12 @@ namespace CaptainHook.Tests.Validation
         [Theory, IsUnit]
         [InlineData(null)]
         [InlineData("")]
-        public void When_Route__contains_empty_Uri_then_validation_should_fail(string invalidValue)
+        public void When_Route_contains_empty_Uri_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
                 .WithSource(sourceBuilder => sourceBuilder
                     .WithLocation(Location.Body)
-                    .AddReplace("selector", "something")
-                    //.AddReplace("orderCode", "other-value")
-                )
+                    .AddReplace("selector", "something"))
                 .WithDestination(ruleAction: RuleAction.RouteAndReplace)
                 .AddRoute(routeBuilder => routeBuilder
                     .WithSelector("*")
@@ -176,7 +173,7 @@ namespace CaptainHook.Tests.Validation
         [InlineData("")]
         public void When_Route_Uri_selector_is_empty_then_validation_should_fail(string invalidValue)
         {
-            var ruleBuilder = new WebhookRequestRuleBuilder()
+            var rule = new WebhookRequestRuleBuilder()
                 .WithSource(sourceBuilder => sourceBuilder
                     .WithLocation(Location.Body)
                     .AddReplace("selector", "something")
@@ -184,9 +181,8 @@ namespace CaptainHook.Tests.Validation
                 .WithDestination(ruleAction: RuleAction.RouteAndReplace)
                 .AddRoute(routeBuilder => routeBuilder
                     .WithSelector(invalidValue)
-                    .WithUri("https://api-{selector}.company.com/order/{orderCode}"));
-
-            var rule = ruleBuilder.Create();
+                    .WithUri("https://api-{selector}.company.com/order/{orderCode}"))
+                .Create();
 
             VerifySingleFailure(rule);
         }
@@ -194,7 +190,7 @@ namespace CaptainHook.Tests.Validation
         [Fact, IsUnit]
         public void When_Route_Uri_selector_is_not_unique_then_validation_should_fail()
         {
-            var ruleBuilder = new WebhookRequestRuleBuilder()
+            var rule = new WebhookRequestRuleBuilder()
                 .WithSource(sourceBuilder => sourceBuilder
                     .WithLocation(Location.Body)
                     .AddReplace("selector", "something")
@@ -209,9 +205,7 @@ namespace CaptainHook.Tests.Validation
                 .AddRoute(routeBuilder => routeBuilder
                     .WithSelector("non-unique")
                     .WithUri("https://api-{selector}.yet-another-company.com/order/{orderCode}"))
-                ;
-
-            var rule = ruleBuilder.Create();
+                .Create();
 
             VerifySingleFailure(rule);
         }
