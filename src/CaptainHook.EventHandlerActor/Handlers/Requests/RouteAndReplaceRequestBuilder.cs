@@ -20,21 +20,25 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
         protected override Uri BuildUriFromExistingConfig(WebhookConfig config, string payload)
         {
             var routeAndReplaceRule = config.WebhookRequestRules.First(r => r.Destination.RuleAction == RuleAction.RouteAndReplace);
+            var selector = GetRouteSelector(payload, routeAndReplaceRule);
+            var webhookConfig = GetWebhookConfig(routeAndReplaceRule, selector);
 
-            var selectorSource = routeAndReplaceRule.Source.Replace[SelectorKeyName];
-            var selector = string.Empty;
-
-            if (routeAndReplaceRule.Source.Location == Location.Body)
-            {
-                selector = ModelParser.ParsePayloadPropertyAsString(selectorSource, payload);
-            }
-
-            var uri = GetUri(routeAndReplaceRule, selector);
             var replacementDictionary = BuildReplacementDictionary(routeAndReplaceRule.Source.Replace, payload);
 
-            return new BuildUriContext(uri, message => PublishUnroutableEvent(config, message, selector))
+            return new BuildUriContext(
+                    webhookConfig.Uri,
+                    message => PublishUnroutableEvent(config, message, selector))
                 .ApplyReplace(replacementDictionary)
                 .CheckIfRoutableAndReturn();
+        }
+
+        protected override WebhookConfig SelectWebhookConfigCore(WebhookConfig webhookConfig, string payload)
+        {
+            var routeAndReplaceRule = webhookConfig.WebhookRequestRules.First(r => r.Destination.RuleAction == RuleAction.RouteAndReplace);
+            var selector = GetRouteSelector(payload, routeAndReplaceRule);
+            var routeConfig = GetWebhookConfig(routeAndReplaceRule, selector);
+
+            return routeConfig;
         }
 
         private IDictionary<string, string> BuildReplacementDictionary(IDictionary<string, string> sourceReplace, string payload)
@@ -70,17 +74,30 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
             return new Dictionary<string, string>(RetrieveReplacements());
         }
 
-        private string GetUri(WebhookRequestRule rule, string selector)
+        private WebhookConfigRoute GetWebhookConfig(WebhookRequestRule rule, string selector)
         {
             var route = rule.Routes.FirstOrDefault(r => r.Selector.Equals(selector, StringComparison.OrdinalIgnoreCase));
             if (route == null)
             {
                 var defaultRoute =
                     rule.Routes.First(r => r.Selector.Equals(DefaultFallbackSelectorKey, StringComparison.OrdinalIgnoreCase));
-                return defaultRoute.Uri;
+                return defaultRoute;
             }
 
-            return route.Uri;
+            return route;
+        }
+
+        private static string GetRouteSelector(string payload, WebhookRequestRule routeAndReplaceRule)
+        {
+            var selectorSource = routeAndReplaceRule.Source.Replace[SelectorKeyName];
+            var selector = string.Empty;
+
+            if (routeAndReplaceRule.Source.Location == Location.Body)
+            {
+                selector = ModelParser.ParsePayloadPropertyAsString(selectorSource, payload);
+            }
+
+            return selector;
         }
     }
 }
