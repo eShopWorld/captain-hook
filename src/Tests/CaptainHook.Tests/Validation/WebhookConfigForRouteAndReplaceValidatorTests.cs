@@ -48,56 +48,33 @@ namespace CaptainHook.Tests.Validation
 
             var result = _validator.Validate(webhookConfig);
 
-            result.IsValid.Should().BeFalse();
-            result.Errors.Count.Should().Be(1);
+            result.AssertSingleFailure(nameof(WebhookConfig.WebhookRequestRules));
         }
 
         [Fact, IsUnit]
         public void When_WebhookConfig_contains_another_rule_with_Destination_RuleAction_Route_then_validation_should_fail()
         {
-            var webhookConfigBuilder = new WebhookConfigBuilder()
+            var webhookConfig = GetValidWebhookConfigBuilder()
                 .AddWebhookRequestRule(ruleBuilder => ruleBuilder
-                    .WithSource(sourceBuilder => sourceBuilder
-                        .WithLocation(Location.Body)
-                        .AddReplace("selector", "something")
-                        .AddReplace("orderCode", "other-value"))
-                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
-                    .AddRoute(routeBuilder => routeBuilder
-                        .WithSelector("*")
-                        .WithUri("https://api-{selector}.company.com/order/{orderCode}")))
-                .AddWebhookRequestRule(ruleBuilder => ruleBuilder
-                    .WithDestination(ruleAction: RuleAction.Route)
-                );
-
-            var webhookConfig = webhookConfigBuilder.Create();
+                    .WithDestination(ruleAction: RuleAction.Route))
+                .Create();
 
             var result = _validator.Validate(webhookConfig);
 
-            result.IsValid.Should().BeFalse();
+            result.AssertSingleFailure(nameof(WebhookConfig.WebhookRequestRules));
         }
 
         [Fact, IsUnit]
         public void When_WebhookConfig_contains_another_rule_with_Destination_RuleAction_Add_and_Location_Uri_then_validation_should_fail()
         {
-            var webhookConfigBuilder = new WebhookConfigBuilder()
+            var webhookConfig = GetValidWebhookConfigBuilder()
                 .AddWebhookRequestRule(ruleBuilder => ruleBuilder
-                    .WithSource(sourceBuilder => sourceBuilder
-                        .WithLocation(Location.Body)
-                        .AddReplace("selector", "something")
-                        .AddReplace("orderCode", "other-value"))
-                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
-                    .AddRoute(routeBuilder => routeBuilder
-                        .WithSelector("*")
-                        .WithUri("https://api-{selector}.company.com/order/{orderCode}")))
-                .AddWebhookRequestRule(ruleBuilder => ruleBuilder
-                    .WithDestination(ruleAction: RuleAction.Add, location: Location.Uri)
-                );
-
-            var webhookConfig = webhookConfigBuilder.Create();
+                    .WithDestination(ruleAction: RuleAction.Add, location: Location.Uri))
+                .Create();
 
             var result = _validator.Validate(webhookConfig);
 
-            result.IsValid.Should().BeFalse();
+            result.AssertSingleFailure(nameof(WebhookConfig.WebhookRequestRules));
         }
     }
 }
