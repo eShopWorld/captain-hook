@@ -31,6 +31,13 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
+        public WebhookConfigBuilder WithHttpVerb(string httpVerb)
+        {
+            _httpMethod = new HttpMethod(httpVerb);
+
+            return this;
+        }
+
         public WebhookConfigBuilder WithOidcAuthentication()
         {
             _authenticationConfig = new OidcAuthenticationConfig
@@ -52,6 +59,16 @@ namespace CaptainHook.Tests.Builders
                 Type = AuthenticationType.Basic,
                 Username = "username",
                 Password = "password",
+            };
+
+            return this;
+        }
+
+        public WebhookConfigBuilder WithNoAuthentication()
+        {
+            _authenticationConfig = new AuthenticationConfig
+            {
+                Type = AuthenticationType.None
             };
 
             return this;

@@ -31,10 +31,10 @@ namespace CaptainHook.DirectorService
         {
             try
             {
-                var appSettings = TempConfigLoader.Load ();
+                var appSettings = TempConfigLoader.Load();
 
-                var configurationSettings = new ConfigurationSettings ();
-                appSettings.Bind (configurationSettings);
+                var configurationSettings = new ConfigurationSettings();
+                appSettings.Bind(configurationSettings);
 
                 //Get configs from the Config Package
                 var activationContext = FabricRuntime.GetActivationContext();
@@ -53,7 +53,7 @@ namespace CaptainHook.DirectorService
                     .As<IConfigurationMerger>()
                     .SingleInstance();
 
-                builder.RegisterModule<CosmosDbStorageModule>();                
+                builder.RegisterModule<CosmosDbStorageModule>();
 
                 builder.RegisterInstance(configurationSettings)
                        .SingleInstance();
@@ -72,13 +72,13 @@ namespace CaptainHook.DirectorService
                     .As<IReaderServicesManager>()
                     .SingleInstance();
 
-                builder.RegisterType<ReaderServiceChangesDetector> ()
-                    .As<IReaderServiceChangesDetector> ()
-                    .SingleInstance ();
+                builder.RegisterType<ReaderServiceChangesDetector>()
+                    .As<IReaderServiceChangesDetector>()
+                    .SingleInstance();
 
                 builder.RegisterModule<KeyVaultModule>();
                 builder.RegisterModule<CosmosDbModule>();
-                builder.ConfigureCosmosDb (appSettings.GetSection (CaptainHookConfigSection));
+                builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
 
                 builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
                 builder.RegisterStatefulService<DirectorService>(ServiceNaming.DirectorServiceType);
