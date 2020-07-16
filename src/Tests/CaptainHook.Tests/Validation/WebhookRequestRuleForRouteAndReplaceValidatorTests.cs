@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Validation;
 using CaptainHook.Tests.Builders;
@@ -37,9 +38,7 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Theory, IsUnit]
-        [InlineData(RuleAction.Route)]
-        [InlineData(RuleAction.Replace)]
-        [InlineData(RuleAction.Add)]
+        [MemberData(nameof(InvalidEnumValues), RuleAction.RouteAndReplace)]
         public void When_Destination_Location_is_not_RouteAndReplace_then_validation_should_fail(RuleAction ruleAction)
         {
             var rule = GetValidWebhookRequestRuleBuilder().Create();
@@ -49,16 +48,29 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Theory, IsUnit]
-        [InlineData(Location.Uri)]
-        [InlineData(Location.Header)]
-        [InlineData(Location.HttpContent)]
-        [InlineData(Location.HttpStatusCode)]
+        [MemberData(nameof(InvalidEnumValues), Location.Body)]
         public void When_Source_Location_is_not_Body_then_validation_should_fail(Location location)
         {
             var rule = GetValidWebhookRequestRuleBuilder().Create();
             rule.Source.Location = location;
 
             VerifySingleFailure(rule);
+        }
+
+        public static IEnumerable<object[]> InvalidEnumValues(object validValue)
+        {
+            var enumType = validValue.GetType();
+            if (!enumType.IsEnum)
+                throw new ArgumentException("Passed argument is not an enum", nameof(validValue));
+
+            var allEnumValues = Enum.GetValues(enumType);
+            foreach (var value in allEnumValues)
+            {
+                if (!value.Equals(validValue))
+                {
+                    yield return new[] { value };
+                }
+            }
         }
 
         [Fact, IsUnit]

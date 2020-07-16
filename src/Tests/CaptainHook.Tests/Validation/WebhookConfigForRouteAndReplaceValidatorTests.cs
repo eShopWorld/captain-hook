@@ -51,15 +51,39 @@ namespace CaptainHook.Tests.Validation
                     .AddRoute(routeBuilder => routeBuilder
                         .WithSelector("*")
                         .WithUri("https://api-{selector}.company.com/order/{orderCode}")))
-                .AddWebhookRequestRule(ruleBuilder => ruleBuilder.WithSource(sourceBuilder => sourceBuilder
-                    .WithRuleAction(RuleAction.Replace))
+                .AddWebhookRequestRule(ruleBuilder => ruleBuilder
+                    .WithDestination(ruleAction: RuleAction.Route)
                 );
 
             var webhookConfig = webhookConfigBuilder.Create();
 
             var result = _validator.Validate(webhookConfig);
 
-            result.IsValid.Should().BeTrue();
+            result.IsValid.Should().BeFalse();
+        }
+
+        [Fact, IsUnit]
+        public void When_WebhookConfig_contains_more_rules_then_no_failures_should_be_returned2()
+        {
+            var webhookConfigBuilder = new WebhookConfigBuilder()
+                .AddWebhookRequestRule(ruleBuilder => ruleBuilder
+                    .WithSource(sourceBuilder => sourceBuilder
+                        .WithLocation(Location.Body)
+                        .AddReplace("selector", "something")
+                        .AddReplace("orderCode", "other-value"))
+                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                    .AddRoute(routeBuilder => routeBuilder
+                        .WithSelector("*")
+                        .WithUri("https://api-{selector}.company.com/order/{orderCode}")))
+                .AddWebhookRequestRule(ruleBuilder => ruleBuilder
+                    .WithDestination(ruleAction: RuleAction.Add, location: Location.Uri)
+                );
+
+            var webhookConfig = webhookConfigBuilder.Create();
+
+            var result = _validator.Validate(webhookConfig);
+
+            result.IsValid.Should().BeFalse();
         }
 
         [Theory, IsUnit]
