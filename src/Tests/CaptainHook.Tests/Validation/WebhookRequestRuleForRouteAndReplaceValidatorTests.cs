@@ -58,6 +58,15 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Fact, IsUnit]
+        public void When_Source_Path_is_not_null_then_validation_should_fail()
+        {
+            var rule = GetValidWebhookRequestRuleBuilder().Create();
+            rule.Source.Path = "some-path";
+
+            VerifySingleFailure(rule, nameof(SourceParserLocation.Path));
+        }
+
+        [Fact, IsUnit]
         public void When_Replace_does_not_contain_an_item_with_key_selector_then_validation_should_fail()
         {
             var rule = new WebhookRequestRuleBuilder()

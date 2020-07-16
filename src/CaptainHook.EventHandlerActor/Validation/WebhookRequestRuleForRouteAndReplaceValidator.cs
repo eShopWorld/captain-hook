@@ -26,6 +26,7 @@ namespace CaptainHook.EventHandlerActor.Validation
             public SourceParserLocationValidator()
             {
                 RuleFor(x => x.Location).Equal(Location.Body);
+                RuleFor(x => x.Path).Null();
                 RuleFor(x => x.Replace).Must(kvp => kvp?.ContainsKey("selector") == true);
                 RuleFor(x => x.Replace).Must(kvp => kvp?.Values.All(v => !string.IsNullOrWhiteSpace(v)) == true);
             }

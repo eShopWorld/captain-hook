@@ -5,7 +5,7 @@ namespace CaptainHook.Tests.Builders
 {
     internal class SourceParserLocationBuilder
     {
-        private string _path = "path";
+        private string _path = null;
         private Location _location = Location.Uri;
         private DataType _type = DataType.HttpContent;
         private RuleAction _ruleAction = RuleAction.Route;
