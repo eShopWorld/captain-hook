@@ -25,7 +25,7 @@ namespace CaptainHook.EventHandlerActor.Validation
 
         private bool ContainExactlyOneDefaultSelector(IList<string> selectors)
         {
-            return selectors.Any(x => x == RouteAndReplaceRequestBuilder.DefaultFallbackSelectorKey);
+            return selectors.Count(x => x == RouteAndReplaceRequestBuilder.DefaultFallbackSelectorKey) == 1;
         }
 
         private bool AllSelectorsMustBeUnique(IList<string> selectors)
