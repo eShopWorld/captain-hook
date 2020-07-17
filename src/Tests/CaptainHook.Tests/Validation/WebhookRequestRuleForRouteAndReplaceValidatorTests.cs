@@ -142,6 +142,26 @@ namespace CaptainHook.Tests.Validation
         }
 
         [Fact, IsUnit]
+        public void When_there_is_no_default_Route_Selector_then_validation_should_fail()
+        {
+            var rule = new WebhookRequestRuleBuilder()
+                .WithSource(sourceBuilder => sourceBuilder
+                    .WithLocation(Location.Body).WithRuleAction(RuleAction.RouteAndReplace)
+                    .AddReplace("selector", "something")
+                    .AddReplace("orderCode", "other-value"))
+                .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                .AddRoute(routeBuilder => routeBuilder
+                    .WithSelector("brand1")
+                    .WithUri("https://api-{selector}.company.com/order/{orderCode}"))
+                .AddRoute(routeBuilder => routeBuilder
+                    .WithSelector("brand2")
+                    .WithUri("https://api-{selector}.other-company.com/order/{orderCode}"))
+                .Create();
+
+            VerifySingleFailure(rule, nameof(WebhookRequestRule.Routes));
+        }
+
+        [Fact, IsUnit]
         public void When_more_than_one_Route_Selector_is_default_then_validation_should_fail()
         {
             var rule = new WebhookRequestRuleBuilder()
@@ -171,6 +191,9 @@ namespace CaptainHook.Tests.Validation
                     .AddReplace("selector", "something")
                     .AddReplace("orderCode", "other-value"))
                 .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                .AddRoute(routeBuilder => routeBuilder
+                    .WithSelector("*")
+                    .WithUri("https://api-{selector}.company.com/order/{orderCode}"))
                 .AddRoute(routeBuilder => routeBuilder
                     .WithSelector(invalidValue)
                     .WithUri("https://api-{selector}.company.com/order/{orderCode}"))

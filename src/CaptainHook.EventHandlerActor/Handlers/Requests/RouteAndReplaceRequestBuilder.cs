@@ -10,8 +10,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
     public class RouteAndReplaceRequestBuilder: DefaultRequestBuilder
     {
         public const string SelectorKeyName = "selector";
-
-        private const string DefaultFallbackSelectorKey = "*";
+        public const string DefaultFallbackSelectorKey = "*";
 
         public RouteAndReplaceRequestBuilder(IBigBrother bigBrother): base(bigBrother)
         {

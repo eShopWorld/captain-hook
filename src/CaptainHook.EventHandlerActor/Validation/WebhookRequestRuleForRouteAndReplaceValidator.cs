@@ -13,13 +13,24 @@ namespace CaptainHook.EventHandlerActor.Validation
         {
             RuleFor(x => x.Source).NotNull().SetValidator(new SourceParserLocationValidator());
             RuleFor(x => x.Destination).NotNull().SetValidator(new DestinationLocationValidator());
-            RuleFor(x => x.Routes).Must(HaveUniqueSelectors);
+            RuleFor(x => x.Routes).Must(ContainValidSelectors);
             RuleForEach(x => x.Routes).SetValidator((x, y) => new RouteValidator(x));
         }
 
-        private bool HaveUniqueSelectors(List<WebhookConfigRoute> routes)
+        private bool ContainValidSelectors(List<WebhookConfigRoute> routes)
         {
-            return routes?.Select(x => x.Selector).Distinct().Count() == routes?.Count;
+            var selectors = routes?.Select(r => r.Selector).ToList();
+            return ContainExactlyOneDefaultSelector(selectors) && AllSelectorsMustBeUnique(selectors);
+        }
+
+        private bool ContainExactlyOneDefaultSelector(IList<string> selectors)
+        {
+            return selectors.Any(x => x == RouteAndReplaceRequestBuilder.DefaultFallbackSelectorKey);
+        }
+
+        private bool AllSelectorsMustBeUnique(IList<string> selectors)
+        {
+            return selectors.Distinct().Count() == selectors.Count;
         }
 
         private class SourceParserLocationValidator : AbstractValidator<SourceParserLocation>
