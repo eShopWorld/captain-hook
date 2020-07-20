@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Cli.Common;
 using Newtonsoft.Json;
@@ -95,15 +94,13 @@ namespace CaptainHook.Cli.Commands.GenerateJson
 
             var values = config.GetSection("event").GetChildren().ToList();
 
-            var endpointList = new Dictionary<string, WebhookConfig>(values.Count);
-
             foreach (var (configurationSection, index) in values.WithIndex())
             {
                 var eventHandlerConfig = configurationSection.Get<EventHandlerConfig>();
                 ConfigParser.ParseAuthScheme(eventHandlerConfig.WebhookConfig, configurationSection, "webhookconfig:authenticationconfig");
 
                 UpdateWebhookRulesRoutesAuthenticationConfig(eventHandlerConfig, configurationSection);
-                UpdateSubscribersData(eventHandlerConfig, configurationSection, endpointList);
+                UpdateSubscribersData(eventHandlerConfig, configurationSection);
 
                 var jsonString = JsonConvert.SerializeObject(eventHandlerConfig, jsonSettings);
                 var filename = $"event-{1 + index}-{eventHandlerConfig.Name}.json";
@@ -133,7 +130,7 @@ namespace CaptainHook.Cli.Commands.GenerateJson
             }
         }
 
-        private static void UpdateSubscribersData(EventHandlerConfig eventHandlerConfig, IConfigurationSection configurationSection, Dictionary<string, WebhookConfig> endpointList)
+        private static void UpdateSubscribersData(EventHandlerConfig eventHandlerConfig, IConfigurationSection configurationSection)
         {
             foreach (var subscriber in eventHandlerConfig.AllSubscribers)
             {
@@ -144,14 +141,14 @@ namespace CaptainHook.Cli.Commands.GenerateJson
                     ? PayloadContractTypeEnum.WrapperContract
                     : PayloadContractTypeEnum.Raw;
 
-                ConfigParser.AddEndpoints(subscriber, endpointList, configurationSection, path);
+                ConfigParser.AddEndpoints(subscriber, configurationSection, path);
 
                 if (subscriber.Callback != null)
                 {
                     path = subscriber.CallbackConfigPath;
                     ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
                     subscriber.Callback.EventType = eventHandlerConfig.Type;
-                    ConfigParser.AddEndpoints(subscriber.Callback, endpointList, configurationSection, path);
+                    ConfigParser.AddEndpoints(subscriber.Callback, configurationSection, path);
                 }
             }
         }
