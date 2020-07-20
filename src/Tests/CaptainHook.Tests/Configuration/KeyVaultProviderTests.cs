@@ -32,7 +32,7 @@ namespace CaptainHook.Tests.Configuration
 
             var eventHandlerList = new List<EventHandlerConfig>();
             var webhookList = new List<WebhookConfig>(values.Count);
-            var endpointList = new Dictionary<string, WebhookConfig>(values.Count);
+            
             foreach (var configurationSection in values)
             {
                 //temp work around until config comes in through the API
@@ -44,21 +44,20 @@ namespace CaptainHook.Tests.Configuration
                     var path = "webhookconfig";
                     ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
                     webhookList.Add(subscriber);
-                    ConfigParser.AddEndpoints(subscriber, endpointList, configurationSection, path);
+                    ConfigParser.AddEndpoints(subscriber, configurationSection, path);
 
                     if (subscriber.Callback != null)
                     {
                         path = "callbackconfig";
                         ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
                         webhookList.Add(subscriber.Callback);
-                        ConfigParser.AddEndpoints(subscriber.Callback, endpointList, configurationSection, path);
+                        ConfigParser.AddEndpoints(subscriber.Callback, configurationSection, path);
                     }
                 }
             }
 
             Assert.NotEmpty(eventHandlerList);
             Assert.NotEmpty(webhookList);
-            Assert.NotEmpty(endpointList);
         }
     }
 }

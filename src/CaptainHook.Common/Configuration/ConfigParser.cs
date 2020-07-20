@@ -1,7 +1,6 @@
 ﻿using CaptainHook.Common.Authentication;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace CaptainHook.Common.Configuration
@@ -14,14 +13,11 @@ namespace CaptainHook.Common.Configuration
         /// <summary>
         /// Creates a list of unique endpoints which are used for authentication sharing and pooling
         /// </summary>
-        /// <param name="webhookConfig"></param>
-        /// <param name="endpointList"></param>
         /// <param name="configurationSection"></param>
         /// <param name="path"></param>
-        public static void AddEndpoints(WebhookConfig webhookConfig, IDictionary<string, WebhookConfig> endpointList, IConfiguration configurationSection, string path)
+        public static void AddEndpoints(WebhookConfig webhookConfig, IConfiguration configurationSection, string path)
         {
             if (webhookConfig == null) throw new ArgumentNullException(nameof(webhookConfig));
-            if (endpointList == null) throw new ArgumentNullException(nameof(endpointList));
             if (configurationSection == null) throw new ArgumentNullException(nameof(configurationSection));
 
             //creates a list of endpoints so they can be shared for authentication and http pooling
@@ -45,13 +41,8 @@ namespace CaptainHook.Common.Configuration
 
                         var authPath = $"{path}:webhookrequestrules:{i + 1}:routes:{y + 1}:authenticationconfig";
                         ParseAuthScheme(route, configurationSection, authPath);
-                        AddToDictionarySafely(endpointList, route);
                     }
                 }
-            }
-            else
-            {
-                AddToDictionarySafely(endpointList, webhookConfig);
             }
         }
 
@@ -85,20 +76,6 @@ namespace CaptainHook.Common.Configuration
 
             route.AuthenticationConfig = ParseOidcAuthenticationConfig(configurationSection.GetSection(path));
             route.AuthenticationConfig.Type = AuthenticationType.Custom;
-        }
-
-        /// <summary>
-        /// Safe adds to the dictionary if it does not already exist
-        /// </summary>
-        /// <param name="endpointList"></param>
-        /// <param name="rule"></param>
-        public static void AddToDictionarySafely(IDictionary<string, WebhookConfig> endpointList, WebhookConfig rule)
-        {
-            var uri = new Uri(rule.Uri);
-            if (!endpointList.ContainsKey(uri.Host.ToLowerInvariant()))
-            {
-                endpointList.Add(uri.Host.ToLowerInvariant(), rule);
-            }
         }
 
         /// <summary>
