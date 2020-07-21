@@ -7,8 +7,9 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
     public class BuildUriContext
     {
         private readonly string _originalUri;
-        private readonly string _selector;
+        
         private readonly Action<string> _publishUnroutableEvent;
+
         private string _replacedUri;
 
         public BuildUriContext([NotNull] string uri, Action<string> publishUnroutableEvent)
