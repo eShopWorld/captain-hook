@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
@@ -15,13 +16,13 @@ namespace CaptainHook.Api.Controllers
     [ApiController]
     public class EventsController : ControllerBase
     {
-        private readonly IBigBrother _bigBrother;
         private readonly IMediator _mediator;
+        private readonly IBigBrother _bigBrother;
 
-        public EventsController(IBigBrother bigBrother, IMediator mediator)
+        public EventsController(IMediator mediator, IBigBrother bigBrother)
         {
-            _bigBrother = bigBrother;
-            _mediator = mediator;
+            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
         }
 
         [HttpPut]
