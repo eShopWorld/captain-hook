@@ -3,6 +3,6 @@
     internal static class AuthorisationPolicies
     {
         public const string SubscribersAccess = "SubscribersAccess";
-        public const string SubscribersManagement = "SubscribersManagement";
+        public const string DefineSubscribers = "DefineSubscribers";
     }
 }

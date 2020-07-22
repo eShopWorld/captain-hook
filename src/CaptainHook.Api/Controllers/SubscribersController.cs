@@ -99,7 +99,6 @@ namespace CaptainHook.Api.Controllers
             var request = new AddSubscriberRequest
             {
                 Name = dto.Name,
-                EventName = dto.EventName
             };
 
             var response = await _mediator.Send(request);
