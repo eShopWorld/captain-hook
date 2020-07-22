@@ -1,0 +1,14 @@
+﻿using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Contract;
+using FluentValidation;
+using FluentValidation.Validators;
+
+namespace CaptainHook.Application.RequestValidators
+{
+    public class UpsertSubscriberRequestValidator : AbstractValidator<UpsertSubscriberRequest>
+    {
+        public UpsertSubscriberRequestValidator()
+        {
+        }
+    }
+}
