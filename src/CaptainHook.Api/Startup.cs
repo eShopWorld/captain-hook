@@ -159,6 +159,8 @@ namespace CaptainHook.Api
                 {
                     options.AddPolicy(Constants.AuthorisationPolicies.SubscribersAccess,
                         policy => policy.RequireScope(Constants.AuthorisationScopes.ApiAllAccess));
+                     options.AddPolicy(Constants.AuthorisationPolicies.SubscribersManagement,
+                        policy => policy.RequireScope(Constants.AuthorisationScopes.ApiDefineSubscribers));
                 });
             }
             catch (Exception e)
