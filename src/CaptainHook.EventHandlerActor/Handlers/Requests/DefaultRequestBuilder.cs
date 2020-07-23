@@ -179,7 +179,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
 
         /// <inheritdoc />
 
-        public HttpMethod SelectHttpMethod(WebhookConfig webhookConfig, string payload)
+        public virtual HttpMethod SelectHttpMethod(WebhookConfig webhookConfig, string payload)
         {
             if (webhookConfig == null) throw new ArgumentNullException(nameof(webhookConfig));
 
@@ -207,7 +207,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
         }
 
         /// <inheritdoc />
-        public WebhookConfig GetAuthenticationConfig(WebhookConfig webhookConfig, string payload)
+        public virtual WebhookConfig GetAuthenticationConfig(WebhookConfig webhookConfig, string payload)
         {
             if (webhookConfig == null) throw new ArgumentNullException(nameof(webhookConfig));
 
