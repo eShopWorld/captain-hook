@@ -28,7 +28,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             }
 
             var subscriberEntities = await _repository.GetSubscribersListAsync(query.Name);
-            var dtos = subscriberEntities.IfValid(x => x.Select(s => new SubscriberDto { Name = s.Name }).ToList());
+            var dtos = subscriberEntities.IfValid(x => x.Select(s => new SubscriberDto()).ToList());
             return dtos;
         }
     }
