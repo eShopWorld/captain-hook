@@ -7,6 +7,7 @@ namespace CaptainHook.Contract
         public string Type { get; set; }
         public string ClientId { get; set; }
         public string Uri { get; set; }
+        public ClientSecretDto ClientSecret { get; set; }
         public List<string> Scopes { get; set; }
     }
 }
