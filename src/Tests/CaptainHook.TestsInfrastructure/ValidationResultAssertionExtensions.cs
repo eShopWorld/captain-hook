@@ -2,7 +2,7 @@
 using FluentAssertions.Execution;
 using FluentValidation.Results;
 
-namespace CaptainHook.Tests.TestsInfrastructure
+namespace CaptainHook.TestsInfrastructure
 {
     public static class ValidationResultAssertionExtensions
     {

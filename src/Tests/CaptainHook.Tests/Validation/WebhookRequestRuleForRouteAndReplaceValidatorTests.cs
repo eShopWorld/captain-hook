@@ -2,7 +2,7 @@
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Validation;
 using CaptainHook.Tests.Builders;
-using CaptainHook.Tests.TestsInfrastructure;
+using CaptainHook.TestsInfrastructure;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Xunit;

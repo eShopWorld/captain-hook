@@ -5,9 +5,9 @@ using FluentValidation.Validators;
 
 namespace CaptainHook.Application.RequestValidators
 {
-    public class UpsertSubscriberRequestValidator : AbstractValidator<UpsertSubscriberRequest>
+    public class UpsertWebhookRequestValidator : AbstractValidator<UpsertWebhookRequest>
     {
-        public UpsertSubscriberRequestValidator()
+        public UpsertWebhookRequestValidator()
         {
         }
     }
