@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
+using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -26,15 +27,15 @@ namespace CaptainHook.Api.Controllers
         }
 
         [HttpPut]
-        [Route("/{eventName}/subscriber/{subscriberName}")]
+        [Route("/{eventName}/subscriber/{subscriberName}/webhooks/endpoint/")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> PutSubscriber([FromRoute] string eventName, [FromRoute] string subscriberName, [FromBody] SubscriberDto dto)
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> PutWebhook([FromRoute] string eventName, [FromRoute] string subscriberName, [FromBody] EndpointDto dto)
         {
-            var request = new UpsertSubscriberRequest(eventName, subscriberName, dto);
+            var request = new UpsertWebhookRequest(eventName, subscriberName, dto);
             //var result = await _mediator.Send(request);
 
             return new StatusCodeResult(StatusCodes.Status418ImATeapot);

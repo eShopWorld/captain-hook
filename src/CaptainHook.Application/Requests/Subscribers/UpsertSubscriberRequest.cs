@@ -5,17 +5,17 @@ using MediatR;
 
 namespace CaptainHook.Application.Requests.Subscribers
 {
-    public class UpsertSubscriberRequest : IRequest<OperationResult<Guid>>
+    public class UpsertWebhookRequest : IRequest<OperationResult<Guid>>
     {
         public string EventName { get; set; }
         public string SubscriberName { get; set; }
-        public SubscriberDto SubscriberDto { get; set; }
+        public EndpointDto Endpoint { get; set; }
 
-        public UpsertSubscriberRequest(string eventName, string subscriberName, SubscriberDto subscriberDto)
+        public UpsertWebhookRequest(string eventName, string subscriberName, EndpointDto dto)
         {
             EventName = eventName;
             SubscriberName = subscriberName;
-            SubscriberDto = subscriberDto;
+            Endpoint = dto;
         }
     }
 }
