@@ -38,14 +38,13 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             if (property == null)
                 throw new ArgumentNullException(nameof(property));
-            if (!(property.Body is MemberExpression))
-                throw new ArgumentException("Expression is not property expression", nameof(property));
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
 
-            var call = new PropertySetterCall<TProperty>(property, value);
-            _propertySetterCalls.Add(call);
+            if (!((property.Body as MemberExpression)?.Member is PropertyInfo propertyInfo))
+                throw new ArgumentException("Expression is not property expression", nameof(property));
 
+            _propertySetterCalls.Add(new PropertySetterCall<TProperty>(propertyInfo, value));
             return this;
         }
 
@@ -59,26 +58,25 @@ namespace CaptainHook.Application.Tests.RequestValidators
             return result;
         }
 
-        private interface IPropertySetterCall<T>
+        private interface IPropertySetterCall<in TType>
         {
-            void SetValue(T instance);
+            void SetValue(TType instance);
         }
 
         private class PropertySetterCall<TProperty> : IPropertySetterCall<T>
         {
-            public Expression<Func<T, TProperty>> Property { get; }
-            public TProperty Value { get; }
+            private readonly PropertyInfo _property;
+            private readonly TProperty _value;
 
-            public PropertySetterCall(Expression<Func<T, TProperty>> property, TProperty value)
+            public PropertySetterCall(PropertyInfo property, TProperty value)
             {
-                Property = property;
-                Value = value;
+                _property = property;
+                _value = value;
             }
 
             public void SetValue(T instance)
             {
-                var property = (Property.Body as MemberExpression)?.Member as PropertyInfo;
-                property?.SetValue(instance, Value, null);
+                _property.SetValue(instance, _value, null);
             }
         }
     }
