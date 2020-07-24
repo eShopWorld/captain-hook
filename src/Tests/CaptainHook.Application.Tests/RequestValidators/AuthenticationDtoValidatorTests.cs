@@ -79,7 +79,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_Scopes_are_empty_item_then_then_validation_should_fail()
+        public void When_Scopes_are_empty_then_then_validation_should_fail()
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Scopes, null).Create();
 
@@ -99,6 +99,40 @@ namespace CaptainHook.Application.Tests.RequestValidators
             result.AssertSingleFailure(nameof(AuthenticationDto.Scopes));
         }
 
+        [Fact, IsUnit]
+        public void When_ClientSecret_is_null_then_then_validation_should_fail()
+        {
+            var dto = new AuthenticationDtoBuilder().With(x => x.ClientSecret, null).Create();
 
+            var result = _validator.Validate(dto);
+
+            result.AssertSingleFailure(nameof(AuthenticationDto.ClientSecret));
+        }
+
+        [Theory, IsUnit]
+        [ClassData(typeof(EmptyStrings))]
+        public void When_ClientSecretName_is_empty_item_then_then_validation_should_fail(string invalidString)
+        {
+            var dto = new AuthenticationDtoBuilder()
+                .With(x => x.ClientSecret, new ClientSecretDto { Name = invalidString, Vault = "vault" })
+                .Create();
+
+            var result = _validator.Validate(dto);
+
+            result.AssertSingleFailure(nameof(AuthenticationDto.ClientSecret));
+        }
+
+        [Theory, IsUnit]
+        [ClassData(typeof(EmptyStrings))]
+        public void When_ClientSecretVault_is_empty_item_then_then_validation_should_fail(string invalidString)
+        {
+            var dto = new AuthenticationDtoBuilder()
+                .With(x => x.ClientSecret, new ClientSecretDto { Name = "secret-name", Vault = invalidString })
+                .Create();
+
+            var result = _validator.Validate(dto);
+
+            result.AssertSingleFailure(nameof(AuthenticationDto.ClientSecret));
+        }
     }
 }
