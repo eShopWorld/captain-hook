@@ -46,7 +46,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
             var result = _validator.Validate(request);
 
-            result.AssertSingleFailure(nameof(EndpointDto.Uri));
+            result.AssertSingleFailure(nameof(UpsertWebhookRequest.EventName));
         }
 
         [Theory, IsUnit]
@@ -57,7 +57,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
             var result = _validator.Validate(request);
 
-            result.AssertSingleFailure(nameof(EndpointDto.Uri));
+            result.AssertSingleFailure(nameof(UpsertWebhookRequest.SubscriberName));
         }
 
         [Theory, IsUnit]
