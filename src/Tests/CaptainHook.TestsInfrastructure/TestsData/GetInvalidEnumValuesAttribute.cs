@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Xunit.Sdk;
 
-namespace CaptainHook.TestsInfrastructure
+namespace CaptainHook.TestsInfrastructure.TestsData
 {
     public class GetInvalidEnumValuesAttribute : DataAttribute
     {

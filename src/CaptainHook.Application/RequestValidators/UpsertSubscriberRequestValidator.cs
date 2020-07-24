@@ -11,4 +11,11 @@ namespace CaptainHook.Application.RequestValidators
         {
         }
     }
+
+    public class AuthenticationDtoValidator : AbstractValidator<AuthenticationDto>
+    {
+        public AuthenticationDtoValidator()
+        {
+        }
+    }
 }

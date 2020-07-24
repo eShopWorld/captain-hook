@@ -13,8 +13,6 @@ namespace CaptainHook.TestsInfrastructure
         {
             if (property == null)
                 throw new ArgumentNullException(nameof(property));
-            if (value == null)
-                throw new ArgumentNullException(nameof(value));
 
             if (!((property.Body as MemberExpression)?.Member is PropertyInfo propertyInfo))
                 throw new ArgumentException("Expression is not a property expression", nameof(property));
