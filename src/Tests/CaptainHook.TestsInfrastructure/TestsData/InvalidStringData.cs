@@ -25,6 +25,6 @@ namespace CaptainHook.TestsInfrastructure.TestsData
 
     public class InvalidUris : InvalidStringData
     {
-        protected override IEnumerable<string> Values => new[] { "not-a-uri", "https://no-domain", "https://.com" };
+        protected override IEnumerable<string> Values => new[] { "not-a-uri", "https:/invalid.com", "https://.com" };
     }
 }

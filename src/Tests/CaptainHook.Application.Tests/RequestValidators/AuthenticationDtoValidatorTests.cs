@@ -97,7 +97,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
             var result = _validator.Validate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.Scopes));
+            result.AssertSingleFailure($"{nameof(AuthenticationDto.Scopes)}[0]");
         }
 
         [Fact, IsUnit]
@@ -120,7 +120,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
             var result = _validator.Validate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.ClientSecret));
+            result.AssertSingleFailure(nameof(ClientSecretDto.Name));
         }
 
         [Theory, IsUnit]
@@ -133,7 +133,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
             var result = _validator.Validate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.ClientSecret));
+            result.AssertSingleFailure(nameof(ClientSecretDto.Vault));
         }
     }
 }
