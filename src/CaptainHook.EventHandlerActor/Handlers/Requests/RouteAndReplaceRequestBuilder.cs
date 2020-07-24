@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using Eshopworld.Core;
@@ -54,6 +55,11 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
 
             return routeConfig;
         }
+
+        public override HttpMethod SelectHttpMethod(WebhookConfig webhookConfig, string payload) =>
+            SelectWebhookConfig(webhookConfig, payload).HttpMethod;
+
+        public override WebhookConfig GetAuthenticationConfig(WebhookConfig webhookConfig, string payload) => SelectWebhookConfig(webhookConfig, payload);
 
         private IDictionary<string, string> BuildReplacementDictionary(
             IDictionary<string, string> sourceReplace,

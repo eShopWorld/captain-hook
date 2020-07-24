@@ -148,6 +148,27 @@ namespace CaptainHook.Tests.Services.Actors.Requests
             actualConfig.Should().BeEquivalentTo(expectedWebhookConfig);
         }
 
+        [IsUnit]
+        [Theory]
+        [MemberData(nameof(WebhookConfigData))]
+        public void GetAuthenticationConfigTests(WebhookConfig config, string payload, WebhookConfig expectedWebhookConfig)
+        {
+            var actualConfig = _builder.GetAuthenticationConfig(config, payload);
+
+            actualConfig.Should().BeEquivalentTo(expectedWebhookConfig);
+        }
+
+
+        [IsUnit]
+        [Theory]
+        [MemberData(nameof(WebhookConfigData))]
+        public void SelectHttpMethodTests(WebhookConfig config, string payload, WebhookConfig expectedWebhookConfig)
+        {
+            var actualHttpMethod = _builder.SelectHttpMethod(config, payload);
+
+            actualHttpMethod.Should().Be(expectedWebhookConfig.HttpMethod);
+        }
+
         public static IEnumerable<object[]> UriDataRouteAndReplace =>
             new List<object[]>
             {
@@ -218,16 +239,19 @@ namespace CaptainHook.Tests.Services.Actors.Requests
                             .WithDestination(ruleAction: RuleAction.RouteAndReplace)
                             .AddRoute(route => route
                                 .WithUri("https://blah.blah.Brand1.eshopworld.com/webhook/{orderCode}")
+                                .WithHttpVerb("PUT")
                                 .WithSelector("Brand1")
                                 .WithNoAuthentication())
                             .AddRoute(route => route
                                 .WithUri("https://blah.blah.{selector}.eshopworld.com/webhook/{orderCode}")
+                                .WithHttpVerb("GET")
                                 .WithSelector("*")
                                 .WithNoAuthentication()))
                         .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\", \"TenantCode\":\"tenant1\"}",
                     new WebhookConfigRouteBuilder()
                         .WithUri("https://blah.blah.{selector}.eshopworld.com/webhook/{orderCode}")
+                        .WithHttpVerb("GET")
                         .WithSelector("*")
                         .WithNoAuthentication()
                         .Create()
@@ -242,16 +266,19 @@ namespace CaptainHook.Tests.Services.Actors.Requests
                             .WithDestination(ruleAction: RuleAction.RouteAndReplace)
                             .AddRoute(route => route
                                 .WithUri("https://blah.blah.Brand1.eshopworld.com/webhook/{orderCode}")
+                                .WithHttpVerb("GET")
                                 .WithSelector("tenant0")
                                 .WithNoAuthentication())
                             .AddRoute(route => route
                                 .WithUri("https://blah.blah.{selector}.eshopworld.com/webhook/{orderCode}")
+                                .WithHttpVerb("PUT")
                                 .WithSelector("*")
                                 .WithNoAuthentication()))
                         .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\", \"TenantCode\":\"tenant0\"}",
                     new WebhookConfigRouteBuilder()
                         .WithUri("https://blah.blah.Brand1.eshopworld.com/webhook/{orderCode}")
+                        .WithHttpVerb("GET")
                         .WithSelector("tenant0")
                         .WithNoAuthentication()
                         .Create()
@@ -266,12 +293,14 @@ namespace CaptainHook.Tests.Services.Actors.Requests
                             .WithDestination(ruleAction: RuleAction.RouteAndReplace)
                             .AddRoute(route => route
                                 .WithUri("https://blah.blah.{selector}.eshopworld.com/webhook/{orderCode}")
+                                .WithHttpVerb("PUT")
                                 .WithSelector("*")
                                 .WithNoAuthentication()))
                         .Create(),
                     "{\"OrderCode\":\"9744b831-df2c-4d59-9d9d-691f4121f73a\", \"BrandType\":\"Brand2\", \"TenantCode\":\"tenant1\"}",
                     new WebhookConfigRouteBuilder()
                         .WithUri("https://blah.blah.{selector}.eshopworld.com/webhook/{orderCode}")
+                        .WithHttpVerb("PUT")
                         .WithSelector("*")
                         .WithNoAuthentication()
                         .Create()

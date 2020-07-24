@@ -26,8 +26,7 @@ namespace CaptainHook.Api.Controllers
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
         }
 
-        [HttpPut]
-        [Route("/{eventName}/subscriber/{subscriberName}/webhooks/endpoint/")]
+        [HttpPut("{eventName}/subscriber/{subscriberName}/webhooks/endpoint/")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
