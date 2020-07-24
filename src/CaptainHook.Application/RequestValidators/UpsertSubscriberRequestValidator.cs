@@ -9,6 +9,8 @@ namespace CaptainHook.Application.RequestValidators
     {
         public UpsertWebhookRequestValidator()
         {
+            RuleFor(x => x.EventName).NotEmpty();
+            RuleFor(x => x.SubscriberName).NotEmpty();
         }
     }
 

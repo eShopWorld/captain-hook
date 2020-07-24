@@ -3,6 +3,7 @@ using CaptainHook.Application.RequestValidators;
 using CaptainHook.Contract;
 using CaptainHook.TestsInfrastructure;
 using CaptainHook.TestsInfrastructure.Builders;
+using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Xunit;

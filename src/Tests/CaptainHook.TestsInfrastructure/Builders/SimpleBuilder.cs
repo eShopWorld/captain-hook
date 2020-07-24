@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace CaptainHook.TestsInfrastructure
+namespace CaptainHook.TestsInfrastructure.Builders
 {
     public class SimpleBuilder<T>
     {

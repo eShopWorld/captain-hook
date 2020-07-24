@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace CaptainHook.Application.Tests.RequestValidators
+namespace CaptainHook.TestsInfrastructure.TestsData
 {
     public abstract class InvalidStringData : IEnumerable<object[]>
     {
