@@ -1,5 +1,5 @@
 ﻿using CaptainHook.Application.Requests.Subscribers;
-using CaptainHook.Application.RequestValidators;
+using CaptainHook.Application.Validators;
 using CaptainHook.Contract;
 using CaptainHook.TestsInfrastructure;
 using CaptainHook.TestsInfrastructure.Builders;

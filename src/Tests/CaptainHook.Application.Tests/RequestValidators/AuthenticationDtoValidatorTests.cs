@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using CaptainHook.Application.RequestValidators;
+using CaptainHook.Application.Validators.Dtos;
 using CaptainHook.Contract;
 using CaptainHook.TestsInfrastructure;
 using CaptainHook.TestsInfrastructure.Builders;
