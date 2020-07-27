@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
+using CaptainHook.Common.Remoting.Types;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
@@ -148,6 +149,11 @@ namespace CaptainHook.DirectorService
         public Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribersAsync()
         {
             return Task.FromResult(_subscriberConfigurations);
+        }
+
+        public Task<RequestReloadConfigurationResult> UpdateReader(ReaderChangeInfo readerChangeInfo)
+        {
+            throw new NotImplementedException();
         }
 
         private async void ExecuteConfigReload(object state)
