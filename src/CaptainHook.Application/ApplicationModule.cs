@@ -9,7 +9,7 @@ namespace CaptainHook.Application
     {
         protected override void Load(ContainerBuilder builder)
         {
-            var handlersAssembly = typeof(AddSubscriberRequestHandler).Assembly;
+            var handlersAssembly = typeof(UpsertWebhookRequestHandler).Assembly;
             var validatorsAssembly = typeof(UpsertWebhookRequestValidator).Assembly;
 
             builder.RegisterMediatorInfrastructure(handlersAssembly, validatorsAssembly);
