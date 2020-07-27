@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Remoting.Types;
 
 namespace CaptainHook.DirectorService.ReaderServiceManagement
 {

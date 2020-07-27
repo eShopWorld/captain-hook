@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Remoting.Types;
 
 namespace CaptainHook.DirectorService.ReaderServiceManagement
 {

@@ -1,13 +1,13 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace CaptainHook.DirectorService.ReaderServiceManagement
+namespace CaptainHook.Common.Remoting.Types
 {
     /// <summary>
     /// Structure used to represent existing reader service names
     /// </summary>
     public readonly struct ExistingReaderDefinition
     {
-        private static readonly Regex RemoveSuffixRegex = new Regex ("(|-a|-b|-\\d{14}|-[a-zA-Z0-9]{20,22})$", RegexOptions.Compiled);
+        private static readonly Regex RemoveSuffixRegex = new Regex("(|-a|-b|-\\d{14}|-[a-zA-Z0-9]{20,22})$", RegexOptions.Compiled);
 
         /// <summary>
         /// Bare Reader Service name, without the suffix (non-versioned)
@@ -21,9 +21,9 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
 
         public bool IsValid => ServiceName != null && ServiceNameWithSuffix != null;
 
-        public ExistingReaderDefinition (string serviceNameWithSuffix)
+        public ExistingReaderDefinition(string serviceNameWithSuffix)
         {
-            ServiceName = RemoveSuffixRegex.Replace (serviceNameWithSuffix, string.Empty);
+            ServiceName = RemoveSuffixRegex.Replace(serviceNameWithSuffix, string.Empty);
             ServiceNameWithSuffix = serviceNameWithSuffix;
         }
 

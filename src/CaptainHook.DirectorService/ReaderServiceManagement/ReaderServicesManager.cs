@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Remoting.Types;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
