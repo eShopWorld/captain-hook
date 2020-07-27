@@ -24,6 +24,16 @@ namespace CaptainHook.Application.Tests.RequestValidators
             result.IsValid.Should().BeTrue();
         }
 
+        [Fact, IsUnit]
+        public void When_Type_is_lowercase_then_no_failures_should_be_returned()
+        {
+            var dto = new AuthenticationDtoBuilder().With(x => x.Type, "oidc").Create();
+
+            var result = _validator.Validate(dto);
+
+            result.IsValid.Should().BeTrue();
+        }
+
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
         public void When_Type_is_empty_then_then_validation_should_fail(string invalidString)
