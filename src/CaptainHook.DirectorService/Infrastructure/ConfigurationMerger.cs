@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Common.Configuration.KeyVault;
@@ -13,11 +12,11 @@ namespace CaptainHook.DirectorService.Infrastructure
 {
     public class ConfigurationMerger : IConfigurationMerger
     {
-        private readonly ISecretProvider _secretProvider;
+        private readonly SubscriberEntityToConfigurationMapper _subscriberEntityToConfigurationMapper;
 
         public ConfigurationMerger(ISecretProvider secretProvider)
         {
-            _secretProvider = secretProvider;
+            _subscriberEntityToConfigurationMapper = new SubscriberEntityToConfigurationMapper(secretProvider);
         }
 
         /// <summary>
@@ -37,7 +36,7 @@ namespace CaptainHook.DirectorService.Infrastructure
 
             async Task<IEnumerable<SubscriberConfiguration>> MapCosmosEntries()
             {
-                var tasks = subscribersFromCosmos.Select(this.MapSubscriber).ToArray();
+                var tasks = subscribersFromCosmos.Select(_subscriberEntityToConfigurationMapper.MapSubscriber).ToArray();
                 await Task.WhenAll(tasks);
 
                 return tasks.SelectMany(t => t.Result).ToArray();
@@ -46,86 +45,6 @@ namespace CaptainHook.DirectorService.Infrastructure
             var fromCosmos = await MapCosmosEntries();
             var union = onlyInKv.Union(fromCosmos).ToList();
             return new ReadOnlyCollection<SubscriberConfiguration>(union);
-        }
-
-        private async Task<IEnumerable<SubscriberConfiguration>> MapSubscriber(SubscriberEntity cosmosModel)
-        {
-            return new[]
-            {
-                await MapBasicSubscriberData(cosmosModel)
-            };
-
-            // DLQ handling not needed now
-            //var dlq = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
-            //if (dlq != null)
-            //{
-            //    yield return MapDlq(cosmosModel);
-            //}
-        }
-
-        private async Task<SubscriberConfiguration> MapBasicSubscriberData(SubscriberEntity cosmosModel)
-        {
-            var config = new SubscriberConfiguration
-            {
-                Name = $"{cosmosModel.ParentEvent.Name}-{cosmosModel.Name}",
-                SubscriberName = cosmosModel.Name,
-                EventType = cosmosModel.ParentEvent.Name,
-                Uri = cosmosModel.Webhooks.Endpoints.First().Uri,
-                AuthenticationConfig = await MapAuthentication(cosmosModel.Webhooks.Endpoints.FirstOrDefault()?.Authentication),
-                // Callback handling not needed now
-                //Callback = MapCallback(cosmosModel),
-            };
-
-            return config;
-        }
-
-        //private WebhookConfig MapCallback(SubscriberModel cosmosModel)
-        //{
-        //    var endpoint = cosmosModel?.Callbacks?.Endpoints.FirstOrDefault();
-        //    if (endpoint == null)
-        //        return null;
-
-        //    return new WebhookConfig()
-        //    {
-        //        Name = cosmosModel.Name,
-        //        Uri = endpoint.Uri,
-        //        HttpVerb = endpoint.HttpVerb,
-        //        AuthenticationConfig = MapAuthentication(endpoint.Authentication),
-        //        EventType = cosmosModel.ParentEvent.Name,
-        //    };
-        //}
-
-        //private SubscriberConfiguration MapDlq(SubscriberModel cosmosModel)
-        //{
-        //    var endpoint = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
-        //    if (endpoint == null)
-        //        return null;
-
-        //    return new SubscriberConfiguration
-        //    {
-        //        Name = cosmosModel.Name,
-        //        Uri = endpoint.Uri,
-        //        HttpVerb = endpoint.HttpVerb,
-        //        AuthenticationConfig = MapAuthentication(endpoint.Authentication),
-        //        DLQMode = SubscriberDlqMode.WebHookMode,
-        //    };
-        //}
-
-        private async Task<AuthenticationConfig> MapAuthentication(AuthenticationEntity cosmosAuthentication)
-        {
-            if (cosmosAuthentication?.SecretStore?.SecretName == null)
-                return null;
-
-            var secretValue = await _secretProvider.GetSecretValueAsync(cosmosAuthentication.SecretStore.SecretName);
-
-            return new OidcAuthenticationConfig
-            {
-                Type = AuthenticationType.OIDC,
-                ClientId = cosmosAuthentication.ClientId,
-                ClientSecret = secretValue,
-                Uri = cosmosAuthentication.Uri,
-                Scopes = cosmosAuthentication.Scopes,
-            };
         }
     }
 }

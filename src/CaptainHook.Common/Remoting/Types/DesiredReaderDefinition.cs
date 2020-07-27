@@ -7,7 +7,6 @@ using Newtonsoft.Json;
 
 namespace CaptainHook.Common.Remoting.Types
 {
-
     /// <summary>
     /// Defines reader service names based on given configuration
     /// </summary>
