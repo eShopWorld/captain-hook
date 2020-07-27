@@ -28,6 +28,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         [InlineData("POST")]
         [InlineData("GET")]
         [InlineData("PUT")]
+        [InlineData("post")]
+        [InlineData("get")]
+        [InlineData("put")]
         public void When_HttpVerb_is_valid_HTTP_verb_then_then_no_failures_should_be_returned(string httpVerb)
         {
             var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();

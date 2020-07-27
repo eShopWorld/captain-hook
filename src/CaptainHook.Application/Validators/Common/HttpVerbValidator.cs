@@ -5,7 +5,7 @@ namespace CaptainHook.Application.Validators.Common
 {
     public class HttpVerbValidator : PropertyValidator
     {
-        private readonly string[] _validVerbs = { "POST", "PUT", "GET" };
+        private static readonly string[] _validVerbs = { "POST", "PUT", "GET" };
 
         public HttpVerbValidator()
             : base("{PropertyName} must be valid HTTP verb.")
@@ -15,7 +15,7 @@ namespace CaptainHook.Application.Validators.Common
         protected override bool IsValid(PropertyValidatorContext context)
         {
             var httpVerb = context.PropertyValue as string;
-            return _validVerbs.Contains(httpVerb);
+            return _validVerbs.Contains(httpVerb?.ToUpperInvariant());
         }
     }
 }
