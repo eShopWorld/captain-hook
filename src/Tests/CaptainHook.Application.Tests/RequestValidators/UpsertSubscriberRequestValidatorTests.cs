@@ -31,7 +31,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         [InlineData("post")]
         [InlineData("get")]
         [InlineData("put")]
-        public void When_HttpVerb_is_valid_HTTP_verb_then_then_no_failures_should_be_returned(string httpVerb)
+        public void When_HttpVerb_is_valid_HTTP_verb_then_no_failures_should_be_returned(string httpVerb)
         {
             var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
@@ -43,7 +43,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_Event_is_empty_then_then_validation_should_fail(string invalidString)
+        public void When_Event_is_empty_then_validation_should_fail(string invalidString)
         {
             var request = new UpsertWebhookRequest(invalidString, "subscriber", new EndpointDtoBuilder().Create());
 
@@ -54,7 +54,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_Subscriber_is_empty_then_then_validation_should_fail(string invalidString)
+        public void When_Subscriber_is_empty_then_validation_should_fail(string invalidString)
         {
             var request = new UpsertWebhookRequest("event", invalidString, new EndpointDtoBuilder().Create());
 
@@ -65,7 +65,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_Uri_is_empty_then_then_validation_should_fail(string uri)
+        public void When_Uri_is_empty_then_validation_should_fail(string uri)
         {
             var dto = new EndpointDtoBuilder().With(x => x.Uri, uri).Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
@@ -89,7 +89,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_HttpVerb_is_empty_then_then_validation_should_fail(string httpVerb)
+        public void When_HttpVerb_is_empty_then_validation_should_fail(string httpVerb)
         {
             var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
@@ -101,7 +101,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [InlineData("duck")]
-        public void When_HttpVerb_is_not_a_valid_HTTP_verb_then_then_validation_should_fail(string httpVerb)
+        public void When_HttpVerb_is_not_a_valid_HTTP_verb_then_validation_should_fail(string httpVerb)
         {
             var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
