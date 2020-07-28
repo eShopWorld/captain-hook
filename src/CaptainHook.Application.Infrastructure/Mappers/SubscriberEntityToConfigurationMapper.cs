@@ -21,7 +21,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         {
             return new[]
             {
-                await MapBasicSubscriberData(cosmosModel)
+                await MapSingleSubscriber(cosmosModel)
             };
 
             // DLQ handling not needed now
@@ -32,7 +32,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             //}
         }
 
-        private async Task<SubscriberConfiguration> MapBasicSubscriberData(SubscriberEntity cosmosModel)
+        public async Task<SubscriberConfiguration> MapSingleSubscriber(SubscriberEntity cosmosModel)
         {
             var config = new SubscriberConfiguration
             {
