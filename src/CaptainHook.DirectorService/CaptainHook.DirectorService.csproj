@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Application.Infrastructure\CaptainHook.Application.Infrastructure.csproj" />
     <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
     <ProjectReference Include="..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
     <ProjectReference Include="..\CaptainHook.Storage.Cosmos\CaptainHook.Storage.Cosmos.csproj" />

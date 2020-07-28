@@ -6,7 +6,7 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Domain.Entities;
 
-namespace CaptainHook.DirectorService.Infrastructure
+namespace CaptainHook.Application.Infrastructure.Mappers
 {
     public class SubscriberEntityToConfigurationMapper
     {
