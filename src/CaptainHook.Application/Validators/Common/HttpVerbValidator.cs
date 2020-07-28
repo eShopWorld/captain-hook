@@ -8,7 +8,7 @@ namespace CaptainHook.Application.Validators.Common
         private static readonly string[] _validVerbs = { "POST", "PUT", "GET" };
 
         public HttpVerbValidator()
-            : base("{PropertyName} must be valid HTTP verb.")
+            : base($"{{PropertyName}} must be one of allowed HTTP verbs: {string.Join(',', _validVerbs)}.")
         {
         }
 
