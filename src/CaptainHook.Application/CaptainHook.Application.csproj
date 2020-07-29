@@ -14,9 +14,4 @@
     <ProjectReference Include="..\CaptainHook.Contract\CaptainHook.Contract.csproj" />
     <ProjectReference Include="..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Gateways\" />
-  </ItemGroup>
-
 </Project>
