@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.KeyVault;
+﻿using Eshopworld.DevOps;
+using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
@@ -10,9 +11,12 @@ namespace CaptainHook.Tests.Configuration
 {
     public class TestsConfig
     {
+        /// <summary>
+        /// Loads configuration parameters for Integrations tests from AppSettings.json files and secrets from the KeyvaultUrl configured in appsettings
+        /// </summary>
         public TestsConfig()
         {
-            var config = Eshopworld.DevOps.EswDevOpsSdk.BuildConfiguration(); // don't load whole kv
+            var config = EswDevOpsSdk.BuildConfiguration(); // don't load whole kv
             var kvConfig = new ConfigurationBuilder().AddAzureKeyVault(
                 config["KeyVaultUrl"],
                 new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
@@ -21,8 +25,8 @@ namespace CaptainHook.Tests.Configuration
             this.ServiceBusConnectionString = kvConfig["CaptainHook:ServiceBusConnectionString"]; // KV
             this.StsClientSecret = kvConfig["TestConfig:Authentication:ClientSecret"]; // KV
             
-            this.InstrumentationKey = config["InstrumentationKey"]; // AS
-            this.SubscriptionId = config["AzureSubscriptionId"]; // AS
+            this.InstrumentationKey = kvConfig["InstrumentationKey"]; // KV
+            this.SubscriptionId = kvConfig["AzureSubscriptionId"]; // KV
             this.PeterPanUrlBase = config["TestConfig:PeterPanBaseUrl"]; // AS
             this.StsClientId = config["TestConfig:Authentication:StsClientId"]; // AS
         }

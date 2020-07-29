@@ -1,12 +1,9 @@
+using CaptainHook.Tests.Configuration;
 using Eshopworld.Core;
 using Eshopworld.Messaging;
 using Eshopworld.Telemetry;
 using FluentAssertions;
 using IdentityModel.Client;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Timeout;
@@ -41,36 +38,15 @@ namespace CaptainHook.Tests.Web.FlowTests
             SetupFixture();
         }
 
-        public  void SetupFixture()
+        public void SetupFixture()
         {
-#if (!LOCAL)
-                var config = new ConfigurationBuilder().AddAzureKeyVault(
-                "https://esw-tooling-testing-ci.vault.azure.net/",
-                new KeyVaultClient(
-                    new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider()
-                        .KeyVaultTokenCallback)),
-                new DefaultKeyVaultSecretManager()).Build();
+            var config = new TestsConfig(); // loads from different KVs for Development and CI environment
+            this.PeterPanUrlBase = config.PeterPanUrlBase;
+            this.StsClientId = config.StsClientId;
+            this.StsClientSecret = config.StsClientSecret;
 
-            var instrKey = config["ApplicationInsights:InstrumentationKey"];
-            var sbConnString = config["SB:eda:ConnectionString"];
-            var subId = config["Environment:SubscriptionId"];
-
-            PeterPanUrlBase = config["Platform:PlatformPeterpanApi:Cluster"];
-            StsClientSecret = config["STS:EDA:ClientSecret"];
-            StsClientId = config["STS:EDA:ClientId"];
-#else
-            //for local testing to bypass KV load
-
-            var instrKey = "";
-            var sbConnString = "";
-            var subId = "";
-            PeterPanUrlBase = "";
-            StsClientId = "";
-            StsClientSecret = "";
-#endif
-
-            Bb = BigBrother.CreateDefault(instrKey, instrKey);
-            Bb.PublishEventsToTopics(new Messenger(sbConnString, subId));
+            Bb = BigBrother.CreateDefault(config.InstrumentationKey, config.InstrumentationKey);
+            Bb.PublishEventsToTopics(new Messenger(config.ServiceBusConnectionString, config.SubscriptionId));
         }
 
         private string PublishModel<T>(T raw) where T : FlowTestEventBase
