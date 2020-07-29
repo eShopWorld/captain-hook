@@ -19,7 +19,7 @@ namespace CaptainHook.Tests.Configuration
             var config = EswDevOpsSdk.BuildConfiguration(); // TODO (Nikhil): When the new DevOpsSdk is available, use that to not load the whole KV
 
             this.ServiceBusConnectionString = config["CaptainHook:ServiceBusConnectionString"]; // KV
-            this.StsClientSecret = config["TestConfig:Authentication:ClientSecret"]; // KV
+            this.StsClientSecret = config["CaptainHook:ApiSecret"]; // KV
             
             this.InstrumentationKey = config["InstrumentationKey"]; // KV
             this.SubscriptionId = config["AzureSubscriptionId"]; // KV

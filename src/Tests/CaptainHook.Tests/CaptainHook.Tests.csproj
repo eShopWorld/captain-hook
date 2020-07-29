@@ -20,6 +20,8 @@
     <None Remove="appsettings.CI.json" />
     <None Remove="appsettings.Development.json" />
     <None Remove="appsettings.json" />
+    <None Remove="appsettings.PREP.json" />
+    <None Remove="appsettings.TEST.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,6 +56,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="appsettings.TEST.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.PREP.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="appsettings.CI.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
