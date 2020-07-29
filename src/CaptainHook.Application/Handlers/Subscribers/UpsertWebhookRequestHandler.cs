@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure.Mappers;
+using CaptainHook.Application.Gateways;
 using CaptainHook.Application.Requests.Subscribers;
-using CaptainHook.Common.Configuration.KeyVault;
-using CaptainHook.Common.Remoting;
-using CaptainHook.Common.Remoting.Types;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
@@ -19,14 +15,12 @@ namespace CaptainHook.Application.Handlers.Subscribers
     public class UpsertWebhookRequestHandler : IRequestHandler<UpsertWebhookRequest, OperationResult<Guid>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
-        private readonly IDirectorServiceRemoting _directorService;
-        private readonly ISecretProvider _secretProvider;
+        private readonly IDirectorServiceGateway _directorService;
 
-        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceRemoting directorService, ISecretProvider secretProvider)
+        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceGateway directorService)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;
-            _secretProvider = secretProvider;
         }
 
         public async Task<OperationResult<Guid>> Handle(UpsertWebhookRequest request, CancellationToken cancellationToken)
@@ -46,17 +40,11 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var endpoint = new EndpointEntity(request.Endpoint.Uri, authenticationEntity, request.Endpoint.HttpVerb, null);
             subscriber.AddWebhookEndpoint(endpoint);
 
-            var mapper = new SubscriberEntityToConfigurationMapper(_secretProvider);
-            var subscriberConfiguration = await mapper.MapSingleSubscriber(subscriber);
-            var readerChangeInfo = ReaderChangeInfo.ToBeCreated(new DesiredReaderDefinition(subscriberConfiguration));
-
-            var result = await _directorService.UpdateReader(readerChangeInfo);
-            if (result == RequestReloadConfigurationResult.ReloadInProgress)
+            var result = await _directorService.CreateReader(subscriber);
+            if (result == null)
             {
                 return new BusinessError("Reload in progress"); // TODO: replace with something more meaningful
             }
-
-
 
             return Guid.NewGuid();
         }

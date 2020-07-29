@@ -2,10 +2,11 @@
 using System.Security.Cryptography;
 using System.Text;
 using Base62;
+using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using Newtonsoft.Json;
 
-namespace CaptainHook.Common.Remoting.Types
+namespace CaptainHook.DirectorService.ReaderServiceManagement
 {
     /// <summary>
     /// Defines reader service names based on given configuration

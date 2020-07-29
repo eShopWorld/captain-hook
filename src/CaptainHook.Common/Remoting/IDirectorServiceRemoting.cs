@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Remoting.Types;
 using Microsoft.ServiceFabric.Services.Remoting;
 
 namespace CaptainHook.Common.Remoting
@@ -10,6 +9,5 @@ namespace CaptainHook.Common.Remoting
     {
         Task<RequestReloadConfigurationResult> RequestReloadConfigurationAsync();
         Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribersAsync();
-        Task<RequestReloadConfigurationResult> UpdateReader(ReaderChangeInfo readerChangeInfo);
     }
 }

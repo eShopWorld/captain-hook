@@ -1,5 +1,4 @@
 ﻿
-using CaptainHook.Common.Remoting.Types;
 using CaptainHook.DirectorService.ReaderServiceManagement;
 using Eshopworld.Tests.Core;
 using Xunit;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Common.Configuration.KeyVault;

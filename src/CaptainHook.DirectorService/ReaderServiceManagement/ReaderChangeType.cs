@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CaptainHook.Common.Remoting.Types
+namespace CaptainHook.DirectorService.ReaderServiceManagement
 {
     [Flags]
     public enum ReaderChangeType
