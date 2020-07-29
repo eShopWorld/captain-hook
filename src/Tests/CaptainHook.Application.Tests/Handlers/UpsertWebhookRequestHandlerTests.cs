@@ -47,17 +47,14 @@ namespace CaptainHook.Application.Tests.Handlers
         }
 
         [Fact, IsUnit]
-        public async Task When_Subscriber_does_exist_then_will_be_updated_with_new_WebHook_in_repository()
+        public async Task When_Subscriber_does_exist_then_operation_fails()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
             var subscriberEntity = new SubscriberBuilder()
                 .WithEvent("event")
                 .WithName("subscriber")
-                .WithWebhook(
-                    "https://blah.blah.eshopworld.com/oldwebhook/",
-                    "POST",
-                    "selector",
+                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
                     new AuthenticationEntity(
                         "captain-hook-id",
                         new SecretStoreEntity("kvname", "kv-secret-name"),
@@ -76,9 +73,10 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await handler.Handle(request, CancellationToken.None);
 
-            result.IsError.Should().BeFalse();
-            _repositoryMock.VerifyAll();
-            _directorServiceMock.VerifyAll();
+            result.IsError.Should().BeTrue();
+            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
+            _directorServiceMock.Verify(x => x.UpdateReader(It.IsAny<ReaderChangeInfo>()), Times.Never);
+            _repositoryMock.Verify(x => x.SaveSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
         [Fact, IsUnit]
