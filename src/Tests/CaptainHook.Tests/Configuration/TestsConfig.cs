@@ -16,17 +16,13 @@ namespace CaptainHook.Tests.Configuration
         /// </summary>
         public TestsConfig()
         {
-            var config = EswDevOpsSdk.BuildConfiguration(); // don't load whole kv
-            var kvConfig = new ConfigurationBuilder().AddAzureKeyVault(
-                config["KeyVaultUrl"],
-                new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                new DefaultKeyVaultSecretManager()).Build();
+            var config = EswDevOpsSdk.BuildConfiguration(); // TODO (Nikhil): When the new DevOpsSdk is available, use that to not load the whole KV
 
-            this.ServiceBusConnectionString = kvConfig["CaptainHook:ServiceBusConnectionString"]; // KV
-            this.StsClientSecret = kvConfig["TestConfig:Authentication:ClientSecret"]; // KV
+            this.ServiceBusConnectionString = config["CaptainHook:ServiceBusConnectionString"]; // KV
+            this.StsClientSecret = config["TestConfig:Authentication:ClientSecret"]; // KV
             
-            this.InstrumentationKey = kvConfig["InstrumentationKey"]; // KV
-            this.SubscriptionId = kvConfig["AzureSubscriptionId"]; // KV
+            this.InstrumentationKey = config["InstrumentationKey"]; // KV
+            this.SubscriptionId = config["AzureSubscriptionId"]; // KV
             this.PeterPanUrlBase = config["TestConfig:PeterPanBaseUrl"]; // AS
             this.StsClientId = config["TestConfig:Authentication:StsClientId"]; // AS
         }
