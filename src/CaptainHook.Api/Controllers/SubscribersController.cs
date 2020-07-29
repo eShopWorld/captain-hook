@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
-using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
-using CaptainHook.Contract;
-using CaptainHook.Domain.Errors;
-using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -61,53 +57,6 @@ namespace CaptainHook.Api.Controllers
                 _bigBrother.Publish(exception);
                 return BadRequest();
             }
-        }
-
-        [HttpGet]
-        [Route("getbyevent")]
-        public async Task<IActionResult> GetByEvent([FromQuery] string eventName)
-        {
-            var query = new GetSubscribersForEventQuery
-            {
-                Name = eventName,
-            };
-
-            var response = await _mediator.Send(query);
-
-            return response.Match(
-               error => HandleQueryError(error),
-               data => Ok(data)
-           );
-        }
-
-        private IActionResult HandleQueryError(ErrorBase error)
-        {
-            switch (error)
-            {
-                case EntityNotFoundError notFoundError:
-                    return new NotFoundObjectResult(notFoundError);
-                case BusinessError businessError:
-                    return new BadRequestObjectResult(businessError);
-                default:
-                    return StatusCode(StatusCodes.Status418ImATeapot, error);
-            }
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> SaveSubscriber([FromBody] SubscriberDto dto)
-        {
-            var request = new AddSubscriberRequest
-            {
-                Name = dto.Name,
-                EventName = dto.EventName
-            };
-
-            var response = await _mediator.Send(request);
-
-            return response.Match<IActionResult>(
-                error => BadRequest(error),
-                data => Ok(data)
-            );
         }
     }
 }

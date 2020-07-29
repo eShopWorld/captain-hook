@@ -38,7 +38,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
         {
             if (config == null) throw new ArgumentNullException(nameof(config));
 
-            var uri = new Uri(config.Uri);
+            var uriString = config.Uri?.Replace("{", string.Empty).Replace("}", string.Empty);
+            var uri = new Uri(uriString);
 
             if (_httpClients.TryGetValue(uri.Host.ToLowerInvariant(), out var httpClient))
             {

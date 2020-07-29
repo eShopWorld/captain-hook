@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.Common.Configuration
@@ -50,7 +48,6 @@ namespace CaptainHook.Common.Configuration
 
             this.SubscriberConfigurations = new Dictionary<string, SubscriberConfiguration>(values.Count);
             this.WebhookConfigurations = new List<WebhookConfig>(values.Count);
-            var endpointList = new Dictionary<string, WebhookConfig>(values.Count);
 
             foreach (var configurationSection in values)
             {
@@ -69,7 +66,7 @@ namespace CaptainHook.Common.Configuration
                     subscriber.PayloadTransformation = subscriber.DLQMode != null ? PayloadContractTypeEnum.WrapperContract : PayloadContractTypeEnum.Raw;
 
                     this.WebhookConfigurations.Add(subscriber);
-                    ConfigParser.AddEndpoints(subscriber, endpointList, configurationSection, path);
+                    ConfigParser.AddEndpoints(subscriber, configurationSection, path);
 
                     if (subscriber.Callback != null)
                     {
@@ -77,7 +74,7 @@ namespace CaptainHook.Common.Configuration
                         ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
                         subscriber.Callback.EventType = eventHandlerConfig.Type;
                         this.WebhookConfigurations.Add(subscriber.Callback);
-                        ConfigParser.AddEndpoints(subscriber.Callback, endpointList, configurationSection, path);
+                        ConfigParser.AddEndpoints(subscriber.Callback, configurationSection, path);
                     }
                 }
             }

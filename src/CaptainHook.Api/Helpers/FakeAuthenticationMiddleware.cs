@@ -44,7 +44,8 @@ namespace CaptainHook.Api.Helpers
 
                 if (claims.Count == 0)
                 {
-                    claims.Add(new Claim("scope", "tooling.eda.api.all"));
+                    claims.Add(new Claim("scope", Constants.AuthorisationScopes.ApiAllAccess));
+                    claims.Add(new Claim("scope", Constants.AuthorisationScopes.ApiDefineSubscribers));
                 }
 
                 var identity = new ClaimsIdentity(new GenericIdentity("FakeUser", "FakeAuth"), claims);
