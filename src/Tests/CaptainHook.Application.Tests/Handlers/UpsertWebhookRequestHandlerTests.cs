@@ -35,7 +35,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync((SubscriberEntity)null);
             _repositoryMock.Setup(r => r.SaveSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-                .ReturnsAsync(Guid.NewGuid());
+                .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.UpdateReader(It.Is<ReaderChangeInfo>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(RequestReloadConfigurationResult.ReloadStarted);
 
@@ -70,7 +70,7 @@ namespace CaptainHook.Application.Tests.Handlers
                 .ReturnsAsync(subscriberEntity);
 
             _repositoryMock.Setup(r => r.SaveSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 2)))
-                .ReturnsAsync(Guid.NewGuid());
+                .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.UpdateReader(It.Is<ReaderChangeInfo>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(RequestReloadConfigurationResult.ReloadStarted);
 
@@ -89,7 +89,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new BusinessError("test error"));
             _repositoryMock.Setup(r => r.SaveSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-                .ReturnsAsync(Guid.NewGuid());
+                .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.UpdateReader(It.Is<ReaderChangeInfo>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(RequestReloadConfigurationResult.ReloadStarted);
 
@@ -109,7 +109,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .Throws<Exception>();
             _repositoryMock.Setup(r => r.SaveSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-                .ReturnsAsync(Guid.NewGuid());
+                .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.UpdateReader(It.Is<ReaderChangeInfo>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(RequestReloadConfigurationResult.ReloadStarted);
 
@@ -129,7 +129,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync((SubscriberEntity)null);
             _repositoryMock.Setup(r => r.SaveSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-                .ReturnsAsync(Guid.NewGuid());
+                .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.UpdateReader(It.Is<ReaderChangeInfo>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(RequestReloadConfigurationResult.ReloadInProgress);
 
@@ -149,7 +149,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync((SubscriberEntity)null);
             _repositoryMock.Setup(r => r.SaveSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-                .ReturnsAsync(Guid.NewGuid());
+                .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.UpdateReader(It.Is<ReaderChangeInfo>(rci => MatchReaderChangeInfo(rci, request))))
                  .Throws<Exception>();
 

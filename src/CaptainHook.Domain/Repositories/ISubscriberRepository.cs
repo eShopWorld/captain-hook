@@ -34,6 +34,6 @@ namespace CaptainHook.Domain.Repositories
         /// </summary>
         /// <param name="subscriberEntity">Subscriber entity to Save</param>
         /// <returns></returns>
-        public Task<OperationResult<Guid>> SaveSubscriberAsync(SubscriberEntity subscriberEntity);
+        public Task<OperationResult<SubscriberEntity>> SaveSubscriberAsync(SubscriberEntity subscriberEntity);
     }
 }
