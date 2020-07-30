@@ -25,12 +25,11 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             public readonly string Name;
             public readonly Task Task;
 
-            public ReaderTask (string name, Task task)
+            public ReaderTask(string name, Task task)
             {
                 Name = name;
                 Task = task;
             }
-
         }
 
         private readonly IFabricClientWrapper _fabricClientWrapper;
@@ -46,103 +45,115 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             _bigBrother = bigBrother;
         }
 
-        public async Task RefreshReadersAsync (IEnumerable<ReaderChangeInfo> changeSet, CancellationToken cancellationToken)
+        public async Task RefreshReadersAsync(IEnumerable<ReaderChangeInfo> changeSet, CancellationToken cancellationToken)
         {
-            LogEvent (changeSet);
+            LogEvent(changeSet.ToArray());
 
             var servicesToCreate = changeSet
-                .Where (change => (change.ChangeType & ReaderChangeType.ToBeCreated) != 0)
-                .Select (change => change.NewReader)
-                .ToDictionary (reader => reader.ServiceNameWithSuffix, reader => reader.SubscriberConfig);
+                .Where(change => (change.ChangeType & ReaderChangeType.ToBeCreated) != 0)
+                .Select(change => change.NewReader);
 
             var allServiceNamesToDelete = changeSet
-                .Where (change => (change.ChangeType & ReaderChangeType.ToBeRemoved) != 0)
-                .Select (change => change.OldReader.ServiceNameWithSuffix);
+                .Where(change => (change.ChangeType & ReaderChangeType.ToBeRemoved) != 0)
+                .Select(change => change.OldReader.ServiceNameWithSuffix);
 
-            await CreateReaderServicesAsync (servicesToCreate, cancellationToken);
-            await DeleteReaderServicesAsync (allServiceNamesToDelete, cancellationToken);
+            await CreateReaderServicesAsync(servicesToCreate, cancellationToken);
+            await DeleteReaderServicesAsync(allServiceNamesToDelete, cancellationToken);
         }
 
-        private void LogEvent (IEnumerable<ReaderChangeInfo> changeSet)
+        public async Task<bool> RefreshSingleReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken)
+        {
+            var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
+            if (deployedServices.Any(x => changeInfo.NewReader.ServiceNameWithSuffix.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return false;
+            }
+
+            LogEvent(changeInfo);
+
+            await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
+            return true;
+        }
+
+        private void LogEvent(params ReaderChangeInfo[] changeSet)
         {
             var added = changeSet
-                .Where (change => change.ChangeType == ReaderChangeType.ToBeCreated)
-                .Select (change => change.NewReader.ServiceName);
+                .Where(change => change.ChangeType == ReaderChangeType.ToBeCreated)
+                .Select(change => change.NewReader.ServiceName);
 
             var deleted = changeSet
-                .Where (change => change.ChangeType == ReaderChangeType.ToBeRemoved)
-                .Select (change => change.OldReader.ServiceName);
+                .Where(change => change.ChangeType == ReaderChangeType.ToBeRemoved)
+                .Select(change => change.OldReader.ServiceName);
 
             var updated = changeSet
-                .Where (change => change.ChangeType == ReaderChangeType.ToBeUpdated)
-                .Select (change => change.NewReader.ServiceName);
+                .Where(change => change.ChangeType == ReaderChangeType.ToBeUpdated)
+                .Select(change => change.NewReader.ServiceName);
 
-            _bigBrother.Publish (new RefreshSubscribersEvent (added, deleted, updated));
+            _bigBrother.Publish(new RefreshSubscribersEvent(added, deleted, updated));
         }
 
-        private async Task CreateReaderServicesAsync(IDictionary<string, SubscriberConfiguration> subscribers, CancellationToken cancellationToken)
+        private async Task CreateReaderServicesAsync(IEnumerable<DesiredReaderDefinition> readerDefinitions, CancellationToken cancellationToken)
         {
-            foreach (var (name, subscriber) in subscribers)
+            foreach (var reader in readerDefinitions)
             {
                 if (cancellationToken.IsCancellationRequested) return;
 
-                var initializationData = EventReaderInitData.FromSubscriberConfiguration(subscriber, subscriber).ToByteArray();
+                var initializationData = EventReaderInitData.FromSubscriberConfiguration(reader.SubscriberConfig, reader.SubscriberConfig).ToByteArray();
 
                 var description = new ServiceCreationDescription(
-                    serviceName: name,
+                    serviceName: reader.ServiceNameWithSuffix,
                     serviceTypeName: ServiceNaming.EventReaderServiceType,
                     partitionScheme: new SingletonPartitionSchemeDescription(),
                     initializationData);
                 try
                 {
-                    await _fabricClientWrapper.CreateServiceAsync (description, cancellationToken);
-                    _bigBrother.Publish (new ReaderServiceCreatedEvent (name));
+                    await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
+                    _bigBrother.Publish(new ReaderServiceCreatedEvent(reader.ServiceNameWithSuffix));
                 }
                 catch (Exception e)
                 {
-                    _bigBrother.Publish (new ReaderServiceCreationFailedEvent (name, e));
+                    _bigBrother.Publish(new ReaderServiceCreationFailedEvent(reader.ServiceNameWithSuffix, e));
                 }
             }
         }
 
         private async Task DeleteReaderServicesAsync(IEnumerable<string> oldNames, CancellationToken cancellationToken)
         {
-            var toDelete = oldNames.ToHashSet ();
+            var toDelete = oldNames.ToHashSet();
 
-            while (toDelete.Any ())
+            while (toDelete.Any())
             {
 
                 var tasks = toDelete
-                    .Select (name => new ReaderTask(name, _fabricClientWrapper.DeleteServiceAsync (name, cancellationToken)))
-                    .ToArray ();
+                    .Select(name => new ReaderTask(name, _fabricClientWrapper.DeleteServiceAsync(name, cancellationToken)))
+                    .ToArray();
 
-                var deletionEvent = new ReaderServicesDeletionEvent ();
+                var deletionEvent = new ReaderServicesDeletionEvent();
 
                 try
                 {
-                    await Task.WhenAll (tasks.Select (t => t.Task));
-                    toDelete.Clear ();
+                    await Task.WhenAll(tasks.Select(t => t.Task));
+                    toDelete.Clear();
 
-                    deletionEvent.SetDeletedNames (tasks.Select (t => t.Name));
-                    _bigBrother.Publish (deletionEvent);
+                    deletionEvent.SetDeletedNames(tasks.Select(t => t.Name));
+                    _bigBrother.Publish(deletionEvent);
                 }
                 catch (Exception)
                 {
                     var completedTasks = tasks
-                        .Where (t => t.Task.Exception == null || t.Task.Exception.InnerExceptions.OfType<FabricServiceNotFoundException> ().Any ())
-                        .ToArray ();
+                        .Where(t => t.Task.Exception == null || t.Task.Exception.InnerExceptions.OfType<FabricServiceNotFoundException>().Any())
+                        .ToArray();
 
-                    var failedTasks = tasks.Except (completedTasks);
+                    var failedTasks = tasks.Except(completedTasks);
 
-                    deletionEvent.SetDeletedNames (completedTasks.Select (t => t.Name));
-                    deletionEvent.SetFailed (failedTasks.Select (t => new FailedReaderServiceDeletion (t.Name, t.Task.Exception.Message)));
+                    deletionEvent.SetDeletedNames(completedTasks.Select(t => t.Name));
+                    deletionEvent.SetFailed(failedTasks.Select(t => new FailedReaderServiceDeletion(t.Name, t.Task.Exception.Message)));
 
-                    _bigBrother.Publish (deletionEvent);
+                    _bigBrother.Publish(deletionEvent);
 
-                    toDelete.ExceptWith (completedTasks.Select (t => t.Name));
+                    toDelete.ExceptWith(completedTasks.Select(t => t.Name));
                 }
             }
         }
-
     }
 }
