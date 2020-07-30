@@ -43,7 +43,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
                 var subscriber = MapRequestToEntity(request);
 
-                var directorResult = await _directorService.CreateReader(subscriber);
+                var directorResult = await _directorService.CreateReaderAsync(subscriber);
                 if (directorResult.IsError)
                 {
                     return directorResult.Error;
