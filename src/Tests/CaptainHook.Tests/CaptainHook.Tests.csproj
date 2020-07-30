@@ -53,6 +53,7 @@
     <ProjectReference Include="..\..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
     <ProjectReference Include="..\..\CaptainHook.EventHandlerActor\CaptainHook.EventHandlerActor.csproj" />
     <ProjectReference Include="..\..\CaptainHook.EventReaderService\CaptainHook.EventReaderService.csproj" />
+    <ProjectReference Include="..\CaptainHook.TestsInfrastructure\CaptainHook.TestsInfrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
