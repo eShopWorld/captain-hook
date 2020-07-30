@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService.ReaderServiceManagement
 {
+
     /// <summary>
     /// Defines reader service names based on given configuration
     /// </summary>
@@ -30,35 +31,35 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
 
         public bool IsValid => ServiceName != null && SubscriberConfig != null && ServiceNameWithSuffix != null;
 
-        public DesiredReaderDefinition(SubscriberConfiguration subscriberConfig)
+        public DesiredReaderDefinition (SubscriberConfiguration subscriberConfig)
         {
             SubscriberConfig = subscriberConfig;
-            ServiceName = ServiceNaming.EventReaderServiceFullUri(subscriberConfig.EventType, subscriberConfig.SubscriberName, subscriberConfig.DLQMode.HasValue);
-            ServiceNameWithSuffix = $"{ServiceName}-{GetEncodedHash(subscriberConfig)}";
+            ServiceName = ServiceNaming.EventReaderServiceFullUri (subscriberConfig.EventType, subscriberConfig.SubscriberName, subscriberConfig.DLQMode.HasValue);
+            ServiceNameWithSuffix = $"{ServiceName}-{GetEncodedHash (subscriberConfig)}";
         }
 
-        public bool IsTheSameService(ExistingReaderDefinition reader)
+        public bool IsTheSameService (ExistingReaderDefinition reader)
         {
-            return IsValid
+            return IsValid 
                    && reader.IsValid
-                   && ServiceName.Equals(reader.ServiceName, StringComparison.OrdinalIgnoreCase);
+                   && ServiceName.Equals (reader.ServiceName, StringComparison.OrdinalIgnoreCase);
         }
 
-        public bool IsUnchanged(ExistingReaderDefinition reader)
+        public bool IsUnchanged (ExistingReaderDefinition reader)
         {
-            return IsValid
+            return IsValid 
                    && reader.IsValid
-                   && IsTheSameService(reader)
-                   && ServiceNameWithSuffix.Equals(reader.ServiceNameWithSuffix);
+                   && IsTheSameService (reader) 
+                   && ServiceNameWithSuffix.Equals (reader.ServiceNameWithSuffix);
         }
 
-        private static string GetEncodedHash(SubscriberConfiguration configuration)
+        private static string GetEncodedHash (SubscriberConfiguration configuration)
         {
-            using var md5 = new MD5CryptoServiceProvider();
-            var bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(configuration, Formatting.None));
-            var hash = md5.ComputeHash(bytes);
-            var encoded = hash.ToBase62();
-            return encoded.PadRight(22, '0');
+            using var md5 = new MD5CryptoServiceProvider ();
+            var bytes = Encoding.UTF8.GetBytes (JsonConvert.SerializeObject (configuration, Formatting.None));
+            var hash = md5.ComputeHash (bytes);
+            var encoded = hash.ToBase62 ();
+            return encoded.PadRight (22, '0');
         }
     }
 }
