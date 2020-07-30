@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Gateways;
 using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
@@ -12,7 +13,7 @@ using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
-    public class UpsertWebhookRequestHandler : IRequestHandler<UpsertWebhookRequest, OperationResult<Guid>>
+    public class UpsertWebhookRequestHandler : IRequestHandler<UpsertWebhookRequest, OperationResult<EndpointDto>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceGateway _directorService;
@@ -23,7 +24,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             _directorService = directorService;
         }
 
-        public async Task<OperationResult<Guid>> Handle(UpsertWebhookRequest request, CancellationToken cancellationToken)
+        public async Task<OperationResult<EndpointDto>> Handle(UpsertWebhookRequest request, CancellationToken cancellationToken)
         {
             try
             {
@@ -54,7 +55,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                     return saveResult.Error;
                 }
 
-                return Guid.NewGuid();
+                return request.Endpoint;
             }
             catch (Exception ex)
             {
