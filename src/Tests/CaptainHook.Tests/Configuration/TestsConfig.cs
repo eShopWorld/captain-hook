@@ -18,19 +18,19 @@ namespace CaptainHook.Tests.Configuration
         {
             var config = EswDevOpsSdk.BuildConfiguration(); // TODO (Nikhil): When the new DevOpsSdk is available, use that to not load the whole KV
 
-            this.ServiceBusConnectionString = config["CaptainHook:ServiceBusConnectionString"]; // KV
-            this.StsClientSecret = config["CaptainHook:ApiSecret"]; // KV
+            ServiceBusConnectionString = config["CaptainHook:ServiceBusConnectionString"]; // KV
+            StsClientSecret = config["CaptainHook:ApiSecret"]; // KV
             
-            this.InstrumentationKey = config["InstrumentationKey"]; // KV
-            this.SubscriptionId = config["AzureSubscriptionId"]; // KV
-            this.PeterPanUrlBase = config["TestConfig:PeterPanBaseUrl"]; // AS
-            this.StsClientId = config["TestConfig:Authentication:StsClientId"]; // AS
+            InstrumentationKey = config["InstrumentationKey"]; // KV
+            SubscriptionId = config["AzureSubscriptionId"]; // KV
+            PeterPanUrlBase = config["TestConfig:PeterPanBaseUrl"]; // AS
+            StsClientId = config["TestConfig:Authentication:StsClientId"]; // AS
         }
-        public String InstrumentationKey { get; set; }
-        public String ServiceBusConnectionString { get; set; }
-        public String SubscriptionId { get; set; }
-        public String PeterPanUrlBase { get; set; }
-        public String StsClientSecret { get; set; }
-        public String StsClientId { get; set; }
+        public string InstrumentationKey { get; set; }
+        public string ServiceBusConnectionString { get; set; }
+        public string SubscriptionId { get; set; }
+        public string PeterPanUrlBase { get; set; }
+        public string StsClientSecret { get; set; }
+        public string StsClientId { get; set; }
     }
 }
