@@ -10,7 +10,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
             With(x => x.Type, "OIDC");
             With(x => x.ClientId, "clientId");
             With(x => x.Uri, "https://security-api.com/token");
-            With(x => x.Scopes, new List<string>(new[] { "test.scope.api" }));
+            With(x => x.Scopes, new List<string> { "test.scope.api" });
             With(x => x.ClientSecret, new ClientSecretDto { Name = "secret-name", Vault = "secret-vault" });
         }
     }

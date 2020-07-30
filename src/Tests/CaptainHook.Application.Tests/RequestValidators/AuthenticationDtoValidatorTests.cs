@@ -15,7 +15,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         private readonly AuthenticationDtoValidator _validator = new AuthenticationDtoValidator();
 
         [Fact, IsUnit]
-        public void When_request_is_valid_then_no_failures_should_be_returned()
+        public void When_RequestIsValid_Then_NoFailuresReturned()
         {
             var dto = new AuthenticationDtoBuilder().Create();
 
@@ -25,7 +25,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_Type_is_lowercase_then_no_failures_should_be_returned()
+        public void When_TypeIsLowercase_Then_NoFailuresReturned()
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Type, "oidc").Create();
 
@@ -36,7 +36,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_Type_is_empty_then_validation_should_fail(string invalidString)
+        public void When_TypeIsEmpty_Then_ValidationFails(string invalidString)
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Type, invalidString).Create();
 
@@ -47,7 +47,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [InlineData("unknown type")]
-        public void When_Type_is_unknown_then_validation_should_fail(string invalidString)
+        public void When_TypeIsUnknown_Then_ValidationFails(string invalidString)
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Type, invalidString).Create();
 
@@ -58,7 +58,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_ClientId_is_empty_then_validation_should_fail(string invalidString)
+        public void When_ClientIdIsEmpty_Then_ValidationFails(string invalidString)
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.ClientId, invalidString).Create();
 
@@ -69,7 +69,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_Uri_is_empty_then_validation_should_fail(string invalidString)
+        public void When_UriIsEmpty_Then_ValidationFails(string invalidString)
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Uri, invalidString).Create();
 
@@ -80,7 +80,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(InvalidUris))]
-        public void When_Uri_is_invalid_then_validation_should_fail(string invalidString)
+        public void When_UriIsInvalid_Then_ValidationFails(string invalidString)
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Uri, invalidString).Create();
 
@@ -90,7 +90,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_Scopes_are_empty_then_validation_should_fail()
+        public void When_ScopesAreEmpty_Then_ValidationFails()
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Scopes, null).Create();
 
@@ -101,7 +101,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_Scope_contains_empty_item_then_validation_should_fail(string invalidString)
+        public void When_ScopesContainsSingleEmptyItem_Then_ValidationFails(string invalidString)
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Scopes, new List<string> { invalidString }).Create();
 
@@ -111,7 +111,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_ClientSecret_is_null_then_validation_should_fail()
+        public void When_ClientSecretIsNull_Then_ValidationFails()
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.ClientSecret, null).Create();
 
@@ -122,7 +122,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_ClientSecretName_is_empty_item_then_validation_should_fail(string invalidString)
+        public void When_ClientSecretNameIsEmpty_Then_ValidationFails(string invalidString)
         {
             var dto = new AuthenticationDtoBuilder()
                 .With(x => x.ClientSecret, new ClientSecretDto { Name = invalidString, Vault = "vault" })
@@ -135,7 +135,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_ClientSecretVault_is_empty_item_then_validation_should_fail(string invalidString)
+        public void When_ClientSecretVaultIsEmpty_Then_ValidationFails(string invalidString)
         {
             var dto = new AuthenticationDtoBuilder()
                 .With(x => x.ClientSecret, new ClientSecretDto { Name = "secret-name", Vault = invalidString })
