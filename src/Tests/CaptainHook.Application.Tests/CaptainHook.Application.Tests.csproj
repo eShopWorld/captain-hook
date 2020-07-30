@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CaptainHook.Application\CaptainHook.Application.csproj" />
+    <ProjectReference Include="..\CaptainHook.TestsInfrastructure\CaptainHook.TestsInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>
