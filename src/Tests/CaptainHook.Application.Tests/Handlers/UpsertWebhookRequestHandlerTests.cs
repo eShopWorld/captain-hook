@@ -12,6 +12,7 @@ using CaptainHook.Domain.ValueObjects;
 using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Moq;
 using Xunit;
 
@@ -38,6 +39,7 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
+            using var scope = new AssertionScope();
             result.IsError.Should().BeFalse();
             _repositoryMock.VerifyAll();
             _directorServiceMock.VerifyAll();
@@ -68,6 +70,7 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
+            using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
@@ -89,6 +92,7 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
+            using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
@@ -110,6 +114,7 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
+            using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<UnhandledExceptionError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
@@ -131,6 +136,7 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
+            using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
@@ -152,6 +158,7 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
+            using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderCreationError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
@@ -173,6 +180,7 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
+            using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<UnhandledExceptionError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
@@ -194,6 +202,7 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
+            using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReader(It.IsAny<SubscriberEntity>()), Times.Once);
@@ -214,6 +223,7 @@ namespace CaptainHook.Application.Tests.Handlers
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
+            using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReader(It.IsAny<SubscriberEntity>()), Times.Once);
