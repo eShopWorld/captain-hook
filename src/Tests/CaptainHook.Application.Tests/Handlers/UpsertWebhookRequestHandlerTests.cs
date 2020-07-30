@@ -25,7 +25,7 @@ namespace CaptainHook.Application.Tests.Handlers
         private UpsertWebhookRequestHandler handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object);
 
         [Fact, IsUnit]
-        public async Task When_Subscriber_does_not_exist_then_new_one_will_be_passed_to_DirectorService_and_stored_in_Repository()
+        public async Task When_SubscriberDoesNotExist_Then_NewOneWillBePassedToDirectorServiceAndStoredInRepository()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
@@ -44,7 +44,7 @@ namespace CaptainHook.Application.Tests.Handlers
         }
 
         [Fact, IsUnit]
-        public async Task When_Subscriber_does_exist_then_operation_fails()
+        public async Task When_Subscriber_DoesExist_Then_OperationFails()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
@@ -78,7 +78,7 @@ namespace CaptainHook.Application.Tests.Handlers
         }
 
         [Fact, IsUnit]
-        public async Task When_Repository_fails_retrieving_Subscriber_data_then_operation_fails()
+        public async Task When_RepositoryFailsRetrievingSubscriberData_Then_OperationFails()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
@@ -99,7 +99,7 @@ namespace CaptainHook.Application.Tests.Handlers
         }
 
         [Fact, IsUnit]
-        public async Task When_Repository_throws_an_Exception_retrieving_Subscriber_data_then_operation_fails()
+        public async Task When_RepositoryThrowsAnExceptionRetrievingSubscriberData_Then_OperationFails()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
@@ -120,7 +120,7 @@ namespace CaptainHook.Application.Tests.Handlers
         }
 
         [Fact, IsUnit]
-        public async Task When_DirectorService_is_busy_reloading_then_operation_fails()
+        public async Task When_DirectorServiceIsBusyReloading_Then_OperationFails()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
@@ -141,7 +141,7 @@ namespace CaptainHook.Application.Tests.Handlers
         }
 
         [Fact, IsUnit]
-        public async Task When_DirectorService_fails_to_create_Reader_then_operation_fails()
+        public async Task When_DirectorServiceFailsToCreateReader_Then_OperationFails()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
@@ -162,7 +162,7 @@ namespace CaptainHook.Application.Tests.Handlers
         }
 
         [Fact, IsUnit]
-        public async Task When_DirectorService_throws_an_Exception_during_Reader_creation_then_operation_fails()
+        public async Task When_DirectorServiceThrowsAnExceptionDuringReaderCreation_Then_OperationFails()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
@@ -183,7 +183,7 @@ namespace CaptainHook.Application.Tests.Handlers
         }
 
         [Fact, IsUnit]
-        public async Task When_Repository_fails_saving_Subscriber_after_successful_Reader_creation_then_operation_fails()
+        public async Task When_RepositoryFailsSavingSubscriberAfterSuccessfulReaderCreation_Then_OperationFails()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
@@ -203,7 +203,7 @@ namespace CaptainHook.Application.Tests.Handlers
         }
 
         [Fact, IsUnit]
-        public async Task When_Repository_throws_an_Exception_saving_Subscriber_after_successful_Reader_creation_then_operation_fails()
+        public async Task When_RepositoryThrowsAnExceptionSavingSubscriberAfterSuccessfulReaderCreation_Then_OperationFails()
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
