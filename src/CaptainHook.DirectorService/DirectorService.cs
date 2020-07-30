@@ -14,6 +14,7 @@ using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
 using CaptainHook.Domain.Entities;
+using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using JetBrains.Annotations;
@@ -36,6 +37,7 @@ namespace CaptainHook.DirectorService
         private readonly IReaderServicesManager _readerServicesManager;
         private readonly IReaderServiceChangesDetector _readerServiceChangeDetector;
         private readonly ISubscriberConfigurationLoader _subscriberConfigurationLoader;
+        private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
 
         /// <summary>
@@ -52,14 +54,16 @@ namespace CaptainHook.DirectorService
             IReaderServicesManager readerServicesManager,
             IReaderServiceChangesDetector readerServiceChangeDetector,
             IFabricClientWrapper fabricClientWrapper,
-            ISubscriberConfigurationLoader subscriberConfigurationLoader)
+            ISubscriberConfigurationLoader subscriberConfigurationLoader,
+            ISubscriberEntityToConfigurationMapper entityToConfigurationMapper)
             : base(context)
         {
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
             _fabricClientWrapper = fabricClientWrapper ?? throw new ArgumentNullException(nameof(fabricClientWrapper));
             _subscriberConfigurationLoader = subscriberConfigurationLoader ?? throw new ArgumentNullException(nameof(subscriberConfigurationLoader));
+            _entityToConfigurationMapper = entityToConfigurationMapper;
             _readerServicesManager = readerServicesManager ?? throw new ArgumentNullException(nameof(readerServicesManager));
-            _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException (nameof (readerServiceChangeDetector));
+            _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException(nameof(readerServiceChangeDetector));
         }
 
         private async Task<(IList<WebhookConfig> newWebhookConfig, IDictionary<string, SubscriberConfiguration> newSubscriberConfigurations)> LoadConfigurationAsync()
@@ -112,12 +116,12 @@ namespace CaptainHook.DirectorService
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 }
 
-                var changes = _readerServiceChangeDetector.DetectChanges (_subscriberConfigurations.Values, serviceList);
+                var changes = _readerServiceChangeDetector.DetectChanges(_subscriberConfigurations.Values, serviceList);
                 await _readerServicesManager.RefreshReadersAsync(changes, cancellationToken);
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception.ToExceptionEvent ());
+                _bigBrother.Publish(exception.ToExceptionEvent());
                 throw;
             }
             finally
@@ -164,8 +168,8 @@ namespace CaptainHook.DirectorService
 
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                var changes = _readerServiceChangeDetector.DetectChanges (newSubscriberConfigurations.Values, deployedServiceNames);
-                await _readerServicesManager.RefreshReadersAsync (changes, _cancellationToken);
+                var changes = _readerServiceChangeDetector.DetectChanges(newSubscriberConfigurations.Values, deployedServiceNames);
+                await _readerServicesManager.RefreshReadersAsync(changes, _cancellationToken);
 
                 _subscriberConfigurations = newSubscriberConfigurations;
 
@@ -191,9 +195,32 @@ namespace CaptainHook.DirectorService
             return this.CreateServiceRemotingReplicaListeners();
         }
 
-        public Task<OperationResult<bool>> CreateReader(SubscriberEntity readerChangeInfo)
+        public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriberEntity)
         {
-            throw new NotImplementedException();
+            if (!_refreshInProgress)
+            {
+                try
+                {
+                    Monitor.Enter(_refreshSync);
+
+                    if (!_refreshInProgress)
+                    {
+                        _refreshInProgress = true;
+
+                        var subscribers = await _entityToConfigurationMapper.MapSubscriber(subscriberEntity);
+                        var changeInfo = ReaderChangeInfo.ToBeCreated(new DesiredReaderDefinition(subscribers.Single()));
+
+                        return await _readerServicesManager.RefreshSingleReaderAsync(changeInfo, _cancellationToken);
+                    }
+                }
+                finally
+                {
+                    Monitor.Exit(_refreshSync);
+                }
+            }
+
+            _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
+            return new DirectorServiceIsBusyError();
         }
     }
 }

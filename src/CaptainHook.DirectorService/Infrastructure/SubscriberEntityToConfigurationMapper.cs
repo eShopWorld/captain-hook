@@ -8,7 +8,7 @@ using CaptainHook.Domain.Entities;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
-    public class SubscriberEntityToConfigurationMapper
+    public class SubscriberEntityToConfigurationMapper : ISubscriberEntityToConfigurationMapper
     {
         private readonly ISecretProvider _secretProvider;
 

@@ -23,6 +23,6 @@ namespace CaptainHook.Application.Gateways
         /// ReaderCreationError if reader creation failed
         /// DirectorServiceIsBusyError if DirectorService is performing other operation
         /// </returns>
-        Task<OperationResult<bool>> CreateReader(SubscriberEntity subscriber);
+        Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber);
     }
 }
