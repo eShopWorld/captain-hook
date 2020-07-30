@@ -40,13 +40,13 @@ namespace CaptainHook.Tests.Web.FlowTests
 
         public void SetupFixture()
         {
-            var config = new TestsConfig(); // loads from different KVs for Development and CI environment
-            this.PeterPanUrlBase = config.PeterPanUrlBase;
+            var config = ConfigurationLoader.GetTestsConfig(); // loads from different KVs for Development and CI environment
+            this.PeterPanUrlBase = config.PeterPanBaseUrl;
             this.StsClientId = config.StsClientId;
-            this.StsClientSecret = config.StsClientSecret;
+            this.StsClientSecret = config.ApiSecret;
 
             Bb = BigBrother.CreateDefault(config.InstrumentationKey, config.InstrumentationKey);
-            Bb.PublishEventsToTopics(new Messenger(config.ServiceBusConnectionString, config.SubscriptionId));
+            Bb.PublishEventsToTopics(new Messenger(config.ServiceBusConnectionString, config.AzureSubscriptionId));
         }
 
         private string PublishModel<T>(T raw) where T : FlowTestEventBase

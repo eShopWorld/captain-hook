@@ -9,28 +9,23 @@ using System.Text;
 
 namespace CaptainHook.Tests.Configuration
 {
+    /// <summary>
+    /// Class to hold configuration values for Integration Tests. 
+    /// </summary>
+    /// <remarks>
+    /// The field names must match with the appsettings and keyvault config names for the loader to work.
+    /// </remarks>
     public class TestsConfig
     {
-        /// <summary>
-        /// Loads configuration parameters for Integrations tests from AppSettings.json files and secrets from the KeyvaultUrl configured in appsettings
-        /// </summary>
-        public TestsConfig()
-        {
-            var config = EswDevOpsSdk.BuildConfiguration(); // TODO (Nikhil): When the new DevOpsSdk is available, use that to not load the whole KV
-
-            ServiceBusConnectionString = config["CaptainHook:ServiceBusConnectionString"]; // KV
-            StsClientSecret = config["CaptainHook:ApiSecret"]; // KV
-            
-            InstrumentationKey = config["InstrumentationKey"]; // KV
-            SubscriptionId = config["AzureSubscriptionId"]; // KV
-            PeterPanUrlBase = config["TestConfig:PeterPanBaseUrl"]; // AS
-            StsClientId = config["TestConfig:Authentication:StsClientId"]; // AS
-        }
         public string InstrumentationKey { get; set; }
         public string ServiceBusConnectionString { get; set; }
-        public string SubscriptionId { get; set; }
-        public string PeterPanUrlBase { get; set; }
-        public string StsClientSecret { get; set; }
+        public string AzureSubscriptionId { get; set; }
+        public string PeterPanBaseUrl { get; set; }
+
+        /// <summary>
+        /// The StsClientSecret value
+        /// </summary>
+        public string ApiSecret { get; set; }
         public string StsClientId { get; set; }
     }
 }
