@@ -22,7 +22,7 @@ namespace CaptainHook.Application.Tests.Handlers
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
         private readonly Mock<IDirectorServiceGateway> _directorServiceMock = new Mock<IDirectorServiceGateway>();
 
-        private UpsertWebhookRequestHandler handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object);
+        private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object);
 
         [Fact, IsUnit]
         public async Task When_SubscriberDoesNotExist_Then_NewOneWillBePassedToDirectorServiceAndStoredInRepository()
@@ -36,7 +36,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _directorServiceMock.Setup(r => r.CreateReader(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(true);
 
-            var result = await handler.Handle(request, CancellationToken.None);
+            var result = await Handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeFalse();
             _repositoryMock.VerifyAll();
@@ -59,16 +59,14 @@ namespace CaptainHook.Application.Tests.Handlers
                         "OIDC",
                         new[] { "scope1" })
                 ).Create();
-
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriberEntity);
-
             _repositoryMock.Setup(r => r.SaveSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 2)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReader(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(false);
 
-            var result = await handler.Handle(request, CancellationToken.None);
+            var result = await Handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();
@@ -89,7 +87,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _directorServiceMock.Setup(r => r.CreateReader(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(false);
 
-            var result = await handler.Handle(request, CancellationToken.None);
+            var result = await Handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();
@@ -110,7 +108,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _directorServiceMock.Setup(r => r.CreateReader(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(false);
 
-            var result = await handler.Handle(request, CancellationToken.None);
+            var result = await Handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<UnhandledExceptionError>();
@@ -131,7 +129,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _directorServiceMock.Setup(r => r.CreateReader(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(new DirectorServiceIsBusyError());
 
-            var result = await handler.Handle(request, CancellationToken.None);
+            var result = await Handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
@@ -152,7 +150,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _directorServiceMock.Setup(r => r.CreateReader(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(new ReaderCreationError(new SubscriberEntity("subscriber")));
 
-            var result = await handler.Handle(request, CancellationToken.None);
+            var result = await Handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderCreationError>();
@@ -173,7 +171,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _directorServiceMock.Setup(r => r.CreateReader(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                  .Throws<Exception>();
 
-            var result = await handler.Handle(request, CancellationToken.None);
+            var result = await Handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<UnhandledExceptionError>();
@@ -194,7 +192,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _directorServiceMock.Setup(r => r.CreateReader(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(true);
 
-            var result = await handler.Handle(request, CancellationToken.None);
+            var result = await Handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
@@ -214,7 +212,7 @@ namespace CaptainHook.Application.Tests.Handlers
             _directorServiceMock.Setup(r => r.CreateReader(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(false);
 
-            var result = await handler.Handle(request, CancellationToken.None);
+            var result = await Handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
@@ -228,7 +226,6 @@ namespace CaptainHook.Application.Tests.Handlers
                    && entity.ParentEvent.Name == request.EventName
                    && entity.Webhooks.Endpoints.First().Uri == request.Endpoint.Uri
                    && entity.Webhooks.Endpoints.First().Authentication.Type.Equals(request.Endpoint.Authentication.Type, StringComparison.CurrentCultureIgnoreCase);
-            // TODO: extend auth config comparison?
         }
     }
 }
