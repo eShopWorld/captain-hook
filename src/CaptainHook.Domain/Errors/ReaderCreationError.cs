@@ -6,7 +6,7 @@ namespace CaptainHook.Domain.Errors
     public class ReaderCreationError : ErrorBase
     {
         public ReaderCreationError(SubscriberEntity subscriber)
-            : base($"Can't create Reader Service for Event {subscriber?.ParentEvent.Name} and Subscriber {subscriber?.Name}")
+            : base($"Can't create Reader Service for Event {subscriber?.ParentEvent?.Name} and Subscriber {subscriber?.Name}")
         {
         }
     }

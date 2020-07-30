@@ -71,6 +71,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var result = await handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<BusinessError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReader(It.IsAny<SubscriberEntity>()), Times.Never);
             _repositoryMock.Verify(x => x.SaveSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
@@ -91,6 +92,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var result = await handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<BusinessError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReader(It.IsAny<SubscriberEntity>()), Times.Never);
             _repositoryMock.Verify(x => x.SaveSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
@@ -111,6 +113,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var result = await handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<UnhandledExceptionError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReader(It.IsAny<SubscriberEntity>()), Times.Never);
             _repositoryMock.Verify(x => x.SaveSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
@@ -131,6 +134,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var result = await handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReader(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.SaveSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
@@ -151,6 +155,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var result = await handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<ReaderCreationError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReader(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.SaveSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
@@ -171,6 +176,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var result = await handler.Handle(request, CancellationToken.None);
 
             result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<UnhandledExceptionError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReader(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.SaveSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);

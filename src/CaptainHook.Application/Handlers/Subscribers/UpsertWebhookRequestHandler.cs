@@ -25,28 +25,52 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         public async Task<OperationResult<Guid>> Handle(UpsertWebhookRequest request, CancellationToken cancellationToken)
         {
-            var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
-            var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
-
-            if (existingItem.IsError)
+            try
             {
-                return new OperationResult<Guid>(existingItem.Error);
-            }
+                var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
+                var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-            var subscriber = existingItem.Data ?? new SubscriberEntity(request.SubscriberName, null, new EventEntity(request.EventName));
+                if (existingItem.IsError)
+                {
+                    return existingItem.Error;
+                }
+
+                if (existingItem.Data != null)
+                {
+                    return new BusinessError("Updating subscribers not supported!");
+                }
+
+                var subscriber = MapRequestToEntity(request);
+
+                var directorResult = await _directorService.CreateReader(subscriber);
+                if (directorResult.IsError)
+                {
+                    return directorResult.Error;
+                }
+
+                var saveResult = await _subscriberRepository.SaveSubscriberAsync(subscriber);
+                if (saveResult.IsError)
+                {
+                    return saveResult.Error;
+                }
+
+                return Guid.NewGuid();
+            }
+            catch (Exception ex)
+            {
+                return new UnhandledExceptionError($"Error processing {nameof(UpsertWebhookRequest)}", ex);
+            }
+        }
+
+        private static SubscriberEntity MapRequestToEntity(UpsertWebhookRequest request)
+        {
+            var subscriber = new SubscriberEntity(request.SubscriberName, null, new EventEntity(request.EventName));
             var authDto = request.Endpoint.Authentication;
             var secretStoreEntity = new SecretStoreEntity(authDto.ClientSecret.Vault, authDto.ClientSecret.Name);
             var authenticationEntity = new AuthenticationEntity(authDto.ClientId, secretStoreEntity, authDto.Uri, authDto.Type, authDto.Scopes.ToArray());
             var endpoint = new EndpointEntity(request.Endpoint.Uri, authenticationEntity, request.Endpoint.HttpVerb, null);
             subscriber.AddWebhookEndpoint(endpoint);
-
-            var result = await _directorService.CreateReader(subscriber);
-            if (result == null)
-            {
-                return new BusinessError("Reload in progress"); // TODO: replace with something more meaningful
-            }
-
-            return Guid.NewGuid();
+            return subscriber;
         }
     }
 }
