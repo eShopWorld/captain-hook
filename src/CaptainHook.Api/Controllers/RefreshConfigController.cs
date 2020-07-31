@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CaptainHook.Application.Gateways;
 using CaptainHook.Common;
 using CaptainHook.Common.Remoting;
 using Eshopworld.Core;

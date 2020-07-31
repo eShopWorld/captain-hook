@@ -7,6 +7,7 @@ using System.Linq;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
+using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
 
@@ -39,6 +40,11 @@ namespace CaptainHook.Storage.Cosmos
             _cosmosDbRepository.UseCollection(CollectionName);
         }
 
+        public Task<OperationResult<SubscriberEntity>> GetSubscriberAsync(SubscriberId subscriberId)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<OperationResult<IEnumerable<SubscriberEntity>>> GetAllSubscribersAsync()
         {
             var query = _endpointQueryBuilder.BuildSelectAllSubscribersEndpoints();
@@ -48,6 +54,11 @@ namespace CaptainHook.Storage.Cosmos
                 .GroupBy(x => new { x.EventName, x.SubscriberName })
                 .Select(x => Map(x))
                 .ToList();
+        }
+
+        public Task<OperationResult<SubscriberEntity>> AddSubscriberAsync(SubscriberEntity subscriberEntity)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<OperationResult<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName)
