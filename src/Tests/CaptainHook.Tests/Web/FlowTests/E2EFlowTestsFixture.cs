@@ -28,7 +28,7 @@ namespace CaptainHook.Tests.Web.FlowTests
     public class E2EFlowTestsFixture
     {
         public IBigBrother Bb;
-        public TestsConfig TestsConfig { get; set; }
+        private TestsConfig TestsConfig { get; set; }
 
         private readonly TimeSpan _defaultPollTimeSpan = TimeSpan.FromMinutes(5);
         private readonly TimeSpan _defaultPollAttemptRetryTimeSpan = TimeSpan.FromMilliseconds(200);
@@ -51,7 +51,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// and secrets from the KeyvaultUrl configured in appsettings
         /// </summary>
         /// <returns><see cref="Configuration.TestsConfig"/> object</returns>
-        public TestsConfig GetTestsConfig()
+        private TestsConfig GetTestsConfig()
         {
             var config = EswDevOpsSdk.BuildConfiguration(); 
             var testsConfig = new TestsConfig();
