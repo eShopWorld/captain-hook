@@ -7,6 +7,7 @@ using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Tests.Builders;
+using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;

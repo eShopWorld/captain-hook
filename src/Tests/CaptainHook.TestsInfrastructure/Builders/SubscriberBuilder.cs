@@ -1,9 +1,9 @@
-﻿using CaptainHook.Domain.Entities;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using CaptainHook.Domain.Entities;
 
-namespace CaptainHook.Tests.Builders
+namespace CaptainHook.TestsInfrastructure.Builders
 {
-    internal class SubscriberBuilder
+    public class SubscriberBuilder
     {
         private string _name = "captain-hook";
         private EventEntity _event;

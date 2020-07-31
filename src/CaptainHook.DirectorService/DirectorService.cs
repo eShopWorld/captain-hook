@@ -5,6 +5,7 @@ using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Application.Gateways;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;
@@ -12,6 +13,8 @@ using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
+using CaptainHook.Domain.Entities;
+using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
@@ -186,6 +189,11 @@ namespace CaptainHook.DirectorService
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
             return this.CreateServiceRemotingReplicaListeners();
+        }
+
+        public Task<OperationResult<bool>> CreateReader(SubscriberEntity readerChangeInfo)
+        {
+            throw new NotImplementedException();
         }
     }
 }
