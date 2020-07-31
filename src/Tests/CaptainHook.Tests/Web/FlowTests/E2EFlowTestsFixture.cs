@@ -1,9 +1,11 @@
 using CaptainHook.Tests.Configuration;
 using Eshopworld.Core;
+using Eshopworld.DevOps;
 using Eshopworld.Messaging;
 using Eshopworld.Telemetry;
 using FluentAssertions;
 using IdentityModel.Client;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Timeout;
@@ -38,10 +40,30 @@ namespace CaptainHook.Tests.Web.FlowTests
 
         public void SetupFixture()
         {
-            TestsConfig = ConfigurationLoader.GetTestsConfig(); // loads from different KVs for Development and CI environment
+            TestsConfig = GetTestsConfig(); // loads from different KVs for Development and CI environment
 
             Bb = BigBrother.CreateDefault(TestsConfig.InstrumentationKey, TestsConfig.InstrumentationKey);
             Bb.PublishEventsToTopics(new Messenger(TestsConfig.ServiceBusConnectionString, TestsConfig.AzureSubscriptionId));
+        }
+
+        /// <summary>
+        /// Loads configuration parameters for Integrations tests from AppSettings.json files 
+        /// and secrets from the KeyvaultUrl configured in appsettings
+        /// </summary>
+        /// <returns><see cref="Configuration.TestsConfig"/> object</returns>
+        public TestsConfig GetTestsConfig()
+        {
+            var config = EswDevOpsSdk.BuildConfiguration(); 
+            var testsConfig = new TestsConfig();
+
+            // Load: InstrumentationKey and AzureSubscriptionId from KV; 
+            // PeterPanBaseUrl and StsClientId from appsettings
+            config.Bind(testsConfig);
+
+            // Binds CaptainHook:ServiceBusConnectionString, CaptainHook:ApiSecret from KV
+            config.Bind("CaptainHook", testsConfig);
+
+            return testsConfig;
         }
 
         private string PublishModel<T>(T raw) where T : FlowTestEventBase
