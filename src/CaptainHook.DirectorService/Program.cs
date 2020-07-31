@@ -76,6 +76,10 @@ namespace CaptainHook.DirectorService
                     .As<IReaderServiceChangesDetector>()
                     .SingleInstance();
 
+                builder.RegisterType<SubscriberEntityToConfigurationMapper>()
+                    .As<ISubscriberEntityToConfigurationMapper>()
+                    .SingleInstance();
+
                 builder.RegisterModule<KeyVaultModule>();
                 builder.RegisterModule<CosmosDbModule>();
                 builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
