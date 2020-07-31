@@ -24,5 +24,10 @@
         {
             return _id;
         }
+
+        public static implicit operator string(SubscriberId subscriberId)
+        {
+            return subscriberId.ToString();
+        }
     }
 }
