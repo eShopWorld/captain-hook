@@ -49,7 +49,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                     return directorResult.Error;
                 }
 
-                var saveResult = await _subscriberRepository.SaveSubscriberAsync(subscriber);
+                var saveResult = await _subscriberRepository.AddSubscriberAsync(subscriber);
                 if (saveResult.IsError)
                 {
                     return saveResult.Error;

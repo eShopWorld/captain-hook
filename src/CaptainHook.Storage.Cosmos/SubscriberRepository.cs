@@ -56,7 +56,7 @@ namespace CaptainHook.Storage.Cosmos
                 .ToList();
         }
 
-        public Task<OperationResult<SubscriberEntity>> SaveSubscriberAsync(SubscriberEntity subscriberEntity)
+        public Task<OperationResult<SubscriberEntity>> AddSubscriberAsync(SubscriberEntity subscriberEntity)
         {
             throw new NotImplementedException();
         }
