@@ -25,7 +25,7 @@ using ConfigurationSettings = CaptainHook.Common.Configuration.ConfigurationSett
 namespace CaptainHook.DirectorService
 {
     [UsedImplicitly]
-    public class DirectorService : StatefulService, IDirectorServiceRemoting, IDirectorServiceGateway
+    public class DirectorService : StatefulService, IDirectorServiceRemoting
     {
         private volatile bool _refreshInProgress;
         private readonly object _refreshSync = new object();
