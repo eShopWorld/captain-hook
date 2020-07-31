@@ -26,9 +26,7 @@ namespace CaptainHook.Tests.Web.FlowTests
     public class E2EFlowTestsFixture
     {
         public IBigBrother Bb;
-        public string PeterPanUrlBase { get; set; }
-        public string StsClientId { get; set; }
-        public string StsClientSecret { get; set; }
+        public TestsConfig TestsConfig { get; set; }
 
         private readonly TimeSpan _defaultPollTimeSpan = TimeSpan.FromMinutes(5);
         private readonly TimeSpan _defaultPollAttemptRetryTimeSpan = TimeSpan.FromMilliseconds(200);
@@ -40,13 +38,10 @@ namespace CaptainHook.Tests.Web.FlowTests
 
         public void SetupFixture()
         {
-            var config = ConfigurationLoader.GetTestsConfig(); // loads from different KVs for Development and CI environment
-            this.PeterPanUrlBase = config.PeterPanBaseUrl;
-            this.StsClientId = config.StsClientId;
-            this.StsClientSecret = config.ApiSecret;
+            TestsConfig = ConfigurationLoader.GetTestsConfig(); // loads from different KVs for Development and CI environment
 
-            Bb = BigBrother.CreateDefault(config.InstrumentationKey, config.InstrumentationKey);
-            Bb.PublishEventsToTopics(new Messenger(config.ServiceBusConnectionString, config.AzureSubscriptionId));
+            Bb = BigBrother.CreateDefault(TestsConfig.InstrumentationKey, TestsConfig.InstrumentationKey);
+            Bb.PublishEventsToTopics(new Messenger(TestsConfig.ServiceBusConnectionString, TestsConfig.AzureSubscriptionId));
         }
 
         private string PublishModel<T>(T raw) where T : FlowTestEventBase
@@ -82,7 +77,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                 var result = await policy.ExecuteAsync(async () =>
                 {
                     var response = await httpClient.GetAsync(
-                        $"{PeterPanUrlBase}/api/v1/inttest/check/{payloadId}");
+                        $"{TestsConfig.PeterPanBaseUrl}/api/v1/inttest/check/{payloadId}");
 
                     if (response.StatusCode != HttpStatusCode.OK) return response;
 
@@ -184,8 +179,8 @@ namespace CaptainHook.Tests.Web.FlowTests
             var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
                 Address = "https://security-sts.ci.eshopworld.net/connect/token",
-                ClientId = StsClientId,
-                ClientSecret = StsClientSecret,
+                ClientId = TestsConfig.StsClientId,
+                ClientSecret = TestsConfig.ApiSecret,
                 GrantType = "client_credentials",
                 Scope = PeterPanConsts.PeterPanDeliveryScope
             });
