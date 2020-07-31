@@ -166,6 +166,8 @@ namespace CaptainHook.DirectorService
                 //todo: remove the webhookconfig
                 var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
 
+                await Task.Delay(60000);
+
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
                 var changes = _readerServiceChangeDetector.DetectChanges(newSubscriberConfigurations.Values, deployedServiceNames);
