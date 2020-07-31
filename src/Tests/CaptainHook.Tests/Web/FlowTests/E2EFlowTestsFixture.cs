@@ -28,22 +28,22 @@ namespace CaptainHook.Tests.Web.FlowTests
     public class E2EFlowTestsFixture
     {
         public IBigBrother Bb;
-        private TestsConfig TestsConfig { get; set; }
+        private readonly TestsConfig _testsConfig;
 
         private readonly TimeSpan _defaultPollTimeSpan = TimeSpan.FromMinutes(5);
         private readonly TimeSpan _defaultPollAttemptRetryTimeSpan = TimeSpan.FromMilliseconds(200);
 
         public E2EFlowTestsFixture()
         {
+            _testsConfig = GetTestsConfig(); // loads from different KVs for Development and CI environment
+
             SetupFixture();
         }
 
         public void SetupFixture()
         {
-            TestsConfig = GetTestsConfig(); // loads from different KVs for Development and CI environment
-
-            Bb = BigBrother.CreateDefault(TestsConfig.InstrumentationKey, TestsConfig.InstrumentationKey);
-            Bb.PublishEventsToTopics(new Messenger(TestsConfig.ServiceBusConnectionString, TestsConfig.AzureSubscriptionId));
+            Bb = BigBrother.CreateDefault(_testsConfig.InstrumentationKey, _testsConfig.InstrumentationKey);
+            Bb.PublishEventsToTopics(new Messenger(_testsConfig.ServiceBusConnectionString, _testsConfig.AzureSubscriptionId));
         }
 
         /// <summary>
@@ -99,7 +99,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                 var result = await policy.ExecuteAsync(async () =>
                 {
                     var response = await httpClient.GetAsync(
-                        $"{TestsConfig.PeterPanBaseUrl}/api/v1/inttest/check/{payloadId}");
+                        $"{_testsConfig.PeterPanBaseUrl}/api/v1/inttest/check/{payloadId}");
 
                     if (response.StatusCode != HttpStatusCode.OK) return response;
 
@@ -152,7 +152,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             var predicate = new FlowTestPredicateBuilder();
             predicate = configTestBuilder.Invoke(predicate);
 
-            processedEvents.Should().OnlyContain(m => predicate.BuildMatchesAll().Invoke(m));
+            processedEvents.Should().OnlyContain(m => predicate.AllSubPredicatesMatch(m));
         }
 
         /// <summary>
@@ -164,20 +164,21 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// <param name="configTestBuilderCallback">builder for test predicate for callback part</param>
         /// <param name="waitTimespan">(optional) timeout to be used</param>
         /// <returns>async task</returns>
-        public async Task ExpectTrackedEventWithCallback<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderHook, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderCallback, TimeSpan waitTimespan = default) where T : FlowTestEventBase
+        public async Task ExpectTrackedEventWithCallback<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderHook, 
+            Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderCallback, TimeSpan waitTimespan = default)
+            where T : FlowTestEventBase
         {
-            var processedEvents = await PublishAndPoll(instance, waitTimespan, waitForCallback:true);
-
             var predicate = new FlowTestPredicateBuilder();
             predicate = configTestBuilderHook.Invoke(predicate);
 
             var callbackPredicate = new FlowTestPredicateBuilder();
             callbackPredicate = configTestBuilderCallback.Invoke(callbackPredicate);
 
+            var processedEvents = await PublishAndPoll(instance, waitTimespan, waitForCallback:true);
             var processedEventModels = processedEvents as ProcessedEventModel[] ?? processedEvents.ToArray();
 
-            processedEventModels.Where(m=> !m.IsCallback).Should().Contain(m => predicate.BuildMatchesAll().Invoke(m));
-            processedEventModels.Where(m => m.IsCallback).Should().Contain(m => callbackPredicate.BuildMatchesAll().Invoke(m));
+            processedEventModels.Where(m=> !m.IsCallback).Should().Contain(m => predicate.AllSubPredicatesMatch(m));
+            processedEventModels.Where(m => m.IsCallback).Should().Contain(m => callbackPredicate.AllSubPredicatesMatch(m));
         }
 
         private async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan, bool expectMessages = true, bool waitForCallback=false) where T : FlowTestEventBase
@@ -201,8 +202,8 @@ namespace CaptainHook.Tests.Web.FlowTests
             var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
                 Address = "https://security-sts.ci.eshopworld.net/connect/token",
-                ClientId = TestsConfig.StsClientId,
-                ClientSecret = TestsConfig.ApiSecret,
+                ClientId = _testsConfig.StsClientId,
+                ClientSecret = _testsConfig.ApiSecret,
                 GrantType = "client_credentials",
                 Scope = PeterPanConsts.PeterPanDeliveryScope
             });
