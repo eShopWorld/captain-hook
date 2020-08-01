@@ -10,7 +10,6 @@ using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
-using Eshopworld.Core;
 
 namespace CaptainHook.Storage.Cosmos
 {
@@ -41,21 +40,14 @@ namespace CaptainHook.Storage.Cosmos
             _cosmosDbRepository.UseCollection(CollectionName);
         }
 
-        public async Task<OperationResult<SubscriberEntity>> GetSubscriberAsync(SubscriberId subscriberId)
+        public Task<OperationResult<SubscriberEntity>> GetSubscriberAsync(SubscriberId subscriberId)
         {
             if (subscriberId == null)
             {
                 throw new ArgumentNullException(nameof(subscriberId));
             }
 
-            var subscriber = await GetSubscriberInternalAsync(subscriberId);
-
-            if (subscriber == null)
-            {
-                return new EntityNotFoundError(nameof(SubscriberEntity), subscriberId);
-            }
-
-            return subscriber;
+            return GetSubscriberInternalAsync(subscriberId);
         }
 
         public async Task<OperationResult<IEnumerable<SubscriberEntity>>> GetAllSubscribersAsync()
@@ -68,28 +60,14 @@ namespace CaptainHook.Storage.Cosmos
                 .ToList();
         }
 
-        public async Task<OperationResult<SubscriberEntity>> AddSubscriberAsync(SubscriberEntity subscriberEntity)
+        public Task<OperationResult<SubscriberEntity>> AddSubscriberAsync(SubscriberEntity subscriberEntity)
         {
             if (subscriberEntity == null)
             {
                 throw new ArgumentNullException(nameof(subscriberEntity));
             }
 
-            try
-            {
-                var subscriber = await AddSubscriberInternalAsync(subscriberEntity);
-
-                if (subscriber == null)
-                {
-                    return new CannotSaveEntityError(nameof(SubscriberEntity));
-                }
-
-                return subscriber;
-            }
-            catch
-            {
-                return new CannotSaveEntityError(nameof(SubscriberEntity));
-            }
+            return AddSubscriberInternalAsync(subscriberEntity);
         }
 
         public async Task<OperationResult<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName)
@@ -112,21 +90,33 @@ namespace CaptainHook.Storage.Cosmos
 
         #region Private methods
 
-        private async Task<SubscriberEntity> AddSubscriberInternalAsync(SubscriberEntity subscriberEntity)
+        private async Task<OperationResult<SubscriberEntity>> AddSubscriberInternalAsync(SubscriberEntity subscriberEntity)
         {
             var subscriberDocument = Map(subscriberEntity);
-            var result = await _cosmosDbRepository.CreateAsync(subscriberDocument);
-            return Map(result.Document);
+            try
+            { 
+                var result = await _cosmosDbRepository.CreateAsync(subscriberDocument);
+                return Map(result.Document);
+            }
+            catch
+            {
+                return new CannotSaveEntityError(nameof(SubscriberEntity));
+            }
         }
 
-        private async Task<SubscriberEntity> GetSubscriberInternalAsync(SubscriberId subscriberId)
+        private async Task<OperationResult<SubscriberEntity>> GetSubscriberInternalAsync(SubscriberId subscriberId)
         {
             var query = _endpointQueryBuilder.BuildSelectSubscriber(subscriberId);
             var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
 
+            if (!subscribers.Any())
+            {
+                return new EntityNotFoundError(nameof(SubscriberEntity), subscriberId);
+            }
+
             return subscribers
                 .Select(x => Map(x))
-                .SingleOrDefault();
+                .FirstOrDefault();
         }
 
         private async Task<IEnumerable<SubscriberEntity>> GetSubscribersListInternalAsync(string eventName)
