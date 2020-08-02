@@ -29,19 +29,21 @@ namespace CaptainHook.Application.Handlers.Subscribers
             try
             {
                 var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
-                var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
+                //var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-                if (existingItem.IsError)
-                {
-                    return existingItem.Error;
-                }
+                //if (existingItem.IsError)
+                //{
+                //    return existingItem.Error;
+                //}
 
-                if (existingItem.Data != null)
-                {
-                    return new BusinessError("Updating subscribers not supported!");
-                }
+                //if (existingItem.Data != null)
+                //{
+                //    return new BusinessError("Updating subscribers not supported!");
+                //}
 
                 var subscriber = MapRequestToEntity(request);
+
+                // TODO: map here
 
                 var directorResult = await _directorService.CreateReaderAsync(subscriber);
                 if (directorResult.IsError)
