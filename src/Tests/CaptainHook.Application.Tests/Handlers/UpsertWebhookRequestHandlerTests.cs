@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Gateways;
 using CaptainHook.Application.Handlers.Subscribers;
+using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
@@ -21,7 +21,7 @@ namespace CaptainHook.Application.Tests.Handlers
     public class UpsertWebhookRequestHandlerTests
     {
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
-        private readonly Mock<IDirectorServiceRemoting> _directorServiceMock = new Mock<IDirectorServiceRemoting>();
+        private readonly Mock<IDirectorServiceGateway> _directorServiceMock = new Mock<IDirectorServiceGateway>();
 
         private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object);
 

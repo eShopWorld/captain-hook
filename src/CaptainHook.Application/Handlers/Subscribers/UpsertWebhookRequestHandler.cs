@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Gateways;
+using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
@@ -16,9 +16,9 @@ namespace CaptainHook.Application.Handlers.Subscribers
     public class UpsertWebhookRequestHandler : IRequestHandler<UpsertWebhookRequest, OperationResult<EndpointDto>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
-        private readonly IDirectorServiceRemoting _directorService;
+        private readonly IDirectorServiceGateway _directorService;
 
-        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceRemoting directorService)
+        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceGateway directorService)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;

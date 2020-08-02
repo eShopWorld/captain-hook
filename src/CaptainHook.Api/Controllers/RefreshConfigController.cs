@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CaptainHook.Application.Gateways;
+using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Common;
-using CaptainHook.Common.Remoting;
 using Eshopworld.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

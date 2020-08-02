@@ -1,8 +1,8 @@
 ﻿using System;
 using Autofac;
-using CaptainHook.Application.Gateways;
 using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure;
+using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Validators;
 using CaptainHook.Common;
 using Microsoft.ServiceFabric.Services.Remoting.Client;

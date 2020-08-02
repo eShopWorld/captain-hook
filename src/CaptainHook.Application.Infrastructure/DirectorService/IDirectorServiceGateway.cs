@@ -1,19 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Remoting;
+﻿using System.Threading.Tasks;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Results;
-using Microsoft.ServiceFabric.Services.Remoting;
 
-namespace CaptainHook.Application.Gateways
+namespace CaptainHook.Application.Infrastructure.DirectorService
 {
-    public interface IDirectorServiceRemoting : IService
+    /// <summary>
+    /// A Gateway to Director Service
+    /// </summary>
+    public interface IDirectorServiceGateway
     {
-        Task<RequestReloadConfigurationResult> RequestReloadConfigurationAsync();
-        Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribersAsync();
-
-         /// <summary>
+        /// <summary>
         /// Creates reader service for single webhook in Subscriber.
         /// </summary>
         /// <param name="subscriber">Subscriber entity defining ReaderService to be created</param>

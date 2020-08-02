@@ -5,16 +5,14 @@ using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Gateways;
+using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Remoting;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
-using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using Eshopworld.Core;
@@ -198,7 +196,7 @@ namespace CaptainHook.DirectorService
             return this.CreateServiceRemotingReplicaListeners();
         }
 
-        public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriberEntity)
+        public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberConfiguration subscriber)
         {
             if (!_refreshInProgress)
             {
@@ -210,8 +208,7 @@ namespace CaptainHook.DirectorService
                     {
                         _refreshInProgress = true;
 
-                        var subscribers = await _entityToConfigurationMapper.MapSubscriber(subscriberEntity);
-                        var changeInfo = ReaderChangeInfo.ToBeCreated(new DesiredReaderDefinition(subscribers.Single()));
+                        var changeInfo = ReaderChangeInfo.ToBeCreated(new DesiredReaderDefinition(subscriber));
 
                         return await _readerServicesManager.RefreshSingleReaderAsync(changeInfo, _cancellationToken);
                     }
