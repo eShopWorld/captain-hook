@@ -25,12 +25,4 @@ namespace CaptainHook.Application.Gateways
         /// </returns>
         Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber);
     }
-
-    internal class DirectorServiceGateway : IDirectorServiceGateway
-    {
-        public Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
-        {
-            throw new System.NotImplementedException();
-        }
-    }
 }
