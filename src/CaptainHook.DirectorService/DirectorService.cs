@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Gateways;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Remoting;

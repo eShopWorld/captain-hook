@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Entities;
 
-namespace CaptainHook.DirectorService.Infrastructure
+namespace CaptainHook.Application.Infrastructure.Mappers
 {
     public interface ISubscriberEntityToConfigurationMapper
     {
