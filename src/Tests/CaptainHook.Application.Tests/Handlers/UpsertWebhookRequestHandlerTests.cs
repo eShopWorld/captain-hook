@@ -31,7 +31,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync((SubscriberEntity)null);
+                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
@@ -128,7 +128,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync((SubscriberEntity)null);
+                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
@@ -150,7 +150,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync((SubscriberEntity)null);
+                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
@@ -172,7 +172,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync((SubscriberEntity)null);
+                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
@@ -194,7 +194,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync((SubscriberEntity)null);
+                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new BusinessError("test error"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
@@ -215,7 +215,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync((SubscriberEntity)null);
+                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .Throws<Exception>();
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
