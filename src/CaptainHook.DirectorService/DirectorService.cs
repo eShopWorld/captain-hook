@@ -5,7 +5,6 @@ using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common;
@@ -14,8 +13,6 @@ using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
-using CaptainHook.Domain.Errors;
-using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
@@ -30,6 +27,7 @@ namespace CaptainHook.DirectorService
     {
         private volatile bool _refreshInProgress;
         private readonly object _refreshSync = new object();
+        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
         private CancellationToken _cancellationToken;
 
         private readonly IBigBrother _bigBrother;
@@ -37,7 +35,6 @@ namespace CaptainHook.DirectorService
         private readonly IReaderServicesManager _readerServicesManager;
         private readonly IReaderServiceChangesDetector _readerServiceChangeDetector;
         private readonly ISubscriberConfigurationLoader _subscriberConfigurationLoader;
-        private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
 
         /// <summary>
@@ -54,14 +51,12 @@ namespace CaptainHook.DirectorService
             IReaderServicesManager readerServicesManager,
             IReaderServiceChangesDetector readerServiceChangeDetector,
             IFabricClientWrapper fabricClientWrapper,
-            ISubscriberConfigurationLoader subscriberConfigurationLoader,
-            ISubscriberEntityToConfigurationMapper entityToConfigurationMapper)
+            ISubscriberConfigurationLoader subscriberConfigurationLoader)
             : base(context)
         {
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
             _fabricClientWrapper = fabricClientWrapper ?? throw new ArgumentNullException(nameof(fabricClientWrapper));
             _subscriberConfigurationLoader = subscriberConfigurationLoader ?? throw new ArgumentNullException(nameof(subscriberConfigurationLoader));
-            _entityToConfigurationMapper = entityToConfigurationMapper;
             _readerServicesManager = readerServicesManager ?? throw new ArgumentNullException(nameof(readerServicesManager));
             _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException(nameof(readerServiceChangeDetector));
         }
@@ -166,8 +161,6 @@ namespace CaptainHook.DirectorService
                 //todo: remove the webhookconfig
                 var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
 
-                await Task.Delay(60000);
-
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
                 var changes = _readerServiceChangeDetector.DetectChanges(newSubscriberConfigurations.Values, deployedServiceNames);
@@ -197,8 +190,6 @@ namespace CaptainHook.DirectorService
             return this.CreateServiceRemotingReplicaListeners();
         }
 
-        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
-
         public async Task<CreateReaderResult> CreateReaderAsync(SubscriberConfiguration subscriber)
         {
             if (!_refreshInProgress)
@@ -213,7 +204,7 @@ namespace CaptainHook.DirectorService
 
                         var changeInfo = ReaderChangeInfo.ToBeCreated(new DesiredReaderDefinition(subscriber));
 
-                        return await _readerServicesManager.CreateSingleReaderAsync(changeInfo, _cancellationToken);
+                        return await _readerServicesManager.CreateReaderAsync(changeInfo, _cancellationToken);
                     }
                 }
                 finally

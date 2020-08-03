@@ -11,7 +11,7 @@ namespace CaptainHook.Application
     {
         protected override void Load(ContainerBuilder builder)
         {
-            builder.RegisterType<DirectorServiceGateway>().As<IDirectorServiceGateway>();
+            builder.RegisterType<DirectorServiceProxy>().As<IDirectorServiceProxy>();
             builder.RegisterType<SubscriberEntityToConfigurationMapper>().As<ISubscriberEntityToConfigurationMapper>();
 
             var handlersAssembly = typeof(UpsertWebhookRequestHandler).Assembly;

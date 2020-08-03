@@ -2,7 +2,7 @@
 {
     public enum CreateReaderResult
     {
-        Unknown,
+        None = 0,
         Created,
         AlreadyExists,
         DirectorIsBusy,

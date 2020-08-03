@@ -7,7 +7,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
     /// <summary>
     /// A Gateway to Director Service
     /// </summary>
-    public interface IDirectorServiceGateway
+    public interface IDirectorServiceProxy
     {
         /// <summary>
         /// Creates reader service for single webhook in Subscriber.

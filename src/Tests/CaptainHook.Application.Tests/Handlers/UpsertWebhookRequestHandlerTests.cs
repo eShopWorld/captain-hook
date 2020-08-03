@@ -21,7 +21,7 @@ namespace CaptainHook.Application.Tests.Handlers
     public class UpsertWebhookRequestHandlerTests
     {
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
-        private readonly Mock<IDirectorServiceGateway> _directorServiceMock = new Mock<IDirectorServiceGateway>();
+        private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
 
         private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object);
 

@@ -5,7 +5,6 @@ using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using CaptainHook.Common.ServiceModels;
@@ -62,7 +61,7 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             await DeleteReaderServicesAsync(allServiceNamesToDelete, cancellationToken);
         }
 
-        public async Task<CreateReaderResult> CreateSingleReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken)
+        public async Task<CreateReaderResult> CreateReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken)
         {
             var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
             if (deployedServices.Any(x => changeInfo.NewReader.ServiceNameWithSuffix.Equals(x, StringComparison.InvariantCultureIgnoreCase)))

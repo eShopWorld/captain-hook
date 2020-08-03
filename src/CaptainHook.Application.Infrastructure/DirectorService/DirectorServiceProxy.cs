@@ -11,11 +11,11 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace CaptainHook.Application.Infrastructure.DirectorService
 {
-    public class DirectorServiceGateway : IDirectorServiceGateway
+    public class DirectorServiceProxy : IDirectorServiceProxy
     {
         private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
 
-        public DirectorServiceGateway(ISubscriberEntityToConfigurationMapper entityToConfigurationMapper)
+        public DirectorServiceProxy(ISubscriberEntityToConfigurationMapper entityToConfigurationMapper)
         {
             _entityToConfigurationMapper = entityToConfigurationMapper;
         }
@@ -37,7 +37,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                 case CreateReaderResult.Failed:
                     return new ReaderCreationError(subscriber);
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return new BusinessError("Director Service returned unknown result.");
             }
         }
     }

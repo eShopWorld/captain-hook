@@ -188,7 +188,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
             _fabricClientMock.Setup(x => x.GetServiceUriListAsync()).ReturnsAsync(new List<string> { "reader" });
             var readerServiceManager = CreateReaderServiceManager();
 
-            var result = await readerServiceManager.CreateSingleReaderAsync(changeInfo, CancellationToken.None);
+            var result = await readerServiceManager.CreateReaderAsync(changeInfo, CancellationToken.None);
 
             using (new AssertionScope())
             {
@@ -210,7 +210,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
             _fabricClientMock.Setup(x => x.GetServiceUriListAsync()).ReturnsAsync(new List<string> { desiredReader.ServiceNameWithSuffix });
             var readerServiceManager = CreateReaderServiceManager();
 
-            var result = await readerServiceManager.CreateSingleReaderAsync(changeInfo, CancellationToken.None);
+            var result = await readerServiceManager.CreateReaderAsync(changeInfo, CancellationToken.None);
 
             using (new AssertionScope())
             {

@@ -16,9 +16,9 @@ namespace CaptainHook.Application.Handlers.Subscribers
     public class UpsertWebhookRequestHandler : IRequestHandler<UpsertWebhookRequest, OperationResult<EndpointDto>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
-        private readonly IDirectorServiceGateway _directorService;
+        private readonly IDirectorServiceProxy _directorService;
 
-        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceGateway directorService)
+        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceProxy directorService)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;

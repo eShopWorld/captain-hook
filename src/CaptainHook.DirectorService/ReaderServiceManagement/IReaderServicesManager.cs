@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 
 namespace CaptainHook.DirectorService.ReaderServiceManagement
@@ -23,6 +22,6 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
         /// <param name="changeInfo">Change to be applied</param>
         /// <param name="cancellationToken">A cancellation token</param>
         /// <returns></returns>
-        Task<CreateReaderResult> CreateSingleReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken);
+        Task<CreateReaderResult> CreateReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken);
     }
 }

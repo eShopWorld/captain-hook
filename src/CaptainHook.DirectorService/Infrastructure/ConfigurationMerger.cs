@@ -6,18 +6,17 @@ using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
-using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Domain.Entities;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
     public class ConfigurationMerger : IConfigurationMerger
     {
-        private readonly SubscriberEntityToConfigurationMapper _subscriberEntityToConfigurationMapper;
+        private readonly ISubscriberEntityToConfigurationMapper _subscriberEntityToConfigurationMapper;
 
-        public ConfigurationMerger(ISecretProvider secretProvider)
+        public ConfigurationMerger(ISubscriberEntityToConfigurationMapper subscriberEntityToConfigurationMapper)
         {
-            _subscriberEntityToConfigurationMapper = new SubscriberEntityToConfigurationMapper(secretProvider);
+            _subscriberEntityToConfigurationMapper = subscriberEntityToConfigurationMapper;
         }
 
         /// <summary>
