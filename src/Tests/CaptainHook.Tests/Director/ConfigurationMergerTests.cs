@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
@@ -28,7 +29,8 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(kvSubscribers, new List<SubscriberEntity>());
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));
+            var result = await configurationMerger.MergeAsync(kvSubscribers, new List<SubscriberEntity>());
 
             using (new AssertionScope())
             {
@@ -49,7 +51,8 @@ namespace CaptainHook.Tests.Director
                 new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector").Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));
+            var result = await configurationMerger.MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -77,7 +80,8 @@ namespace CaptainHook.Tests.Director
                 new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector").Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(kvSubscribers, cosmosSubscribers);
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));
+            var result = await configurationMerger.MergeAsync(kvSubscribers, cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -116,8 +120,8 @@ namespace CaptainHook.Tests.Director
             var mock = new Mock<ISecretProvider>();
             mock.Setup(m => m.GetSecretValueAsync("kv-secret-name")).ReturnsAsync("my-password");
 
-            var result = await new ConfigurationMerger(mock.Object)
-                .MergeAsync(Enumerable.Empty<SubscriberConfiguration>(), cosmosSubscribers);
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(mock.Object));
+            var result = await configurationMerger.MergeAsync(Enumerable.Empty<SubscriberConfiguration>(), cosmosSubscribers);
 
             var expectedConfiguration = new SubscriberConfiguration
             {
@@ -148,7 +152,8 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));
+            var result = await configurationMerger.MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
@@ -170,7 +175,8 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var result = await new ConfigurationMerger(Mock.Of<ISecretProvider>()).MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));
+            var result = await configurationMerger.MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
             {
