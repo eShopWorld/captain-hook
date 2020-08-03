@@ -36,7 +36,6 @@ namespace CaptainHook.Api.Controllers
         {
             var request = new UpsertWebhookRequest(eventName, subscriberName, dto);
             var result = await _mediator.Send(request);
-
             return Ok(result);
         }
     }
