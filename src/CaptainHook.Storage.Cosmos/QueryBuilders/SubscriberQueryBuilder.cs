@@ -28,13 +28,8 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
 
         public CosmosQuery BuildSelectSubscriber(SubscriberId subscriberId)
         {
-            var query = new QueryDefinition(@"
-                select * from c where 
-                    c.eventName = @eventName 
-                    and c.subscriberName = @subscriberName 
-                    and c.type = @documentType")
-                .WithParameter("@id", subscriberId)
-                .WithParameter("@documentType", SubscriberDocument.Type);
+            var query = new QueryDefinition(@"select * from c where c.id = @id")
+                .WithParameter("@id", subscriberId);
 
             return new CosmosQuery(query, subscriberId);
         }
