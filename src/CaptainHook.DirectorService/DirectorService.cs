@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
-using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Events;

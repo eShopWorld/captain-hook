@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
-using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
