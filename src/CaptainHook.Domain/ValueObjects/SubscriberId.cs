@@ -27,7 +27,7 @@
 
         public static implicit operator string(SubscriberId subscriberId)
         {
-            return subscriberId.ToString();
+            return subscriberId?.ToString();
         }
     }
 }
