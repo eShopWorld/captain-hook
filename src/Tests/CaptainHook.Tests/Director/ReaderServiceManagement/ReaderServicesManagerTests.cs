@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
@@ -186,11 +187,11 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
             _fabricClientMock.Setup(x => x.GetServiceUriListAsync()).ReturnsAsync(new List<string> { "reader" });
             var readerServiceManager = CreateReaderServiceManager();
 
-            var result = await readerServiceManager.RefreshSingleReaderAsync(changeInfo, CancellationToken.None);
+            var result = await readerServiceManager.CreateSingleReaderAsync(changeInfo, CancellationToken.None);
 
             using (new AssertionScope())
             {
-                result.Should().BeTrue();
+                result.Should().Be(CreateReaderResult.Created);
                 VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
                 VerifyFabricClientDeleteCalls();
                 VerifyServiceCreatedEventPublished(desiredReader.ServiceNameWithSuffix);
@@ -208,11 +209,11 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
             _fabricClientMock.Setup(x => x.GetServiceUriListAsync()).ReturnsAsync(new List<string> { desiredReader.ServiceNameWithSuffix });
             var readerServiceManager = CreateReaderServiceManager();
 
-            var result = await readerServiceManager.RefreshSingleReaderAsync(changeInfo, CancellationToken.None);
+            var result = await readerServiceManager.CreateSingleReaderAsync(changeInfo, CancellationToken.None);
 
             using (new AssertionScope())
             {
-                result.Should().BeFalse();
+                result.Should().Be(CreateReaderResult.AlreadyExists);
                 VerifyFabricClientCreateCalls();
                 VerifyFabricClientDeleteCalls();
                 VerifyServiceCreatedEventPublished();

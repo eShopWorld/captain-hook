@@ -5,8 +5,8 @@ using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Common;
-using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
@@ -61,18 +61,18 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             await DeleteReaderServicesAsync(allServiceNamesToDelete, cancellationToken);
         }
 
-        public async Task<bool> RefreshSingleReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken)
+        public async Task<CreateReaderResult> CreateSingleReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken)
         {
             var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
             if (deployedServices.Any(x => changeInfo.NewReader.ServiceNameWithSuffix.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
             {
-                return false;
+                return CreateReaderResult.AlreadyExists;
             }
 
             LogEvent(changeInfo);
 
-            await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
-            return true;
+            var result = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
+            return result ? CreateReaderResult.Created : CreateReaderResult.Failed;
         }
 
         private void LogEvent(params ReaderChangeInfo[] changeSet)
@@ -92,11 +92,11 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             _bigBrother.Publish(new RefreshSubscribersEvent(added, deleted, updated));
         }
 
-        private async Task CreateReaderServicesAsync(IEnumerable<DesiredReaderDefinition> readerDefinitions, CancellationToken cancellationToken)
+        private async Task<bool> CreateReaderServicesAsync(IEnumerable<DesiredReaderDefinition> readerDefinitions, CancellationToken cancellationToken)
         {
             foreach (var reader in readerDefinitions)
             {
-                if (cancellationToken.IsCancellationRequested) return;
+                if (cancellationToken.IsCancellationRequested) return false;
 
                 var initializationData = EventReaderInitData.FromSubscriberConfiguration(reader.SubscriberConfig, reader.SubscriberConfig).ToByteArray();
 
@@ -113,8 +113,11 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
                 catch (Exception e)
                 {
                     _bigBrother.Publish(new ReaderServiceCreationFailedEvent(reader.ServiceNameWithSuffix, e));
+                    return false;
                 }
             }
+
+            return true;
         }
 
         private async Task DeleteReaderServicesAsync(IEnumerable<string> oldNames, CancellationToken cancellationToken)

@@ -196,7 +196,7 @@ namespace CaptainHook.DirectorService
             return this.CreateServiceRemotingReplicaListeners();
         }
 
-        public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberConfiguration subscriber)
+        public async Task<CreateReaderResult> CreateReaderAsync(SubscriberConfiguration subscriber)
         {
             if (!_refreshInProgress)
             {
@@ -210,7 +210,7 @@ namespace CaptainHook.DirectorService
 
                         var changeInfo = ReaderChangeInfo.ToBeCreated(new DesiredReaderDefinition(subscriber));
 
-                        return await _readerServicesManager.RefreshSingleReaderAsync(changeInfo, _cancellationToken);
+                        return await _readerServicesManager.CreateSingleReaderAsync(changeInfo, _cancellationToken);
                     }
                 }
                 finally
@@ -220,7 +220,7 @@ namespace CaptainHook.DirectorService
             }
 
             _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
-            return new DirectorServiceIsBusyError();
+            return CreateReaderResult.DirectorIsBusy;
         }
     }
 }
