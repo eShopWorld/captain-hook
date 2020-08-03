@@ -14,31 +14,27 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
     public class DirectorServiceProxy : IDirectorServiceProxy
     {
         private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
+        private readonly IDirectorServiceRemoting _directorService;
 
-        public DirectorServiceProxy(ISubscriberEntityToConfigurationMapper entityToConfigurationMapper)
+        public DirectorServiceProxy(ISubscriberEntityToConfigurationMapper entityToConfigurationMapper, IDirectorServiceRemoting directorService)
         {
             _entityToConfigurationMapper = entityToConfigurationMapper;
+            _directorService = directorService;
         }
 
         public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
         {
             var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
+            var createReaderResult = await _directorService.CreateReaderAsync(subscriberConfigs.Single());
 
-            var directorServiceUri = new Uri(ServiceNaming.DirectorServiceFullName);
-            var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
-            var createReaderResult = await directorServiceClient.CreateReaderAsync(subscriberConfigs.Single());
-
-            switch (createReaderResult)
+            return createReaderResult switch
             {
-                case CreateReaderResult.Created:
-                    return true;
-                case CreateReaderResult.DirectorIsBusy:
-                    return new DirectorServiceIsBusyError();
-                case CreateReaderResult.Failed:
-                    return new ReaderCreationError(subscriber);
-                default:
-                    return new BusinessError("Director Service returned unknown result.");
-            }
+                CreateReaderResult.Created => true,
+                CreateReaderResult.AlreadyExists => true,
+                CreateReaderResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
+                CreateReaderResult.Failed => new ReaderCreationError(subscriber),
+                _ => new BusinessError("Director Service returned unknown result.")
+            };
         }
     }
 }
