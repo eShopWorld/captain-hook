@@ -12,6 +12,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CaptainHook.Api.Controllers
 {
+    /// <summary>
+    /// Events controller
+    /// </summary>
     [Route("api/event")]
     [Authorize(Policy = AuthorisationPolicies.DefineSubscribers)]
     [ApiController]
@@ -20,12 +23,24 @@ namespace CaptainHook.Api.Controllers
         private readonly IMediator _mediator;
         private readonly IBigBrother _bigBrother;
 
+        /// <summary>
+        /// Create an instance of this class
+        /// </summary>
+        /// <param name="mediator">An instance of MediatR mediator</param>
+        /// <param name="bigBrother">An instance of BigBrother logger</param>
         public EventsController(IMediator mediator, IBigBrother bigBrother)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
         }
 
+        /// <summary>
+        /// Insert or update a web hook
+        /// </summary>
+        /// <param name="eventName">Event name</param>
+        /// <param name="subscriberName">Subscriber name</param>
+        /// <param name="dto">Webhook configuration</param>
+        /// <returns></returns>
         [HttpPut("{eventName}/subscriber/{subscriberName}/webhooks/endpoint/")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status400BadRequest)]

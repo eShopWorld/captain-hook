@@ -16,6 +16,8 @@ namespace CaptainHook.Application.Validators.Dtos
                 .SetValidator(new UriValidator());
             RuleFor(x => x.Authentication).NotNull()
                 .SetValidator(new AuthenticationDtoValidator());
+            RuleFor(x => x.UriTransform)
+                .SetValidator(new UriTransformValidator());
         }
     }
 }
