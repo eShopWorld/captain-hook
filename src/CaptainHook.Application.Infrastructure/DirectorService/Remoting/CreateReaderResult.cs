@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Application.Infrastructure.DirectorService
+﻿namespace CaptainHook.Application.Infrastructure.DirectorService.Remoting
 {
     public enum CreateReaderResult
     {

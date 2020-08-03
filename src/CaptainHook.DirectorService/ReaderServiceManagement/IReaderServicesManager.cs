@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 
 namespace CaptainHook.DirectorService.ReaderServiceManagement
 {

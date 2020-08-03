@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using Microsoft.ServiceFabric.Services.Remoting;
 
-namespace CaptainHook.Application.Infrastructure.DirectorService
+namespace CaptainHook.Application.Infrastructure.DirectorService.Remoting
 {
     public interface IDirectorServiceRemoting : IService
     {
