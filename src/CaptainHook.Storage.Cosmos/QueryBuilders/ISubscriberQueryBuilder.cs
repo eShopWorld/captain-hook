@@ -1,4 +1,5 @@
-﻿using Eshopworld.Data.CosmosDb;
+﻿using CaptainHook.Domain.ValueObjects;
+using Eshopworld.Data.CosmosDb;
 
 namespace CaptainHook.Storage.Cosmos.QueryBuilders
 {
@@ -8,16 +9,22 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
     public interface ISubscriberQueryBuilder
     {
         /// <summary>
-        /// Build the query to get a list of subscriber endpoints
+        /// Build the query to get a list of subscriber for a given event
         /// </summary>
         /// <param name="eventName"></param>
         /// <returns>A cosmos repository query object</returns>
-        CosmosQuery BuildSelectSubscribersListEndpoints(string eventName);
+        CosmosQuery BuildSelectSubscribersList(string eventName);
 
         /// <summary>
-        /// Build the query to get all subscribers endpoints
+        /// Build the query to get all subscribers
         /// </summary>
         /// <returns>A cosmos repository query object</returns>
-        CosmosQuery BuildSelectAllSubscribersEndpoints();
+        CosmosQuery BuildSelectAllSubscribers();
+
+        /// <summary>
+        /// Build the query to get a specific subscriber
+        /// </summary>
+        /// <returns>A cosmos repository query object</returns>
+        CosmosQuery BuildSelectSubscriber(SubscriberId subscriberId);
     }
 }

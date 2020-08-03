@@ -17,10 +17,10 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var eventName = "eventName";
 
             // Act
-            var query = _queryBuilder.BuildSelectSubscribersListEndpoints(eventName);
+            var query = _queryBuilder.BuildSelectSubscribersList(eventName);
             
             // Assert
-            query.PartitionKey.Should().Be($"{EndpointDocument.Type}_{eventName}");
+            query.PartitionKey.Should().Be($"{SubscriberDocument.Type}_{eventName}");
         }
     }
 }

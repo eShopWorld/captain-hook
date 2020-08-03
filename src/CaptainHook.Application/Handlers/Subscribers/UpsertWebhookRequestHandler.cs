@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Gateways;
+using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
@@ -16,9 +16,9 @@ namespace CaptainHook.Application.Handlers.Subscribers
     public class UpsertWebhookRequestHandler : IRequestHandler<UpsertWebhookRequest, OperationResult<EndpointDto>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
-        private readonly IDirectorServiceRemoting _directorService;
+        private readonly IDirectorServiceProxy _directorService;
 
-        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceRemoting directorService)
+        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceProxy directorService)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;
@@ -31,19 +31,14 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
                 var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-                if (existingItem.IsError)
-                {
-                    return existingItem.Error;
-                }
-
-                if (existingItem.Data != null)
+                if (!(existingItem.Error is EntityNotFoundError))
                 {
                     return new BusinessError("Updating subscribers not supported!");
                 }
 
                 var subscriber = MapRequestToEntity(request);
 
-                var directorResult = await _directorService.CreateReader(subscriber);
+                var directorResult = await _directorService.CreateReaderAsync(subscriber);
                 if (directorResult.IsError)
                 {
                     return directorResult.Error;

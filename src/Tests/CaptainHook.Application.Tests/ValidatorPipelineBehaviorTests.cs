@@ -63,6 +63,7 @@ namespace CaptainHook.Application.Tests
         {
             public async Task<OperationResult<DivideResult>> Handle(DivideRequest request, CancellationToken cancellationToken)
             {
+                await Task.CompletedTask;
                 return new DivideResult { Quotient = request.Dividend / request.Divisor };
             }
         }

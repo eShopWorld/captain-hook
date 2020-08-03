@@ -1,0 +1,40 @@
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
+using CaptainHook.Application.Infrastructure.Mappers;
+using CaptainHook.Common;
+using CaptainHook.Domain.Entities;
+using CaptainHook.Domain.Errors;
+using CaptainHook.Domain.Results;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
+
+namespace CaptainHook.Application.Infrastructure.DirectorService
+{
+    public class DirectorServiceProxy : IDirectorServiceProxy
+    {
+        private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
+        private readonly IDirectorServiceRemoting _directorService;
+
+        public DirectorServiceProxy(ISubscriberEntityToConfigurationMapper entityToConfigurationMapper, IDirectorServiceRemoting directorService)
+        {
+            _entityToConfigurationMapper = entityToConfigurationMapper;
+            _directorService = directorService;
+        }
+
+        public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
+        {
+            var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
+            var createReaderResult = await _directorService.CreateReaderAsync(subscriberConfigs.Single());
+
+            return createReaderResult switch
+            {
+                CreateReaderResult.Created => true,
+                CreateReaderResult.AlreadyExists => true,
+                CreateReaderResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
+                CreateReaderResult.Failed => new ReaderCreationError(subscriber),
+                _ => new BusinessError("Director Service returned unknown result.")
+            };
+        }
+    }
+}
