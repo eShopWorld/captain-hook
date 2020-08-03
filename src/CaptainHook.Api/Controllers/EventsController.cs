@@ -35,11 +35,8 @@ namespace CaptainHook.Api.Controllers
         public async Task<IActionResult> PutWebhook([FromRoute] string eventName, [FromRoute] string subscriberName, [FromBody] EndpointDto dto)
         {
             var request = new UpsertWebhookRequest(eventName, subscriberName, dto);
-
-            await Task.CompletedTask;
-            //var result = await _mediator.Send(request);
-
-            return new StatusCodeResult(StatusCodes.Status418ImATeapot);
+            var result = await _mediator.Send(request);
+            return Ok(result);
         }
     }
 }

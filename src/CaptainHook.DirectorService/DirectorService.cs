@@ -5,16 +5,13 @@ using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Gateways;
+using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Remoting;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
-using CaptainHook.Domain.Entities;
-using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
@@ -29,6 +26,7 @@ namespace CaptainHook.DirectorService
     {
         private volatile bool _refreshInProgress;
         private readonly object _refreshSync = new object();
+        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
         private CancellationToken _cancellationToken;
 
         private readonly IBigBrother _bigBrother;
@@ -59,7 +57,7 @@ namespace CaptainHook.DirectorService
             _fabricClientWrapper = fabricClientWrapper ?? throw new ArgumentNullException(nameof(fabricClientWrapper));
             _subscriberConfigurationLoader = subscriberConfigurationLoader ?? throw new ArgumentNullException(nameof(subscriberConfigurationLoader));
             _readerServicesManager = readerServicesManager ?? throw new ArgumentNullException(nameof(readerServicesManager));
-            _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException (nameof (readerServiceChangeDetector));
+            _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException(nameof(readerServiceChangeDetector));
         }
 
         private async Task<(IList<WebhookConfig> newWebhookConfig, IDictionary<string, SubscriberConfiguration> newSubscriberConfigurations)> LoadConfigurationAsync()
@@ -112,12 +110,12 @@ namespace CaptainHook.DirectorService
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                 }
 
-                var changes = _readerServiceChangeDetector.DetectChanges (_subscriberConfigurations.Values, serviceList);
+                var changes = _readerServiceChangeDetector.DetectChanges(_subscriberConfigurations.Values, serviceList);
                 await _readerServicesManager.RefreshReadersAsync(changes, cancellationToken);
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception.ToExceptionEvent ());
+                _bigBrother.Publish(exception.ToExceptionEvent());
                 throw;
             }
             finally
@@ -164,8 +162,8 @@ namespace CaptainHook.DirectorService
 
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
-                var changes = _readerServiceChangeDetector.DetectChanges (newSubscriberConfigurations.Values, deployedServiceNames);
-                await _readerServicesManager.RefreshReadersAsync (changes, _cancellationToken);
+                var changes = _readerServiceChangeDetector.DetectChanges(newSubscriberConfigurations.Values, deployedServiceNames);
+                await _readerServicesManager.RefreshReadersAsync(changes, _cancellationToken);
 
                 _subscriberConfigurations = newSubscriberConfigurations;
 
@@ -191,9 +189,32 @@ namespace CaptainHook.DirectorService
             return this.CreateServiceRemotingReplicaListeners();
         }
 
-        public Task<OperationResult<bool>> CreateReader(SubscriberEntity readerChangeInfo)
+        public async Task<CreateReaderResult> CreateReaderAsync(SubscriberConfiguration subscriber)
         {
-            throw new NotImplementedException();
+            if (!_refreshInProgress)
+            {
+                await _semaphoreSlim.WaitAsync(_cancellationToken);
+
+                try
+                {
+                    if (!_refreshInProgress)
+                    {
+                        _refreshInProgress = true;
+
+                        var changeInfo = ReaderChangeInfo.ToBeCreated(new DesiredReaderDefinition(subscriber));
+
+                        return await _readerServicesManager.CreateReaderAsync(changeInfo, _cancellationToken);
+                    }
+                }
+                finally
+                {
+                    _refreshInProgress = false;
+                    _semaphoreSlim.Release();
+                }
+            }
+
+            _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
+            return CreateReaderResult.DirectorIsBusy;
         }
     }
 }
