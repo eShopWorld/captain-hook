@@ -196,14 +196,16 @@ namespace CaptainHook.DirectorService
             return this.CreateServiceRemotingReplicaListeners();
         }
 
+        private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+
         public async Task<CreateReaderResult> CreateReaderAsync(SubscriberConfiguration subscriber)
         {
             if (!_refreshInProgress)
             {
+                await _semaphoreSlim.WaitAsync(_cancellationToken);
+
                 try
                 {
-                    Monitor.Enter(_refreshSync);
-
                     if (!_refreshInProgress)
                     {
                         _refreshInProgress = true;
@@ -215,7 +217,8 @@ namespace CaptainHook.DirectorService
                 }
                 finally
                 {
-                    Monitor.Exit(_refreshSync);
+                    _refreshInProgress = false;
+                    _semaphoreSlim.Release();
                 }
             }
 
