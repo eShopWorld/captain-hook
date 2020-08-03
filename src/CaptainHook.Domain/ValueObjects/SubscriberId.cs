@@ -3,9 +3,13 @@
     public class SubscriberId
     {
         private readonly string _id;
+        public string EventName { get; }
+        public string SubscriberName { get; }
 
         public SubscriberId(string eventName, string subscriberName)
         {
+            EventName = eventName;
+            SubscriberName = subscriberName;
             _id = $"{eventName}-{subscriberName}";
         }
 

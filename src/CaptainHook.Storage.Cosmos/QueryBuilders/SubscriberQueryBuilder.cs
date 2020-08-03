@@ -31,7 +31,7 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
             var query = new QueryDefinition(@"select * from c where c.id = @id")
                 .WithParameter("@id", subscriberId);
 
-            string partitionKey = subscriberId;
+            var partitionKey = SubscriberDocument.GetPartitionKey(subscriberId.EventName);
 
             return new CosmosQuery(query, partitionKey);
         }
