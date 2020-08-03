@@ -31,12 +31,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
                 var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-                if (existingItem.IsError)
-                {
-                    return existingItem.Error;
-                }
-
-                if (existingItem.Data != null)
+                if (!(existingItem.Error is EntityNotFoundError))
                 {
                     return new BusinessError("Updating subscribers not supported!");
                 }
