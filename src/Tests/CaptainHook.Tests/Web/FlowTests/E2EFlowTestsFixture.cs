@@ -121,65 +121,6 @@ namespace CaptainHook.Tests.Web.FlowTests
             }
         }
 
-        /// <summary>
-        /// run a flow and test that no actual tracked event is registered
-        ///
-        /// please note that due to its nature, this will use up the full timeout and there is risk of false positive - that is no tracked event registered due to CH "bug"
-        /// </summary>
-        /// <typeparam name="T">type of triggering event</typeparam>
-        /// <param name="instance">instance of triggering event</param>
-        /// <param name="waitTimespan">(optional) timeout to be used</param>
-        /// <returns>async task</returns>
-        public async Task ExpectNoTrackedEvent<T>(T instance, TimeSpan waitTimespan = default) where T : FlowTestEventBase
-        {
-            var processedEvents = await PublishAndPoll(instance, waitTimespan, false);
-
-            processedEvents.Should().BeNullOrEmpty();
-        }
-
-        /// <summary>
-        /// run a flow, expect actual events being tracked @ PeterPan and check the tracked event data
-        /// </summary>
-        /// <typeparam name="T">type of triggering event</typeparam>
-        /// <param name="instance">instance of triggering event</param>
-        /// <param name="configTestBuilder">builder for test predicate</param>
-        /// <param name="waitTimespan">(optional) timeout to be used</param>
-        /// <returns>async task</returns>
-        public async Task ExpectTrackedEvent<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilder, TimeSpan waitTimespan = default) where T : FlowTestEventBase
-        {
-            var processedEvents = await PublishAndPoll(instance, waitTimespan);
-
-            var predicate = new FlowTestPredicateBuilder();
-            predicate = configTestBuilder.Invoke(predicate);
-
-            processedEvents.Should().OnlyContain(m => predicate.BuildMatchesAll().Invoke(m));
-        }
-
-        /// <summary>
-        /// run a flow, expect actual events being tracked @ PeterPan and check the tracked event data for webhook and callback
-        /// </summary>
-        /// <typeparam name="T">type of triggering event</typeparam>
-        /// <param name="instance">instance of triggering event</param>
-        /// <param name="configTestBuilderHook">builder for test predicate for webhook part</param>
-        /// <param name="configTestBuilderCallback">builder for test predicate for callback part</param>
-        /// <param name="waitTimespan">(optional) timeout to be used</param>
-        /// <returns>async task</returns>
-        public async Task ExpectTrackedEventWithCallback<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderHook, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderCallback, TimeSpan waitTimespan = default) where T : FlowTestEventBase
-        {
-            var processedEvents = await PublishAndPoll(instance, waitTimespan, waitForCallback: true);
-
-            var predicate = new FlowTestPredicateBuilder();
-            predicate = configTestBuilderHook.Invoke(predicate);
-
-            var callbackPredicate = new FlowTestPredicateBuilder();
-            callbackPredicate = configTestBuilderCallback.Invoke(callbackPredicate);
-
-            var processedEventModels = processedEvents as ProcessedEventModel[] ?? processedEvents.ToArray();
-
-            processedEventModels.Where(m => !m.IsCallback).Should().Contain(m => predicate.BuildMatchesAll().Invoke(m));
-            processedEventModels.Where(m => m.IsCallback).Should().Contain(m => callbackPredicate.BuildMatchesAll().Invoke(m));
-        }
-
         public async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan = default, bool expectMessages = true, bool waitForCallback=false) where T : FlowTestEventBase
         {
             var payloadId = PublishModel(instance);

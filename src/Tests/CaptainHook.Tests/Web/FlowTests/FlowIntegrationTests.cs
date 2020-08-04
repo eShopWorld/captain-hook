@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Core.Events.Test;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using Kusto.Data;
 using Xunit;
 
 namespace CaptainHook.Tests.Web.FlowTests
@@ -29,7 +30,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// <returns>task</returns>
         /// <remarks>BasicWebHookFlowAuthNoRoutePostVerbTest</remarks>
         [Fact, IsIntegration]
-        private async Task When_PostVerbNoRoutingNoTransformation_Expect_OnlyOneValidEvent()
+        public async Task When_PostVerbNoRoutingNoTransformation_Expect_OnlyOneValidEvent()
         {
             // Arrange
             Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> c = builder =>
@@ -57,7 +58,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// <returns>task</returns>
         /// <remarks>BasicCallbackFlowAuthNoRoutePostVerbTest</remarks>
         [Fact, IsIntegration]
-        private async Task When_PostVerbNoRoutingNoTransformationWithCallback_Expect_ValidEventsWithCallback()
+        public async Task When_PostVerbNoRoutingNoTransformationWithCallback_Expect_ValidEventsWithCallback()
         {
             // Arrange 
             Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> expectedState = checks => checks
@@ -87,7 +88,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             CheckIfAnyEventMatchesAllSubpredicates(processedEvents.Where(m => m.IsCallback), callbackPredicate);
         }
 
-        private static void CheckIfAnyEventMatchesAllSubpredicates(IEnumerable<ProcessedEventModel> processedEvents, FlowTestPredicateBuilder expectedStatePredicate)
+        public static void CheckIfAnyEventMatchesAllSubpredicates(IEnumerable<ProcessedEventModel> processedEvents, FlowTestPredicateBuilder expectedStatePredicate)
         {
             processedEvents.Should().Contain(m => expectedStatePredicate.AllSubPredicatesMatch(m));
         }
@@ -101,7 +102,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// <returns>task</returns>
         /// <remarks>BasicWebHookFlowAuthMatchedRoutePostVerbTest</remarks>
         [Fact, IsIntegration]
-        private async Task When_PostVerbWithRoutingRulesMatchedNoTransformation_Expect_ValidEventsWithCallback()
+        public async Task When_PostVerbWithRoutingRulesMatchedNoTransformation_Expect_ValidEventsWithCallback()
         {
             // Arrange
             Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> expectedState = builder => builder
