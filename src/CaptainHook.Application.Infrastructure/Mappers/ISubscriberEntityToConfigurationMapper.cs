@@ -7,6 +7,6 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 {
     public interface ISubscriberEntityToConfigurationMapper
     {
-        Task<IEnumerable<SubscriberConfiguration>> MapSubscriber(SubscriberEntity cosmosModel);
+        Task<IEnumerable<SubscriberConfiguration>> MapSubscriber(SubscriberEntity entity);
     }
 }

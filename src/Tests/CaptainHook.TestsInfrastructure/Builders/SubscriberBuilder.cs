@@ -6,7 +6,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
     public class SubscriberBuilder
     {
         private string _name = "captain-hook";
-        private EventEntity _event;
+        private EventEntity _event = new EventEntity("event");
         private readonly List<EndpointEntity> _webhooks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _callbacks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _dlq = new List<EndpointEntity>();
@@ -26,6 +26,13 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberBuilder WithWebhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
             var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector);
+            _webhooks.Add(endpoint);
+            return this;
+        }
+
+        public SubscriberBuilder WithWebhook(string uri, string httpVerb, UriTransformEntity uriTransformEntity, AuthenticationEntity authentication = null)
+        {
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, uriTransformEntity);
             _webhooks.Add(endpoint);
             return this;
         }
