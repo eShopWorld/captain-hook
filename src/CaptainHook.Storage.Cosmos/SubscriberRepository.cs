@@ -134,30 +134,34 @@ namespace CaptainHook.Storage.Cosmos
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)
         {
-            var endpoints = new List<EndpointSubdocument>();
-            foreach(var webhook in subscriberEntity.Webhooks.Endpoints)
-            {
-                endpoints.Add(Map(webhook));
-            }
+            var endpoints =
+                subscriberEntity.Webhooks?.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint, EndpointType.Webhook))
+                ?? Enumerable.Empty<EndpointSubdocument>();
 
             return new SubscriberDocument
             {
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
-                WebhookType = WebhookType.Webhook,
                 Endpoints = endpoints.ToArray()
             };
         }
 
-        private EndpointSubdocument Map(EndpointEntity endpointEntity)
+        private EndpointSubdocument Map(EndpointEntity endpointEntity, EndpointType endpointType)
         {
             return new EndpointSubdocument
             {
-                EndpointSelector = endpointEntity.Selector,
+                Selector = endpointEntity.Selector,
                 HttpVerb = endpointEntity.HttpVerb,
                 Uri = endpointEntity.Uri,
-                Authentication = Map(endpointEntity.Authentication),           
+                Authentication = Map(endpointEntity.Authentication),
+                Type = endpointType,
+                UriTransform = Map(endpointEntity.UriTransform)
             };
+        }
+
+        private UriTransformDocument Map(UriTransformEntity uriTransform)
+        {
+            return uriTransform?.Replace != null ? new UriTransformDocument(uriTransform.Replace) : null;
         }
 
         private SubscriberEntity Map(SubscriberDocument subscriberDocument)
@@ -180,7 +184,7 @@ namespace CaptainHook.Storage.Cosmos
         private EndpointEntity Map(EndpointSubdocument endpoint)
         {
             var authentication = Map(endpoint.Authentication);
-            return new EndpointEntity(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.EndpointSelector);
+            return new EndpointEntity(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.Selector);
         }
 
         private AuthenticationEntity Map(AuthenticationData authentication)
