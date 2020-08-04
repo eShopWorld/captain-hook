@@ -17,6 +17,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="appsettings.CI.json" />
+    <None Remove="appsettings.Development.json" />
+    <None Remove="appsettings.json" />
+    <None Remove="appsettings.PREP.json" />
+    <None Remove="appsettings.TEST.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Eshopworld.DevOps" Version="5.1.1" />
     <PackageReference Include="Eshopworld.Messaging" Version="2.1.3" />
     <PackageReference Include="Eshopworld.Telemetry" Version="3.1.4" />
     <PackageReference Include="Eshopworld.Tests.Core" Version="2.0.3" />
@@ -45,6 +54,24 @@
     <ProjectReference Include="..\..\CaptainHook.EventHandlerActor\CaptainHook.EventHandlerActor.csproj" />
     <ProjectReference Include="..\..\CaptainHook.EventReaderService\CaptainHook.EventReaderService.csproj" />
     <ProjectReference Include="..\CaptainHook.TestsInfrastructure\CaptainHook.TestsInfrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="appsettings.TEST.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.PREP.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.CI.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.Development.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

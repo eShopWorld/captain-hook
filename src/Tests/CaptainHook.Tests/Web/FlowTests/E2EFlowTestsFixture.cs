@@ -1,12 +1,11 @@
+using CaptainHook.Tests.Configuration;
 using Eshopworld.Core;
+using Eshopworld.DevOps;
 using Eshopworld.Messaging;
 using Eshopworld.Telemetry;
 using FluentAssertions;
 using IdentityModel.Client;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Timeout;
@@ -29,48 +28,42 @@ namespace CaptainHook.Tests.Web.FlowTests
     public class E2EFlowTestsFixture
     {
         public IBigBrother Bb;
-        public string PeterPanUrlBase { get; set; }
-        public string StsClientId { get; set; }
-        public string StsClientSecret { get; set; }
+        private readonly TestsConfig _testsConfig;
 
         private readonly TimeSpan _defaultPollTimeSpan = TimeSpan.FromMinutes(5);
         private readonly TimeSpan _defaultPollAttemptRetryTimeSpan = TimeSpan.FromMilliseconds(200);
 
         public E2EFlowTestsFixture()
         {
+            _testsConfig = GetTestsConfig(); // loads from different KVs for Development and CI environment
+
             SetupFixture();
         }
 
-        public  void SetupFixture()
+        public void SetupFixture()
         {
-#if (!LOCAL)
-                var config = new ConfigurationBuilder().AddAzureKeyVault(
-                "https://esw-tooling-testing-ci.vault.azure.net/",
-                new KeyVaultClient(
-                    new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider()
-                        .KeyVaultTokenCallback)),
-                new DefaultKeyVaultSecretManager()).Build();
+            Bb = BigBrother.CreateDefault(_testsConfig.InstrumentationKey, _testsConfig.InstrumentationKey);
+            Bb.PublishEventsToTopics(new Messenger(_testsConfig.ServiceBusConnectionString, _testsConfig.AzureSubscriptionId));
+        }
 
-            var instrKey = config["ApplicationInsights:InstrumentationKey"];
-            var sbConnString = config["SB:eda:ConnectionString"];
-            var subId = config["Environment:SubscriptionId"];
+        /// <summary>
+        /// Loads configuration parameters for Integrations tests from AppSettings.json files 
+        /// and secrets from the KeyvaultUrl configured in appsettings
+        /// </summary>
+        /// <returns><see cref="Configuration.TestsConfig"/> object</returns>
+        private TestsConfig GetTestsConfig()
+        {
+            var config = EswDevOpsSdk.BuildConfiguration(); 
+            var testsConfig = new TestsConfig();
 
-            PeterPanUrlBase = config["Platform:PlatformPeterpanApi:Cluster"];
-            StsClientSecret = config["STS:EDA:ClientSecret"];
-            StsClientId = config["STS:EDA:ClientId"];
-#else
-            //for local testing to bypass KV load
+            // Load: InstrumentationKey and AzureSubscriptionId from KV; 
+            // PeterPanBaseUrl and StsClientId from appsettings
+            config.Bind(testsConfig);
 
-            var instrKey = "";
-            var sbConnString = "";
-            var subId = "";
-            PeterPanUrlBase = "";
-            StsClientId = "";
-            StsClientSecret = "";
-#endif
+            // Binds CaptainHook:ServiceBusConnectionString, CaptainHook:ApiSecret from KV
+            config.Bind("CaptainHook", testsConfig);
 
-            Bb = BigBrother.CreateDefault(instrKey, instrKey);
-            Bb.PublishEventsToTopics(new Messenger(sbConnString, subId));
+            return testsConfig;
         }
 
         private string PublishModel<T>(T raw) where T : FlowTestEventBase
@@ -106,7 +99,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                 var result = await policy.ExecuteAsync(async () =>
                 {
                     var response = await httpClient.GetAsync(
-                        $"{PeterPanUrlBase}/api/v1/inttest/check/{payloadId}");
+                        $"{_testsConfig.PeterPanBaseUrl}/api/v1/inttest/check/{payloadId}");
 
                     if (response.StatusCode != HttpStatusCode.OK) return response;
 
@@ -173,7 +166,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// <returns>async task</returns>
         public async Task ExpectTrackedEventWithCallback<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderHook, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderCallback, TimeSpan waitTimespan = default) where T : FlowTestEventBase
         {
-            var processedEvents = await PublishAndPoll(instance, waitTimespan, waitForCallback:true);
+            var processedEvents = await PublishAndPoll(instance, waitTimespan, waitForCallback: true);
 
             var predicate = new FlowTestPredicateBuilder();
             predicate = configTestBuilderHook.Invoke(predicate);
@@ -183,7 +176,7 @@ namespace CaptainHook.Tests.Web.FlowTests
 
             var processedEventModels = processedEvents as ProcessedEventModel[] ?? processedEvents.ToArray();
 
-            processedEventModels.Where(m=> !m.IsCallback).Should().Contain(m => predicate.BuildMatchesAll().Invoke(m));
+            processedEventModels.Where(m => !m.IsCallback).Should().Contain(m => predicate.BuildMatchesAll().Invoke(m));
             processedEventModels.Where(m => m.IsCallback).Should().Contain(m => callbackPredicate.BuildMatchesAll().Invoke(m));
         }
 
@@ -208,8 +201,8 @@ namespace CaptainHook.Tests.Web.FlowTests
             var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
                 Address = "https://security-sts.ci.eshopworld.net/connect/token",
-                ClientId = StsClientId,
-                ClientSecret = StsClientSecret,
+                ClientId = _testsConfig.StsClientId,
+                ClientSecret = _testsConfig.ApiSecret,
                 GrantType = "client_credentials",
                 Scope = PeterPanConsts.PeterPanDeliveryScope
             });
