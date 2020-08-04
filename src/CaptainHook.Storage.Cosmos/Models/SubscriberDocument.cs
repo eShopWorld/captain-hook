@@ -3,14 +3,14 @@
 namespace CaptainHook.Storage.Cosmos.Models
 {
     /// <summary>
-    /// Endpoint model in Cosmos DB
+    /// Subscriber model in Cosmos DB
     /// </summary>
-    internal class EndpointDocument
+    internal class SubscriberDocument
     {
-        public const string Type = "Endpoint";
+        public const string Type = "Subscriber";
         public static string GetPartitionKey(string eventName) => $"{Type}_{eventName}";
-        
-        public static string GetDocumentId(string eventName, string subscriberName) => $"{eventName}_{subscriberName}";
+
+        public static string GetDocumentId(string eventName, string subscriberName) => $"{eventName}-{subscriberName}";
 
         /// <summary>
         /// Identifier
@@ -31,36 +31,6 @@ namespace CaptainHook.Storage.Cosmos.Models
         public string Pk => GetPartitionKey(EventName);
 
         /// <summary>
-        /// Endpoint URI
-        /// </summary>
-        [JsonProperty("uri")]
-        public string Uri { get; set; }
-
-        /// <summary>
-        /// Endpoint selector
-        /// </summary>
-        [JsonProperty("endpointSelector")]
-        public string EndpointSelector { get; set; }
-
-        /// <summary>
-        /// Endpoint authentication
-        /// </summary>
-        [JsonProperty("authentication")]
-        public AuthenticationData Authentication { get; set; }
-
-        /// <summary>
-        /// Endpoint HTTP verb
-        /// </summary>
-        [JsonProperty("httpVerb")]
-        public string HttpVerb { get; set; }
-
-        /// <summary>
-        /// Webhook selector
-        /// </summary>
-        [JsonProperty("webhookSelectionRule")]
-        public string WebhookSelectionRule { get; set; }
-
-        /// <summary>
         /// Subscriber name
         /// </summary>
         [JsonProperty("subscriberName")]
@@ -77,5 +47,17 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// </summary>
         [JsonProperty("eventName")]
         public string EventName { get; set; }
+
+        /// <summary>
+        /// Subscriber endpoints
+        /// </summary>
+        [JsonProperty(PropertyName = "endpoints")]
+        public EndpointSubdocument[] Endpoints { get; set; }
+
+        /// <summary>
+        /// Webhook selector
+        /// </summary>
+        [JsonProperty("webhookSelectionRule")]
+        public string WebhookSelectionRule { get; set; }
     }
 }

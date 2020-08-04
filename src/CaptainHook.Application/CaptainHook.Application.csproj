@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Application.Infrastructure\CaptainHook.Application.Infrastructure.csproj" />
     <ProjectReference Include="..\CaptainHook.Contract\CaptainHook.Contract.csproj" />
     <ProjectReference Include="..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
   </ItemGroup>
-
 </Project>

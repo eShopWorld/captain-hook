@@ -1,7 +1,9 @@
-﻿using CaptainHook.Domain.Entities;
+﻿using System;
+using CaptainHook.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CaptainHook.Domain.Results;
+using CaptainHook.Domain.ValueObjects;
 
 namespace CaptainHook.Domain.Repositories
 {
@@ -15,9 +17,23 @@ namespace CaptainHook.Domain.Repositories
         public Task<OperationResult<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName);
 
         /// <summary>
+        /// Get particular subscriber for a specified event
+        /// </summary>
+        /// <param name="subscriberId">The id of the subscriber</param>
+        /// <returns></returns>
+        public Task<OperationResult<SubscriberEntity>> GetSubscriberAsync(SubscriberId subscriberId);
+
+        /// <summary>
         /// Get all the subscribers
         /// </summary>
         /// <returns></returns>
         public Task<OperationResult<IEnumerable<SubscriberEntity>>> GetAllSubscribersAsync();
+
+        /// <summary>
+        /// Saves Subscriber
+        /// </summary>
+        /// <param name="subscriberEntity">Subscriber entity to Save</param>
+        /// <returns></returns>
+        public Task<OperationResult<SubscriberEntity>> AddSubscriberAsync(SubscriberEntity subscriberEntity);
     }
 }

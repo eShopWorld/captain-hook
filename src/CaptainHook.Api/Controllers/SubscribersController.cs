@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
+using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Common.Remoting;
 using Eshopworld.Core;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

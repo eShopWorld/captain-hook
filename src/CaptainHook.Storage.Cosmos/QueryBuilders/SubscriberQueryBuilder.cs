@@ -1,4 +1,5 @@
-﻿using CaptainHook.Storage.Cosmos.Models;
+﻿using CaptainHook.Domain.ValueObjects;
+using CaptainHook.Storage.Cosmos.Models;
 using Eshopworld.Data.CosmosDb;
 using Microsoft.Azure.Cosmos;
 
@@ -6,23 +7,33 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
 {
     public class SubscriberQueryBuilder: ISubscriberQueryBuilder
     {
-        public CosmosQuery BuildSelectSubscribersListEndpoints(string eventName)
+        public CosmosQuery BuildSelectSubscribersList(string eventName)
         {
-            var partitionKey = EndpointDocument.GetPartitionKey(eventName);
+            var partitionKey = SubscriberDocument.GetPartitionKey(eventName);
 
             var query = new QueryDefinition("select * from c where c.eventName = @eventName and c.type = @documentType")
                 .WithParameter("@eventName", eventName)
-                .WithParameter("@documentType", EndpointDocument.Type);
+                .WithParameter("@documentType", SubscriberDocument.Type);
 
             return new CosmosQuery(query, partitionKey);
         }
 
-        public CosmosQuery BuildSelectAllSubscribersEndpoints()
+        public CosmosQuery BuildSelectAllSubscribers()
         {
             var query = new QueryDefinition("select * from c where c.type = @documentType")
-                .WithParameter("@documentType", EndpointDocument.Type);
+                .WithParameter("@documentType", SubscriberDocument.Type);
 
             return new CosmosQuery(query);
+        }
+
+        public CosmosQuery BuildSelectSubscriber(SubscriberId subscriberId)
+        {
+            var query = new QueryDefinition(@"select * from c where c.id = @id")
+                .WithParameter("@id", subscriberId.ToString());
+
+            var partitionKey = SubscriberDocument.GetPartitionKey(subscriberId.EventName);
+
+            return new CosmosQuery(query, partitionKey);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace CaptainHook.Common.Remoting
+﻿namespace CaptainHook.Application.Infrastructure.DirectorService.Remoting
 {
     public enum RequestReloadConfigurationResult
     {

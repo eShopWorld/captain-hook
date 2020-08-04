@@ -8,7 +8,6 @@ using Newtonsoft.Json;
 
 namespace CaptainHook.DirectorService.ReaderServiceManagement
 {
-
     /// <summary>
     /// Defines reader service names based on given configuration
     /// </summary>
