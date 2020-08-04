@@ -152,7 +152,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             var predicate = new FlowTestPredicateBuilder();
             predicate = configTestBuilder.Invoke(predicate);
 
-            processedEvents.Should().OnlyContain(m => predicate.AllSubPredicatesMatch(m));
+            processedEvents.Should().OnlyContain(m => predicate.BuildMatchesAll().Invoke(m));
         }
 
         /// <summary>
@@ -164,21 +164,20 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// <param name="configTestBuilderCallback">builder for test predicate for callback part</param>
         /// <param name="waitTimespan">(optional) timeout to be used</param>
         /// <returns>async task</returns>
-        public async Task ExpectTrackedEventWithCallback<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderHook, 
-            Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderCallback, TimeSpan waitTimespan = default)
-            where T : FlowTestEventBase
+        public async Task ExpectTrackedEventWithCallback<T>(T instance, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderHook, Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> configTestBuilderCallback, TimeSpan waitTimespan = default) where T : FlowTestEventBase
         {
+            var processedEvents = await PublishAndPoll(instance, waitTimespan, waitForCallback: true);
+
             var predicate = new FlowTestPredicateBuilder();
             predicate = configTestBuilderHook.Invoke(predicate);
 
             var callbackPredicate = new FlowTestPredicateBuilder();
             callbackPredicate = configTestBuilderCallback.Invoke(callbackPredicate);
 
-            var processedEvents = await PublishAndPoll(instance, waitTimespan, waitForCallback:true);
             var processedEventModels = processedEvents as ProcessedEventModel[] ?? processedEvents.ToArray();
 
-            processedEventModels.Where(m=> !m.IsCallback).Should().Contain(m => predicate.AllSubPredicatesMatch(m));
-            processedEventModels.Where(m => m.IsCallback).Should().Contain(m => callbackPredicate.AllSubPredicatesMatch(m));
+            processedEventModels.Where(m => !m.IsCallback).Should().Contain(m => predicate.BuildMatchesAll().Invoke(m));
+            processedEventModels.Where(m => m.IsCallback).Should().Contain(m => callbackPredicate.BuildMatchesAll().Invoke(m));
         }
 
         private async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan, bool expectMessages = true, bool waitForCallback=false) where T : FlowTestEventBase
