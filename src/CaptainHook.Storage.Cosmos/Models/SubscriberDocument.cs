@@ -37,12 +37,6 @@ namespace CaptainHook.Storage.Cosmos.Models
         public string SubscriberName { get; set; }
 
         /// <summary>
-        /// Webhook type (Webhook, Subscriber, DLQ)
-        /// </summary>
-        [JsonProperty("webhookType")]
-        public WebhookType WebhookType { get; set; }
-
-        /// <summary>
         /// Event name
         /// </summary>
         [JsonProperty("eventName")]

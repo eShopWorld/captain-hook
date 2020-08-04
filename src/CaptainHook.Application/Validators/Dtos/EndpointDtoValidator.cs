@@ -1,4 +1,7 @@
-﻿using CaptainHook.Application.Validators.Common;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using CaptainHook.Application.Validators.Common;
 using CaptainHook.Contract;
 using FluentValidation;
 
@@ -16,6 +19,9 @@ namespace CaptainHook.Application.Validators.Dtos
                 .SetValidator(new UriValidator());
             RuleFor(x => x.Authentication).NotNull()
                 .SetValidator(new AuthenticationDtoValidator());
+            RuleFor(x => x.UriTransform)
+                .SetValidator((endpointDto, uriTransform) => new UriTransformValidator(endpointDto.Uri))
+                    .When(x => x.UriTransform?.Replace != null, ApplyConditionTo.CurrentValidator);
         }
     }
 }

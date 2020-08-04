@@ -32,20 +32,61 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             //}
         }
 
-        private async Task<SubscriberConfiguration> MapBasicSubscriberData(SubscriberEntity cosmosModel)
+        private async Task<SubscriberConfiguration> MapBasicSubscriberData(SubscriberEntity entity)
         {
-            var config = new SubscriberConfiguration
+            SubscriberConfiguration config;
+
+            var firstEndpoint = entity.Webhooks?.Endpoints?.SingleOrDefault();
+            if (firstEndpoint?.UriTransform != null)
             {
-                Name = $"{cosmosModel.ParentEvent.Name}-{cosmosModel.Name}",
-                SubscriberName = cosmosModel.Name,
-                EventType = cosmosModel.ParentEvent.Name,
-                Uri = cosmosModel.Webhooks.Endpoints.First().Uri,
-                AuthenticationConfig = await MapAuthentication(cosmosModel.Webhooks.Endpoints.FirstOrDefault()?.Authentication),
-                // Callback handling not needed now
-                //Callback = MapCallback(cosmosModel),
-            };
+                config = await MapForUriTransform(entity, firstEndpoint);
+            }
+            else
+            {
+                config = await MapStandardWay(entity, firstEndpoint);
+            }
 
             return config;
+        }
+
+        private async Task<SubscriberConfiguration> MapStandardWay(SubscriberEntity entity, EndpointEntity firstEndpoint)
+        {
+            return new SubscriberConfiguration
+            {
+                Name = entity.Id,
+                SubscriberName = entity.Name,
+                EventType = entity.ParentEvent.Name,
+                Uri = firstEndpoint.Uri,
+                AuthenticationConfig = await MapAuthentication(firstEndpoint.Authentication),
+            };
+        }
+
+        private async Task<SubscriberConfiguration> MapForUriTransform(SubscriberEntity entity, EndpointEntity firstEndpoint)
+        {
+            return new SubscriberConfiguration
+            {
+                Name = entity.Id,
+                SubscriberName = entity.Name,
+                EventType = entity.ParentEvent.Name,
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                    new WebhookRequestRule
+                    {
+                        Source = new SourceParserLocation {Replace = firstEndpoint.UriTransform.Replace},
+                        Destination = new ParserLocation {RuleAction = RuleAction.RouteAndReplace},
+                        Routes = new List<WebhookConfigRoute>
+                        {
+                            new WebhookConfigRoute
+                            {
+                                Uri = firstEndpoint.Uri,
+                                HttpVerb = firstEndpoint.HttpVerb,
+                                Selector = "*",
+                                AuthenticationConfig = await MapAuthentication(firstEndpoint.Authentication),
+                            }
+                        }
+                    }
+                }
+            };
         }
 
         private async Task<AuthenticationConfig> MapAuthentication(AuthenticationEntity cosmosAuthentication)
@@ -65,7 +106,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             };
         }
 
-         //private WebhookConfig MapCallback(SubscriberModel cosmosModel)
+        //private WebhookConfig MapCallback(SubscriberModel cosmosModel)
         //{
         //    var endpoint = cosmosModel?.Callbacks?.Endpoints.FirstOrDefault();
         //    if (endpoint == null)

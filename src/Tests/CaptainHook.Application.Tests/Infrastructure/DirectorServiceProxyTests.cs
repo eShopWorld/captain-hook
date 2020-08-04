@@ -77,7 +77,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             result.Error.Should().BeOfType<ReaderCreationError>();
         }
 
-         [Fact, IsUnit]
+        [Fact, IsUnit]
         public async Task When_DirectorServiceResultNotSet_Then_GenericErrorReturned()
         {
             _directorServiceMock.Setup(x => x.CreateReaderAsync(It.IsAny<SubscriberConfiguration>()))

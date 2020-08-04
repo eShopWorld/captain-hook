@@ -25,9 +25,10 @@ namespace CaptainHook.Api.Controllers
         private readonly IMediator _mediator;
 
         /// <summary>
-        /// ctor
+        /// Create an instance of this class
         /// </summary>
-        /// <param name="bigBrother"></param>
+        /// <param name="mediator">An instance of MediatR mediator</param>
+        /// <param name="bigBrother">An instance of BigBrother logger</param>
         public SubscribersController(IBigBrother bigBrother, IMediator mediator)
         {
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));

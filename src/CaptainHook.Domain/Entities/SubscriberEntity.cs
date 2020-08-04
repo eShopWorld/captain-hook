@@ -1,10 +1,14 @@
-﻿namespace CaptainHook.Domain.Entities
+﻿using CaptainHook.Domain.ValueObjects;
+
+namespace CaptainHook.Domain.Entities
 {
     /// <summary>
     /// Subscriber model
     /// </summary>
     public class SubscriberEntity
     {
+        public SubscriberId Id => new SubscriberId(ParentEvent?.Name, Name);
+
         /// <summary>
         /// Subscriber name.
         /// </summary>

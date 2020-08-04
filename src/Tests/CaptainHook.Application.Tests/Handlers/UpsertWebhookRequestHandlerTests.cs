@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
@@ -28,7 +30,11 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_SubscriberDoesNotExist_Then_NewOneWillBePassedToDirectorServiceAndStoredInRepository()
         {
-            var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
+            var endpointDto = new EndpointDtoBuilder()
+                .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/")
+                .With(x => x.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string> { ["selector"] = "$.TenantCode" } })
+                .Create();
+            var request = new UpsertWebhookRequest("event", "subscriber", endpointDto);
 
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
@@ -53,8 +59,8 @@ namespace CaptainHook.Application.Tests.Handlers
             var subscriberEntity = new SubscriberBuilder()
                 .WithEvent("event")
                 .WithName("subscriber")
-                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
-                    new AuthenticationEntity(
+                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector", 
+                    authentication: new AuthenticationEntity(
                         "captain-hook-id",
                         new SecretStoreEntity("kvname", "kv-secret-name"),
                         "https://blah-blah.sts.eshopworld.com",
@@ -232,10 +238,24 @@ namespace CaptainHook.Application.Tests.Handlers
 
         private bool MatchReaderChangeInfo(in SubscriberEntity entity, UpsertWebhookRequest request)
         {
+            var endpointEntity = entity.Webhooks.Endpoints.First();
+
             return entity.Name == request.SubscriberName
                    && entity.ParentEvent.Name == request.EventName
-                   && entity.Webhooks.Endpoints.First().Uri == request.Endpoint.Uri
-                   && entity.Webhooks.Endpoints.First().Authentication.Type.Equals(request.Endpoint.Authentication.Type, StringComparison.CurrentCultureIgnoreCase);
+                   && endpointEntity.Uri == request.Endpoint.Uri
+                   && MatchUriTransforms(request.Endpoint.UriTransform, endpointEntity.UriTransform)
+                   && endpointEntity.Authentication.Type.Equals(request.Endpoint.Authentication.Type, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        private static bool MatchUriTransforms(UriTransformDto dto, UriTransformEntity entity)
+        {
+            if (dto == null && entity == null)
+                return true;
+
+            if (dto.Replace.Count != entity.Replace.Count)
+                return false;
+
+            return dto.Replace.SequenceEqual(entity.Replace);
         }
     }
 }
