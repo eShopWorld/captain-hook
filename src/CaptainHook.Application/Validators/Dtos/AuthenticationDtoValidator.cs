@@ -13,7 +13,7 @@ namespace CaptainHook.Application.Validators.Dtos
 
             RuleFor(x => x.Type).NotEmpty()
                 .Must(x => x.Equals("OIDC", StringComparison.OrdinalIgnoreCase))
-                .WithMessage("{PropertyName} must be valid authentication type.");
+                .WithMessage("{PropertyName} must be a valid authentication type.");
             RuleFor(x => x.ClientId).NotEmpty();
             RuleFor(x => x.Uri).NotEmpty().SetValidator(new UriValidator());
             RuleFor(x => x.Scopes).NotEmpty();

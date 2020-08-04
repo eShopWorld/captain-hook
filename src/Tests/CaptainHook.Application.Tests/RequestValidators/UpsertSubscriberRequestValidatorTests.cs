@@ -1,4 +1,5 @@
-﻿using CaptainHook.Application.Requests.Subscribers;
+﻿using System.Collections.Generic;
+using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Validators;
 using CaptainHook.Contract;
 using CaptainHook.TestsInfrastructure;
@@ -109,6 +110,62 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var result = _validator.Validate(request);
 
             result.AssertSingleFailure(nameof(EndpointDto.HttpVerb));
+        }
+
+        [Fact, IsUnit]
+        public void When_UriTransformIsValid_Then_NoFailuresReturned()
+        {
+            var dto = new EndpointDtoBuilder()
+                .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/")
+                .With(e => e.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string> { ["selector"] = "$.TenantCode" } })
+                .Create();
+            var request = new UpsertWebhookRequest("event", "subscriber", dto);
+
+            var result = _validator.Validate(request);
+
+            result.IsValid.Should().BeTrue();
+        }
+
+        [Fact, IsUnit]
+        public void When_UriTransformRoutesAreEmpty_Then_ValidationFails()
+        {
+            var dto = new EndpointDtoBuilder()
+                .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/")
+                .With(x => x.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string>() })
+                .Create();
+            var request = new UpsertWebhookRequest("event", "subscriber", dto);
+
+            var result = _validator.Validate(request);
+
+            result.AssertSingleFailure(nameof(UriTransformDto.Replace));
+        }
+
+        [Fact, IsUnit]
+        public void When_UriTransformRoutesDoesNotContainSelector_Then_ValidationFails()
+        {
+            var dto = new EndpointDtoBuilder()
+                .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/")
+                .With(e => e.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string> { ["abc"] = "def" } })
+                .Create();
+            var request = new UpsertWebhookRequest("event", "subscriber", dto);
+
+            var result = _validator.Validate(request);
+
+            result.AssertSingleFailure(nameof(UriTransformDto.Replace));
+        }
+
+        [Fact, IsUnit]
+        public void When_UriTransformRoutesDoesNotContainReplacementWhichExistInUri_Then_ValidationFails()
+        {
+            var dto = new EndpointDtoBuilder()
+                .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/{missing}")
+                .With(e => e.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string> { ["selector"] = "abc" } })
+                .Create();
+            var request = new UpsertWebhookRequest("event", "subscriber", dto);
+
+            var result = _validator.Validate(request);
+
+            result.AssertSingleFailure(nameof(UriTransformDto.Replace));
         }
     }
 }
