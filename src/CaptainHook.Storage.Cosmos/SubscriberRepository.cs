@@ -63,7 +63,7 @@ namespace CaptainHook.Storage.Cosmos
             var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
 
             return subscribers
-                .Select(x => Map(x))
+                .Select(Map)
                 .ToList();
         }
 
@@ -175,16 +175,27 @@ namespace CaptainHook.Storage.Cosmos
 
             foreach (var endpointDocument in subscriberDocument.Endpoints)
             {
-                subscriberEntity.AddWebhookEndpoint(Map(endpointDocument));
+                subscriberEntity.AddWebhookEndpoint(Map(endpointDocument, subscriberEntity));
             }
 
             return subscriberEntity;
         }
 
-        private EndpointEntity Map(EndpointSubdocument endpoint)
+        private EndpointEntity Map(EndpointSubdocument endpoint, SubscriberEntity subscriberEntity)
         {
             var authentication = Map(endpoint.Authentication);
-            return new EndpointEntity(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.Selector);
+            var uriTransform = Map(endpoint.UriTransform);
+            return new EndpointEntity(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.Selector, subscriberEntity, uriTransform);
+        }
+
+        private UriTransformEntity Map(UriTransformDocument uriTransform)
+        {
+            if (uriTransform?.Replace == null)
+            {
+                return null;
+            }
+
+            return new UriTransformEntity(uriTransform.Replace);
         }
 
         private AuthenticationEntity Map(AuthenticationData authentication)

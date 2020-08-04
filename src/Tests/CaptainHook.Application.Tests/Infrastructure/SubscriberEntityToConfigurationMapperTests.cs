@@ -30,7 +30,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
                 "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var subscriber = new SubscriberBuilder()
-                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", "POST", string.Empty, authentication)
+                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", "POST", string.Empty, authentication: authentication)
                 .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriber(subscriber);
@@ -51,7 +51,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["selector"] = "$.TenantCode", ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
-                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", "POST", uriTransform, authentication)
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", "POST", null, uriTransform, authentication)
                 .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriber(subscriber);

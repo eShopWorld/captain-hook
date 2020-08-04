@@ -23,30 +23,23 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        public SubscriberBuilder WithWebhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
+        public SubscriberBuilder WithWebhook(string uri, string httpVerb, string selector, UriTransformEntity uriTransform = null, AuthenticationEntity authentication = null)
         {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null, uriTransform);
             _webhooks.Add(endpoint);
             return this;
         }
 
-        public SubscriberBuilder WithWebhook(string uri, string httpVerb, UriTransformEntity uriTransformEntity, AuthenticationEntity authentication = null)
+        public SubscriberBuilder WithCallback(string uri, string httpVerb, string selector, UriTransformEntity uriTransform = null, AuthenticationEntity authentication = null)
         {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, uriTransformEntity);
-            _webhooks.Add(endpoint);
-            return this;
-        }
-
-        public SubscriberBuilder WithCallback(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
-        {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null, uriTransform);
             _callbacks.Add(endpoint);
             return this;
         }
 
-        public SubscriberBuilder WithDlq(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
+        public SubscriberBuilder WithDlq(string uri, string httpVerb, string selector, UriTransformEntity uriTransform = null, AuthenticationEntity authentication = null)
         {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null, uriTransform);
             _dlq.Add(endpoint);
             return this;
         }

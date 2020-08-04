@@ -59,8 +59,8 @@ namespace CaptainHook.Application.Tests.Handlers
             var subscriberEntity = new SubscriberBuilder()
                 .WithEvent("event")
                 .WithName("subscriber")
-                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
-                    new AuthenticationEntity(
+                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector", 
+                    authentication: new AuthenticationEntity(
                         "captain-hook-id",
                         new SecretStoreEntity("kvname", "kv-secret-name"),
                         "https://blah-blah.sts.eshopworld.com",
