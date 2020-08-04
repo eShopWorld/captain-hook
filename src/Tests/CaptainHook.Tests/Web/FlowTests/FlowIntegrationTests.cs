@@ -129,7 +129,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// <returns>task</returns>
         /// <remarks>BasicWebHookFlowAuthUnmatchedRoutePostVerbTest</remarks>
         [Fact, IsIntegration]
-        private async Task When_PostVerbWithRoutingRulesNotMatchNoTransformation_Expect_NoEvents()
+        public async Task When_PostVerbWithRoutingRulesNotMatchNoTransformation_Expect_NoEvents()
         {
             // Arrange
             var testEvent = new WebHookFlowRoutedTestEvent() { TenantCode = "OTHER" };
