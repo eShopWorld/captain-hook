@@ -1,21 +1,31 @@
-﻿using CaptainHook.Contract;
-using FluentValidation.Validators;
-using System;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using CaptainHook.Contract;
+using FluentValidation;
 
 namespace CaptainHook.Application.Validators.Common
 {
-    public class UriTransformValidator : PropertyValidator
+    public class UriTransformValidator : AbstractValidator<UriTransformDto>
     {
-        public UriTransformValidator()
-            : base("{PropertyName} must be valid URI Transform.")
+        private readonly string _uri;
+        private static readonly Regex _extractSelectorsFromUri = new Regex("(?<=\\{).+?(?=\\})", RegexOptions.Compiled);
+
+        public UriTransformValidator(string uri)
         {
+            _uri = uri;
+
+            CascadeMode = CascadeMode.StopOnFirstFailure;
+
+            RuleFor(x => x.Replace).NotEmpty()
+                .Must(x => x.ContainsKey("selector")).WithMessage("Routes dictionary must contain an item with 'selector' key")
+                .Must(ContainAllReplacementsForUri).WithMessage("Routes dictionary must contain all items defined in the Uri");
         }
 
-        protected override bool IsValid(PropertyValidatorContext context)
+        private bool ContainAllReplacementsForUri(IDictionary<string, string> replace)
         {
-            var rawValue = context.PropertyValue as UriTransformDto;
-            // to be completed
-            return true;
+            var values = _extractSelectorsFromUri.Matches(_uri).Select(m => m.Value);
+            return values.All(replace.ContainsKey);
         }
     }
 }
