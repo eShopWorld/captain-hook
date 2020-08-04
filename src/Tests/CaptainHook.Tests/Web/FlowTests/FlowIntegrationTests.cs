@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Core.Events.Test;
 using Eshopworld.Tests.Core;
+using FluentAssertions;
+using Kusto.Data;
 using Xunit;
 
 namespace CaptainHook.Tests.Web.FlowTests
@@ -12,16 +16,9 @@ namespace CaptainHook.Tests.Web.FlowTests
      */
     public class FlowIntegrationTests : IntegrationTestBase
     {
-        public FlowIntegrationTests(E2EFlowTestsFixture fixture):base(fixture)
+        public FlowIntegrationTests(E2EFlowTestsFixture fixture) : base(fixture)
         {
-            
-        }
 
-        [Fact, IsIntegration]
-        public async Task RunAllTests()
-        {
-            await Task.WhenAll(BasicWebHookFlowAuthNoRoutePostVerbTest(), BasicCallbackFlowAuthNoRoutePostVerbTest(),
-                BasicWebHookFlowAuthMatchedRoutePostVerbTest(), BasicWebHookFlowAuthUnmatchedRoutePostVerbTest());
         }
 
         /// <summary>
@@ -31,14 +28,25 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// no model transformation
         /// </summary>
         /// <returns>task</returns>
-        private Task BasicWebHookFlowAuthNoRoutePostVerbTest()
+        /// <remarks>BasicWebHookFlowAuthNoRoutePostVerbTest</remarks>
+        [Fact, IsIntegration]
+        public async Task When_PostVerbNoRoutingNoTransformation_Expect_OnlyOneValidEvent()
         {
-
-            return Fixture.ExpectTrackedEvent(new WebHookFlowTestEvent(),
-                builder => builder
-                    .CheckOidcAuthScopes(PeterPanConsts.PeterPanDeliveryScope)
+            // Arrange
+            Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> c = builder =>
+                builder.CheckOidcAuthScopes(PeterPanConsts.PeterPanDeliveryScope)
                     .CheckUrlIdSuffixPresent(false)
-                    .CheckVerb(HttpMethod.Post));
+                    .CheckVerb(HttpMethod.Post);
+            var predicate = new FlowTestPredicateBuilder();
+            predicate = c.Invoke(predicate);
+
+
+            // Act
+            var testEvent = new WebHookFlowTestEvent();
+            var processedEvents = await Fixture.PublishAndPoll(testEvent);
+
+            // Assert
+            processedEvents.Should().OnlyContain(m => predicate.AllSubPredicatesMatch(m));
         }
 
         /// <summary>
@@ -48,17 +56,41 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// no model transformation
         /// </summary>
         /// <returns>task</returns>
-        private Task BasicCallbackFlowAuthNoRoutePostVerbTest()
+        /// <remarks>BasicCallbackFlowAuthNoRoutePostVerbTest</remarks>
+        [Fact, IsIntegration]
+        public async Task When_PostVerbNoRoutingNoTransformationWithCallback_Expect_ValidEventsWithCallback()
         {
-            return Fixture.ExpectTrackedEventWithCallback(new CallbackFlowTestEvent(), checks => checks
-                    .CheckOidcAuthScopes(PeterPanConsts.PeterPanDeliveryScope)
-                    .CheckUrlIdSuffixPresent(false)
-                    .CheckVerb(HttpMethod.Post),
-                callbackChecks => callbackChecks
-                    .CheckOidcAuthScopes(PeterPanConsts.PeterPanDeliveryScope)
-                    .CheckUrlIdSuffixPresent(false)
-                    .CheckIsCallback()
-                    .CheckVerb(HttpMethod.Post));
+            // Arrange 
+            Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> expectedState = checks => checks
+                 .CheckOidcAuthScopes(PeterPanConsts.PeterPanDeliveryScope)
+                 .CheckUrlIdSuffixPresent(false)
+                 .CheckVerb(HttpMethod.Post);
+            var predicate = new FlowTestPredicateBuilder();
+            predicate = expectedState.Invoke(predicate);
+
+            Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> expectedStateCallback = callbackChecks => callbackChecks
+                 .CheckOidcAuthScopes(PeterPanConsts.PeterPanDeliveryScope)
+                 .CheckUrlIdSuffixPresent(false)
+                 .CheckIsCallback()
+                 .CheckVerb(HttpMethod.Post);
+
+
+            var callbackPredicate = new FlowTestPredicateBuilder();
+            callbackPredicate = expectedStateCallback.Invoke(callbackPredicate);
+
+            // Act
+            var testEvent = new CallbackFlowTestEvent();
+            var processedEvents = await Fixture.PublishAndPoll(testEvent, default(TimeSpan), waitForCallback: true);
+
+
+            // Assert
+            CheckIfAnyEventMatchesAllSubpredicates(processedEvents.Where(m => !m.IsCallback), predicate);
+            CheckIfAnyEventMatchesAllSubpredicates(processedEvents.Where(m => m.IsCallback), callbackPredicate);
+        }
+
+        private static void CheckIfAnyEventMatchesAllSubpredicates(IEnumerable<ProcessedEventModel> processedEvents, FlowTestPredicateBuilder expectedStatePredicate)
+        {
+            processedEvents.Should().Contain(m => expectedStatePredicate.AllSubPredicatesMatch(m));
         }
 
         /// <summary>
@@ -68,13 +100,24 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// no model transformation
         /// </summary>
         /// <returns>task</returns>
-        private Task BasicWebHookFlowAuthMatchedRoutePostVerbTest()
+        /// <remarks>BasicWebHookFlowAuthMatchedRoutePostVerbTest</remarks>
+        [Fact, IsIntegration]
+        public async Task When_PostVerbWithRoutingRulesMatchedNoTransformation_Expect_ValidEventsWithCallback()
         {
-            return Fixture.ExpectTrackedEvent(new WebHookFlowRoutedTestEvent() { TenantCode = "GOCAS" },
-                builder => builder
+            // Arrange
+            Func<FlowTestPredicateBuilder, FlowTestPredicateBuilder> expectedState = builder => builder
                     .CheckOidcAuthScopes(PeterPanConsts.PeterPanDeliveryScope)
                     .CheckUrlIdSuffixPresent(false)
-                    .CheckVerb(HttpMethod.Post));
+                    .CheckVerb(HttpMethod.Post);
+            var predicate = new FlowTestPredicateBuilder();
+            predicate = expectedState.Invoke(predicate);
+
+            // Act
+            var testEvent = new WebHookFlowRoutedTestEvent() { TenantCode = "GOCAS" };
+            var processedEvents = await Fixture.PublishAndPoll(testEvent);
+
+            // Assert
+            processedEvents.Should().OnlyContain(m => predicate.AllSubPredicatesMatch(m));
         }
 
         /// <summary>
@@ -84,10 +127,18 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// no model transformation
         /// </summary>
         /// <returns>task</returns>
-        private Task BasicWebHookFlowAuthUnmatchedRoutePostVerbTest()
+        /// <remarks>BasicWebHookFlowAuthUnmatchedRoutePostVerbTest</remarks>
+        [Fact, IsIntegration]
+        public async Task When_PostVerbWithRoutingRulesNotMatchNoTransformation_Expect_NoEvents()
         {
-            return Fixture.ExpectNoTrackedEvent(new WebHookFlowRoutedTestEvent() { TenantCode = "OTHER" },
-                TimeSpan.FromMinutes(3));
+            // Arrange
+            var testEvent = new WebHookFlowRoutedTestEvent() { TenantCode = "OTHER" };
+
+            // Act
+            var processedEvents = await Fixture.PublishAndPoll(testEvent, TimeSpan.FromMinutes(3), false);
+
+            // Assert
+            processedEvents.Should().BeNullOrEmpty();
         }
     }
 }

@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
 using Newtonsoft.Json.Linq;
+using NuGet.Frameworks;
 
 namespace CaptainHook.Tests.Web.FlowTests
 {
@@ -110,6 +111,11 @@ namespace CaptainHook.Tests.Web.FlowTests
             return _subPredicates.All(i => i.Invoke(model));
         };
 
+        public bool AllSubPredicatesMatch(ProcessedEventModel model)
+        {
+            return BuildMatchesAll().Invoke(model);
+        } 
+
         /// <summary>
         /// build overall check delegate (used in fluent assertions), check "any" exists
         /// </summary>
@@ -118,5 +124,10 @@ namespace CaptainHook.Tests.Web.FlowTests
         {
             return _subPredicates.Exists(i => i.Invoke(model));
         };
+
+        public bool AnySubPredicateMatches(ProcessedEventModel model)
+        {
+            return BuildMatchesAny().Invoke(model);
+        }
     }
 }
