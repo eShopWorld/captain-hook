@@ -113,7 +113,7 @@ namespace CaptainHook.Tests.Web.FlowTests
 
         public bool AllSubPredicatesMatch(ProcessedEventModel model)
         {
-            return this.BuildMatchesAll().Invoke(model);
+            return BuildMatchesAll().Invoke(model);
         } 
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace CaptainHook.Tests.Web.FlowTests
 
         public bool AnySubPredicateMatches(ProcessedEventModel model)
         {
-            return this.BuildMatchesAny().Invoke(model);
+            return BuildMatchesAny().Invoke(model);
         }
     }
 }
