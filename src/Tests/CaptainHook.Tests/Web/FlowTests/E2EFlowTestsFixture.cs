@@ -180,7 +180,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             processedEventModels.Where(m => m.IsCallback).Should().Contain(m => callbackPredicate.BuildMatchesAll().Invoke(m));
         }
 
-        private async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan, bool expectMessages = true, bool waitForCallback=false) where T : FlowTestEventBase
+        public async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan = default, bool expectMessages = true, bool waitForCallback=false) where T : FlowTestEventBase
         {
             var payloadId = PublishModel(instance);
             var processedEvents = await GetProcessedEvents(payloadId, waitTimespan, expectMessages, waitForCallback);
