@@ -88,7 +88,7 @@ namespace CaptainHook.Tests.Web.FlowTests
             CheckIfAnyEventMatchesAllSubpredicates(processedEvents.Where(m => m.IsCallback), callbackPredicate);
         }
 
-        public static void CheckIfAnyEventMatchesAllSubpredicates(IEnumerable<ProcessedEventModel> processedEvents, FlowTestPredicateBuilder expectedStatePredicate)
+        private static void CheckIfAnyEventMatchesAllSubpredicates(IEnumerable<ProcessedEventModel> processedEvents, FlowTestPredicateBuilder expectedStatePredicate)
         {
             processedEvents.Should().Contain(m => expectedStatePredicate.AllSubPredicatesMatch(m));
         }
