@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
@@ -16,8 +17,8 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Endpoint selector
         /// </summary>
-        [JsonProperty("endpointSelector")]
-        public string EndpointSelector { get; set; }
+        [JsonProperty("selector", NullValueHandling = NullValueHandling.Ignore)]
+        public string Selector { get; set; }
 
         /// <summary>
         /// Endpoint authentication
@@ -30,5 +31,18 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// </summary>
         [JsonProperty("httpVerb")]
         public string HttpVerb { get; set; }
+
+        /// <summary>
+        /// Endpoint type (Webhook, Subscriber, DLQ)
+        /// </summary>
+        [JsonProperty("type")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public EndpointType Type { get; set; }
+
+        /// <summary>
+        /// Defines Uri transformation definition
+        /// </summary>
+        [JsonProperty("uriTransform", NullValueHandling = NullValueHandling.Ignore)]
+        public UriTransformDocument UriTransform { get; set; }
     }
 }

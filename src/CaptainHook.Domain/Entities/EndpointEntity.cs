@@ -32,24 +32,16 @@
 
         public UriTransformEntity UriTransform { get; }
 
-        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector) : this(uri, authentication, httpVerb, selector, null) { }
-
-        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector, SubscriberEntity subscriber)
+        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector, 
+            SubscriberEntity subscriber = null, UriTransformEntity uriTransform = null)
         {
             Uri = uri;
             Authentication = authentication;
             HttpVerb = httpVerb;
             Selector = selector;
+            UriTransform = uriTransform;
 
             SetParentSubscriber(subscriber);
-        }
-
-        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, UriTransformEntity uriTransform)
-        {
-            Uri = uri;
-            Authentication = authentication;
-            HttpVerb = httpVerb;
-            UriTransform = uriTransform;
         }
 
         public void SetParentSubscriber(SubscriberEntity subscriber)
