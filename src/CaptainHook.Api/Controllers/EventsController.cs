@@ -73,9 +73,10 @@ namespace CaptainHook.Api.Controllers
         /// Insert or update a subscriber
         /// </summary>
         /// <param name="eventName">Event name</param>
+        /// <param name="subscriberName">Subscriber name</param>
         /// <param name="dto">Webhook configuration</param>
         /// <returns></returns>
-        [HttpPut("{eventName}/subscriber")]
+        [HttpPut("{eventName}/subscriber/{subscriberName}")]
         [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
@@ -83,9 +84,9 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> PutSuscriber([FromRoute] string eventName, [FromBody] SubscriberDto dto)
+        public async Task<IActionResult> PutSuscriber([FromRoute] string eventName, [FromRoute] string subscriberName, [FromBody] SubscriberDto dto)
         {
-            var request = new UpsertSubscriberRequest(eventName, dto);
+            var request = new UpsertSubscriberRequest(eventName, subscriberName, dto);
             var result = await _mediator.Send(request);
 
             return result.Match<IActionResult>(
