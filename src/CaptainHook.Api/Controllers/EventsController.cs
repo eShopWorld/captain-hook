@@ -68,5 +68,41 @@ namespace CaptainHook.Api.Controllers
                  endpointDto => Created($"/{eventName}/subscriber/{subscriberName}/webhooks/endpoint/", endpointDto)
              );
         }
+
+        /// <summary>
+        /// Insert or update a subscriber
+        /// </summary>
+        /// <param name="eventName">Event name</param>
+        /// <param name="subscriberName">Subscriber name</param>
+        /// <param name="type">Subscriber type (Webhooks, Callbacks, DLQs)</param>
+        /// <param name="dto">Webhook configuration</param>
+        /// <returns></returns>
+        [HttpPut("{eventName}/subscriber/{subscriberName}/{type}")]
+        [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> PutSuscriber([FromRoute] string eventName, [FromRoute] string subscriberName, [FromRoute] SubscriberType type, [FromBody] SubscriberDto dto)
+        {
+            var request = new UpsertSubscriberRequest(eventName, subscriberName, type, dto);
+            var result = await _mediator.Send(request);
+
+            return result.Match<IActionResult>(
+                 error => error switch
+                 {
+                     ValidationError validationError => BadRequest(validationError),
+                     DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
+                     ReaderCreationError readerCreationError => UnprocessableEntity(readerCreationError),
+                     CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
+                     _ => StatusCode(StatusCodes.Status500InternalServerError, error)
+                 },
+                 endpointDto => Created($"/{eventName}/subscriber/{subscriberName}/{type}", endpointDto)
+             );
+        }
+
+        
     }
 }
