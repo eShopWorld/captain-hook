@@ -142,6 +142,7 @@ namespace CaptainHook.Storage.Cosmos
             {
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
+                WebhookSelectionRule = subscriberEntity.Webhooks?.SelectionRule,
                 Endpoints = endpoints.ToArray()
             };
         }
