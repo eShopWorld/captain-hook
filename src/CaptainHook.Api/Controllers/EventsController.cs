@@ -98,7 +98,7 @@ namespace CaptainHook.Api.Controllers
                      CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
                      _ => StatusCode(StatusCodes.Status500InternalServerError, error)
                  },
-                 subscriberDto => Created($"/{eventName}/subscriber", subscriberDto)
+                 subscriberDto => Created($"/{eventName}/subscriber/{subscriberName}", subscriberDto)
              );
         }
 
