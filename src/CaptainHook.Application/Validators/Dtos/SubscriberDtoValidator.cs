@@ -1,5 +1,4 @@
-﻿using CaptainHook.Application.Validators.Common;
-using CaptainHook.Contract;
+﻿using CaptainHook.Contract;
 using FluentValidation;
 
 namespace CaptainHook.Application.Validators.Dtos
