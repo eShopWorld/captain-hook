@@ -60,22 +60,15 @@ namespace CaptainHook.DirectorService
             _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException(nameof(readerServiceChangeDetector));
         }
 
-        private async Task<(IList<WebhookConfig> newWebhookConfig, IDictionary<string, SubscriberConfiguration> newSubscriberConfigurations)> LoadConfigurationAsync()
+        private async Task<Dictionary<string, SubscriberConfiguration>> LoadConfigurationAsync()
         {
             var keyVaultUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
-            var (webhookConfig, subscriberConfig) = await _subscriberConfigurationLoader.LoadAsync(keyVaultUri);
+            var subscriberConfig = await _subscriberConfigurationLoader.LoadAsync(keyVaultUri);
 
             var newSubscriberConfigurations = subscriberConfig
                 .ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));
 
-            return (webhookConfig, newSubscriberConfigurations);
-        }
-
-        private async Task LoadConfigurationAndAssignAsync()
-        {
-            //todo: remove the webhookconfig
-            var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
-            _subscriberConfigurations = newSubscriberConfigurations;
+            return newSubscriberConfigurations;
         }
 
         /// <summary>
@@ -95,7 +88,7 @@ namespace CaptainHook.DirectorService
                     _refreshInProgress = true;
                 }
 
-                await LoadConfigurationAndAssignAsync();
+                _subscriberConfigurations = await LoadConfigurationAsync();
 
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
@@ -157,9 +150,7 @@ namespace CaptainHook.DirectorService
 
             try
             {
-                //todo: remove the webhookconfig
-                var (newWebhookConfig, newSubscriberConfigurations) = await LoadConfigurationAsync();
-
+                var newSubscriberConfigurations = await LoadConfigurationAsync();
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
                 var changes = _readerServiceChangeDetector.DetectChanges(newSubscriberConfigurations.Values, deployedServiceNames);
