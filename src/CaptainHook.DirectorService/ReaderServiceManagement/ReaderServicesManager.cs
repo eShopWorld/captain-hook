@@ -98,7 +98,7 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             {
                 if (cancellationToken.IsCancellationRequested) return false;
 
-                var initializationData = EventReaderInitData.FromSubscriberConfiguration(reader.SubscriberConfig, reader.SubscriberConfig).ToByteArray();
+                var initializationData = EventReaderInitData.FromSubscriberConfiguration(reader.SubscriberConfig).ToByteArray();
 
                 var description = new ServiceCreationDescription(
                     serviceName: reader.ServiceNameWithSuffix,
