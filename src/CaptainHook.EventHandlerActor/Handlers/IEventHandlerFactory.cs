@@ -19,8 +19,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <summary>
         /// Used only for getting the callback handler
         /// </summary>
-        /// <param name="webHookName"></param>
+        /// <param name="webhookConfig"></param>
         /// <returns></returns>
-        IHandler CreateWebhookHandler(WebhookConfig webhookConfig, string webHookName= "");
+        IHandler CreateWebhookHandler(WebhookConfig webhookConfig);
     }
 }
