@@ -55,16 +55,16 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     messageData.SubscriberConfig);
             }
 
-            return CreateWebhookHandler(messageData.WebhookConfig, messageData.SubscriberConfig.Name);
+            return CreateWebhookHandler(messageData.SubscriberConfig);
         }
 
         /// <summary>
         /// Creates a single fire and forget webhook handler
         /// Need this here for now to select the handler for the callback
         /// </summary>
-        /// <param name="webHookName"></param>
+        /// <param name="webhookConfig">Webhook configuration</param>
         /// <returns></returns>
-        public IHandler CreateWebhookHandler(WebhookConfig webhookConfig, string webHookName = "")
+        public IHandler CreateWebhookHandler(WebhookConfig webhookConfig)
         {
             if (webhookConfig == null)
             {
