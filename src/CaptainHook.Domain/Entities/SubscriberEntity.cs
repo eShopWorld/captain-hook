@@ -25,11 +25,11 @@ namespace CaptainHook.Domain.Entities
         public WebhooksEntity Webhooks { get; }
 
         public SubscriberEntity(string name) : this(name, null, null) { }
-        public SubscriberEntity(string name, string webhookSelectionRule) : this(name, webhookSelectionRule, null) { }
-        public SubscriberEntity(string name, string webhookSelectionRule, EventEntity parentEvent)
+        public SubscriberEntity(string name, string selectionRule) : this(name, selectionRule, null) { }
+        public SubscriberEntity(string name, string selectionRule, EventEntity parentEvent)
         {
             Name = name;
-            Webhooks = new WebhooksEntity(webhookSelectionRule);
+            Webhooks = new WebhooksEntity(selectionRule);
 
             SetParentEvent(parentEvent);
         }

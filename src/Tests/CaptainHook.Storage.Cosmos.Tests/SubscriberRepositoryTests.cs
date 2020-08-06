@@ -81,14 +81,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = eventName,
-                WebhookSelectionRule = "rule",
+                SelectionRule = "rule",
                 Endpoints = new[] { endpoint }
             };
             _cosmosDbRepositoryMock
                 .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
-            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, sampleDocument.WebhookSelectionRule, new EventEntity(eventName));
+            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, sampleDocument.SelectionRule, new EventEntity(eventName));
             var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
             var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
@@ -112,7 +112,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SubscriberName = "subscriberName",
                     EventName = eventName,
-                    WebhookSelectionRule = "rule",
+                    SelectionRule = "rule",
                     Endpoints = new[]
                     {
                         new EndpointSubdocument
@@ -248,14 +248,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = eventName,
-                WebhookSelectionRule = "rule",
+                SelectionRule = "rule",
                 Endpoints = new[] { endpoint }
             };
             _cosmosDbRepositoryMock
                 .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
-            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, sampleDocument.WebhookSelectionRule, new EventEntity(eventName));
+            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, sampleDocument.SelectionRule, new EventEntity(eventName));
             var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
             var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
@@ -279,7 +279,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SubscriberName = "subscriberName",
                     EventName = eventName,
-                    WebhookSelectionRule = "rule",
+                    SelectionRule = "rule",
                     Endpoints = new[]
                     {
                         new EndpointSubdocument
@@ -369,7 +369,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
-                WebhookSelectionRule = "rule",
+                SelectionRule = "rule",
                 Endpoints = new EndpointSubdocument[] { }
             };
             var subscriber = new SubscriberEntity("subscriberName", "rule", new EventEntity("eventName"));
@@ -416,7 +416,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
-                WebhookSelectionRule = "rule",
+                SelectionRule = "rule",
                 Endpoints = new EndpointSubdocument[] { }
             };
             var subscriber = new SubscriberEntity("subscriberName", "rule", new EventEntity("eventName"));

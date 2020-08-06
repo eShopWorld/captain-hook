@@ -51,7 +51,7 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Webhook selector
         /// </summary>
-        [JsonProperty("webhookSelectionRule")]
-        public string WebhookSelectionRule { get; set; }
+        [JsonProperty("selectionRule")]
+        public string SelectionRule { get; set; }
     }
 }
