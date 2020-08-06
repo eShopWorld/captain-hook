@@ -124,7 +124,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private async Task<IEnumerable<SubscriberEntity>> GetSubscribersListInternalAsync(string eventName)
         {
-            var query = _endpointQueryBuilder.BuildSelectSubscribersList(eventName);
+            var query = _endpointQueryBuilder.BuildSelectForEventSubscribers(eventName);
             var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
 
             return subscribers

@@ -7,7 +7,7 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
 {
     public class SubscriberQueryBuilder: ISubscriberQueryBuilder
     {
-        public CosmosQuery BuildSelectSubscribersList(string eventName)
+        public CosmosQuery BuildSelectForEventSubscribers(string eventName)
         {
             var partitionKey = SubscriberDocument.GetPartitionKey(eventName);
 

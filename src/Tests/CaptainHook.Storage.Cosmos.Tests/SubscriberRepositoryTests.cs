@@ -44,7 +44,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         }        
 
         [Fact, IsUnit]
-        public async Task GetSubscribersListAsync_should_invoke_BuildSelectSubscribersList()
+        public async Task GetSubscribersListAsync_should_invoke_BuildSelectForEventSubscribers()
         {
             // Arrange
             var eventName = "eventName";
