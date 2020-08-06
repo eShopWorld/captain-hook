@@ -22,15 +22,12 @@ namespace CaptainHook.Domain.Entities
         /// <summary>
         /// Collection of webhook enpoints
         /// </summary>
-        public WebhooksEntity Webhooks { get; }
+        public WebhooksEntity Webhooks { get; private set; }
 
-        public SubscriberEntity(string name) : this(name, null, null) { }
-        public SubscriberEntity(string name, string selectionRule) : this(name, selectionRule, null) { }
-        public SubscriberEntity(string name, string selectionRule, EventEntity parentEvent)
+        public SubscriberEntity(string name) : this(name, null) { }
+        public SubscriberEntity(string name, EventEntity parentEvent)
         {
             Name = name;
-            Webhooks = new WebhooksEntity(selectionRule);
-
             SetParentEvent(parentEvent);
         }
 
@@ -45,8 +42,25 @@ namespace CaptainHook.Domain.Entities
         /// <param name="endpointModel"></param>
         public SubscriberEntity AddWebhookEndpoint(EndpointEntity endpointModel)
         {
+            if (Webhooks == null)
+            {
+                Webhooks = new WebhooksEntity();
+            }
+
             endpointModel.SetParentSubscriber(this);
             Webhooks.AddEndpoint(endpointModel);
+
+            return this;
+        }
+
+        public SubscriberEntity AddWebhooks(WebhooksEntity webhooks)
+        {
+            foreach (var webhooksEndpoint in webhooks.Endpoints)
+            {
+                webhooksEndpoint.SetParentSubscriber(this);
+            }
+
+            Webhooks = new WebhooksEntity(webhooks.SelectionRule, webhooks.Endpoints);
 
             return this;
         }
