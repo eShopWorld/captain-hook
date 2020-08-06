@@ -358,7 +358,7 @@ namespace CaptainHook.Tests.Services.Reliable
             await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
-            actor.MessageDataInstances.Select(m => m.WebhookConfig).Should().AllBeEquivalentTo(webhookConfig);
+            actor.MessageDataInstances.Select(m => m.SubscriberConfig).Should().AllBeEquivalentTo(webhookConfig);
         }
 
         /// <summary>
