@@ -19,7 +19,7 @@ namespace CaptainHook.Application.Validators.Dtos
                 .SetValidator(new EndpointDtoValidator());
 
             RuleFor(x => x.SelectionRule).NotEmpty()
-                .Must(BeValidJsonPathExpression);
+                .Must(BeValidJsonPathExpression).WithMessage("The SelectionRule must be a valid JSONPath expression");
         }
 
         private bool BeValidJsonPathExpression(string selectionRule)
