@@ -170,7 +170,6 @@ namespace CaptainHook.Storage.Cosmos
 
             var subscriberEntity = new SubscriberEntity(
                 subscriberDocument.SubscriberName,
-                subscriberDocument.WebhookSelectionRule,
                 eventEntity);
 
             foreach (var endpointDocument in subscriberDocument.Endpoints)

@@ -4,7 +4,7 @@ using MediatR;
 
 namespace CaptainHook.Application.Requests.Subscribers
 {
-    public class UpsertSubscriberRequest : IRequest<OperationResult<EndpointDto>>
+    public class UpsertSubscriberRequest : IRequest<OperationResult<SubscriberDto>>
     {
         public string EventName { get; }
         public string SubscriberName { get; }

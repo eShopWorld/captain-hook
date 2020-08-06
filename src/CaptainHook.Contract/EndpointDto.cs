@@ -26,5 +26,10 @@ namespace CaptainHook.Contract
         /// URI transformation
         /// </summary>
         public UriTransformDto UriTransform { get; set; }
+
+        /// <summary>
+        /// Selector
+        /// </summary>
+        public string Selector { get; set; }
     }
 }

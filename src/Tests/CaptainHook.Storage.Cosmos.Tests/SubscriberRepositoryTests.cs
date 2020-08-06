@@ -88,7 +88,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
-            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, sampleDocument.WebhookSelectionRule, new EventEntity(eventName));
+            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName));
             var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
             var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
@@ -161,7 +161,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             // Assert
             var expected = new[]
             {
-                new SubscriberEntity("subscriberName", "rule", new EventEntity(eventName))
+                new SubscriberEntity("subscriberName", new EventEntity(eventName))
                     .AddWebhookEndpoint(new EndpointEntity(
                         "http://test",
                         new AuthenticationEntity(
@@ -255,7 +255,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
-            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, sampleDocument.WebhookSelectionRule, new EventEntity(eventName));
+            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName));
             var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
             var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
@@ -326,7 +326,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var result = await _repository.GetSubscriberAsync(new SubscriberId(eventName, "subscriberName"));
 
             // Assert
-            var expected = new SubscriberEntity("subscriberName", "rule", new EventEntity(eventName))
+            var expected = new SubscriberEntity("subscriberName", new EventEntity(eventName))
                 .AddWebhookEndpoint(new EndpointEntity(
                     "http://test",
                     new AuthenticationEntity(
@@ -372,7 +372,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 WebhookSelectionRule = "rule",
                 Endpoints = new EndpointSubdocument[] { }
             };
-            var subscriber = new SubscriberEntity("subscriberName", "rule", new EventEntity("eventName"));
+            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
             _cosmosDbRepositoryMock
                 .Setup(x => x.CreateAsync(It.IsAny<SubscriberDocument>()))
                 .ReturnsAsync(new DocumentContainer<SubscriberDocument>(subscriberDocument,"etag"));
@@ -419,7 +419,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 WebhookSelectionRule = "rule",
                 Endpoints = new EndpointSubdocument[] { }
             };
-            var subscriber = new SubscriberEntity("subscriberName", "rule", new EventEntity("eventName"));
+            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
             _cosmosDbRepositoryMock
                 .Setup(x => x.CreateAsync(It.IsAny<SubscriberDocument>()))
                 .ThrowsAsync(new CosmosException(string.Empty, System.Net.HttpStatusCode.Conflict, 0, string.Empty, 0));
