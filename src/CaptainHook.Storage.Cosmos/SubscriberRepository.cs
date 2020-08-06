@@ -140,7 +140,7 @@ namespace CaptainHook.Storage.Cosmos
 
             return new SubscriberDocument
             {
-                Id = new SubscriberId(subscriberEntity.ParentEvent.Name, subscriberEntity.Name),
+                Id = subscriberEntity.Id,
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
                 Webhooks = Map(subscriberEntity.Webhooks)
@@ -183,15 +183,22 @@ namespace CaptainHook.Storage.Cosmos
 
             var subscriberEntity = new SubscriberEntity(
                 subscriberDocument.SubscriberName,
-                subscriberDocument.SelectionRule,
                 eventEntity);
 
-            foreach (var endpointDocument in subscriberDocument.Endpoints)
-            {
-                subscriberEntity.AddWebhookEndpoint(Map(endpointDocument, subscriberEntity));
-            }
+            subscriberEntity.AddWebhooks(Map(subscriberDocument.Webhooks, subscriberEntity));
 
             return subscriberEntity;
+        }
+
+        private WebhooksEntity Map(WebhookSubdocument webhookSubdocument, SubscriberEntity subscriberEntity)
+        {
+            var webhookEntity = new WebhooksEntity(webhookSubdocument.SelectionRule);
+            foreach(var endpointSubdocument in webhookSubdocument.Endpoints)
+            {
+                webhookEntity.AddEndpoint(Map(endpointSubdocument, subscriberEntity));
+            }
+
+            return webhookEntity;
         }
 
         private EndpointEntity Map(EndpointSubdocument endpoint, SubscriberEntity subscriberEntity)
