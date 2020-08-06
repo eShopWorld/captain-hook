@@ -13,159 +13,85 @@ namespace CaptainHook.Application.Tests.RequestValidators
 {
     public class UpsertSubscriberRequestValidatorTests
     {
-        private readonly UpsertWebhookRequestValidator _validator = new UpsertWebhookRequestValidator();
+        private readonly UpsertSubscriberRequestValidator _validator = new UpsertSubscriberRequestValidator();
 
         [Fact, IsUnit]
         public void When_RequestIsValid_Then_NoFailuresReturned()
         {
-            var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
+            // Arrange
+            var dto = new SubscriberDtoBuilder().Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
+            // Act
             var result = _validator.Validate(request);
 
-            result.IsValid.Should().BeTrue();
-        }
-
-        [Theory, IsUnit]
-        [InlineData("POST")]
-        [InlineData("GET")]
-        [InlineData("PUT")]
-        [InlineData("post")]
-        [InlineData("get")]
-        [InlineData("put")]
-        public void When_HttpVerbIsAValidHTTPVerb_Then_NoFailuresReturned(string httpVerb)
-        {
-            var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();
-            var request = new UpsertWebhookRequest("event", "subscriber", dto);
-
-            var result = _validator.Validate(request);
-
-            result.IsValid.Should().BeTrue();
+            // Assert
+            result.AssertValidationSuccess();
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
         public void When_EventIsEmpty_Then_ValidationFails(string invalidString)
         {
-            var request = new UpsertWebhookRequest(invalidString, "subscriber", new EndpointDtoBuilder().Create());
+            // Arrange
+            var dto = new SubscriberDtoBuilder().Create();
+            var request = new UpsertSubscriberRequest(invalidString, "subscriber", dto);
 
+            // Act
             var result = _validator.Validate(request);
 
-            result.AssertSingleFailure(nameof(UpsertWebhookRequest.EventName));
+            // Assert
+            result.AssertSingleFailure(nameof(UpsertSubscriberRequest.EventName));
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
         public void When_SubscriberIsEmpty_Then_ValidationFails(string invalidString)
         {
-            var request = new UpsertWebhookRequest("event", invalidString, new EndpointDtoBuilder().Create());
+            // Arrange
+            var dto = new SubscriberDtoBuilder().Create();
+            var request = new UpsertSubscriberRequest("event", invalidString, dto);
 
+            // Act
             var result = _validator.Validate(request);
 
-            result.AssertSingleFailure(nameof(UpsertWebhookRequest.SubscriberName));
-        }
-
-        [Theory, IsUnit]
-        [ClassData(typeof(EmptyStrings))]
-        public void When_UriIsEmpty_Then_ValidationFails(string uri)
-        {
-            var dto = new EndpointDtoBuilder().With(x => x.Uri, uri).Create();
-            var request = new UpsertWebhookRequest("event", "subscriber", dto);
-
-            var result = _validator.Validate(request);
-
-            result.AssertSingleFailure(nameof(EndpointDto.Uri));
-        }
-
-        [Theory, IsUnit]
-        [ClassData(typeof(InvalidUris))]
-        public void When_UriIsNotValid_Then_ValidationFails(string uri)
-        {
-            var dto = new EndpointDtoBuilder().With(x => x.Uri, uri).Create();
-            var request = new UpsertWebhookRequest("event", "subscriber", dto);
-
-            var result = _validator.Validate(request);
-
-            result.AssertSingleFailure(nameof(EndpointDto.Uri));
-        }
-
-        [Theory, IsUnit]
-        [ClassData(typeof(EmptyStrings))]
-        public void When_HttpVerbIsEmpty_Then_ValidationFails(string httpVerb)
-        {
-            var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();
-            var request = new UpsertWebhookRequest("event", "subscriber", dto);
-
-            var result = _validator.Validate(request);
-
-            result.AssertSingleFailure(nameof(EndpointDto.HttpVerb));
-        }
-
-        [Theory, IsUnit]
-        [InlineData("duck")]
-        public void When_HttpVerbIsNotValidHTTPVerb_Then_ValidationFails(string httpVerb)
-        {
-            var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();
-            var request = new UpsertWebhookRequest("event", "subscriber", dto);
-
-            var result = _validator.Validate(request);
-
-            result.AssertSingleFailure(nameof(EndpointDto.HttpVerb));
+            // Assert
+            result.AssertSingleFailure(nameof(UpsertSubscriberRequest.SubscriberName));
         }
 
         [Fact, IsUnit]
-        public void When_UriTransformIsValid_Then_NoFailuresReturned()
+        public void When_WebhooksIsNull_Then_ValidationFails()
         {
-            var dto = new EndpointDtoBuilder()
-                .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/")
-                .With(e => e.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string> { ["selector"] = "$.TenantCode" } })
-                .Create();
-            var request = new UpsertWebhookRequest("event", "subscriber", dto);
+            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, null).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
             var result = _validator.Validate(request);
 
-            result.IsValid.Should().BeTrue();
+            result.AssertSingleFailure(nameof(SubscriberDto.Webhooks));
         }
 
         [Fact, IsUnit]
-        public void When_UriTransformRoutesAreEmpty_Then_ValidationFails()
+        public void When_WebhooksIsEmpty_Then_ValidationFails()
         {
-            var dto = new EndpointDtoBuilder()
-                .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/")
-                .With(x => x.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string>() })
-                .Create();
-            var request = new UpsertWebhookRequest("event", "subscriber", dto);
+            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, null).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
             var result = _validator.Validate(request);
 
-            result.AssertSingleFailure(nameof(UriTransformDto.Replace));
+            result.AssertSingleFailure(nameof(SubscriberDto.Webhooks));
         }
 
-        [Fact, IsUnit]
-        public void When_UriTransformRoutesDoesNotContainSelector_Then_ValidationFails()
+        [Theory, IsUnit]
+        [ClassData(typeof(InvalidJsonPaths))]
+        public void When_WebhooksSelectionRuleIsNotValidJsonPath_Then_ValidationFails(string jsonPath)
         {
-            var dto = new EndpointDtoBuilder()
-                .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/")
-                .With(e => e.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string> { ["abc"] = "def" } })
-                .Create();
-            var request = new UpsertWebhookRequest("event", "subscriber", dto);
+            var webhooksDto = new WebhooksDtoBuilder().With(x => x.SelectionRule, jsonPath).Create();
+            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
             var result = _validator.Validate(request);
 
-            result.AssertSingleFailure(nameof(UriTransformDto.Replace));
-        }
-
-        [Fact, IsUnit]
-        public void When_UriTransformRoutesDoesNotContainReplacementWhichExistInUri_Then_ValidationFails()
-        {
-            var dto = new EndpointDtoBuilder()
-                .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/{missing}")
-                .With(e => e.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string> { ["selector"] = "abc" } })
-                .Create();
-            var request = new UpsertWebhookRequest("event", "subscriber", dto);
-
-            var result = _validator.Validate(request);
-
-            result.AssertSingleFailure(nameof(UriTransformDto.Replace));
+            result.AssertSingleFailure(nameof(WebhooksDto.SelectionRule));
         }
     }
 }

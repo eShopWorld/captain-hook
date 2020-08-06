@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using CaptainHook.Contract;
+﻿using CaptainHook.Contract;
 
 namespace CaptainHook.TestsInfrastructure.Builders
 {
@@ -7,16 +6,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
     {
         public SubscriberDtoBuilder()
         {
-            With(
-                s => s.Webhooks,
-                new WebhooksDto
-                {
-                    SelectionRule = "$.TestSelector",
-                    Endpoints = new List<EndpointDto>
-                    {
-                        new EndpointDtoBuilder().Create()
-                    }
-                });
+            With(e => e.Webhooks, new WebhooksDtoBuilder().Create());
         }
     }
 }
