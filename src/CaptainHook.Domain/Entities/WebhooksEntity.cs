@@ -21,6 +21,11 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         public IEnumerable<EndpointEntity> Endpoints => _endpoints;
 
+        public WebhooksEntity()
+            : this(null, null)
+        {
+        }
+
         public WebhooksEntity(string selectionRule): this(selectionRule, null) { }
 
         public WebhooksEntity(string selectionRule, IEnumerable<EndpointEntity> endpoints)
