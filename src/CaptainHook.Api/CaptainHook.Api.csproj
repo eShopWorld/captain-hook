@@ -16,7 +16,7 @@
   <ItemGroup>
     <!-- Adding in update for a sub dep until Ms fix the dep tree-->
     <PackageReference Include="Eshopworld.Data.CosmosDb" Version="3.0.1" />
-    <PackageReference Include="MediatR" Version="8.0.2" />
+    <PackageReference Include="MediatR" Version="8.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
     <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.0.470" />

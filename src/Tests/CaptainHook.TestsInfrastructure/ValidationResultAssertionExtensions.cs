@@ -13,5 +13,10 @@ namespace CaptainHook.TestsInfrastructure
             result.Errors.Should().HaveCount(1);
             result.Errors[0].PropertyName.Should().EndWith(propertyName);
         }
+
+        public static void AssertValidationSuccess(this ValidationResult result)
+        {
+            result.IsValid.Should().BeTrue();
+        }
     }
 }
