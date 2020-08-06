@@ -207,7 +207,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var result = await _repository.GetSubscriberAsync(subscriberId);
 
             // Assert
-            _queryBuilderMock.Verify(x => x.BuildSelectSubscriber(subscriberId));
+            _queryBuilderMock.Verify(x => x.BuildSelectSubscriber(subscriberId, subscriberId.EventName));
         }
 
         [Fact, IsUnit]
