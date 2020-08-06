@@ -114,7 +114,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private async Task<SubscriberEntity> GetSubscriberInternalAsync(SubscriberId subscriberId)
         {
-            var query = _endpointQueryBuilder.BuildSelectSubscriber(subscriberId);
+            var query = _endpointQueryBuilder.BuildSelectSubscriber(subscriberId, subscriberId.EventName);
             var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
 
             return subscribers
@@ -140,6 +140,7 @@ namespace CaptainHook.Storage.Cosmos
 
             return new SubscriberDocument
             {
+                Id = new SubscriberId(subscriberEntity.ParentEvent.Name, subscriberEntity.Name),
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
                 SelectionRule = subscriberEntity.Webhooks?.SelectionRule,

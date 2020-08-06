@@ -15,7 +15,7 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// Identifier
         /// </summary>
         [JsonProperty("id")]
-        public SubscriberId Id => new SubscriberId(EventName, SubscriberName);
+        public string Id;
 
         /// <summary>
         /// Type of the document.

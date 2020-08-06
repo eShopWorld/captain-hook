@@ -26,12 +26,12 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
             return new CosmosQuery(query);
         }
 
-        public CosmosQuery BuildSelectSubscriber(SubscriberId subscriberId)
+        public CosmosQuery BuildSelectSubscriber(string subscriberId, string eventName)
         {
             var query = new QueryDefinition(@"select * from c where c.id = @id")
                 .WithParameter("@id", subscriberId.ToString());
 
-            var partitionKey = SubscriberDocument.GetPartitionKey(subscriberId.EventName);
+            var partitionKey = SubscriberDocument.GetPartitionKey(eventName);
 
             return new CosmosQuery(query, partitionKey);
         }

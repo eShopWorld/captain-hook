@@ -25,6 +25,6 @@ namespace CaptainHook.Storage.Cosmos.QueryBuilders
         /// Build the query to get a specific subscriber
         /// </summary>
         /// <returns>A cosmos repository query object</returns>
-        CosmosQuery BuildSelectSubscriber(SubscriberId subscriberId);
+        CosmosQuery BuildSelectSubscriber(string subscriberId, string eventName);
     }
 }
