@@ -42,15 +42,9 @@ namespace CaptainHook.Storage.Cosmos.Models
         public string EventName { get; set; }
 
         /// <summary>
-        /// Subscriber endpoints
+        /// Webhooks
         /// </summary>
-        [JsonProperty(PropertyName = "endpoints")]
-        public EndpointSubdocument[] Endpoints { get; set; }
-
-        /// <summary>
-        /// Webhook selector
-        /// </summary>
-        [JsonProperty("selectionRule")]
-        public string SelectionRule { get; set; }
+        [JsonProperty("eventName")]
+        public WebhookSubdocument Webhooks { get; set; }
     }
 }

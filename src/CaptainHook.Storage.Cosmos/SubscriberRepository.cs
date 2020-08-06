@@ -134,21 +134,33 @@ namespace CaptainHook.Storage.Cosmos
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)
         {
-            var endpoints =
-                subscriberEntity.Webhooks?.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint, EndpointType.Webhook))
-                ?? Enumerable.Empty<EndpointSubdocument>();
+            //var endpoints =
+            //    subscriberEntity.Webhooks?.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint, EndpointType.Webhook))
+            //    ?? Enumerable.Empty<EndpointSubdocument>();
 
             return new SubscriberDocument
             {
                 Id = new SubscriberId(subscriberEntity.ParentEvent.Name, subscriberEntity.Name),
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
-                SelectionRule = subscriberEntity.Webhooks?.SelectionRule,
+                Webhooks = Map(subscriberEntity.Webhooks)
+            };
+        }
+
+        private WebhookSubdocument Map(WebhooksEntity webhooksEntity)
+        {
+            var endpoints = 
+                webhooksEntity.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint))
+                ?? Enumerable.Empty<EndpointSubdocument>();
+
+            return new WebhookSubdocument
+            {
+                SelectionRule = webhooksEntity.SelectionRule,
                 Endpoints = endpoints.ToArray()
             };
         }
 
-        private EndpointSubdocument Map(EndpointEntity endpointEntity, EndpointType endpointType)
+        private EndpointSubdocument Map(EndpointEntity endpointEntity)
         {
             return new EndpointSubdocument
             {
@@ -156,7 +168,6 @@ namespace CaptainHook.Storage.Cosmos
                 HttpVerb = endpointEntity.HttpVerb,
                 Uri = endpointEntity.Uri,
                 Authentication = Map(endpointEntity.Authentication),
-                Type = endpointType,
                 UriTransform = Map(endpointEntity.UriTransform)
             };
         }
