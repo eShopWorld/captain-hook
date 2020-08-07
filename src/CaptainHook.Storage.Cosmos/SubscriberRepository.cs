@@ -134,10 +134,6 @@ namespace CaptainHook.Storage.Cosmos
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)
         {
-            //var endpoints =
-            //    subscriberEntity.Webhooks?.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint, EndpointType.Webhook))
-            //    ?? Enumerable.Empty<EndpointSubdocument>();
-
             return new SubscriberDocument
             {
                 Id = subscriberEntity.Id,
