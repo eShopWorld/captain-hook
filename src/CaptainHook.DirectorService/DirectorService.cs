@@ -60,7 +60,7 @@ namespace CaptainHook.DirectorService
             _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException(nameof(readerServiceChangeDetector));
         }
 
-        private async Task<Dictionary<string, SubscriberConfiguration>> LoadConfigurationAsync()
+        private async Task<IDictionary<string, SubscriberConfiguration>> LoadConfigurationAsync()
         {
             var keyVaultUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
             var subscriberConfig = await _subscriberConfigurationLoader.LoadAsync(keyVaultUri);

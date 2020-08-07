@@ -1,12 +1,11 @@
-﻿using CaptainHook.Common.Configuration;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.DirectorService.Infrastructure.Interfaces
 {
     public interface ISubscriberConfigurationLoader
     {
-        Task<ReadOnlyCollection<SubscriberConfiguration>> LoadAsync(string keyVaultUri);
+        Task<IEnumerable<SubscriberConfiguration>> LoadAsync(string keyVaultUri);
     }
 }

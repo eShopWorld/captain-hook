@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
@@ -18,7 +19,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             _configurationMerger = configurationMerger ?? throw new ArgumentNullException(nameof(configurationMerger));
         }
 
-        public async Task<ReadOnlyCollection<SubscriberConfiguration>> LoadAsync(string keyVaultUri)
+        public async Task<IEnumerable<SubscriberConfiguration>> LoadAsync(string keyVaultUri)
         {
             var configuration = Configuration.Load(keyVaultUri);
             var subscribersFromKV = configuration.SubscriberConfigurations;
