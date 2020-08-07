@@ -3,6 +3,7 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.Models;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
+using Castle.DynamicProxy.Generators;
 using Eshopworld.Data.CosmosDb;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -44,7 +45,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         }        
 
         [Fact, IsUnit]
-        public async Task GetSubscribersListAsync_should_invoke_BuildSelectSubscribersList()
+        public async Task GetSubscribersListAsync_should_invoke_BuildSelectForEventSubscribers()
         {
             // Arrange
             var eventName = "eventName";
@@ -66,7 +67,6 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 HttpVerb = "POST",
                 Uri = "http://test",
                 Selector = "selector",
-                Type = EndpointType.Webhook,
                 Authentication = new AuthenticationData
                 {
                     ClientId = "clientid",
@@ -81,8 +81,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = eventName,
-                WebhookSelectionRule = "rule",
-                Endpoints = new[] { endpoint }
+                Webhooks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new[] { endpoint }
+                }
             };
             _cosmosDbRepositoryMock
                 .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
@@ -92,7 +95,8 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
             var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
-            expectedSubscriberEntity.AddWebhookEndpoint(expectedEndpointEntity);
+            var expectedWebhooksEntity = new WebhooksEntity(sampleDocument.Webhooks.SelectionRule, new List<EndpointEntity> { expectedEndpointEntity });
+            expectedSubscriberEntity.AddWebhooks(expectedWebhooksEntity);
 
             // Act
             var result = await _repository.GetSubscribersListAsync(eventName);
@@ -112,43 +116,44 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SubscriberName = "subscriberName",
                     EventName = eventName,
-                    WebhookSelectionRule = "rule",
-                    Endpoints = new[]
+                    Webhooks = new WebhookSubdocument
                     {
-                        new EndpointSubdocument
+                        SelectionRule = "rule",
+                        Endpoints = new[]
                         {
-                            HttpVerb = "POST",
-                            Uri = "http://test",
-                            Selector = "selector",
-                            Type = EndpointType.Webhook,
-                            Authentication = new AuthenticationData
+                            new EndpointSubdocument
                             {
-                                ClientId = "clientid",
-                                KeyVaultName = "keyvaultname",
-                                Scopes = new[] { "scope" },
-                                SecretName = "secret",
-                                Type = "type",
-                                Uri = "uri"
-                            }
-                        },
-                        new EndpointSubdocument
-                        {
-                            HttpVerb = "GET",
-                            Uri = "http://test2",
-                            Selector = "selector2",
-                            Type = EndpointType.Webhook,
-                            Authentication = new AuthenticationData
+                                HttpVerb = "POST",
+                                Uri = "http://test",
+                                Selector = "selector",
+                                Authentication = new AuthenticationData
+                                {
+                                    ClientId = "clientid",
+                                    KeyVaultName = "keyvaultname",
+                                    Scopes = new[] { "scope" },
+                                    SecretName = "secret",
+                                    Type = "type",
+                                    Uri = "uri"
+                                }
+                            },
+                            new EndpointSubdocument
                             {
-                                ClientId = "clientid",
-                                KeyVaultName = "keyvaultname",
-                                Scopes = new[] { "scope" },
-                                SecretName = "secret",
-                                Type = "type",
-                                Uri = "uri"
+                                HttpVerb = "GET",
+                                Uri = "http://test2",
+                                Selector = "selector2",
+                                Authentication = new AuthenticationData
+                                {
+                                    ClientId = "clientid",
+                                    KeyVaultName = "keyvaultname",
+                                    Scopes = new[] { "scope" },
+                                    SecretName = "secret",
+                                    Type = "type",
+                                    Uri = "uri"
+                                }
                             }
                         }
                     }
-                },
+                }
             };
 
             _cosmosDbRepositoryMock
@@ -162,26 +167,28 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var expected = new[]
             {
                 new SubscriberEntity("subscriberName", new EventEntity(eventName))
-                    .AddWebhookEndpoint(new EndpointEntity(
-                        "http://test",
-                        new AuthenticationEntity(
-                            "clientid",
-                            new SecretStoreEntity("keyvaultname", "secret"),
-                            "uri",
-                            "type",
-                            new[] { "scope" }),
-                        "POST",
-                        "selector"))
-                    .AddWebhookEndpoint(
+                    .AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()
+                    {
+                        new EndpointEntity(
+                            "http://test",
+                            new AuthenticationEntity(
+                                "clientid",
+                                new SecretStoreEntity("keyvaultname", "secret"),
+                                "uri",
+                                "type",
+                                new[] { "scope" }),
+                            "POST",
+                            "selector"),
                         new EndpointEntity("http://test2",
-                        new AuthenticationEntity(
-                            "clientid",
-                            new SecretStoreEntity("keyvaultname", "secret"),
-                            "uri",
-                            "type",
-                            new[] { "scope" }),
-                        "GET",
-                        "selector2"))
+                            new AuthenticationEntity(
+                                "clientid",
+                                new SecretStoreEntity("keyvaultname", "secret"),
+                                "uri",
+                                "type",
+                                new[] { "scope" }),
+                            "GET",
+                            "selector2")
+                    }))
             };
 
             result.Data.Should().BeEquivalentTo(expected, options => options.IgnoringCyclicReferences());
@@ -207,7 +214,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var result = await _repository.GetSubscriberAsync(subscriberId);
 
             // Assert
-            _queryBuilderMock.Verify(x => x.BuildSelectSubscriber(subscriberId));
+            _queryBuilderMock.Verify(x => x.BuildSelectSubscriber(subscriberId, subscriberId.EventName));
         }
 
         [Fact, IsUnit]
@@ -233,7 +240,6 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 HttpVerb = "POST",
                 Uri = "http://test",
                 Selector = "selector",
-                Type = EndpointType.Webhook,
                 Authentication = new AuthenticationData
                 {
                     ClientId = "clientid",
@@ -248,8 +254,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = eventName,
-                WebhookSelectionRule = "rule",
-                Endpoints = new[] { endpoint }
+                Webhooks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new[] { endpoint }
+                }
             };
             _cosmosDbRepositoryMock
                 .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
@@ -259,7 +268,8 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
             var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
-            expectedSubscriberEntity.AddWebhookEndpoint(expectedEndpointEntity);
+            var expectedWebhooksEntity = new WebhooksEntity(sampleDocument.Webhooks.SelectionRule, new List<EndpointEntity> { expectedEndpointEntity });
+            expectedSubscriberEntity.AddWebhooks(expectedWebhooksEntity);
 
             // Act
             var result = await _repository.GetSubscriberAsync(new SubscriberId("eventName", "subscriberName"));
@@ -279,43 +289,44 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SubscriberName = "subscriberName",
                     EventName = eventName,
-                    WebhookSelectionRule = "rule",
-                    Endpoints = new[]
+                    Webhooks = new WebhookSubdocument
                     {
-                        new EndpointSubdocument
+                        SelectionRule = "rule",
+                        Endpoints = new[]
                         {
-                            HttpVerb = "POST",
-                            Uri = "http://test",
-                            Selector = "selector",
-                            Type = EndpointType.Webhook,
-                            Authentication = new AuthenticationData
+                            new EndpointSubdocument
                             {
-                                ClientId = "clientid",
-                                KeyVaultName = "keyvaultname",
-                                Scopes = new[] { "scope" },
-                                SecretName = "secret",
-                                Type = "type",
-                                Uri = "uri"
-                            }
-                        },
-                        new EndpointSubdocument
-                        {
-                            HttpVerb = "GET",
-                            Uri = "http://test2",
-                            Selector = "selector2",
-                            Type = EndpointType.Webhook,
-                            Authentication = new AuthenticationData
+                                HttpVerb = "POST",
+                                Uri = "http://test",
+                                Selector = "selector",
+                                Authentication = new AuthenticationData
+                                {
+                                    ClientId = "clientid",
+                                    KeyVaultName = "keyvaultname",
+                                    Scopes = new[] { "scope" },
+                                    SecretName = "secret",
+                                    Type = "type",
+                                    Uri = "uri"
+                                }
+                            },
+                            new EndpointSubdocument
                             {
-                                ClientId = "clientid",
-                                KeyVaultName = "keyvaultname",
-                                Scopes = new[] { "scope" },
-                                SecretName = "secret",
-                                Type = "type",
-                                Uri = "uri"
+                                HttpVerb = "GET",
+                                Uri = "http://test2",
+                                Selector = "selector2",
+                                Authentication = new AuthenticationData
+                                {
+                                    ClientId = "clientid",
+                                    KeyVaultName = "keyvaultname",
+                                    Scopes = new[] { "scope" },
+                                    SecretName = "secret",
+                                    Type = "type",
+                                    Uri = "uri"
+                                }
                             }
                         }
                     }
-                },
+                }
             };
 
             _cosmosDbRepositoryMock
@@ -327,26 +338,28 @@ namespace CaptainHook.Storage.Cosmos.Tests
 
             // Assert
             var expected = new SubscriberEntity("subscriberName", new EventEntity(eventName))
-                .AddWebhookEndpoint(new EndpointEntity(
-                    "http://test",
-                    new AuthenticationEntity(
-                        "clientid",
-                        new SecretStoreEntity("keyvaultname", "secret"),
-                        "uri",
-                        "type",
-                        new[] { "scope" }),
-                    "POST",
-                    "selector"))
-                .AddWebhookEndpoint(
+                .AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()
+                {
+                    new EndpointEntity(
+                        "http://test",
+                        new AuthenticationEntity(
+                            "clientid",
+                            new SecretStoreEntity("keyvaultname", "secret"),
+                            "uri",
+                            "type",
+                            new[] { "scope" }),
+                        "POST",
+                        "selector"),
                     new EndpointEntity("http://test2",
-                    new AuthenticationEntity(
-                        "clientid",
-                        new SecretStoreEntity("keyvaultname", "secret"),
-                        "uri",
-                        "type",
-                        new[] { "scope" }),
-                    "GET",
-                    "selector2"));
+                        new AuthenticationEntity(
+                            "clientid",
+                            new SecretStoreEntity("keyvaultname", "secret"),
+                            "uri",
+                            "type",
+                            new[] { "scope" }),
+                        "GET",
+                        "selector2")
+                }));
 
             result.Data.Should().BeEquivalentTo(expected, options => options.IgnoringCyclicReferences());
         }
@@ -369,10 +382,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
-                WebhookSelectionRule = "rule",
-                Endpoints = new EndpointSubdocument[] { }
+                Webhooks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new EndpointSubdocument[] { }
+                }
             };
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
+            subscriber.AddWebhooks(new WebhooksEntity("rule"));
             _cosmosDbRepositoryMock
                 .Setup(x => x.CreateAsync(It.IsAny<SubscriberDocument>()))
                 .ReturnsAsync(new DocumentContainer<SubscriberDocument>(subscriberDocument,"etag"));
@@ -416,8 +433,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
-                WebhookSelectionRule = "rule",
-                Endpoints = new EndpointSubdocument[] { }
+                Webhooks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new EndpointSubdocument[] { }
+                }
             };
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
             _cosmosDbRepositoryMock

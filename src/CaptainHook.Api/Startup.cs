@@ -92,7 +92,7 @@ namespace CaptainHook.Api
 
                 services.AddControllers(options =>
                 {
-                    var policy = ScopePolicy.Create(serviceConfiguration.RequiredScopes.ToArray());
+                    var policy = ScopePolicy.Create(serviceConfiguration.RequiredScopes?.ToArray() ?? new string[0]);
 
                     var filter = EnvironmentHelper.IsInFabric ?
                         (IFilterMetadata)new AuthorizeFilter(policy) :

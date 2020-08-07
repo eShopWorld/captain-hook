@@ -36,7 +36,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         {
             SubscriberConfiguration config;
 
-            var firstEndpoint = entity.Webhooks?.Endpoints?.SingleOrDefault();
+            var firstEndpoint = entity.Webhooks?.Endpoints?.FirstOrDefault();
             if (firstEndpoint?.UriTransform != null)
             {
                 config = await MapForUriTransform(entity, firstEndpoint);

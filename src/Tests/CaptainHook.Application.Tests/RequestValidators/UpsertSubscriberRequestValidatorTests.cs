@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Fabric.Management.ServiceModel;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Validators;
 using CaptainHook.Contract;
@@ -92,6 +93,59 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var result = _validator.Validate(request);
 
             result.AssertSingleFailure(nameof(WebhooksDto.SelectionRule));
+        }
+
+        [Fact, IsUnit]
+        public void When_TwoEndpointsHaveNoSelector_Then_ValidationFails()
+        {
+            var endpoints = new List<EndpointDto>()
+            {
+                new EndpointDtoBuilder().With(x => x.Selector, null).Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, null).Create()
+            };
+            var webhooksDto = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).Create();
+            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.Validate(request);
+
+            result.AssertSingleFailure(nameof(WebhooksDto.Endpoints));
+        }
+
+        [Fact, IsUnit]
+        public void When_TwoEndpointsHaveTheSameSelector_Then_ValidationFails()
+        {
+            var endpoints = new List<EndpointDto>()
+            {
+                new EndpointDtoBuilder().With(x => x.Selector, null).Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, "selectorA").Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, "selectorA").Create()
+            };
+            var webhooksDto = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).Create();
+            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.Validate(request);
+
+            result.AssertSingleFailure(nameof(WebhooksDto.Endpoints));
+        }
+
+        [Fact, IsUnit]
+        public void When_OnlyOneEndpointHasNoSelector_Then_ValidationSucceeds()
+        {
+            var endpoints = new List<EndpointDto>()
+            {
+                new EndpointDtoBuilder().With(x => x.Selector, null).Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, "selector1").Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, "selector2").Create()
+            };
+            var webhooksDto = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).Create();
+            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.Validate(request);
+
+            result.AssertValidationSuccess();
         }
     }
 }

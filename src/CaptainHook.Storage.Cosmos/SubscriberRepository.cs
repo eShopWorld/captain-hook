@@ -114,7 +114,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private async Task<SubscriberEntity> GetSubscriberInternalAsync(SubscriberId subscriberId)
         {
-            var query = _endpointQueryBuilder.BuildSelectSubscriber(subscriberId);
+            var query = _endpointQueryBuilder.BuildSelectSubscriber(subscriberId, subscriberId.EventName);
             var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
 
             return subscribers
@@ -124,7 +124,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private async Task<IEnumerable<SubscriberEntity>> GetSubscribersListInternalAsync(string eventName)
         {
-            var query = _endpointQueryBuilder.BuildSelectSubscribersList(eventName);
+            var query = _endpointQueryBuilder.BuildSelectForEventSubscribers(eventName);
             var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
 
             return subscribers
@@ -134,19 +134,29 @@ namespace CaptainHook.Storage.Cosmos
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)
         {
-            var endpoints =
-                subscriberEntity.Webhooks?.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint, EndpointType.Webhook))
-                ?? Enumerable.Empty<EndpointSubdocument>();
-
             return new SubscriberDocument
             {
+                Id = subscriberEntity.Id,
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
+                Webhooks = Map(subscriberEntity.Webhooks)
+            };
+        }
+
+        private WebhookSubdocument Map(WebhooksEntity webhooksEntity)
+        {
+            var endpoints = 
+                webhooksEntity.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint))
+                ?? Enumerable.Empty<EndpointSubdocument>();
+
+            return new WebhookSubdocument
+            {
+                SelectionRule = webhooksEntity.SelectionRule,
                 Endpoints = endpoints.ToArray()
             };
         }
 
-        private EndpointSubdocument Map(EndpointEntity endpointEntity, EndpointType endpointType)
+        private EndpointSubdocument Map(EndpointEntity endpointEntity)
         {
             return new EndpointSubdocument
             {
@@ -154,7 +164,6 @@ namespace CaptainHook.Storage.Cosmos
                 HttpVerb = endpointEntity.HttpVerb,
                 Uri = endpointEntity.Uri,
                 Authentication = Map(endpointEntity.Authentication),
-                Type = endpointType,
                 UriTransform = Map(endpointEntity.UriTransform)
             };
         }
@@ -172,12 +181,20 @@ namespace CaptainHook.Storage.Cosmos
                 subscriberDocument.SubscriberName,
                 eventEntity);
 
-            foreach (var endpointDocument in subscriberDocument.Endpoints)
-            {
-                subscriberEntity.AddWebhookEndpoint(Map(endpointDocument, subscriberEntity));
-            }
+            subscriberEntity.AddWebhooks(Map(subscriberDocument.Webhooks, subscriberEntity));
 
             return subscriberEntity;
+        }
+
+        private WebhooksEntity Map(WebhookSubdocument webhookSubdocument, SubscriberEntity subscriberEntity)
+        {
+            var webhookEntity = new WebhooksEntity(webhookSubdocument.SelectionRule);
+            foreach(var endpointSubdocument in webhookSubdocument.Endpoints)
+            {
+                webhookEntity.AddEndpoint(Map(endpointSubdocument, subscriberEntity));
+            }
+
+            return webhookEntity;
         }
 
         private EndpointEntity Map(EndpointSubdocument endpoint, SubscriberEntity subscriberEntity)

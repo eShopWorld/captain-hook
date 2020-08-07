@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using CaptainHook.Domain.ValueObjects;
+using Newtonsoft.Json;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
@@ -10,13 +11,11 @@ namespace CaptainHook.Storage.Cosmos.Models
         public const string Type = "Subscriber";
         public static string GetPartitionKey(string eventName) => $"{Type}_{eventName}";
 
-        public static string GetDocumentId(string eventName, string subscriberName) => $"{eventName}-{subscriberName}";
-
         /// <summary>
         /// Identifier
         /// </summary>
         [JsonProperty("id")]
-        public string Id => GetDocumentId(EventName, SubscriberName);
+        public string Id;
 
         /// <summary>
         /// Type of the document.
@@ -43,15 +42,9 @@ namespace CaptainHook.Storage.Cosmos.Models
         public string EventName { get; set; }
 
         /// <summary>
-        /// Subscriber endpoints
+        /// Webhooks
         /// </summary>
-        [JsonProperty(PropertyName = "endpoints")]
-        public EndpointSubdocument[] Endpoints { get; set; }
-
-        /// <summary>
-        /// Webhook selector
-        /// </summary>
-        [JsonProperty("webhookSelectionRule")]
-        public string WebhookSelectionRule { get; set; }
+        [JsonProperty("webhooks")]
+        public WebhookSubdocument Webhooks { get; set; }
     }
 }
