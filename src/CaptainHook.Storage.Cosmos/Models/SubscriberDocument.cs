@@ -44,7 +44,7 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Webhooks
         /// </summary>
-        [JsonProperty("eventName")]
+        [JsonProperty("webhooks")]
         public WebhookSubdocument Webhooks { get; set; }
     }
 }
