@@ -14,26 +14,33 @@ namespace CaptainHook.Domain.Repositories
         /// </summary>
         /// <param name="eventName">The event name</param>
         /// <returns></returns>
-        public Task<OperationResult<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName);
+        Task<OperationResult<IEnumerable<SubscriberEntity>>> GetSubscribersListAsync(string eventName);
 
         /// <summary>
         /// Get particular subscriber for a specified event
         /// </summary>
         /// <param name="subscriberId">The id of the subscriber</param>
         /// <returns></returns>
-        public Task<OperationResult<SubscriberEntity>> GetSubscriberAsync(SubscriberId subscriberId);
+        Task<OperationResult<SubscriberEntity>> GetSubscriberAsync(SubscriberId subscriberId);
 
         /// <summary>
         /// Get all the subscribers
         /// </summary>
         /// <returns></returns>
-        public Task<OperationResult<IEnumerable<SubscriberEntity>>> GetAllSubscribersAsync();
+        Task<OperationResult<IEnumerable<SubscriberEntity>>> GetAllSubscribersAsync();
 
         /// <summary>
         /// Saves Subscriber
         /// </summary>
         /// <param name="subscriberEntity">Subscriber entity to Save</param>
         /// <returns></returns>
-        public Task<OperationResult<SubscriberEntity>> AddSubscriberAsync(SubscriberEntity subscriberEntity);
+        Task<OperationResult<SubscriberEntity>> AddSubscriberAsync(SubscriberEntity subscriberEntity);
+
+        /// <summary>
+        /// Updates subscriber
+        /// </summary>
+        /// <param name="subscriber">Subscriber to update</param>
+        /// <returns>Subscriber which has been updated</returns>
+        Task<OperationResult<SubscriberEntity>> UpdateSubscriberAsync(SubscriberEntity subscriber);
     }
 }

@@ -102,6 +102,11 @@ namespace CaptainHook.Storage.Cosmos
             return materialized;
         }
 
+        public Task<OperationResult<SubscriberEntity>> UpdateSubscriberAsync(SubscriberEntity subscriber)
+        {
+            return Task.FromResult(new OperationResult<SubscriberEntity>(subscriber));
+        }
+
         #region Private methods
 
         private async Task<SubscriberEntity> AddSubscriberInternalAsync(SubscriberEntity subscriberEntity)
