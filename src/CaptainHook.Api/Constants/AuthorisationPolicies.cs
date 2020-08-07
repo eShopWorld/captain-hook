@@ -2,7 +2,8 @@
 {
     internal static class AuthorisationPolicies
     {
-        public const string SubscribersAccess = "SubscribersAccess";
         public const string DefineSubscribers = "DefineSubscribers";
+        public const string ReadSubscribers = "ReadSubscribers";
+        public const string DeleteSubscribers = "DeleteSubscribers";
     }
 }
