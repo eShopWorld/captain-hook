@@ -102,12 +102,31 @@ namespace CaptainHook.Storage.Cosmos
             return materialized;
         }
 
-        public Task<OperationResult<SubscriberEntity>> UpdateSubscriberAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<SubscriberEntity>> UpdateSubscriberAsync(SubscriberEntity subscriberEntity)
         {
-            return Task.FromResult(new OperationResult<SubscriberEntity>(subscriber));
+            if (subscriberEntity == null)
+            {
+                throw new ArgumentNullException(nameof(subscriberEntity));
+            }
+
+            try
+            {
+                return await UpdateSubscriberInternalAsync(subscriberEntity);
+            }
+            catch
+            {
+                return new CannotSaveEntityError(nameof(SubscriberEntity));
+            }
         }
 
         #region Private methods
+        private async Task<SubscriberEntity> UpdateSubscriberInternalAsync(SubscriberEntity subscriberEntity)
+        {
+            var subscriberDocument = Map(subscriberEntity);
+
+            var result = await _cosmosDbRepository.UpsertAsync(subscriberDocument);
+            return Map(result.Document);
+        }
 
         private async Task<SubscriberEntity> AddSubscriberInternalAsync(SubscriberEntity subscriberEntity)
         {

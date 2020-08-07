@@ -3,7 +3,6 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.Models;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
-using Castle.DynamicProxy.Generators;
 using Eshopworld.Data.CosmosDb;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -451,5 +450,67 @@ namespace CaptainHook.Storage.Cosmos.Tests
             result.Error.Should().BeOfType<CannotSaveEntityError>();
         }
 
+        [Fact, IsUnit]
+        public async Task UpdateSubscriberAsync_should_invoke_UpsertAsync()
+        {
+            // Arrange
+            var subscriberDocument = new SubscriberDocument
+            {
+                SubscriberName = "subscriberName",
+                EventName = "eventName",
+                Webhooks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new EndpointSubdocument[] { }
+                }
+            };
+            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
+            subscriber.AddWebhooks(new WebhooksEntity("rule"));
+            _cosmosDbRepositoryMock
+                .Setup(x => x.CreateAsync(It.IsAny<SubscriberDocument>()))
+                .ReturnsAsync(new DocumentContainer<SubscriberDocument>(subscriberDocument, "etag"));
+
+            // Act
+            var result = await _repository.UpdateSubscriberAsync(subscriber);
+
+            // Assert
+            _cosmosDbRepositoryMock.Verify(x => x.UpsertAsync(It.IsAny<SubscriberDocument>()));
+        }
+
+        [Fact, IsUnit]
+        public async Task UpdateSubscriberAsync_should_throw_for_invalid_SubscriberId()
+        {
+            // Act
+            Task act() => _repository.UpdateSubscriberAsync(null);
+
+            // Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(act);
+        }
+
+        [Fact, IsUnit]
+        public async Task UpdateSubscriberInternalAsync_should_return_error_if_update_fails()
+        {
+            // Arrange
+            var subscriberDocument = new SubscriberDocument
+            {
+                SubscriberName = "subscriberName",
+                EventName = "eventName",
+                Webhooks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new EndpointSubdocument[] { }
+                }
+            };
+            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
+            _cosmosDbRepositoryMock
+                .Setup(x => x.CreateAsync(It.IsAny<SubscriberDocument>()))
+                .ThrowsAsync(new CosmosException(string.Empty, System.Net.HttpStatusCode.Conflict, 0, string.Empty, 0));
+
+            // Act
+            var result = await _repository.UpdateSubscriberAsync(subscriber);
+
+            // Assert
+            result.Error.Should().BeOfType<CannotSaveEntityError>();
+        }
     }
 }
