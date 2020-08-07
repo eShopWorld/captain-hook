@@ -3,6 +3,7 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.Models;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
+using Eshopworld.Core;
 using Eshopworld.Data.CosmosDb;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -19,6 +20,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
     {
         private readonly Mock<ICosmosDbRepository> _cosmosDbRepositoryMock;
         private readonly Mock<ISubscriberQueryBuilder> _queryBuilderMock;
+        private readonly Mock<IBigBrother> _bigBrotherMock;
 
         private readonly SubscriberRepository _repository;
 
@@ -26,8 +28,12 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             _cosmosDbRepositoryMock = new Mock<ICosmosDbRepository>();
             _queryBuilderMock = new Mock<ISubscriberQueryBuilder>();
+            _bigBrotherMock = new Mock<IBigBrother>();
 
-            _repository = new SubscriberRepository(_cosmosDbRepositoryMock.Object, _queryBuilderMock.Object);
+            _repository = new SubscriberRepository(
+                _cosmosDbRepositoryMock.Object, 
+                _queryBuilderMock.Object, 
+                _bigBrotherMock.Object);
         }
 
         [Theory, IsUnit]
