@@ -17,7 +17,7 @@ namespace CaptainHook.Api.Controllers
     /// Subscribers controller
     /// </summary>
     [Route("api/subscribers")]
-    [Authorize(Policy = AuthorisationPolicies.ApiReadSubscribers)]
+    [Authorize(Policy = AuthorisationPolicies.ReadSubscribers)]
     [ApiController]
     public class SubscribersController : ControllerBase
     {

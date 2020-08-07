@@ -15,7 +15,7 @@ namespace CaptainHook.Api.Controllers
     /// Refresh configuration controller
     /// </summary>
     [Route("api/refresh-config")]
-    [Authorize(Policy = AuthorisationPolicies.ApiReadSubscribers)]
+    [Authorize(Policy = AuthorisationPolicies.ReadSubscribers)]
     public class RefreshConfigController: ControllerBase
     {
         private readonly IBigBrother _bigBrother;

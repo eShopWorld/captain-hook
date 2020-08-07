@@ -44,8 +44,9 @@ namespace CaptainHook.Api.Helpers
 
                 if (claims.Count == 0)
                 {
-                    claims.Add(new Claim("scope", Constants.AuthorisationScopes.ApiAllAccess));
+                    claims.Add(new Claim("scope", Constants.AuthorisationScopes.ApiReadSubscribers));
                     claims.Add(new Claim("scope", Constants.AuthorisationScopes.ApiDefineSubscribers));
+                    claims.Add(new Claim("scope", Constants.AuthorisationScopes.ApiDeleteSubscribers));
                 }
 
                 var identity = new ClaimsIdentity(new GenericIdentity("FakeUser", "FakeAuth"), claims);
