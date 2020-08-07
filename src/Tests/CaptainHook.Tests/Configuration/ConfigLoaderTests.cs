@@ -13,7 +13,6 @@ namespace CaptainHook.Tests.Configuration
 
             Assert.NotNull(configuration.Settings);
             Assert.NotEmpty(configuration.SubscriberConfigurations);
-            Assert.NotEmpty(configuration.WebhookConfigurations);
         }
     }
 }

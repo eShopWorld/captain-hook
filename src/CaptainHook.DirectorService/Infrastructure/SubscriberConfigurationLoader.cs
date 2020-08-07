@@ -1,9 +1,10 @@
-﻿using CaptainHook.Common.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Domain.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
@@ -18,14 +19,14 @@ namespace CaptainHook.DirectorService.Infrastructure
             _configurationMerger = configurationMerger ?? throw new ArgumentNullException(nameof(configurationMerger));
         }
 
-        public async Task<(IList<WebhookConfig>, IList<SubscriberConfiguration>)> LoadAsync(string keyVaultUri)
+        public async Task<IEnumerable<SubscriberConfiguration>> LoadAsync(string keyVaultUri)
         {
             var configuration = Configuration.Load(keyVaultUri);
             var subscribersFromKV = configuration.SubscriberConfigurations;
             var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
             var merged = await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos.Data);
 
-            return (configuration.WebhookConfigurations, merged);
+            return merged;
         }
     }
 }
