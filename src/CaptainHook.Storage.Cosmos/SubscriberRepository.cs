@@ -109,7 +109,7 @@ namespace CaptainHook.Storage.Cosmos
             {
                 var subscriberDocument = Map(subscriberEntity);
 
-                var result = await _cosmosDbRepository.UpsertAsync(subscriberDocument);
+                var result = await _cosmosDbRepository.ReplaceAsync(subscriberDocument.Id, subscriberDocument);
                 return Map(result.Document);
             }
             catch (Exception exception)
