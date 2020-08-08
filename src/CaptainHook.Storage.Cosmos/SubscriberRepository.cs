@@ -114,7 +114,7 @@ namespace CaptainHook.Storage.Cosmos
             }
             catch (Exception exception)
             {
-                return new CannotUpdateEntityError(nameof(SubscriberEntity));
+                return new CannotUpdateEntityError(nameof(SubscriberEntity), exception);
             }
         }
 
@@ -129,7 +129,7 @@ namespace CaptainHook.Storage.Cosmos
             }
             catch (Exception exception)
             {
-                return new CannotSaveEntityError(nameof(SubscriberEntity));
+                return new CannotSaveEntityError(nameof(SubscriberEntity), exception);
             }
         }
 
