@@ -20,7 +20,6 @@ namespace CaptainHook.Storage.Cosmos.Tests
     {
         private readonly Mock<ICosmosDbRepository> _cosmosDbRepositoryMock;
         private readonly Mock<ISubscriberQueryBuilder> _queryBuilderMock;
-        private readonly Mock<IBigBrother> _bigBrotherMock;
 
         private readonly SubscriberRepository _repository;
 
@@ -28,12 +27,8 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             _cosmosDbRepositoryMock = new Mock<ICosmosDbRepository>();
             _queryBuilderMock = new Mock<ISubscriberQueryBuilder>();
-            _bigBrotherMock = new Mock<IBigBrother>();
 
-            _repository = new SubscriberRepository(
-                _cosmosDbRepositoryMock.Object, 
-                _queryBuilderMock.Object, 
-                _bigBrotherMock.Object);
+            _repository = new SubscriberRepository(_cosmosDbRepositoryMock.Object, _queryBuilderMock.Object);
         }
 
         [Theory, IsUnit]

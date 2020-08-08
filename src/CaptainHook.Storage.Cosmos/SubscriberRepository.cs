@@ -22,7 +22,6 @@ namespace CaptainHook.Storage.Cosmos
     {
         private readonly ICosmosDbRepository _cosmosDbRepository;
         private readonly ISubscriberQueryBuilder _endpointQueryBuilder;
-        private readonly IBigBrother _bigBrother;
 
 
         public string CollectionName { get; } = "subscribers";
@@ -38,12 +37,10 @@ namespace CaptainHook.Storage.Cosmos
         /// <exception cref="System.ArgumentNullException">If endpointQueryBuilder is null</exception>
         public SubscriberRepository(
             ICosmosDbRepository cosmosDbRepository,
-            ISubscriberQueryBuilder queryBuilder,
-            IBigBrother bigBrother)
+            ISubscriberQueryBuilder queryBuilder)
         {
             _cosmosDbRepository = cosmosDbRepository ?? throw new ArgumentNullException(nameof(cosmosDbRepository));
             _endpointQueryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
-            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
 
             _cosmosDbRepository.UseCollection(CollectionName);
         }
@@ -71,7 +68,6 @@ namespace CaptainHook.Storage.Cosmos
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception.ToExceptionEvent());
                 return new CannotQueryEntityError(nameof(SubscriberEntity), exception);
             }
         }
@@ -118,7 +114,6 @@ namespace CaptainHook.Storage.Cosmos
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception.ToExceptionEvent());
                 return new CannotUpdateEntityError(nameof(SubscriberEntity));
             }
         }
@@ -134,7 +129,6 @@ namespace CaptainHook.Storage.Cosmos
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception.ToExceptionEvent());
                 return new CannotSaveEntityError(nameof(SubscriberEntity));
             }
         }
@@ -157,7 +151,6 @@ namespace CaptainHook.Storage.Cosmos
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception.ToExceptionEvent());
                 return new CannotQueryEntityError(nameof(SubscriberEntity), exception);
             }
         }
@@ -180,7 +173,6 @@ namespace CaptainHook.Storage.Cosmos
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception.ToExceptionEvent());
                 return new CannotQueryEntityError(nameof(SubscriberEntity), exception);
             }
         }
