@@ -25,7 +25,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Fact, IsUnit]
-        public async Task When_SingleWebhookDefined_Then_MappedCorrectlyOneRule()
+        public async Task MapSubscriberAsync_WithSingleWebhookAndNoUriTransformDefined_MapsToSingleWebhook()
         {
             var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
                 "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
@@ -44,7 +44,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Fact, IsUnit]
-        public async Task When_SingleWebhookWithNoSelectionRuleDefined_Then_MappedCorrectlyToRouteAndReplace()
+        public async Task MapSubscriberAsync_WithSingleWebhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace()
         {
             var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
@@ -74,7 +74,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Fact, IsUnit]
-        public async Task When_MultipleWebhooksWithDefaultSelector_Then_MappedCorrectlyToRouteAndReplace()
+        public async Task MapSubscriberAsync_WithMultipleWebhooksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace()
         {
             var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
@@ -112,7 +112,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Fact, IsUnit]
-        public async Task When_MultipleWebhooksWithNoDefaultSelector_Then_MappedCorrectlyToRouteAndReplace()
+        public async Task MapSubscriberAsync_WithMultipleWebhooksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace()
         {
             var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
