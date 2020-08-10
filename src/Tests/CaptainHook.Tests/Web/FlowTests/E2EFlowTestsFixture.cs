@@ -98,12 +98,12 @@ namespace CaptainHook.Tests.Web.FlowTests
 
                 var result = await policy.ExecuteAsync(async () =>
                 {
-                    var cancellationToken = new CancellationToken();
+                    //var cancellationToken = new CancellationToken();
                     var request = new HttpRequestMessage(HttpMethod.Get, 
                         $"{_testsConfig.PeterPanBaseUrl}/api/v1/inttest/check/{payloadId}");
-                    await tokenCred.ProcessHttpRequestAsync(request, cancellationToken);
+                    await tokenCred.ProcessHttpRequestAsync(request, default);
 
-                    var response = await httpClient.SendAsync(request, cancellationToken);
+                    var response = await httpClient.SendAsync(request, default);
 
                     if (response.StatusCode != HttpStatusCode.OK) return response;
 
