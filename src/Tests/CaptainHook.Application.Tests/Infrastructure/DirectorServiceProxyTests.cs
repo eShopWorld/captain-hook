@@ -19,6 +19,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         private readonly Mock<IDirectorServiceRemoting> _directorServiceMock = new Mock<IDirectorServiceRemoting>();
         private readonly Mock<ISubscriberEntityToConfigurationMapper> _mapperMock = new Mock<ISubscriberEntityToConfigurationMapper>();
 
+        DirectorServiceProxy Proxy =>new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
+
         public DirectorServiceProxyTests()
         {
             _mapperMock.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>()))
@@ -31,8 +33,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
                 .ReturnsAsync(ReaderRefreshResult.Created);
 
-            var proxy = new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
-            var result = await proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeFalse();
             result.Data.Should().BeTrue();
@@ -44,8 +45,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
                 .ReturnsAsync(ReaderRefreshResult.Updated);
 
-            var proxy = new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
-            var result = await proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeFalse();
             result.Data.Should().BeTrue();
@@ -57,8 +57,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
                 .ReturnsAsync(ReaderRefreshResult.ReaderAlreadyExists);
 
-            var proxy = new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
-            var result = await proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeFalse();
             result.Data.Should().BeTrue();
@@ -70,8 +69,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
                 .ReturnsAsync(ReaderRefreshResult.DirectorIsBusy);
 
-            var proxy = new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
-            var result = await proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
@@ -83,8 +81,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
                 .ReturnsAsync(ReaderRefreshResult.CreateFailed | ReaderRefreshResult.ReaderAlreadyExists);
 
-            var proxy = new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
-            var result = await proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderCreationError>();
@@ -96,8 +93,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
                 .ReturnsAsync(ReaderRefreshResult.CreateFailed | ReaderRefreshResult.ReaderAlreadyExists | ReaderRefreshResult.Created);
 
-            var proxy = new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
-            var result = await proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderDeletionError>();
@@ -109,8 +105,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
                 .ReturnsAsync(ReaderRefreshResult.None);
 
-            var proxy = new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
-            var result = await proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();
