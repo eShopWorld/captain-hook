@@ -17,7 +17,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var eventName = "eventName";
 
             // Act
-            var query = _queryBuilder.BuildSelectSubscribersList(eventName);
+            var query = _queryBuilder.BuildSelectForEventSubscribers(eventName);
             
             // Assert
             query.PartitionKey.Should().Be($"{SubscriberDocument.Type}_{eventName}");

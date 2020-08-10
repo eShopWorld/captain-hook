@@ -33,5 +33,10 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                 _ => new BusinessError("Director Service returned unknown result.")
             };
         }
+
+        public Task<OperationResult<bool>> UpdateReaderAsync(SubscriberEntity subscriber)
+        {
+            return Task.FromResult(new OperationResult<bool>(true));
+        }
     }
 }

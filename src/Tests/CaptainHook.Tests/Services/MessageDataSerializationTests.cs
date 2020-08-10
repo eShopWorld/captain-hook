@@ -97,7 +97,6 @@ namespace CaptainHook.Tests.Services
 
             var data = new MessageData("payload", "type", "subscriberName", "replyTo", true);
             data.SubscriberConfig = subscriberConfiguration;
-            data.WebhookConfig = webhookConfig;
 
             AssertMessageDataCanBeSerialized(data);
         }

@@ -315,7 +315,6 @@ namespace CaptainHook.EventReaderService
             messageData.CorrelationId = Guid.NewGuid().ToString();
             messageData.ServiceBusMessageId = message.MessageId;
             messageData.SubscriberConfig = _initData.SubscriberConfiguration;
-            messageData.WebhookConfig = _initData.WebhookConfig;
 
             return messageData;
         }

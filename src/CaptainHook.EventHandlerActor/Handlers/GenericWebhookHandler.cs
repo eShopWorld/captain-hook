@@ -68,8 +68,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
                 var httpMethod = RequestBuilder.SelectHttpMethod(WebhookConfig, messageData.Payload);
                 var originalPayload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
-                var payload = WebhookConfig.PayloadTransformation == PayloadContractTypeEnum.WrapperContract 
-                    ? WrapPayload(originalPayload, WebhookConfig, messageData) 
+                var payload = WebhookConfig.PayloadTransformation == PayloadContractTypeEnum.WrapperContract
+                    ? WrapPayload(originalPayload, WebhookConfig, messageData)
                     : originalPayload;
 
                 var config = RequestBuilder.SelectWebhookConfig(WebhookConfig, messageData.Payload);
@@ -77,9 +77,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var authenticationConfig = RequestBuilder.GetAuthenticationConfig(WebhookConfig, messageData.Payload);
 
                 var httpClient = HttpClientFactory.Get(config);
-                
+
                 await AddAuthenticationHeaderAsync(cancellationToken, authenticationConfig, headers);
-                
+
                 var response = await httpClient.SendRequestReliablyAsync(httpMethod, uri, headers, payload, cancellationToken);
 
                 await _requestLogger.LogAsync(httpClient, response, messageData, payload, uri, httpMethod, headers, config);
