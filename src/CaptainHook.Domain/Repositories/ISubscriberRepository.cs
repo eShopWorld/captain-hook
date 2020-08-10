@@ -39,8 +39,8 @@ namespace CaptainHook.Domain.Repositories
         /// <summary>
         /// Updates subscriber
         /// </summary>
-        /// <param name="subscriber">Subscriber to update</param>
+        /// <param name="subscriberEntity">Subscriber to update</param>
         /// <returns>Subscriber which has been updated</returns>
-        Task<OperationResult<SubscriberEntity>> UpdateSubscriberAsync(SubscriberEntity subscriber);
+        Task<OperationResult<SubscriberEntity>> UpdateSubscriberAsync(SubscriberEntity subscriberEntity);
     }
 }

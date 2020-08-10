@@ -53,7 +53,7 @@ namespace CaptainHook.Api.Controllers
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception);
+                _bigBrother.Publish(exception.ToExceptionEvent());
                 return BadRequest();
             }
         }
