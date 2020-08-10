@@ -11,5 +11,6 @@ namespace CaptainHook.Application.Infrastructure.DirectorService.Remoting
         ReaderAlreadyExists = 4,
         DirectorIsBusy = 8,
         Failure = 16,
+        Updated = Created | Deleted | ReaderAlreadyExists,
     }
 }

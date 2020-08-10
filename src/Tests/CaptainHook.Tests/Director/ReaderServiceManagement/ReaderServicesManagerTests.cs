@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -234,9 +235,80 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
             using (new AssertionScope())
             {
-                result.Should().HaveFlag(ReaderRefreshResult.Created);
-                result.Should().HaveFlag(ReaderRefreshResult.Deleted);
-                result.Should().HaveFlag(ReaderRefreshResult.ReaderAlreadyExists);
+                result.Should().Be(ReaderRefreshResult.Updated);
+                VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
+                VerifyFabricClientDeleteCalls(oldReaderName);
+                VerifyServiceCreatedEventPublished(desiredReader.ServiceNameWithSuffix);
+                VerifyServiceDeletedEventPublished(oldReaderName);
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task RefreshReaderAsync_When_CreateReaderFailsForNewSubscriber_Then_ResultHasFailure()
+        {
+            _fabricClientMock
+                .Setup(c => c.CreateServiceAsync(It.IsAny<ServiceCreationDescription>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception());
+            var subscriberConfig = new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("reader").Create();
+            var desiredReader = new DesiredReaderDefinition(subscriberConfig);
+            _fabricClientMock
+                .Setup(x => x.GetServiceUriListAsync())
+                .ReturnsAsync(new List<string> { ServiceNaming.EventReaderServiceFullUri("testevent", "other-reader") });
+
+            var readerServiceManager = CreateReaderServiceManager();
+            var result = await readerServiceManager.RefreshReaderAsync(subscriberConfig, CancellationToken.None);
+
+            using (new AssertionScope())
+            {
+                result.Should().Be(ReaderRefreshResult.Failure);
+                VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
+                VerifyFabricClientDeleteCalls();
+                VerifyServiceCreatedEventPublished();
+                VerifyServiceDeletedEventPublished();
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task RefreshReaderAsync_When_CreateReaderFailsForUpdatingSubscriber_Then_ResultHasFailure()
+        {
+            _fabricClientMock
+                .Setup(c => c.CreateServiceAsync(It.IsAny<ServiceCreationDescription>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception());
+            var subscriberConfig = new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("reader").Create();
+            var desiredReader = new DesiredReaderDefinition(subscriberConfig);
+            var oldReaderName = ServiceNaming.EventReaderServiceFullUri("testevent", "reader");
+            _fabricClientMock.Setup(x => x.GetServiceUriListAsync()).ReturnsAsync(new List<string> { oldReaderName });
+
+            var readerServiceManager = CreateReaderServiceManager();
+            var result = await readerServiceManager.RefreshReaderAsync(subscriberConfig, CancellationToken.None);
+
+            using (new AssertionScope())
+            {
+                result.Should().Be(ReaderRefreshResult.Failure | ReaderRefreshResult.ReaderAlreadyExists);
+                VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
+                VerifyFabricClientDeleteCalls();
+                VerifyServiceCreatedEventPublished();
+                VerifyServiceDeletedEventPublished();
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task RefreshReaderAsync_When_DeleteReaderFailsForUpdatingSubscriber_Then_ResultHasFailure()
+        {
+             _fabricClientMock
+                .Setup(c => c.DeleteServiceAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new Exception());
+            var subscriberConfig = new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("reader").Create();
+            var desiredReader = new DesiredReaderDefinition(subscriberConfig);
+            var oldReaderName = ServiceNaming.EventReaderServiceFullUri("testevent", "reader");
+            _fabricClientMock.Setup(x => x.GetServiceUriListAsync()).ReturnsAsync(new List<string> { oldReaderName });
+
+            var readerServiceManager = CreateReaderServiceManager();
+            var result = await readerServiceManager.RefreshReaderAsync(subscriberConfig, CancellationToken.None);
+
+            using (new AssertionScope())
+            {
+                result.Should().Be(ReaderRefreshResult.Failure | ReaderRefreshResult.Created | ReaderRefreshResult.ReaderAlreadyExists);
                 VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
                 VerifyFabricClientDeleteCalls(oldReaderName);
                 VerifyServiceCreatedEventPublished(desiredReader.ServiceNameWithSuffix);

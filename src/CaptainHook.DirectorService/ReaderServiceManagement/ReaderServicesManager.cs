@@ -64,7 +64,7 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
 
         public async Task<ReaderRefreshResult> RefreshReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken)
         {
-            var refreshResult = ReaderRefreshResult.None;
+            var result = ReaderRefreshResult.None;
 
             var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
             var existingReaders = ExistingReadersProvider.GetExistingReaders(deployedServices);
@@ -84,7 +84,7 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
 
             if (existingReader.IsValid)
             {
-                refreshResult |= ReaderRefreshResult.ReaderAlreadyExists;
+                result |= ReaderRefreshResult.ReaderAlreadyExists;
             }
 
             LogEvent(changeInfo);
@@ -92,16 +92,16 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeCreated))
             {
                 var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
-                refreshResult |= creationResult ? ReaderRefreshResult.Created : ReaderRefreshResult.Failure;
+                result |= creationResult ? ReaderRefreshResult.Created : ReaderRefreshResult.Failure;
             }
 
-            if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeRemoved))
+            if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeRemoved) && !result.HasFlag(ReaderRefreshResult.Failure))
             {
                 var deletionResult = await DeleteReaderServicesAsync(new[] { changeInfo.OldReader.ServiceNameWithSuffix }, cancellationToken);
-                refreshResult |= deletionResult ? ReaderRefreshResult.Deleted : ReaderRefreshResult.Failure;
+                result |= deletionResult ? ReaderRefreshResult.Deleted : ReaderRefreshResult.Failure;
             }
 
-            return refreshResult;
+            return result;
         }
 
         private void LogEvent(params ReaderChangeInfo[] changeSet)
@@ -184,7 +184,6 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
                     _bigBrother.Publish(deletionEvent);
 
                     toDelete.ExceptWith(completedTasks.Select(t => t.Name));
-
                     return false;
                 }
             }
