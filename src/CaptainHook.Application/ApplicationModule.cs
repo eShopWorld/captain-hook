@@ -22,8 +22,7 @@ namespace CaptainHook.Application
             builder.RegisterType<SubscriberEntityToConfigurationMapper>().As<ISubscriberEntityToConfigurationMapper>();
 
             builder.RegisterMediatorInfrastructure(ThisAssembly)
-                .RegisterValidationInfrastructure(ThisAssembly)
-                .RegisterValidationInfrastructure(typeof(SubscriberEntityValidator).Assembly);
+                .RegisterValidationInfrastructure(ThisAssembly);
         }
     }
 }

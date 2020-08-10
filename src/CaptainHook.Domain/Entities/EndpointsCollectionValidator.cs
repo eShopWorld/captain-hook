@@ -4,20 +4,20 @@ using FluentValidation;
 
 namespace CaptainHook.Domain.Entities
 {
-    public class WebhooksEntityValidator: AbstractValidator<WebhooksEntity>
+    public class EndpointsCollectionValidator : AbstractValidator<IEnumerable<EndpointEntity>>
     {
-        public WebhooksEntityValidator()
+        public EndpointsCollectionValidator()
         {
             CascadeMode = CascadeMode.StopOnFirstFailure;
 
-            RuleFor(x => x.Endpoints)
+            RuleFor(x => x)
                 .NotEmpty().WithMessage("Webhooks list must contain at list one endpoint");
 
-            RuleFor(x => x.Endpoints)
+            RuleFor(x => x)
                 .Must(ContainAtMostOneEndpointWithNoSelector)
                 .WithMessage("There can be only one endpoint with no selector");
 
-            RuleFor(x => x.Endpoints)
+            RuleFor(x => x)
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
                 .WithMessage("There cannot be multiple endpoints with the same selector");
         }

@@ -29,7 +29,7 @@ namespace CaptainHook.Application.Tests.Handlers
         private readonly Mock<IValidator<SubscriberEntity>> _subscriberValidatorMock =
             new Mock<IValidator<SubscriberEntity>>();
 
-        private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object, _subscriberValidatorMock.Object);
+        private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object);
 
         [Fact, IsUnit]
         public async Task When_SubscriberDoesNotExist_Then_NewOneWillBePassedToDirectorServiceAndStoredInRepository()
@@ -63,7 +63,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var subscriberEntity = new SubscriberBuilder()
                 .WithEvent("event")
                 .WithName("subscriber")
-                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector", 
+                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", null, 
                     authentication: new AuthenticationEntity(
                         "captain-hook-id",
                         new SecretStoreEntity("kvname", "kv-secret-name"),
@@ -84,8 +84,8 @@ namespace CaptainHook.Application.Tests.Handlers
             result.IsError.Should().BeFalse();
             result.Data.Should().BeEquivalentTo(request.Endpoint);
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Never);
-            _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
+            _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 
         [Fact, IsUnit]

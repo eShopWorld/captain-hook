@@ -1,9 +1,8 @@
 ﻿using System.Linq;
-using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using FluentValidation.Results;
 
-namespace CaptainHook.Application.Infrastructure
+namespace CaptainHook.Domain.Errors
 {
     public class ValidationErrorBuilder
     {

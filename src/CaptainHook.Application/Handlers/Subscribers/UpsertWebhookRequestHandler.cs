@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
@@ -10,7 +9,6 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
-using FluentValidation;
 using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
@@ -19,16 +17,12 @@ namespace CaptainHook.Application.Handlers.Subscribers
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
-        private readonly IValidator<SubscriberEntity> _validator;
 
-        public UpsertWebhookRequestHandler(
-            ISubscriberRepository subscriberRepository,
-            IDirectorServiceProxy directorService,
-            IValidator<SubscriberEntity> validator)
+        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository,
+            IDirectorServiceProxy directorService)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;
-            _validator = validator;
         }
 
         public async Task<OperationResult<EndpointDto>> Handle(UpsertWebhookRequest request,
@@ -84,12 +78,11 @@ namespace CaptainHook.Application.Handlers.Subscribers
             CancellationToken cancellationToken)
         {
             var endpoint = MapRequestToEndpoint(request, existingItem);
-            existingItem.AddWebhookEndpoint(endpoint);
+            var addWebhookResult = existingItem.AddWebhookEndpoint(endpoint);
 
-            var validationResult = await _validator.ValidateAsync(existingItem, cancellationToken);
-            if (! validationResult.IsValid)
+            if (addWebhookResult.IsError)
             {
-                return new ValidationErrorBuilder().Build(validationResult);
+                return addWebhookResult.Error;
             }
 
             var directorResult = await _directorService.UpdateReaderAsync(existingItem);
