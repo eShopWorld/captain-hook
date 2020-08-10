@@ -17,51 +17,86 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             _secretProvider = secretProvider;
         }
 
-        public async Task<IEnumerable<SubscriberConfiguration>> MapSubscriber(SubscriberEntity cosmosModel)
+        public async Task<IEnumerable<SubscriberConfiguration>> MapSubscriberAsync(SubscriberEntity entity)
         {
-            return new[]
+            return new List<SubscriberConfiguration>
             {
-                await MapBasicSubscriberData(cosmosModel)
+                await MapWebhooksAsync(entity)
+                // await MapCallbacksAsync(entity)
+                // await MapDlqsAsync(entity)
             };
-
-            // DLQ handling not needed now
-            //var dlq = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
-            //if (dlq != null)
-            //{
-            //    yield return MapDlq(cosmosModel);
-            //}
         }
 
-        private async Task<SubscriberConfiguration> MapBasicSubscriberData(SubscriberEntity entity)
+        private async Task<SubscriberConfiguration> MapWebhooksAsync(SubscriberEntity entity)
         {
-            SubscriberConfiguration config;
-
-            var firstEndpoint = entity.Webhooks?.Endpoints?.FirstOrDefault();
-            if (firstEndpoint?.UriTransform != null)
+            if (string.IsNullOrEmpty(entity.Webhooks?.SelectionRule) &&
+                entity.Webhooks?.Endpoints?.Count() == 1 &&
+                string.IsNullOrEmpty(entity.Webhooks?.Endpoints?.FirstOrDefault()?.Selector))
             {
-                config = await MapForUriTransform(entity, firstEndpoint);
+                return await MapSingleWebhookWithNoUriTransformAsync(entity);
             }
             else
             {
-                config = await MapStandardWay(entity, firstEndpoint);
+                return await MapForUriTransformAsync(entity);
             }
-
-            return config;
         }
 
-        private async Task<SubscriberConfiguration> MapStandardWay(SubscriberEntity entity, EndpointEntity firstEndpoint)
+        private async Task<SubscriberConfiguration> MapSingleWebhookWithNoUriTransformAsync(SubscriberEntity entity)
         {
             return new SubscriberConfiguration
             {
                 Name = entity.Id,
                 SubscriberName = entity.Name,
                 EventType = entity.ParentEvent.Name,
-                Uri = firstEndpoint.Uri,
-                AuthenticationConfig = await MapAuthentication(firstEndpoint.Authentication),
+                Uri = entity.Webhooks?.Endpoints?.FirstOrDefault()?.Uri,
+                AuthenticationConfig = await MapAuthenticationAsync(entity.Webhooks?.Endpoints?.FirstOrDefault()?.Authentication),
             };
         }
 
-        private async Task<SubscriberConfiguration> MapForUriTransform(SubscriberEntity entity, EndpointEntity firstEndpoint)
+        private async Task<SubscriberConfiguration> MapForUriTransformAsync(SubscriberEntity entity)
+        {
+            var replacements = new Dictionary<string, string>(entity.Webhooks.Endpoints.SelectMany(x => x.UriTransform.Replace))
+            {
+                { "selector", entity.Webhooks.SelectionRule }
+            };
+
+            var routes = await MapWebhooksToRoutesAsync(entity.Webhooks);
+
+            return new SubscriberConfiguration
+            {
+                Name = entity.Id,
+                SubscriberName = entity.Name,
+                EventType = entity.ParentEvent.Name,
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                    new WebhookRequestRule
+                    {
+                        Source = new SourceParserLocation { Replace = replacements },
+                        Destination = new ParserLocation { RuleAction = RuleAction.RouteAndReplace },
+                        Routes = routes.ToList()
+                    }
+                }
+            };
+        }
+
+        private async Task<IEnumerable<WebhookConfigRoute>> MapWebhooksToRoutesAsync(WebhooksEntity webhooks)
+        {
+            var tasks = webhooks.Endpoints.Select(MapEndpointToRouteAsync);
+            return await Task.WhenAll(tasks);
+        }
+
+        private async Task<WebhookConfigRoute> MapEndpointToRouteAsync(EndpointEntity endpoint)
+        {
+            return new WebhookConfigRoute
+            {
+                Uri = endpoint.Uri,
+                HttpVerb = endpoint.HttpVerb,
+                Selector = endpoint.Selector ?? "*",
+                AuthenticationConfig = await MapAuthenticationAsync(endpoint.Authentication),
+            };
+        }
+
+        private async Task<SubscriberConfiguration> MapSingleWebhookWithUriTransformAsync(EndpointEntity endpoint, SubscriberEntity entity)
         {
             return new SubscriberConfiguration
             {
@@ -72,16 +107,16 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 {
                     new WebhookRequestRule
                     {
-                        Source = new SourceParserLocation {Replace = firstEndpoint.UriTransform.Replace},
-                        Destination = new ParserLocation {RuleAction = RuleAction.RouteAndReplace},
+                        Source = new SourceParserLocation { Replace = endpoint.UriTransform.Replace },
+                        Destination = new ParserLocation { RuleAction = RuleAction.RouteAndReplace },
                         Routes = new List<WebhookConfigRoute>
                         {
                             new WebhookConfigRoute
                             {
-                                Uri = firstEndpoint.Uri,
-                                HttpVerb = firstEndpoint.HttpVerb,
-                                Selector = "*",
-                                AuthenticationConfig = await MapAuthentication(firstEndpoint.Authentication),
+                                Uri = endpoint.Uri,
+                                HttpVerb = endpoint.HttpVerb,
+                                Selector = endpoint.Selector,
+                                AuthenticationConfig = await MapAuthenticationAsync(endpoint.Authentication),
                             }
                         }
                     }
@@ -89,7 +124,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             };
         }
 
-        private async Task<AuthenticationConfig> MapAuthentication(AuthenticationEntity cosmosAuthentication)
+        private async Task<AuthenticationConfig> MapAuthenticationAsync(AuthenticationEntity cosmosAuthentication)
         {
             if (cosmosAuthentication?.SecretStore?.SecretName == null)
                 return null;
