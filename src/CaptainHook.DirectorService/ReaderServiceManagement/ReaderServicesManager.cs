@@ -72,7 +72,27 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             LogEvent(changeInfo);
 
             var result = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
+
+            if (result)
+            {
+                
+            }
+
             return result ? CreateReaderResult.Created : CreateReaderResult.Failed;
+        }
+
+        public async Task<UpdateReaderResult> UpdateReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken)
+        {
+            var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
+            if (deployedServices.Any(x => changeInfo.OldReader.ServiceNameWithSuffix.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                return UpdateReaderResult.DoesNotExist;
+            }
+
+            LogEvent(changeInfo);
+
+            var result = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
+            return result ? UpdateReaderResult.Success : UpdateReaderResult.Failed;
         }
 
         private void LogEvent(params ReaderChangeInfo[] changeSet)

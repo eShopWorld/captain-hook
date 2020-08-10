@@ -22,14 +22,14 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
         {
             var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
-            var createReaderResult = await _directorService.CreateReaderAsync(subscriberConfigs.Single());
+            var createReaderResult = await _directorService.CreateOrUpdateReaderAsync(subscriberConfigs.Single());
 
             return createReaderResult switch
             {
-                CreateReaderResult.Created => true,
-                CreateReaderResult.AlreadyExists => true,
-                CreateReaderResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
-                CreateReaderResult.Failed => new ReaderCreationError(subscriber),
+                ReaderOperationResult.Success => true,
+                ReaderOperationResult.AlreadyExists => true,
+                ReaderOperationResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
+                ReaderOperationResult.Failed => new ReaderCreationError(subscriber),
                 _ => new BusinessError("Director Service returned unknown result.")
             };
         }

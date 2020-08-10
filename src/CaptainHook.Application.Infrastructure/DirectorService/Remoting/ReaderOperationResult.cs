@@ -8,4 +8,13 @@
         DirectorIsBusy,
         Failed
     }
+
+    public enum UpdateReaderResult
+    {
+        None = 0,
+        Success,
+        DoesNotExist,
+        DirectorIsBusy,
+        Failed
+    }
 }

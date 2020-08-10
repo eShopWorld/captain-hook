@@ -207,5 +207,38 @@ namespace CaptainHook.DirectorService
             _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
             return CreateReaderResult.DirectorIsBusy;
         }
+
+        public Task<UpdateReaderResult> UpdateReaderAsync(SubscriberConfiguration subscriber)
+        {
+            throw new NotImplementedException();
+        }
+
+        //public async Task<ReaderOperationResult> CreateOrUpdateReaderAsync(SubscriberConfiguration subscriber)
+        //{
+        //    if (!_refreshInProgress)
+        //    {
+        //        await _semaphoreSlim.WaitAsync(_cancellationToken);
+
+        //        try
+        //        {
+        //            if (!_refreshInProgress)
+        //            {
+        //                _refreshInProgress = true;
+
+        //                var changeInfo = ReaderChangeInfo.ToBeCreated(new DesiredReaderDefinition(subscriber));
+
+        //                return await _readerServicesManager.CreateOrUpdateReaderAsync(changeInfo, _cancellationToken);
+        //            }
+        //        }
+        //        finally
+        //        {
+        //            _refreshInProgress = false;
+        //            _semaphoreSlim.Release();
+        //        }
+        //    }
+
+        //    _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
+        //    return ReaderOperationResult.DirectorIsBusy;
+        //}
     }
 }
