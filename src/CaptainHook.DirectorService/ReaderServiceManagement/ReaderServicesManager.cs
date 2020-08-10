@@ -67,20 +67,10 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             var result = ReaderRefreshResult.None;
 
             var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
-            var existingReaders = ExistingReadersProvider.GetExistingReaders(deployedServices);
+            var existingReaders = ExistingReadersBuilder.FromNames(deployedServices);
             var desiredReader = new DesiredReaderDefinition(subscriber);
-
-            ReaderChangeInfo changeInfo = default;
-
             var existingReader = existingReaders.SingleOrDefault(r => desiredReader.IsTheSameService(r));
-            if (!existingReader.IsValid)
-            {
-                changeInfo = ReaderChangeInfo.ToBeCreated(desiredReader);
-            }
-            else if (!desiredReader.IsUnchanged(existingReader))
-            {
-                changeInfo = ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader);
-            }
+            var changeInfo = CreateChangeInfo(existingReader, desiredReader);
 
             if (existingReader.IsValid)
             {
@@ -92,16 +82,31 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeCreated))
             {
                 var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
-                result |= creationResult ? ReaderRefreshResult.Created : ReaderRefreshResult.Failure;
+                result |= creationResult ? ReaderRefreshResult.Created : ReaderRefreshResult.CreateFailed;
             }
 
-            if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeRemoved) && !result.HasFlag(ReaderRefreshResult.Failure))
+            if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeRemoved) && !result.HasFlag(ReaderRefreshResult.CreateFailed))
             {
                 var deletionResult = await DeleteReaderServicesAsync(new[] { changeInfo.OldReader.ServiceNameWithSuffix }, cancellationToken);
-                result |= deletionResult ? ReaderRefreshResult.Deleted : ReaderRefreshResult.Failure;
+                result |= deletionResult ? ReaderRefreshResult.Deleted : ReaderRefreshResult.CreateFailed;
             }
 
             return result;
+        }
+
+        private static ReaderChangeInfo CreateChangeInfo(ExistingReaderDefinition existingReader, DesiredReaderDefinition desiredReader)
+        {
+            if (!existingReader.IsValid)
+            {
+                return ReaderChangeInfo.ToBeCreated(desiredReader);
+            }
+
+            if (!desiredReader.IsUnchanged(existingReader))
+            {
+                return ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader);
+            }
+
+            return new ReaderChangeInfo();
         }
 
         private void LogEvent(params ReaderChangeInfo[] changeSet)

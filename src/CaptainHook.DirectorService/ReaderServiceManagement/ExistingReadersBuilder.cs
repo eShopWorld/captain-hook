@@ -5,9 +5,9 @@ using CaptainHook.Common;
 
 namespace CaptainHook.DirectorService.ReaderServiceManagement
 {
-    public class ExistingReadersProvider
+    public class ExistingReadersBuilder
     {
-        public static IEnumerable<ExistingReaderDefinition> GetExistingReaders(IEnumerable<string> deployedServicesNames)
+        public static IEnumerable<ExistingReaderDefinition> FromNames(IEnumerable<string> deployedServicesNames)
         {
             return deployedServicesNames
                 .Where(s => s.StartsWith(

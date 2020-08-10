@@ -78,16 +78,29 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Fact, IsUnit]
-        public async Task When_RefreshFailed_Then_ReaderCreationErrorReturned()
+        public async Task When_ReaderCreationFailed_Then_ReaderCreationErrorReturned()
         {
             _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderRefreshResult.Failure);
+                .ReturnsAsync(ReaderRefreshResult.CreateFailed | ReaderRefreshResult.ReaderAlreadyExists);
 
             var proxy = new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
             var result = await proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderCreationError>();
+        }
+
+        [Fact, IsUnit]
+        public async Task When_ReaderDeletionFailed_Then_ReaderDeletionErrorReturned()
+        {
+            _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
+                .ReturnsAsync(ReaderRefreshResult.CreateFailed | ReaderRefreshResult.ReaderAlreadyExists | ReaderRefreshResult.Created);
+
+            var proxy = new DirectorServiceProxy(_mapperMock.Object, _directorServiceMock.Object);
+            var result = await proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+
+            result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<ReaderDeletionError>();
         }
 
         [Fact, IsUnit]

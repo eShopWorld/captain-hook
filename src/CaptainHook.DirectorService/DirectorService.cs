@@ -191,7 +191,6 @@ namespace CaptainHook.DirectorService
                     if (!_refreshInProgress)
                     {
                         _refreshInProgress = true;
-
                         return await _readerServicesManager.RefreshReaderAsync(subscriber, _cancellationToken);
                     }
                 }

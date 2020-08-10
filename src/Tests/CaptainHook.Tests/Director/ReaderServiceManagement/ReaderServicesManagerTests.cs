@@ -260,7 +260,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
             using (new AssertionScope())
             {
-                result.Should().Be(ReaderRefreshResult.Failure);
+                result.Should().Be(ReaderRefreshResult.CreateFailed);
                 VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
                 VerifyFabricClientDeleteCalls();
                 VerifyServiceCreatedEventPublished();
@@ -284,7 +284,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
             using (new AssertionScope())
             {
-                result.Should().Be(ReaderRefreshResult.Failure | ReaderRefreshResult.ReaderAlreadyExists);
+                result.Should().Be(ReaderRefreshResult.CreateFailed | ReaderRefreshResult.ReaderAlreadyExists);
                 VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
                 VerifyFabricClientDeleteCalls();
                 VerifyServiceCreatedEventPublished();
@@ -308,7 +308,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
             using (new AssertionScope())
             {
-                result.Should().Be(ReaderRefreshResult.Failure | ReaderRefreshResult.Created | ReaderRefreshResult.ReaderAlreadyExists);
+                result.Should().Be(ReaderRefreshResult.CreateFailed | ReaderRefreshResult.Created | ReaderRefreshResult.ReaderAlreadyExists);
                 VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
                 VerifyFabricClientDeleteCalls(oldReaderName);
                 VerifyServiceCreatedEventPublished(desiredReader.ServiceNameWithSuffix);
