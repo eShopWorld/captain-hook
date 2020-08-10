@@ -18,11 +18,9 @@ namespace CaptainHook.Application.Tests
 
         public ValidatorPipelineBehaviorTests()
         {
-            var thisAssembly = Assembly.GetExecutingAssembly();
-
-            var builder = new ContainerBuilder();
-            builder.RegisterMediatorInfrastructure(thisAssembly, thisAssembly);
-            var container = builder.Build();
+            var container = new ContainerBuilder()
+                .RegisterMediatorInfrastructure(Assembly.GetExecutingAssembly())
+                .Build();
 
             _mediator = container.Resolve<IMediator>();
         }

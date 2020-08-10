@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Application.Infrastructure;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
@@ -9,6 +10,7 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
+using FluentValidation;
 using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
@@ -17,11 +19,16 @@ namespace CaptainHook.Application.Handlers.Subscribers
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
+        private readonly IValidator<SubscriberEntity> _validator;
 
-        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceProxy directorService)
+        public UpsertWebhookRequestHandler(
+            ISubscriberRepository subscriberRepository,
+            IDirectorServiceProxy directorService,
+            IValidator<SubscriberEntity> validator)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;
+            _validator = validator;
         }
 
         public async Task<OperationResult<EndpointDto>> Handle(UpsertWebhookRequest request,
@@ -32,7 +39,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
                 var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-                if (existingItem.IsError && existingItem.Error is EntityNotFoundError)
+                if (existingItem.Error is EntityNotFoundError)
                 {
                     return await AddAsync(request, cancellationToken);
                 }
@@ -79,16 +86,18 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var endpoint = MapRequestToEndpoint(request, existingItem);
             existingItem.AddWebhookEndpoint(endpoint);
 
-            //validate if correct
+            var validationResult = await _validator.ValidateAsync(existingItem, cancellationToken);
+            if (! validationResult.IsValid)
+            {
+                return new ValidationErrorBuilder().Build(validationResult);
+            }
 
-            //update reader
             var directorResult = await _directorService.UpdateReaderAsync(existingItem);
             if (directorResult.IsError)
             {
                 return directorResult.Error;
             }
 
-            //update subscriber
             var updateResult = await _subscriberRepository.UpdateSubscriberAsync(existingItem);
             if (updateResult.IsError)
             {

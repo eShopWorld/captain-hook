@@ -15,6 +15,7 @@ using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using FluentValidation;
 using Moq;
 using Xunit;
 
@@ -25,7 +26,10 @@ namespace CaptainHook.Application.Tests.Handlers
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
 
-        private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object);
+        private readonly Mock<IValidator<SubscriberEntity>> _subscriberValidatorMock =
+            new Mock<IValidator<SubscriberEntity>>();
+
+        private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object, _subscriberValidatorMock.Object);
 
         [Fact, IsUnit]
         public async Task When_SubscriberDoesNotExist_Then_NewOneWillBePassedToDirectorServiceAndStoredInRepository()
