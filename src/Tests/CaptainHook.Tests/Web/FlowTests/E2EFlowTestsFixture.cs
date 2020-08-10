@@ -143,7 +143,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                 EnvironmentSettings.StsSettings.Subject,
                 _testsConfig.StsClientId,
                 new string[] { PeterPanConsts.PeterPanDeliveryScope },
-                new string[] { "eda.peterpan.api" } );
+                EnvironmentSettings.StsSettings.Audience );
             return new TokenCredentialsBuilder(tb).Build();
         }
     }
