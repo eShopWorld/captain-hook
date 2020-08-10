@@ -17,7 +17,7 @@ namespace CaptainHook.Api.Controllers
     /// Subscribers controller
     /// </summary>
     [Route("api/subscribers")]
-    [Authorize(Policy = AuthorisationPolicies.SubscribersAccess)]
+    [Authorize(Policy = AuthorisationPolicies.ReadSubscribers)]
     [ApiController]
     public class SubscribersController : ControllerBase
     {
@@ -39,8 +39,12 @@ namespace CaptainHook.Api.Controllers
         /// Retrieve all subscribers from current configuration
         /// </summary>
         /// <response code="200">Subscribers retrieved properly</response>
+        /// <response code="503">Configuration has not been fully loaded yet</response>
+        /// <response code="500">An error occurred while processing the request</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAll()
         {
             try
@@ -49,14 +53,19 @@ namespace CaptainHook.Api.Controllers
                 var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
                 var subscribers = await directorServiceClient.GetAllSubscribersAsync();
 
+                if(subscribers == null)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable);
+                }
+
                 AuthenticationConfigSanitizer.Sanitize(subscribers.Values);
 
                 return Ok(subscribers);
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception);
-                return BadRequest();
+                _bigBrother.Publish(exception.ToExceptionEvent());
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
     }

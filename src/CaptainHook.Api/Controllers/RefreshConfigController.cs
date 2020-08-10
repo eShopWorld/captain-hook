@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CaptainHook.Api.Constants;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using Eshopworld.Core;
@@ -14,7 +15,7 @@ namespace CaptainHook.Api.Controllers
     /// Refresh configuration controller
     /// </summary>
     [Route("api/refresh-config")]
-    [Authorize]
+    [Authorize(Policy = AuthorisationPolicies.ReadSubscribers)]
     public class RefreshConfigController: ControllerBase
     {
         private readonly IBigBrother _bigBrother;
@@ -52,7 +53,7 @@ namespace CaptainHook.Api.Controllers
             }
             catch (Exception exception)
             {
-                _bigBrother.Publish(exception);
+                _bigBrother.Publish(exception.ToExceptionEvent());
                 return BadRequest();
             }
         }
