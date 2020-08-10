@@ -54,8 +54,8 @@ namespace CaptainHook.Tests.Services.Reliable
             _context = CustomMockStatefulServiceContextFactory.Create(
                 ServiceNaming.EventReaderServiceType,
                 ServiceNaming.EventReaderServiceFullUri("test.type", "subA"),
-                EventReaderInitData.FromSubscriberConfiguration(subscriberConfiguration, new WebhookConfig()).ToByteArray(),
-                replicaId:(new Random(int.MaxValue)).Next());
+                EventReaderInitData.FromSubscriberConfiguration(subscriberConfiguration).ToByteArray(),
+                replicaId: (new Random(int.MaxValue)).Next());
             _mockActorProxyFactory = new MockActorProxyFactory();
             _stateManager = new MockReliableStateManager();
             _config = new ConfigurationSettings();
@@ -281,7 +281,7 @@ namespace CaptainHook.Tests.Services.Reliable
             {
                 var messageDataHandle = await dictionary.TryGetValueAsync(tx, expectedHandlerId);
                 //reconstruct the message so we can call complete
-                messageData = new MessageData("Hello World 1", eventName, "subA", "service");               
+                messageData = new MessageData("Hello World 1", eventName, "subA", "service");
             }
 
             await service.CompleteMessageAsync(messageData, messageDelivered, CancellationToken.None);
@@ -293,29 +293,19 @@ namespace CaptainHook.Tests.Services.Reliable
 
         [Theory]
         [IsUnit]
-        [InlineData("test.type", "test.type-1",  1)]
-        [InlineData("test.type", "test.type-2",  5)]
+        [InlineData("test.type", "test.type-1", 1)]
+        [InlineData("test.type", "test.type-2", 5)]
         public async Task InitSubscriberDataIsPassedToHandlers(string eventName, string handlerName, int messageCount)
         {
             var actor = CreateMockEventHandlerActor(new ActorId(handlerName));
             _mockActorProxyFactory.RegisterActor(actor);
 
-            var webhookConfig = new WebhookConfig
-            {
-                Name = "test-name-1",
-                AuthenticationConfig = new OidcAuthenticationConfig
-                {
-                    ClientId = "test-client-id",
-                    Uri = "https://test.com/sts"
-                },
-                Uri = "https://test.com/webhook"
-            };
+            var subscriberConfiguration = new SubscriberConfiguration { EventType = eventName, SubscriberName = "subA" };
+
             var context = CustomMockStatefulServiceContextFactory.Create(
                 ServiceNaming.EventReaderServiceType,
                 ServiceNaming.EventReaderServiceFullUri("test.type", "subA"),
-                EventReaderInitData.FromSubscriberConfiguration(
-                    new SubscriberConfiguration { EventType = eventName, SubscriberName = "subA" },
-                    webhookConfig).ToByteArray(),
+                EventReaderInitData.FromSubscriberConfiguration(subscriberConfiguration).ToByteArray(),
                 replicaId: (new Random(int.MaxValue)).Next());
 
             var count = 0;
@@ -358,14 +348,14 @@ namespace CaptainHook.Tests.Services.Reliable
             await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
-            actor.MessageDataInstances.Select(m => m.WebhookConfig).Should().AllBeEquivalentTo(webhookConfig);
+            actor.MessageDataInstances.Select(m => m.SubscriberConfig).Should().AllBeEquivalentTo(subscriberConfiguration);
         }
 
         /// <summary>
         /// Tests the service to determine that it can change role gracefully - while keeping messages and state inflight while migrating to the active secondaries.
         /// </summary>
         /// <returns></returns>
-        [Theory(Skip ="no longer applicable as state is not being transferred")]
+        [Theory(Skip = "no longer applicable as state is not being transferred")]
         [IsUnit]
         [InlineData("test.type", 1)]
         [InlineData("test.type", 10)]
@@ -373,7 +363,7 @@ namespace CaptainHook.Tests.Services.Reliable
         {
             for (var x = 1; x <= messageCount; x++)
                 _mockActorProxyFactory.RegisterActor(
-                    CreateMockEventHandlerActor(new ActorId(string.Format(eventName+"-{0}", x))));
+                    CreateMockEventHandlerActor(new ActorId(string.Format(eventName + "-{0}", x))));
 
             var count = 0;
             _mockMessageProvider.Setup(s => s.ReceiveAsync(
@@ -420,7 +410,7 @@ namespace CaptainHook.Tests.Services.Reliable
             await replicaSet.AddReplicaAsync(ReplicaRole.Primary, 1, initializationData: Encoding.UTF8.GetBytes("test.type"));
 
             //add a new ActiveSecondary replica
-            await replicaSet.AddReplicaAsync(ReplicaRole.ActiveSecondary,2, initializationData: Encoding.UTF8.GetBytes("test.type"));
+            await replicaSet.AddReplicaAsync(ReplicaRole.ActiveSecondary, 2, initializationData: Encoding.UTF8.GetBytes("test.type"));
 
             //add a second ActiveSecondary replica
             await replicaSet.AddReplicaAsync(ReplicaRole.ActiveSecondary, 3, initializationData: Encoding.UTF8.GetBytes("test.type"));
@@ -443,7 +433,7 @@ namespace CaptainHook.Tests.Services.Reliable
             var oldPrimaryReplicaId = replicaSet.Primary.ReplicaId;
 
             await replicaSet.PromoteActiveSecondaryToPrimaryAsync(replicaSet.FirstActiveSecondary.ReplicaId);
-            
+
             replicaSet.Primary.ReplicaId.Should().NotBe(oldPrimaryReplicaId);
 
             CheckInFlightMessagesOnPrimary();

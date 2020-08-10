@@ -92,7 +92,7 @@ namespace CaptainHook.Api
 
                 services.AddControllers(options =>
                 {
-                    var policy = ScopePolicy.Create(serviceConfiguration.RequiredScopes.ToArray());
+                    var policy = ScopePolicy.Create(serviceConfiguration.RequiredScopes?.ToArray() ?? new string[0]);
 
                     var filter = EnvironmentHelper.IsInFabric ?
                         (IFilterMetadata)new AuthorizeFilter(policy) :
@@ -157,10 +157,12 @@ namespace CaptainHook.Api
                 });
                 services.AddAuthorization(options =>
                 {
-                    options.AddPolicy(Constants.AuthorisationPolicies.SubscribersAccess,
-                        policy => policy.RequireScope(Constants.AuthorisationScopes.ApiAllAccess));
+                    options.AddPolicy(Constants.AuthorisationPolicies.ReadSubscribers,
+                        policy => policy.RequireScope(Constants.AuthorisationScopes.ApiReadSubscribers));
                      options.AddPolicy(Constants.AuthorisationPolicies.DefineSubscribers,
                         policy => policy.RequireScope(Constants.AuthorisationScopes.ApiDefineSubscribers));
+                    options.AddPolicy(Constants.AuthorisationPolicies.DeleteSubscribers,
+                       policy => policy.RequireScope(Constants.AuthorisationScopes.ApiDeleteSubscribers));
                 });
             }
             catch (Exception e)

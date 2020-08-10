@@ -33,13 +33,6 @@ namespace CaptainHook.Storage.Cosmos.Models
         public string HttpVerb { get; set; }
 
         /// <summary>
-        /// Endpoint type (Webhook, Subscriber, DLQ)
-        /// </summary>
-        [JsonProperty("type")]
-        [JsonConverter(typeof(StringEnumConverter))]
-        public EndpointType Type { get; set; }
-
-        /// <summary>
         /// Defines Uri transformation definition
         /// </summary>
         [JsonProperty("uriTransform", NullValueHandling = NullValueHandling.Ignore)]

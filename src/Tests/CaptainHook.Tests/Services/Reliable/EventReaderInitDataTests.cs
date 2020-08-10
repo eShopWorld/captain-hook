@@ -5,6 +5,7 @@ using CaptainHook.Common.ServiceModels;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using System.Collections.Generic;
+using CaptainHook.Tests.Builders;
 using Xunit;
 
 namespace CaptainHook.Tests.Services.Reliable
@@ -12,7 +13,6 @@ namespace CaptainHook.Tests.Services.Reliable
     public class EventReaderInitDataTests
     {
         private readonly SubscriberConfiguration _subscriberConfiguration;
-        private readonly WebhookConfig _webhookConfig;
 
         public EventReaderInitDataTests()
         {
@@ -86,17 +86,13 @@ namespace CaptainHook.Tests.Services.Reliable
                     }
                 }
             };
-
-            _webhookConfig = new WebhookConfig();
         }
 
         [Fact]
         [IsUnit]
         public void CanPassSubscriberConfiguration()
         {
-            var buffer = EventReaderInitData
-                .FromSubscriberConfiguration(_subscriberConfiguration, _webhookConfig)
-                .ToByteArray();
+            var buffer = EventReaderInitData.FromSubscriberConfiguration(_subscriberConfiguration).ToByteArray();
 
             var eventReaderInitData = EventReaderInitData.FromByteArray(buffer);
 
@@ -115,7 +111,7 @@ namespace CaptainHook.Tests.Services.Reliable
             };
 
             // Act
-            var initData = EventReaderInitData.FromSubscriberConfiguration(heartBeatDisabledSubscriber, _webhookConfig);
+            var initData = EventReaderInitData.FromSubscriberConfiguration(heartBeatDisabledSubscriber);
 
             // Assert
             initData.HeartBeatInterval.Should().Be(TimeSpan.FromSeconds(5.0));
@@ -131,7 +127,7 @@ namespace CaptainHook.Tests.Services.Reliable
             };
 
             // Act
-            var initData = EventReaderInitData.FromSubscriberConfiguration(heartBeatDisabledSubscriber, _webhookConfig);
+            var initData = EventReaderInitData.FromSubscriberConfiguration(heartBeatDisabledSubscriber);
 
             // Assert
             initData.HeartBeatInterval.Should().Be(TimeSpan.FromMinutes(6.0));
@@ -144,7 +140,7 @@ namespace CaptainHook.Tests.Services.Reliable
             var heartBeatDisabledSubscriber = new SubscriberConfiguration();
 
             // Act
-            var initData = EventReaderInitData.FromSubscriberConfiguration(heartBeatDisabledSubscriber, _webhookConfig);
+            var initData = EventReaderInitData.FromSubscriberConfiguration(heartBeatDisabledSubscriber);
 
             // Assert
             initData.HeartBeatInterval.Should().BeNull();
