@@ -19,7 +19,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             _directorService = directorService;
         }
 
-        public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<bool>> RefreshReaderAsync(SubscriberEntity subscriber)
         {
             var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
             var createReaderResult = await _directorService.RefreshReaderAsync(subscriberConfigs.Single());
@@ -35,11 +35,6 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                 ReaderRefreshResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
                 _ => new BusinessError("Director Service returned unknown result.")
             };
-        }
-
-        public Task<OperationResult<bool>> UpdateReaderAsync(SubscriberEntity subscriber)
-        {
-            return Task.FromResult(new OperationResult<bool>(true));
         }
     }
 }
