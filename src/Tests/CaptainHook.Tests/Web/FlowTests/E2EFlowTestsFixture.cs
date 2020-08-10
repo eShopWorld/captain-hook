@@ -1,4 +1,3 @@
-using Azure.Core;
 using CaptainHook.Tests.Configuration;
 using Eshopworld.Core;
 using Eshopworld.DevOps;
@@ -6,9 +5,6 @@ using Eshopworld.Messaging;
 using Eshopworld.Telemetry;
 using EShopworld.Security.Services.Testing.Settings;
 using EShopworld.Security.Services.Testing.Token;
-using FluentAssertions;
-using IdentityModel.Client;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Rest;
 using Newtonsoft.Json;
@@ -20,8 +16,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 

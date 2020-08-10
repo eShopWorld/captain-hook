@@ -1,13 +1,4 @@
-﻿using Eshopworld.DevOps;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CaptainHook.Tests.Configuration
+﻿namespace CaptainHook.Tests.Configuration
 {
     /// <summary>
     /// Class to hold configuration values for Integration Tests. 
