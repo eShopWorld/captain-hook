@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
@@ -61,38 +62,39 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             await DeleteReaderServicesAsync(allServiceNamesToDelete, cancellationToken);
         }
 
-        public async Task<CreateReaderResult> CreateReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken)
+        public async Task<ReaderRefreshResult> RefreshReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken)
         {
+            var refreshResult = ReaderRefreshResult.None;
+
             var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
-            if (deployedServices.Any(x => changeInfo.NewReader.ServiceNameWithSuffix.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
+            var existingReaders = ExistingReadersProvider.GetExistingReaders(deployedServices);
+            var desiredReader = new DesiredReaderDefinition(subscriber);
+
+            ReaderChangeInfo changeInfo;
+            var existingReader = existingReaders.SingleOrDefault(r => r.ServiceName.Equals(desiredReader.ServiceName, StringComparison.InvariantCultureIgnoreCase));
+            if (!existingReader.IsValid)
             {
-                return CreateReaderResult.AlreadyExists;
+                refreshResult |= ReaderRefreshResult.ReaderExists;
+                changeInfo = ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader);
+            }
+            else
+            {
+                changeInfo = ReaderChangeInfo.ToBeCreated(desiredReader);
             }
 
             LogEvent(changeInfo);
 
-            var result = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
-
-            if (result)
+            var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
+            if (creationResult)
             {
-                
+                refreshResult |= ReaderRefreshResult.Success;
+            }
+            else
+            {
+                refreshResult |= ReaderRefreshResult.Failure;
             }
 
-            return result ? CreateReaderResult.Created : CreateReaderResult.Failed;
-        }
-
-        public async Task<UpdateReaderResult> UpdateReaderAsync(ReaderChangeInfo changeInfo, CancellationToken cancellationToken)
-        {
-            var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
-            if (deployedServices.Any(x => changeInfo.OldReader.ServiceNameWithSuffix.Equals(x, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                return UpdateReaderResult.DoesNotExist;
-            }
-
-            LogEvent(changeInfo);
-
-            var result = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
-            return result ? UpdateReaderResult.Success : UpdateReaderResult.Failed;
+            return refreshResult;
         }
 
         private void LogEvent(params ReaderChangeInfo[] changeSet)
