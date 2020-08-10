@@ -34,7 +34,7 @@ namespace CaptainHook.Application.Validators.Dtos
 
         private bool TheresAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
         {
-            return !string.IsNullOrWhiteSpace(webhooks.Endpoints.First().Selector);
+            return webhooks.Endpoints?.Any(e => !string.IsNullOrWhiteSpace(e.Selector)) ?? false;
         }
 
         private bool ContainAtMostOneEndpointWithNoSelector(List<EndpointDto> endpoints)
