@@ -44,15 +44,14 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Fact, IsUnit]
-        public async Task When_UriTransformDefined_Then_MappedCorrectlyToRouteAndReplace()
+        public async Task When_SingleWebhookWithNoSelectionRuleDefined_Then_MappedCorrectlyToRouteAndReplace()
         {
             var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
-                .WithWebhookSelectionRule("$.TenantCode")
-                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", "POST", null, uriTransform, authentication)
+                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", "POST", null, uriTransform, authentication)
                 .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
@@ -66,10 +65,85 @@ namespace CaptainHook.Application.Tests.Infrastructure
             subscriberConfiguration.WebhookRequestRules.Count.Should().Be(1);
             var rule = subscriberConfiguration.WebhookRequestRules.Single();
             rule.Routes.Count.Should().Be(1);
-            rule.Routes[0].Uri.Should().Be("https://blah-{selector}.eshopworld.com/webhook/");
+            rule.Routes[0].Uri.Should().Be("https://blah-{orderCode}.eshopworld.com/webhook/");
             rule.Routes[0].HttpMethod.Should().Be(HttpMethod.Post);
             rule.Routes[0].Selector.Should().Be("*");
             rule.Routes[0].AuthenticationConfig.Type.Should().Be(AuthenticationType.OIDC);
+            rule.Destination.RuleAction.Should().Be(RuleAction.RouteAndReplace);
+            rule.Source.Replace.Should().ContainKey("orderCode").WhichValue.Should().Be("$.OrderCode");
+        }
+
+        [Fact, IsUnit]
+        public async Task When_MultipleWebhooksWithDefaultSelector_Then_MappedCorrectlyToRouteAndReplace()
+        {
+            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+               "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
+            var uriTransform = new UriTransformEntity(
+                new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
+            var subscriber = new SubscriberBuilder()
+                .WithWebhookSelectionRule("$.TenantCode")
+                .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", "POST", null, uriTransform, authentication)
+                .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", "POST", "aSelector", uriTransform, authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            result.Should().HaveCount(1);
+            
+            var subscriberConfiguration = result.Single();
+            subscriberConfiguration.Should().NotBeNull();
+            subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
+            subscriberConfiguration.EventType.Should().Be("event");
+            subscriberConfiguration.Uri.Should().BeNull();
+            subscriberConfiguration.WebhookRequestRules.Count.Should().Be(1);
+            
+            var rule = subscriberConfiguration.WebhookRequestRules.Single();
+            rule.Routes.Count.Should().Be(2);
+            rule.Routes[0].Uri.Should().Be("https://order-{selector}.eshopworld.com/webhook/");
+            rule.Routes[0].HttpMethod.Should().Be(HttpMethod.Post);
+            rule.Routes[0].Selector.Should().Be("*");
+            rule.Routes[0].AuthenticationConfig.Type.Should().Be(AuthenticationType.OIDC);
+            rule.Routes[1].Uri.Should().Be("https://payments-{selector}.eshopworld.com/webhook/");
+            rule.Routes[1].HttpMethod.Should().Be(HttpMethod.Post);
+            rule.Routes[1].Selector.Should().Be("aSelector");
+            rule.Routes[1].AuthenticationConfig.Type.Should().Be(AuthenticationType.OIDC);
+            rule.Destination.RuleAction.Should().Be(RuleAction.RouteAndReplace);
+            rule.Source.Replace.Should().ContainKey("selector").WhichValue.Should().Be("$.TenantCode");
+            rule.Source.Replace.Should().ContainKey("orderCode").WhichValue.Should().Be("$.OrderCode");
+        }
+
+        [Fact, IsUnit]
+        public async Task When_MultipleWebhooksWithNoDefaultSelector_Then_MappedCorrectlyToRouteAndReplace()
+        {
+            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+               "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
+            var uriTransform = new UriTransformEntity(
+                new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
+            var subscriber = new SubscriberBuilder()
+                .WithWebhookSelectionRule("$.TenantCode")
+                .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", "POST", "aSelector", uriTransform, authentication)
+                .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", "POST", "bSelector", uriTransform, authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            result.Should().HaveCount(1);
+
+            var subscriberConfiguration = result.Single();
+            subscriberConfiguration.Should().NotBeNull();
+            subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
+            subscriberConfiguration.EventType.Should().Be("event");
+            subscriberConfiguration.Uri.Should().BeNull();
+            subscriberConfiguration.WebhookRequestRules.Count.Should().Be(1);
+
+            var rule = subscriberConfiguration.WebhookRequestRules.Single();
+            rule.Routes.Count.Should().Be(2);
+            rule.Routes[0].Uri.Should().Be("https://order-{selector}.eshopworld.com/webhook/");
+            rule.Routes[0].HttpMethod.Should().Be(HttpMethod.Post);
+            rule.Routes[0].Selector.Should().Be("aSelector");
+            rule.Routes[0].AuthenticationConfig.Type.Should().Be(AuthenticationType.OIDC);
+            rule.Routes[1].Uri.Should().Be("https://payments-{selector}.eshopworld.com/webhook/");
+            rule.Routes[1].HttpMethod.Should().Be(HttpMethod.Post);
+            rule.Routes[1].Selector.Should().Be("bSelector");
+            rule.Routes[1].AuthenticationConfig.Type.Should().Be(AuthenticationType.OIDC);
             rule.Destination.RuleAction.Should().Be(RuleAction.RouteAndReplace);
             rule.Source.Replace.Should().ContainKey("selector").WhichValue.Should().Be("$.TenantCode");
             rule.Source.Replace.Should().ContainKey("orderCode").WhichValue.Should().Be("$.OrderCode");
