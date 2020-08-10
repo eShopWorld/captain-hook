@@ -21,11 +21,6 @@ namespace CaptainHook.Tests.Configuration
         public string ServiceBusConnectionString { get; set; }
         public string AzureSubscriptionId { get; set; }
         public string PeterPanBaseUrl { get; set; }
-
-        /// <summary>
-        /// The StsClientSecret value
-        /// </summary>
-        public string ApiSecret { get; set; }
         public string StsClientId { get; set; }
     }
 }
