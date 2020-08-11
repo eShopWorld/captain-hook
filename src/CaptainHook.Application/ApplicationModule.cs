@@ -1,11 +1,9 @@
 ﻿using System;
 using Autofac;
-using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
-using CaptainHook.Application.Validators;
 using CaptainHook.Common;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 
@@ -22,9 +20,7 @@ namespace CaptainHook.Application
             builder.RegisterType<DirectorServiceProxy>().As<IDirectorServiceProxy>();
             builder.RegisterType<SubscriberEntityToConfigurationMapper>().As<ISubscriberEntityToConfigurationMapper>();
 
-            var handlersAssembly = typeof(UpsertWebhookRequestHandler).Assembly;
-            var validatorsAssembly = typeof(UpsertWebhookRequestValidator).Assembly;
-            builder.RegisterMediatorInfrastructure(handlersAssembly, validatorsAssembly);
+            builder.RegisterMediatorInfrastructure(ThisAssembly, ThisAssembly);
         }
     }
 }
