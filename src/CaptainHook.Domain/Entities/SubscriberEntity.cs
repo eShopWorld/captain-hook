@@ -1,4 +1,9 @@
-﻿using CaptainHook.Domain.ValueObjects;
+﻿using System.Collections.Generic;
+using System.Linq;
+using CaptainHook.Domain.Errors;
+using CaptainHook.Domain.Results;
+using CaptainHook.Domain.ValueObjects;
+using FluentValidation;
 
 namespace CaptainHook.Domain.Entities
 {
@@ -7,6 +12,10 @@ namespace CaptainHook.Domain.Entities
     /// </summary>
     public class SubscriberEntity
     {
+        private static readonly IValidator<IEnumerable<EndpointEntity>> EndpointsValidator = new EndpointsCollectionValidator();
+
+        private static readonly ValidationErrorBuilder ValidationErrorBuilder = new ValidationErrorBuilder();
+
         public SubscriberId Id => new SubscriberId(ParentEvent?.Name, Name);
 
         /// <summary>
@@ -37,20 +46,28 @@ namespace CaptainHook.Domain.Entities
         }
 
         /// <summary>
-        /// Adds an enpoint to the list of webhook endpoints
+        /// Adds an endpoint to the list of webhook endpoints
         /// </summary>
         /// <param name="endpointModel"></param>
-        public SubscriberEntity AddWebhookEndpoint(EndpointEntity endpointModel)
+        public OperationResult<SubscriberEntity> AddWebhookEndpoint(EndpointEntity endpointModel)
         {
             if (Webhooks == null)
             {
                 Webhooks = new WebhooksEntity();
             }
 
-            endpointModel.SetParentSubscriber(this);
-            Webhooks.AddEndpoint(endpointModel);
+            var collectionForValidation = Webhooks.Endpoints.Concat(new[] { endpointModel });
+            var validationResult = EndpointsValidator.Validate(collectionForValidation);
 
-            return this;
+            if (validationResult.IsValid)
+            {
+                endpointModel.SetParentSubscriber(this);
+                Webhooks.AddEndpoint(endpointModel);
+
+                return this;
+            }
+
+            return ValidationErrorBuilder.Build(validationResult);
         }
 
         public SubscriberEntity AddWebhooks(WebhooksEntity webhooks)
