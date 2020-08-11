@@ -18,7 +18,8 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
 
-        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceProxy directorService)
+        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository,
+            IDirectorServiceProxy directorService)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;
@@ -32,7 +33,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
                 var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-                if (existingItem.IsError && existingItem.Error is EntityNotFoundError)
+                if (existingItem.Error is EntityNotFoundError)
                 {
                     return await AddAsync(request, cancellationToken);
                 }
@@ -77,18 +78,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
             CancellationToken cancellationToken)
         {
             var endpoint = MapRequestToEndpoint(request, existingItem);
-            existingItem.AddWebhookEndpoint(endpoint);
+            var addWebhookResult = existingItem.AddWebhookEndpoint(endpoint);
 
-            //validate if correct
+            if (addWebhookResult.IsError)
+            {
+                return addWebhookResult.Error;
+            }
 
-            //update reader
             var directorResult = await _directorService.UpdateReaderAsync(existingItem);
             if (directorResult.IsError)
             {
                 return directorResult.Error;
             }
 
-            //update subscriber
             var updateResult = await _subscriberRepository.UpdateSubscriberAsync(existingItem);
             if (updateResult.IsError)
             {
