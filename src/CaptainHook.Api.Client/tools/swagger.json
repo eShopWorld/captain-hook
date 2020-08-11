@@ -1,0 +1,400 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "CaptainHook.Api",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/event/{eventName}/subscriber/{subscriberName}/webhooks/endpoint": {
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Insert or update a web hook",
+        "operationId": "PutWebhook",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventName",
+            "description": "Event name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "subscriberName",
+            "description": "Subscriber name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Webhook configuration",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Contract.EndpointDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Contract.EndpointDto"
+            }
+          },
+          "204": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Contract.EndpointDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Errors.ValidationError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Results.ErrorBase"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Results.ErrorBase"
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Errors.DirectorServiceIsBusyError"
+            }
+          },
+          "500": {
+            "description": "Server Error",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Results.ErrorBase"
+            }
+          }
+        }
+      }
+    },
+    "/api/event/{eventName}/subscriber/{subscriberName}": {
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "summary": "Insert or update a subscriber",
+        "operationId": "PutSuscriber",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventName",
+            "description": "Event name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "subscriberName",
+            "description": "Subscriber name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "Webhook configuration",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Contract.SubscriberDto"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Contract.EndpointDto"
+            }
+          },
+          "204": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Contract.EndpointDto"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Errors.ValidationError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Results.ErrorBase"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Results.ErrorBase"
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Errors.DirectorServiceIsBusyError"
+            }
+          },
+          "500": {
+            "description": "Server Error",
+            "schema": {
+              "$ref": "#/definitions/CaptainHook.Domain.Results.ErrorBase"
+            }
+          }
+        }
+      }
+    },
+    "/Probe": {
+      "get": {
+        "tags": [
+          "Probe"
+        ],
+        "summary": "Returns a probe result",
+        "operationId": "GetProbe",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/refresh-config": {
+      "post": {
+        "tags": [
+          "RefreshConfig"
+        ],
+        "summary": "Reloads configuration for Captain Hook",
+        "operationId": "ReloadConfiguration",
+        "responses": {
+          "202": {
+            "description": "Configuration reload has been requested"
+          },
+          "400": {
+            "description": "Configuration reload has not been requested due to an error"
+          },
+          "409": {
+            "description": "Configuration reload has not been requested as another reload is in progress"
+          }
+        }
+      }
+    },
+    "/api/subscribers": {
+      "get": {
+        "tags": [
+          "Subscribers"
+        ],
+        "summary": "Retrieve all subscribers from current configuration",
+        "operationId": "GetAll",
+        "responses": {
+          "200": {
+            "description": "Subscribers retrieved properly"
+          },
+          "503": {
+            "description": "Configuration has not been fully loaded yet"
+          },
+          "500": {
+            "description": "An error occurred while processing the request"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "CaptainHook.Contract.ClientSecretDto": {
+      "type": "object",
+      "properties": {
+        "vault": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "CaptainHook.Contract.AuthenticationDto": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "clientId": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "clientSecret": {
+          "$ref": "#/definitions/CaptainHook.Contract.ClientSecretDto"
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "CaptainHook.Contract.UriTransformDto": {
+      "type": "object",
+      "properties": {
+        "replace": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "CaptainHook.Contract.EndpointDto": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string"
+        },
+        "httpVerb": {
+          "type": "string"
+        },
+        "authentication": {
+          "$ref": "#/definitions/CaptainHook.Contract.AuthenticationDto"
+        },
+        "uriTransform": {
+          "$ref": "#/definitions/CaptainHook.Contract.UriTransformDto"
+        },
+        "selector": {
+          "type": "string"
+        }
+      }
+    },
+    "CaptainHook.Domain.Results.Failure": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "readOnly": true
+        },
+        "message": {
+          "type": "string",
+          "readOnly": true
+        },
+        "property": {
+          "type": "string",
+          "readOnly": true
+        }
+      }
+    },
+    "CaptainHook.Domain.Errors.ValidationError": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CaptainHook.Domain.Results.Failure"
+          }
+        }
+      }
+    },
+    "CaptainHook.Domain.Results.ErrorBase": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CaptainHook.Domain.Results.Failure"
+          }
+        }
+      }
+    },
+    "CaptainHook.Domain.Errors.DirectorServiceIsBusyError": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CaptainHook.Domain.Results.Failure"
+          }
+        }
+      }
+    },
+    "CaptainHook.Contract.WebhooksDto": {
+      "type": "object",
+      "properties": {
+        "selectionRule": {
+          "type": "string"
+        },
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CaptainHook.Contract.EndpointDto"
+          }
+        }
+      }
+    },
+    "CaptainHook.Contract.SubscriberDto": {
+      "type": "object",
+      "properties": {
+        "webhooks": {
+          "$ref": "#/definitions/CaptainHook.Contract.WebhooksDto"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Please insert JWT with Bearer into field"
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ]
+}
