@@ -2,13 +2,19 @@
 using CaptainHook.Api.Client;
 using EShopworld.Security.Services.Testing.Settings;
 using EShopworld.Security.Services.Testing.Token;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Rest;
 
 namespace CaptainHook.Api.Tests.Config
 {
     public class ApiClientFixture
     {
-        private static Uri CaptainHookTestUri = new Uri("https://localhost:24010");
+        private Uri CaptainHookTestUri;
+
+        public ApiClientFixture()
+        {
+            CaptainHookTestUri = new Uri(EnvironmentSettings.Configuration["CaptainHookApiUri"]);
+        }
 
         public ICaptainHookClient GetApiUnauthenticatedClient()
         {
