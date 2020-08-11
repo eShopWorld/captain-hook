@@ -1,13 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Fabric.Management.ServiceModel;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Validators;
 using CaptainHook.Contract;
-using CaptainHook.TestsInfrastructure;
 using CaptainHook.TestsInfrastructure.Builders;
 using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
-using FluentAssertions;
+using FluentValidation.TestHelper;
 using Xunit;
 
 namespace CaptainHook.Application.Tests.RequestValidators
@@ -24,10 +22,10 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
             // Act
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
             // Assert
-            result.AssertValidationSuccess();
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Theory, IsUnit]
@@ -39,10 +37,10 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var request = new UpsertSubscriberRequest(invalidString, "subscriber", dto);
 
             // Act
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
             // Assert
-            result.AssertSingleFailure(nameof(UpsertSubscriberRequest.EventName));
+            result.ShouldHaveValidationErrorFor(x => x.EventName);
         }
 
         [Theory, IsUnit]
@@ -54,10 +52,10 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var request = new UpsertSubscriberRequest("event", invalidString, dto);
 
             // Act
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
             // Assert
-            result.AssertSingleFailure(nameof(UpsertSubscriberRequest.SubscriberName));
+            result.ShouldHaveValidationErrorFor(x => x.SubscriberName);
         }
 
         [Fact, IsUnit]
@@ -66,9 +64,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, null).Create();
             var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(SubscriberDto.Webhooks));
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks);
         }
 
         [Fact, IsUnit]
@@ -77,9 +75,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, null).Create();
             var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(SubscriberDto.Webhooks));
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks);
         }
 
         [Theory, IsUnit]
@@ -90,9 +88,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
             var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(WebhooksDto.SelectionRule));
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.SelectionRule);
         }
 
         [Fact, IsUnit]
@@ -107,9 +105,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
             var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(WebhooksDto.Endpoints));
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.Endpoints);
         }
 
         [Fact, IsUnit]
@@ -125,9 +123,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
             var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(WebhooksDto.Endpoints));
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.Endpoints);
         }
 
         [Fact, IsUnit]
@@ -143,9 +141,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
             var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertValidationSuccess();
+            result.ShouldNotHaveAnyValidationErrors();
         }
     }
 }
