@@ -87,13 +87,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SelectionRule = "rule",
                     Endpoints = new[] { endpoint }
-                }
+                },
+                Etag = "version1"
             };
             _cosmosDbRepositoryMock
                 .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
-            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName));
+            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
             var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
             var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
@@ -260,13 +261,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SelectionRule = "rule",
                     Endpoints = new[] { endpoint }
-                }
+                },
+                Etag = "version1"
             };
             _cosmosDbRepositoryMock
                 .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
-            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName));
+            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
             var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
             var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
@@ -457,7 +459,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         public async Task UpdateSubscriberAsync_WithValidSubscriber_CallsRepoWithCorrectDocument()
         {
             // Arrange            
-            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
+            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"), "version1");
             var subscriberId = subscriber.Id.ToString();
             var subscriberDocument = new SubscriberDocument
             {
@@ -468,13 +470,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SelectionRule = "rule",
                     Endpoints = new EndpointSubdocument[] { }
-                }
+                },
+                Etag = "version1"
             };
 
             subscriber.AddWebhooks(new WebhooksEntity("rule"));
-            _cosmosDbRepositoryMock
-                .Setup(x => x.ReplaceAsync(It.IsAny<string>(), It.IsAny<SubscriberDocument>(), null))
-                .ReturnsAsync(new DocumentContainer<SubscriberDocument>(subscriberDocument, null));
 
             // Act
             await _repository.UpdateSubscriberAsync(subscriber);
@@ -487,9 +487,9 @@ namespace CaptainHook.Storage.Cosmos.Tests
             };
 
             _cosmosDbRepositoryMock.Verify(x => x.ReplaceAsync(
-                subscriberId, 
-                It.Is<SubscriberDocument>(arg => validate(arg)), 
-                null), Times.Once);
+                subscriberId,
+                It.Is<SubscriberDocument>(arg => validate(arg)),
+                "version1"), Times.Once);
         }
 
         [Fact, IsUnit]

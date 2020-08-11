@@ -24,6 +24,11 @@ namespace CaptainHook.Domain.Entities
         public string Name { get; }
 
         /// <summary>
+        /// Gets the version of the entity.
+        /// </summary>
+        public string Etag { get; }
+
+        /// <summary>
         /// Parent event for this subscriber
         /// </summary>
         public EventEntity ParentEvent { get; private set; }
@@ -33,10 +38,10 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         public WebhooksEntity Webhooks { get; private set; }
 
-        public SubscriberEntity(string name) : this(name, null) { }
-        public SubscriberEntity(string name, EventEntity parentEvent)
+        public SubscriberEntity(string name, EventEntity parentEvent = null, string etag = null)
         {
             Name = name;
+            Etag = etag;
             SetParentEvent(parentEvent);
         }
 

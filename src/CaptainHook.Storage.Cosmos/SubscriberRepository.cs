@@ -109,7 +109,7 @@ namespace CaptainHook.Storage.Cosmos
             {
                 var subscriberDocument = Map(subscriberEntity);
 
-                var result = await _cosmosDbRepository.ReplaceAsync(subscriberDocument.Id, subscriberDocument);
+                var result = await _cosmosDbRepository.ReplaceAsync(subscriberDocument.Id, subscriberDocument, subscriberEntity.Etag);
                 return Map(result.Document);
             }
             catch (Exception exception)
@@ -184,7 +184,8 @@ namespace CaptainHook.Storage.Cosmos
                 Id = subscriberEntity.Id,
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
-                Webhooks = Map(subscriberEntity.Webhooks)
+                Webhooks = Map(subscriberEntity.Webhooks),
+                Etag = subscriberEntity.Etag
             };
         }
 
@@ -224,7 +225,8 @@ namespace CaptainHook.Storage.Cosmos
 
             var subscriberEntity = new SubscriberEntity(
                 subscriberDocument.SubscriberName,
-                eventEntity);
+                eventEntity,
+                subscriberDocument.Etag);
 
             subscriberEntity.AddWebhooks(Map(subscriberDocument.Webhooks, subscriberEntity));
 
