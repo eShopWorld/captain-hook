@@ -7,7 +7,7 @@ namespace CaptainHook.Application.Infrastructure
 {
     public static class ContainerBuilderExtensions
     {
-        public static ContainerBuilder RegisterMediatorInfrastructure(this ContainerBuilder builder, Assembly handlersAssembly)
+        public static void RegisterMediatorInfrastructure(this ContainerBuilder builder, Assembly handlersAssembly, Assembly validatorsAssembly)
         {
             builder
                 .RegisterType<Mediator>()
@@ -25,20 +25,13 @@ namespace CaptainHook.Application.Infrastructure
                 .AsClosedTypesOf(typeof(IRequestHandler<,>))
                 .AsImplementedInterfaces();
 
-            builder.RegisterGeneric(typeof(ValidatorPipelineBehavior<,>)).As(typeof(IPipelineBehavior<,>));
-
-            return builder;
-        }
-
-        public static ContainerBuilder RegisterValidationInfrastructure(this ContainerBuilder builder, Assembly assembly)
-        {
-            var validatorsInAssembly = AssemblyScanner.FindValidatorsInAssembly(assembly);
+            var validatorsInAssembly = AssemblyScanner.FindValidatorsInAssembly(validatorsAssembly);
             foreach (var validator in validatorsInAssembly)
             {
                 builder.RegisterType(validator.ValidatorType).As(validator.InterfaceType);
             }
 
-            return builder;
+            builder.RegisterGeneric(typeof(ValidatorPipelineBehavior<,>)).As(typeof(IPipelineBehavior<,>));
         }
     }
 }

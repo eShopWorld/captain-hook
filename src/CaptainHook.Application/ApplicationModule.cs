@@ -5,7 +5,6 @@ using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common;
-using CaptainHook.Domain.Entities;
 using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace CaptainHook.Application
@@ -21,8 +20,7 @@ namespace CaptainHook.Application
             builder.RegisterType<DirectorServiceProxy>().As<IDirectorServiceProxy>();
             builder.RegisterType<SubscriberEntityToConfigurationMapper>().As<ISubscriberEntityToConfigurationMapper>();
 
-            builder.RegisterMediatorInfrastructure(ThisAssembly)
-                .RegisterValidationInfrastructure(ThisAssembly);
+            builder.RegisterMediatorInfrastructure(ThisAssembly, ThisAssembly);
         }
     }
 }
