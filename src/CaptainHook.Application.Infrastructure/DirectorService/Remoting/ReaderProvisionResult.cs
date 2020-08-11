@@ -3,7 +3,7 @@
 namespace CaptainHook.Application.Infrastructure.DirectorService.Remoting
 {
     [Flags]
-    public enum ReaderRefreshResult
+    public enum ReaderProvisionResult
     {
         None = 0,
         Created = 1,

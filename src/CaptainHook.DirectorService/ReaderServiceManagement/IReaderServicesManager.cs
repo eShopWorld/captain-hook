@@ -23,6 +23,6 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
         /// <param name="changeInfo">Change to be applied</param>
         /// <param name="cancellationToken">A cancellation token</param>
         /// <returns></returns>
-        Task<ReaderRefreshResult> RefreshReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken);
+        Task<ReaderProvisionResult> ProvisionReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken);
     }
 }

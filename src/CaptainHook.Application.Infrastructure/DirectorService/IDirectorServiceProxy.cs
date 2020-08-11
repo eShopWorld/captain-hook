@@ -20,6 +20,6 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// ReaderDeletionError if reader delete failed
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// </returns>
-        Task<OperationResult<bool>> RefreshReaderAsync(SubscriberEntity subscriber);
+        Task<OperationResult<bool>> ProvisionReaderAsync(SubscriberEntity subscriber);
     }
 }

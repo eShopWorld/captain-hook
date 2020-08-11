@@ -30,10 +30,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [Fact, IsUnit]
         public async Task When_CreationSucceed_Then_TrueIsReturned()
         {
-            _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderRefreshResult.Created);
+            _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
+                .ReturnsAsync(ReaderProvisionResult.Created);
 
-            var result = await Proxy.RefreshReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeFalse();
             result.Data.Should().BeTrue();
@@ -42,10 +42,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [Fact, IsUnit]
         public async Task When_UpdateSucceed_Then_TrueIsReturned()
         {
-            _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderRefreshResult.Updated);
+            _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
+                .ReturnsAsync(ReaderProvisionResult.Updated);
 
-            var result = await Proxy.RefreshReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeFalse();
             result.Data.Should().BeTrue();
@@ -54,10 +54,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [Fact, IsUnit]
         public async Task When_ReaderAlreadyExist_Then_TrueIsReturned()
         {
-            _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderRefreshResult.ReaderAlreadyExists);
+            _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
+                .ReturnsAsync(ReaderProvisionResult.ReaderAlreadyExists);
 
-            var result = await Proxy.RefreshReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeFalse();
             result.Data.Should().BeTrue();
@@ -66,10 +66,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [Fact, IsUnit]
         public async Task When_DirectorServiceIsBusy_Then_DirectorServiceIsBusyErrorReturned()
         {
-            _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderRefreshResult.DirectorIsBusy);
+            _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
+                .ReturnsAsync(ReaderProvisionResult.DirectorIsBusy);
 
-            var result = await Proxy.RefreshReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
@@ -78,10 +78,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [Fact, IsUnit]
         public async Task When_ReaderCreationFailed_Then_ReaderCreationErrorReturned()
         {
-            _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderRefreshResult.CreateFailed | ReaderRefreshResult.ReaderAlreadyExists);
+            _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
+                .ReturnsAsync(ReaderProvisionResult.CreateFailed | ReaderProvisionResult.ReaderAlreadyExists);
 
-            var result = await Proxy.RefreshReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderCreationError>();
@@ -90,10 +90,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [Fact, IsUnit]
         public async Task When_ReaderDeletionFailed_Then_ReaderDeletionErrorReturned()
         {
-            _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderRefreshResult.CreateFailed | ReaderRefreshResult.ReaderAlreadyExists | ReaderRefreshResult.Created);
+            _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
+                .ReturnsAsync(ReaderProvisionResult.CreateFailed | ReaderProvisionResult.ReaderAlreadyExists | ReaderProvisionResult.Created);
 
-            var result = await Proxy.RefreshReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderDeletionError>();
@@ -102,10 +102,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [Fact, IsUnit]
         public async Task When_DirectorServiceResultNotSet_Then_GenericErrorReturned()
         {
-            _directorServiceMock.Setup(x => x.RefreshReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderRefreshResult.None);
+            _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
+                .ReturnsAsync(ReaderProvisionResult.None);
 
-            var result = await Proxy.RefreshReaderAsync(new SubscriberBuilder().Create());
+            var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();

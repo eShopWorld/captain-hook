@@ -19,22 +19,27 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             _directorService = directorService;
         }
 
-        public async Task<OperationResult<bool>> RefreshReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<bool>> ProvisionReaderAsync(SubscriberEntity subscriber)
         {
             var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
-            var createReaderResult = await _directorService.RefreshReaderAsync(subscriberConfigs.Single());
+            var createReaderResult = await _directorService.ProvisionReaderAsync(subscriberConfigs.Single());
 
-            return createReaderResult switch
+            switch (createReaderResult)
             {
-                ReaderRefreshResult.Created => true,
-                ReaderRefreshResult.Updated => true,
-                ReaderRefreshResult.ReaderAlreadyExists => true,
-                ReaderRefreshResult.CreateFailed => new ReaderCreationError(subscriber),
-                ReaderRefreshResult.UpdateFailed => new ReaderCreationError(subscriber),
-                ReaderRefreshResult.DeleteFailed => new ReaderDeletionError(subscriber),
-                ReaderRefreshResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
-                _ => new BusinessError("Director Service returned unknown result.")
-            };
+                case ReaderProvisionResult.Created:
+                case ReaderProvisionResult.Updated:
+                case ReaderProvisionResult.ReaderAlreadyExists:
+                    return true;
+                case ReaderProvisionResult.CreateFailed:
+                case ReaderProvisionResult.UpdateFailed:
+                    return new ReaderCreationError(subscriber);
+                case ReaderProvisionResult.DeleteFailed:
+                    return new ReaderDeletionError(subscriber);
+                case ReaderProvisionResult.DirectorIsBusy:
+                    return new DirectorServiceIsBusyError();
+                default:
+                    return new BusinessError("Director Service returned unknown result.");
+            }
         }
     }
 }

@@ -56,7 +56,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
         {
             var subscriber = MapRequestToSubscriber(request);
 
-            var directorResult = await _directorService.RefreshReaderAsync(subscriber);
+            var directorResult = await _directorService.ProvisionReaderAsync(subscriber);
             if (directorResult.IsError)
             {
                 return directorResult.Error;
@@ -82,7 +82,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             //validate if correct
 
             //update reader
-            var directorResult = await _directorService.RefreshReaderAsync(existingItem);
+            var directorResult = await _directorService.ProvisionReaderAsync(existingItem);
             if (directorResult.IsError)
             {
                 return directorResult.Error;

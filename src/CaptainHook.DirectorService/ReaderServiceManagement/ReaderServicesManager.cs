@@ -62,9 +62,9 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             await DeleteReaderServicesAsync(allServiceNamesToDelete, cancellationToken);
         }
 
-        public async Task<ReaderRefreshResult> RefreshReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken)
+        public async Task<ReaderProvisionResult> ProvisionReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken)
         {
-            var result = ReaderRefreshResult.None;
+            var result = ReaderProvisionResult.None;
 
             var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
             var existingReaders = ExistingReadersBuilder.FromNames(deployedServices);
@@ -74,7 +74,7 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
 
             if (existingReader.IsValid)
             {
-                result |= ReaderRefreshResult.ReaderAlreadyExists;
+                result |= ReaderProvisionResult.ReaderAlreadyExists;
             }
 
             LogEvent(changeInfo);
@@ -82,13 +82,13 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeCreated))
             {
                 var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
-                result |= creationResult ? ReaderRefreshResult.Created : ReaderRefreshResult.CreateFailed;
+                result |= creationResult ? ReaderProvisionResult.Created : ReaderProvisionResult.CreateFailed;
             }
 
-            if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeRemoved) && !result.HasFlag(ReaderRefreshResult.CreateFailed))
+            if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeRemoved) && !result.HasFlag(ReaderProvisionResult.CreateFailed))
             {
                 var deletionResult = await DeleteReaderServicesAsync(new[] { changeInfo.OldReader.ServiceNameWithSuffix }, cancellationToken);
-                result |= deletionResult ? ReaderRefreshResult.Deleted : ReaderRefreshResult.CreateFailed;
+                result |= deletionResult ? ReaderProvisionResult.Deleted : ReaderProvisionResult.CreateFailed;
             }
 
             return result;
