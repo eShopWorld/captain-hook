@@ -18,14 +18,12 @@ namespace CaptainHook.Application.Validators.Dtos
                 .Must(BeValidJsonPathExpression).WithMessage("The SelectionRule must be a valid JSONPath expression");
 
             RuleFor(x => x.Endpoints)
-                .NotNull().WithMessage("Webhooks list must contain at list one endpoint")
-                .NotEmpty().WithMessage("Webhooks list must contain at list one endpoint");
-
-            RuleFor(x => x.Endpoints)
+                .NotNull()
+                .WithMessage("Webhooks list must contain at list one endpoint")
+                .NotEmpty()
+                .WithMessage("Webhooks list must contain at list one endpoint")
                 .Must(ContainAtMostOneEndpointWithNoSelector)
-                .WithMessage("There can be only one endpoint with no selector");
-
-            RuleFor(x => x.Endpoints)
+                .WithMessage("There can be only one endpoint with no selector")
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
                 .WithMessage("There cannot be multiple endpoints with the same selector");
 

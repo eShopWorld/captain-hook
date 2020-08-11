@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using CaptainHook.Application.Validators.Dtos;
 using CaptainHook.Contract;
-using CaptainHook.TestsInfrastructure;
 using CaptainHook.TestsInfrastructure.Builders;
 using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
-using FluentAssertions;
+using FluentValidation.TestHelper;
 using Xunit;
 
 namespace CaptainHook.Application.Tests.RequestValidators
@@ -19,9 +18,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.IsValid.Should().BeTrue();
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Fact, IsUnit]
@@ -29,9 +28,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Type, "oidc").Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.IsValid.Should().BeTrue();
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Theory, IsUnit]
@@ -40,9 +39,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Type, invalidString).Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.Type));
+            result.ShouldHaveValidationErrorFor(x => x.Type);
         }
 
         [Theory, IsUnit]
@@ -51,9 +50,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Type, invalidString).Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.Type));
+            result.ShouldHaveValidationErrorFor(x => x.Type);
         }
 
         [Theory, IsUnit]
@@ -62,9 +61,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.ClientId, invalidString).Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.ClientId));
+            result.ShouldHaveValidationErrorFor(x => x.ClientId);
         }
 
         [Theory, IsUnit]
@@ -73,9 +72,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Uri, invalidString).Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.Uri));
+            result.ShouldHaveValidationErrorFor(x => x.Uri);
         }
 
         [Theory, IsUnit]
@@ -84,9 +83,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Uri, invalidString).Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.Uri));
+            result.ShouldHaveValidationErrorFor(x => x.Uri);
         }
 
         [Fact, IsUnit]
@@ -94,9 +93,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Scopes, null).Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.Scopes));
+            result.ShouldHaveValidationErrorFor(x => x.Scopes);
         }
 
         [Theory, IsUnit]
@@ -105,9 +104,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Scopes, new List<string> { invalidString }).Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure($"{nameof(AuthenticationDto.Scopes)}[0]");
+            result.ShouldHaveValidationErrorFor(x => x.Scopes);
         }
 
         [Fact, IsUnit]
@@ -115,9 +114,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.ClientSecret, null).Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure(nameof(AuthenticationDto.ClientSecret));
+            result.ShouldHaveValidationErrorFor(x => x.ClientSecret);
         }
 
         [Theory, IsUnit]
@@ -128,9 +127,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
                 .With(x => x.ClientSecret, new ClientSecretDto { Name = invalidString, Vault = "vault" })
                 .Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure(nameof(ClientSecretDto.Name));
+            result.ShouldHaveValidationErrorFor(x => x.ClientSecret.Name);
         }
 
         [Theory, IsUnit]
@@ -141,9 +140,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
                 .With(x => x.ClientSecret, new ClientSecretDto { Name = "secret-name", Vault = invalidString })
                 .Create();
 
-            var result = _validator.Validate(dto);
+            var result = _validator.TestValidate(dto);
 
-            result.AssertSingleFailure(nameof(ClientSecretDto.Vault));
+            result.ShouldHaveValidationErrorFor(x => x.ClientSecret.Vault);
         }
     }
 }

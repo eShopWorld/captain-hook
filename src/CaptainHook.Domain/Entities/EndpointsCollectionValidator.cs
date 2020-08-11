@@ -11,13 +11,9 @@ namespace CaptainHook.Domain.Entities
             CascadeMode = CascadeMode.StopOnFirstFailure;
 
             RuleFor(x => x)
-                .NotEmpty().WithMessage("Webhooks list must contain at list one endpoint");
-
-            RuleFor(x => x)
+                .NotEmpty().WithMessage("Webhooks list must contain at list one endpoint")
                 .Must(ContainAtMostOneEndpointWithNoSelector)
-                .WithMessage("There can be only one endpoint with no selector");
-
-            RuleFor(x => x)
+                .WithMessage("There can be only one endpoint with no selector")
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
                 .WithMessage("There cannot be multiple endpoints with the same selector");
         }
