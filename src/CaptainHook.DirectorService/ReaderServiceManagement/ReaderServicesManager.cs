@@ -65,7 +65,10 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
         public async Task<ReaderProvisionResult> ProvisionReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken)
         {
             var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
-            var existingReaders = ExistingReadersBuilder.FromNames(deployedServices);
+            var existingReaders = deployedServices
+                .Where(ExistingReaderDefinition.IsValidReaderService)
+                .Select(s => new ExistingReaderDefinition(s));
+
             var desiredReader = new DesiredReaderDefinition(subscriber);
             var existingReader = existingReaders.SingleOrDefault(r => desiredReader.IsTheSameService(r));
 
@@ -82,9 +85,9 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
                 LogEvent(ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader));
 
                 var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { desiredReader }, cancellationToken);
-                if (!creationResult) 
+                if (!creationResult)
                     return ReaderProvisionResult.UpdateFailed;
-                
+
                 var deletionResult = await DeleteReaderServicesAsync(new[] { existingReader.ServiceNameWithSuffix }, cancellationToken);
                 return deletionResult ? ReaderProvisionResult.Success : ReaderProvisionResult.UpdateFailed;
             }
