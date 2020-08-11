@@ -64,49 +64,32 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
 
         public async Task<ReaderProvisionResult> ProvisionReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken)
         {
-            var result = ReaderProvisionResult.None;
-
             var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
             var existingReaders = ExistingReadersBuilder.FromNames(deployedServices);
             var desiredReader = new DesiredReaderDefinition(subscriber);
             var existingReader = existingReaders.SingleOrDefault(r => desiredReader.IsTheSameService(r));
-            var changeInfo = CreateChangeInfo(existingReader, desiredReader);
 
-            if (existingReader.IsValid)
-            {
-                result |= ReaderProvisionResult.ReaderAlreadyExists;
-            }
-
-            LogEvent(changeInfo);
-
-            if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeCreated))
-            {
-                var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { changeInfo.NewReader }, cancellationToken);
-                result |= creationResult ? ReaderProvisionResult.Created : ReaderProvisionResult.CreateFailed;
-            }
-
-            if (changeInfo.ChangeType.HasFlag(ReaderChangeType.ToBeRemoved) && !result.HasFlag(ReaderProvisionResult.CreateFailed))
-            {
-                var deletionResult = await DeleteReaderServicesAsync(new[] { changeInfo.OldReader.ServiceNameWithSuffix }, cancellationToken);
-                result |= deletionResult ? ReaderProvisionResult.Deleted : ReaderProvisionResult.CreateFailed;
-            }
-
-            return result;
-        }
-
-        private static ReaderChangeInfo CreateChangeInfo(ExistingReaderDefinition existingReader, DesiredReaderDefinition desiredReader)
-        {
             if (!existingReader.IsValid)
             {
-                return ReaderChangeInfo.ToBeCreated(desiredReader);
+                LogEvent(ReaderChangeInfo.ToBeCreated(desiredReader));
+
+                var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { desiredReader }, cancellationToken);
+                return creationResult ? ReaderProvisionResult.Success : ReaderProvisionResult.CreateFailed;
             }
 
             if (!desiredReader.IsUnchanged(existingReader))
             {
-                return ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader);
+                LogEvent(ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader));
+
+                var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { desiredReader }, cancellationToken);
+                if (!creationResult) 
+                    return ReaderProvisionResult.UpdateFailed;
+                
+                var deletionResult = await DeleteReaderServicesAsync(new[] { existingReader.ServiceNameWithSuffix }, cancellationToken);
+                return deletionResult ? ReaderProvisionResult.Success : ReaderProvisionResult.UpdateFailed;
             }
 
-            return new ReaderChangeInfo();
+            return ReaderProvisionResult.NoActionTaken;
         }
 
         private void LogEvent(params ReaderChangeInfo[] changeSet)

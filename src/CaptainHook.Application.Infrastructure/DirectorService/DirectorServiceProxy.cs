@@ -24,22 +24,15 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
             var createReaderResult = await _directorService.ProvisionReaderAsync(subscriberConfigs.Single());
 
-            switch (createReaderResult)
+            return createReaderResult switch
             {
-                case ReaderProvisionResult.Created:
-                case ReaderProvisionResult.Updated:
-                case ReaderProvisionResult.ReaderAlreadyExists:
-                    return true;
-                case ReaderProvisionResult.CreateFailed:
-                case ReaderProvisionResult.UpdateFailed:
-                    return new ReaderCreationError(subscriber);
-                case ReaderProvisionResult.DeleteFailed:
-                    return new ReaderDeletionError(subscriber);
-                case ReaderProvisionResult.DirectorIsBusy:
-                    return new DirectorServiceIsBusyError();
-                default:
-                    return new BusinessError("Director Service returned unknown result.");
-            }
+                ReaderProvisionResult.Success => true,
+                ReaderProvisionResult.NoActionTaken => true,
+                ReaderProvisionResult.CreateFailed => new ReaderCreationError(subscriber),
+                ReaderProvisionResult.UpdateFailed => new ReaderUpdateError(subscriber),
+                ReaderProvisionResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
+                _ => new BusinessError("Director Service returned unknown result.")
+            };
         }
     }
 }

@@ -28,22 +28,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Fact, IsUnit]
-        public async Task When_CreationSucceed_Then_TrueIsReturned()
+        public async Task When_Success_Then_TrueIsReturned()
         {
             _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderProvisionResult.Created);
-
-            var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
-
-            result.IsError.Should().BeFalse();
-            result.Data.Should().BeTrue();
-        }
-
-        [Fact, IsUnit]
-        public async Task When_UpdateSucceed_Then_TrueIsReturned()
-        {
-            _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderProvisionResult.Updated);
+                .ReturnsAsync(ReaderProvisionResult.Success);
 
             var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
@@ -55,7 +43,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         public async Task When_ReaderAlreadyExist_Then_TrueIsReturned()
         {
             _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderProvisionResult.ReaderAlreadyExists);
+                .ReturnsAsync(ReaderProvisionResult.NoActionTaken);
 
             var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
@@ -76,10 +64,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Fact, IsUnit]
-        public async Task When_ReaderCreationFailed_Then_ReaderCreationErrorReturned()
+        public async Task When_ReaderCreateFailed_Then_ReaderCreationErrorReturned()
         {
             _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderProvisionResult.CreateFailed | ReaderProvisionResult.ReaderAlreadyExists);
+                .ReturnsAsync(ReaderProvisionResult.CreateFailed);
 
             var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
@@ -88,15 +76,15 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Fact, IsUnit]
-        public async Task When_ReaderDeletionFailed_Then_ReaderDeletionErrorReturned()
+        public async Task When_ReaderUpdateFailed_Then_ReaderDeletionErrorReturned()
         {
             _directorServiceMock.Setup(x => x.ProvisionReaderAsync(It.IsAny<SubscriberConfiguration>()))
-                .ReturnsAsync(ReaderProvisionResult.CreateFailed | ReaderProvisionResult.ReaderAlreadyExists | ReaderProvisionResult.Created);
+                .ReturnsAsync(ReaderProvisionResult.UpdateFailed);
 
             var result = await Proxy.ProvisionReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<ReaderDeletionError>();
+            result.Error.Should().BeOfType<ReaderUpdateError>();
         }
 
         [Fact, IsUnit]

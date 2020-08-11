@@ -16,8 +16,8 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// <returns>
         /// True if update has been invoked
         /// False if reader does not exist
-        /// ReaderCreationError if reader create failed for new or update
-        /// ReaderDeletionError if reader delete failed
+        /// ReaderCreationError if reader create failed
+        /// ReaderUpdateError if reader update failed
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// </returns>
         Task<OperationResult<bool>> ProvisionReaderAsync(SubscriberEntity subscriber);

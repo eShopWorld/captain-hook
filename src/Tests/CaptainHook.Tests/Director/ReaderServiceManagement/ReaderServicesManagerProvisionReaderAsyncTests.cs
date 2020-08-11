@@ -36,7 +36,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
             using (new AssertionScope())
             {
                 var desiredReader = new DesiredReaderDefinition(subscriberConfig);
-                result.Should().Be(ReaderProvisionResult.Created);
+                result.Should().Be(ReaderProvisionResult.Success);
                 _fabricClientMock.VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
                 _fabricClientMock.VerifyFabricClientDeleteCalls();
                 _bigBrotherMock.VerifyServiceCreatedEventPublished(desiredReader.ServiceNameWithSuffix);
@@ -56,7 +56,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
             using (new AssertionScope())
             {
-                result.Should().Be(ReaderProvisionResult.ReaderAlreadyExists);
+                result.Should().Be(ReaderProvisionResult.NoActionTaken);
                 _fabricClientMock.VerifyFabricClientCreateCalls();
                 _fabricClientMock.VerifyFabricClientDeleteCalls();
                 _bigBrotherMock.VerifyServiceCreatedEventPublished();
@@ -76,7 +76,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
             using (new AssertionScope())
             {
-                result.Should().Be(ReaderProvisionResult.Updated);
+                result.Should().Be(ReaderProvisionResult.Success);
                 _fabricClientMock.VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
                 _fabricClientMock.VerifyFabricClientDeleteCalls(oldReaderName);
                 _bigBrotherMock.VerifyServiceCreatedEventPublished(desiredReader.ServiceNameWithSuffix);
@@ -123,7 +123,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
             using (new AssertionScope())
             {
-                result.Should().Be(ReaderProvisionResult.CreateFailed | ReaderProvisionResult.ReaderAlreadyExists);
+                result.Should().Be(ReaderProvisionResult.UpdateFailed);
                 _fabricClientMock.VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
                 _fabricClientMock.VerifyFabricClientDeleteCalls();
                 _bigBrotherMock.VerifyServiceCreatedEventPublished();
@@ -146,7 +146,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
             using (new AssertionScope())
             {
-                result.Should().Be(ReaderProvisionResult.CreateFailed | ReaderProvisionResult.Created | ReaderProvisionResult.ReaderAlreadyExists);
+                result.Should().Be(ReaderProvisionResult.UpdateFailed);
                 _fabricClientMock.VerifyFabricClientCreateCalls(desiredReader.ServiceNameWithSuffix);
                 _fabricClientMock.VerifyFabricClientDeleteCalls(oldReaderName);
                 _bigBrotherMock.VerifyServiceCreatedEventPublished(desiredReader.ServiceNameWithSuffix);
