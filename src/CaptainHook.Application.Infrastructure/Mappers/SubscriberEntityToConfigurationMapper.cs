@@ -19,7 +19,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         public async Task<IEnumerable<SubscriberConfiguration>> MapSubscriberAsync(SubscriberEntity entity)
         {
-            return new List<SubscriberConfiguration>
+            return new []
             {
                 await MapWebhooksAsync(entity)
                 // await MapCallbacksAsync(entity)
