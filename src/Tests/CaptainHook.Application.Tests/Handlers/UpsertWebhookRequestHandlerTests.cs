@@ -10,6 +10,7 @@ using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
+using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
@@ -24,12 +25,20 @@ namespace CaptainHook.Application.Tests.Handlers
     public class UpsertWebhookRequestHandlerTests
     {
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
+
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
 
         private readonly Mock<IValidator<SubscriberEntity>> _subscriberValidatorMock =
             new Mock<IValidator<SubscriberEntity>>();
 
-        private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object);
+        private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(
+            _repositoryMock.Object,
+            _directorServiceMock.Object,
+            new[]
+            {
+                TimeSpan.FromMilliseconds(10.0),
+                TimeSpan.FromMilliseconds(10.0)
+            });
 
         [Fact, IsUnit]
         public async Task When_SubscriberDoesNotExist_Then_NewOneWillBePassedToDirectorServiceAndStoredInRepository()
@@ -236,6 +245,121 @@ namespace CaptainHook.Application.Tests.Handlers
             using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+        }
+
+        [Fact, IsUnit]
+        public async Task When_DocumentUpdateFails_Then_OperationIsRetried3Times()
+        {
+            var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
+
+            SubscriberEntity SubscriberEntityFunc() =>
+                new SubscriberBuilder().WithEvent("event")
+                    .WithName("subscriber")
+                    .WithWebhook(
+                        "https://blah.blah.eshopworld.com/oldwebhook/",
+                        "POST",
+                        null,
+                        authentication: new AuthenticationEntity(
+                            "captain-hook-id",
+                            new SecretStoreEntity("kvname", "kv-secret-name"),
+                            "https://blah-blah.sts.eshopworld.com",
+                            "OIDC",
+                            new[] { "scope1" }))
+                    .Create();
+
+            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+                .ReturnsAsync(() => SubscriberEntityFunc());
+            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(true);
+            _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()));
+
+            var result = await Handler.Handle(request, CancellationToken.None);
+
+            var expectedResult = new OperationResult<EndpointDto>(new CannotUpdateEntityError("dummy-type", new Exception()));
+            result.Should().BeEquivalentTo(expectedResult);
+            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(3));
+            _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(3));
+            _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(3));
+        }
+
+        [Fact, IsUnit]
+        public async Task When_DocumentUpdateFails_Then_SucceedsOnSecondTry()
+        {
+            var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
+
+            SubscriberEntity SubscriberEntityFunc() =>
+                new SubscriberBuilder().WithEvent("event")
+                    .WithName("subscriber")
+                    .WithWebhook(
+                        "https://blah.blah.eshopworld.com/oldwebhook/",
+                        "POST",
+                        null,
+                        authentication: new AuthenticationEntity(
+                            "captain-hook-id",
+                            new SecretStoreEntity("kvname", "kv-secret-name"),
+                            "https://blah-blah.sts.eshopworld.com",
+                            "OIDC",
+                            new[] { "scope1" }))
+                    .Create();
+            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+                .ReturnsAsync(() => SubscriberEntityFunc());
+            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(true);
+            _repositoryMock.SetupSequence(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()))
+                .ReturnsAsync(SubscriberEntityFunc());
+
+            var result = await Handler.Handle(request, CancellationToken.None);
+
+            var expectedResult = new OperationResult<EndpointDto>(request.Endpoint);
+            result.Should().BeEquivalentTo(expectedResult);
+            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(2));
+            _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(2));
+            _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(2));
+        }
+
+        [Fact, IsUnit]
+        public async Task When_DocumentUpdateFailsAndDocumentIsRemoved_Then_TriesToAddOnSecondTry()
+        {
+            var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
+
+            SubscriberEntity SubscriberEntityFunc() =>
+                new SubscriberBuilder().WithEvent("event")
+                    .WithName("subscriber")
+                    .WithWebhook(
+                        "https://blah.blah.eshopworld.com/oldwebhook/",
+                        "POST",
+                        null,
+                        authentication: new AuthenticationEntity(
+                            "captain-hook-id",
+                            new SecretStoreEntity("kvname", "kv-secret-name"),
+                            "https://blah-blah.sts.eshopworld.com",
+                            "OIDC",
+                            new[] { "scope1" }))
+                    .Create();
+            _repositoryMock.SetupSequence(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+                .ReturnsAsync(() => SubscriberEntityFunc())
+                .ReturnsAsync(new EntityNotFoundError("dummy-type", "dummy-key"));
+            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(true);
+            _repositoryMock.SetupSequence(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()))
+                .ReturnsAsync(SubscriberEntityFunc());
+            _directorServiceMock.Setup(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(true);
+            _repositoryMock.Setup(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(SubscriberEntityFunc());
+
+            var result = await Handler.Handle(request, CancellationToken.None);
+
+            var expectedResult = new OperationResult<EndpointDto>(request.Endpoint);
+            result.Should().BeEquivalentTo(expectedResult);
+            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(2));
+            _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
