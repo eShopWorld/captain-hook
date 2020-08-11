@@ -159,9 +159,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
             var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertValidationSuccess();
+            result.ShouldNotHaveAnyValidationErrors();
         }
     }
 }
