@@ -3,9 +3,10 @@ using Eshopworld.Core;
 using Eshopworld.DevOps;
 using Eshopworld.Messaging;
 using Eshopworld.Telemetry;
-using FluentAssertions;
-using IdentityModel.Client;
+using EShopworld.Security.Services.Testing.Settings;
+using EShopworld.Security.Services.Testing.Token;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Rest;
 using Newtonsoft.Json;
 using Polly;
 using Polly.Timeout;
@@ -15,7 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CaptainHook.Tests.Web.FlowTests
@@ -53,7 +54,7 @@ namespace CaptainHook.Tests.Web.FlowTests
         /// <returns><see cref="Configuration.TestsConfig"/> object</returns>
         private TestsConfig GetTestsConfig()
         {
-            var config = EswDevOpsSdk.BuildConfiguration(); 
+            var config = EswDevOpsSdk.BuildConfiguration();
             var testsConfig = new TestsConfig();
 
             // Load: InstrumentationKey and AzureSubscriptionId from KV; 
@@ -92,14 +93,17 @@ namespace CaptainHook.Tests.Web.FlowTests
 
                 var policy = timeout.WrapAsync(retry);
 
-                var token = await ObtainStsToken();
                 using var httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var tokenCred = GetPeterPanTokenCredentials();
 
                 var result = await policy.ExecuteAsync(async () =>
                 {
-                    var response = await httpClient.GetAsync(
+                    //var cancellationToken = new CancellationToken();
+                    var request = new HttpRequestMessage(HttpMethod.Get, 
                         $"{_testsConfig.PeterPanBaseUrl}/api/v1/inttest/check/{payloadId}");
+                    await tokenCred.ProcessHttpRequestAsync(request, default);
+
+                    var response = await httpClient.SendAsync(request, default);
 
                     if (response.StatusCode != HttpStatusCode.OK) return response;
 
@@ -121,35 +125,26 @@ namespace CaptainHook.Tests.Web.FlowTests
             }
         }
 
-        public async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan = default, bool expectMessages = true, bool waitForCallback=false) where T : FlowTestEventBase
+        public async Task<IEnumerable<ProcessedEventModel>> PublishAndPoll<T>(T instance, TimeSpan waitTimespan = default, bool expectMessages = true, bool waitForCallback = false) where T : FlowTestEventBase
         {
             var payloadId = PublishModel(instance);
             var processedEvents = await GetProcessedEvents(payloadId, waitTimespan, expectMessages, waitForCallback);
             return processedEvents;
         }
 
-        private async Task<string> ObtainStsToken()
+        /// <summary>
+        /// Uses EShopworld.Security.Services.Testing to get the bearer token for PeterPan API.
+        /// </summary>
+        /// <returns></returns>
+        private TokenCredentials GetPeterPanTokenCredentials()
         {
-            using var client = new HttpClient();
-
-            var response = await GetTokenResponseAsync(client);
-
-            return response.AccessToken;
+            var tb = new RefreshingTokenProviderOptions(
+                EnvironmentSettings.StsSettings.Issuer,
+                EnvironmentSettings.StsSettings.Subject,
+                _testsConfig.StsClientId,
+                new string[] { PeterPanConsts.PeterPanDeliveryScope },
+                EnvironmentSettings.StsSettings.Audience );
+            return new TokenCredentialsBuilder(tb).Build();
         }
-
-        private async Task<TokenResponse> GetTokenResponseAsync(HttpMessageInvoker client)
-        {
-            var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
-            {
-                Address = "https://security-sts.ci.eshopworld.net/connect/token",
-                ClientId = _testsConfig.StsClientId,
-                ClientSecret = _testsConfig.ApiSecret,
-                GrantType = "client_credentials",
-                Scope = PeterPanConsts.PeterPanDeliveryScope
-            });
-
-            return response;
-        }
-
     }
 }
