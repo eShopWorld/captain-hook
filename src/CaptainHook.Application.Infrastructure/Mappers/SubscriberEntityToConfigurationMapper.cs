@@ -49,6 +49,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 SubscriberName = entity.Name,
                 EventType = entity.ParentEvent.Name,
                 Uri = entity.Webhooks?.Endpoints?.FirstOrDefault()?.Uri,
+                HttpVerb = entity.Webhooks?.Endpoints?.FirstOrDefault()?.HttpVerb,
                 AuthenticationConfig = await MapAuthenticationAsync(entity.Webhooks?.Endpoints?.FirstOrDefault()?.Authentication),
             };
         }
