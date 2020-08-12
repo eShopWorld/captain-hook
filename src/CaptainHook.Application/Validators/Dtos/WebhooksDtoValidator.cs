@@ -15,7 +15,8 @@ namespace CaptainHook.Application.Validators.Dtos
             CascadeMode = CascadeMode.StopOnFirstFailure;
 
             RuleFor(x => x.SelectionRule).NotEmpty()
-                .Must(BeValidJsonPathExpression).WithMessage("The SelectionRule must be a valid JSONPath expression");
+                .Must(BeValidJsonPathExpression).WithMessage("The SelectionRule must be a valid JSONPath expression")
+                .When(TheresAtLeastOneEndpointWithSelectorDefined);
 
             RuleFor(x => x.Endpoints)
                 .NotNull()
@@ -29,6 +30,11 @@ namespace CaptainHook.Application.Validators.Dtos
 
             RuleForEach(x => x.Endpoints)
                 .SetValidator(new EndpointDtoValidator());
+        }
+
+        private bool TheresAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
+        {
+            return webhooks.Endpoints?.Any(e => !string.IsNullOrWhiteSpace(e.Selector)) ?? false;
         }
 
         private bool ContainAtMostOneEndpointWithNoSelector(List<EndpointDto> endpoints)

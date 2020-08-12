@@ -21,7 +21,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
 
         public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
         {
-            var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
+            var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriberAsync(subscriber);
             var createReaderResult = await _directorService.CreateReaderAsync(subscriberConfigs.Single());
 
             return createReaderResult switch

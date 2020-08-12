@@ -36,7 +36,7 @@ namespace CaptainHook.DirectorService.Infrastructure
 
             async Task<IEnumerable<SubscriberConfiguration>> MapCosmosEntries()
             {
-                var tasks = subscribersFromCosmos.Select(_subscriberEntityToConfigurationMapper.MapSubscriber).ToArray();
+                var tasks = subscribersFromCosmos.Select(_subscriberEntityToConfigurationMapper.MapSubscriberAsync).ToArray();
                 await Task.WhenAll(tasks);
 
                 return tasks.SelectMany(t => t.Result).ToArray();

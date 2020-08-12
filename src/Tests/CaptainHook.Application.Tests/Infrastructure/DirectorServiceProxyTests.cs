@@ -21,7 +21,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         public DirectorServiceProxyTests()
         {
-            _mapperMock.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>()))
+            _mapperMock.Setup(x => x.MapSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new List<SubscriberConfiguration> { new SubscriberConfiguration() });
         }
 
