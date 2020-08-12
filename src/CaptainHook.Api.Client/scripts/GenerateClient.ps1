@@ -34,7 +34,6 @@ function Generate-CSharp-Client
 
 	$toolsPath = "..\tools"
 	Install-Tooling -ToolsPath $toolsPath
-    
 
 	$apiDllPath = "$ProjectFolder\bin\$Configuration\netcoreapp3.1\win-x64\$DllToGenerateFrom"
 	$apiDll = Split-Path $apiDllPath -Leaf
