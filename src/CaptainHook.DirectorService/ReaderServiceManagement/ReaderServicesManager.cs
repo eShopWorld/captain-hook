@@ -5,7 +5,6 @@ using System.Fabric.Description;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceModels;
@@ -63,39 +62,6 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
 
             return result;
         }
-
-        //public async Task<ReaderProvisionResult> ProvisionReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken)
-        //{
-        //    var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
-        //    var existingReaders = deployedServices
-        //        .Where(ExistingReaderDefinition.IsValidReaderService)
-        //        .Select(s => new ExistingReaderDefinition(s));
-
-        //    var desiredReader = new DesiredReaderDefinition(subscriber);
-        //    var existingReader = existingReaders.SingleOrDefault(r => desiredReader.IsTheSameService(r));
-
-        //    if (!existingReader.IsValid)
-        //    {
-        //        LogEvent(ReaderChangeInfo.ToBeCreated(desiredReader));
-
-        //        var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { desiredReader }, cancellationToken);
-        //        return creationResult ? ReaderProvisionResult.Success : ReaderProvisionResult.CreateFailed;
-        //    }
-
-        //    if (!desiredReader.IsUnchanged(existingReader))
-        //    {
-        //        LogEvent(ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader));
-
-        //        var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { desiredReader }, cancellationToken);
-        //        if (!creationResult)
-        //            return ReaderProvisionResult.UpdateFailed;
-
-        //        var deletionResult = await DeleteReaderServicesAsync(new[] { existingReader.ServiceNameWithSuffix }, cancellationToken);
-        //        return deletionResult ? ReaderProvisionResult.Success : ReaderProvisionResult.UpdateFailed;
-        //    }
-
-        //    return ReaderProvisionResult.NoActionTaken;
-        //}
 
         private void LogEvent(params ReaderChangeInfo[] changeSet)
         {

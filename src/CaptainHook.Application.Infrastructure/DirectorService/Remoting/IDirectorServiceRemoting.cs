@@ -18,17 +18,4 @@ namespace CaptainHook.Application.Infrastructure.DirectorService.Remoting
         Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribersAsync();
         Task<ReaderChangeResult> ApplyReaderChange(ReaderChangeBase readerChange);
     }
-
-    public abstract class ReaderChangeBase
-    {
-        public SubscriberConfiguration Subscriber { get; set; }
-    }
-
-    public class CreateReader : ReaderChangeBase
-    {
-    }
-
-    public class UpdateReader : ReaderChangeBase
-    {
-    }
 }

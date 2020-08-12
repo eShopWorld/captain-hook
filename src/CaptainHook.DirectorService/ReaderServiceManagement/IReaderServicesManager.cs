@@ -15,12 +15,4 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
         /// <returns></returns>
         Task<Dictionary<string, RefreshReaderResult>> RefreshReadersAsync(IEnumerable<ReaderChangeInfo> changeSet, CancellationToken cancellationToken);
     }
-
-    public enum RefreshReaderResult
-    {
-        None,
-        Success,
-        CreateFailed,
-        DeleteFailed
-    }
 }
