@@ -60,9 +60,9 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             var replacements = entity.Webhooks.Endpoints
                 .Where(x => x.UriTransform?.Replace != null)
                 .SelectMany(x => x.UriTransform.Replace)
-                .GroupBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
+                .GroupBy(x => x.Key)
                 .Select(x => x.First())
-                .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(x => x.Key, x => x.Value);
 
             replacements["selector"] = entity.Webhooks.SelectionRule;
 
