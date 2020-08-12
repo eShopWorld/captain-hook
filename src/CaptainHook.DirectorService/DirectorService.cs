@@ -180,7 +180,7 @@ namespace CaptainHook.DirectorService
             return this.CreateServiceRemotingReplicaListeners();
         }
 
-        public async Task<CreateReaderResult> CreateReaderAsync(SubscriberConfiguration subscriber)
+        public async Task<ReaderChangeResult> ApplyReaderChange(ReaderChangeBase readerChange)
         {
             if (!_refreshInProgress)
             {
@@ -192,9 +192,45 @@ namespace CaptainHook.DirectorService
                     {
                         _refreshInProgress = true;
 
-                        var changeInfo = ReaderChangeInfo.ToBeCreated(new DesiredReaderDefinition(subscriber));
+                        var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
+                        var existingReaders = deployedServices
+                            .Where(ExistingReaderDefinition.IsValidReaderService)
+                            .Select(s => new ExistingReaderDefinition(s));
 
-                        return await _readerServicesManager.CreateReaderAsync(changeInfo, _cancellationToken);
+                        var desiredReader = new DesiredReaderDefinition(readerChange.Subscriber);
+                        var existingReader = existingReaders.SingleOrDefault(r => desiredReader.IsTheSameService(r));
+
+                        ReaderChangeInfo changeInfo = default;
+                        switch (readerChange)
+                        {
+                            case CreateReader _:
+                                {
+                                    if (existingReader.IsValid)
+                                        return ReaderChangeResult.ReaderAlreadyExist;
+
+                                    changeInfo = ReaderChangeInfo.ToBeCreated(desiredReader);
+                                    break;
+                                }
+                            case UpdateReader _:
+                                {
+                                    if (!existingReader.IsValid)
+                                        return ReaderChangeResult.ReaderDoesNotExist;
+
+                                    changeInfo = ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader);
+                                    break;
+                                }
+                        }
+
+                        var refreshResult = await _readerServicesManager.RefreshReadersAsync(new[] { changeInfo }, _cancellationToken);
+
+                        var singleResult = refreshResult.SingleOrDefault();
+                        return singleResult.Value switch
+                        {
+                            RefreshReaderResult.Success => ReaderChangeResult.Success,
+                            RefreshReaderResult.CreateFailed => ReaderChangeResult.CreateFailed,
+                            RefreshReaderResult.DeleteFailed => ReaderChangeResult.DeleteFailed,
+                            _ => ReaderChangeResult.None
+                        };
                     }
                 }
                 finally
@@ -205,7 +241,7 @@ namespace CaptainHook.DirectorService
             }
 
             _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
-            return CreateReaderResult.DirectorIsBusy;
+            return ReaderChangeResult.DirectorIsBusy;
         }
     }
 }

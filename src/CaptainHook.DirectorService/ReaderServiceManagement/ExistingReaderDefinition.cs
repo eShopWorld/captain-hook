@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using CaptainHook.Common;
 
 namespace CaptainHook.DirectorService.ReaderServiceManagement
 {
@@ -7,7 +8,7 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
     /// </summary>
     public readonly struct ExistingReaderDefinition
     {
-        private static readonly Regex RemoveSuffixRegex = new Regex ("(|-a|-b|-\\d{14}|-[a-zA-Z0-9]{20,22})$", RegexOptions.Compiled);
+        private static readonly Regex RemoveSuffixRegex = new Regex("(|-a|-b|-\\d{14}|-[a-zA-Z0-9]{20,22})$", RegexOptions.Compiled);
 
         /// <summary>
         /// Bare Reader Service name, without the suffix (non-versioned)
@@ -21,11 +22,15 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
 
         public bool IsValid => ServiceName != null && ServiceNameWithSuffix != null;
 
-        public ExistingReaderDefinition (string serviceNameWithSuffix)
+        public ExistingReaderDefinition(string serviceNameWithSuffix)
         {
-            ServiceName = RemoveSuffixRegex.Replace (serviceNameWithSuffix, string.Empty);
+            ServiceName = RemoveSuffixRegex.Replace(serviceNameWithSuffix, string.Empty);
             ServiceNameWithSuffix = serviceNameWithSuffix;
         }
 
+        public static bool IsValidReaderService(string serviceNameWithSuffix)
+        {
+            return !string.IsNullOrWhiteSpace(serviceNameWithSuffix) && serviceNameWithSuffix.StartsWith(ServiceNaming.EventReaderServicePrefix);
+        }
     }
 }
