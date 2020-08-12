@@ -40,7 +40,7 @@ namespace CaptainHook.Application.Tests.Handlers
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(true);
 
             var result = await Handler.Handle(request, CancellationToken.None);
@@ -69,7 +69,7 @@ namespace CaptainHook.Application.Tests.Handlers
                 ).Create();
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriberEntity);
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()))
+            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(true);
             _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
@@ -80,7 +80,7 @@ namespace CaptainHook.Application.Tests.Handlers
             result.IsError.Should().BeFalse();
             result.Data.Should().BeEquivalentTo(request.Endpoint);
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
@@ -93,7 +93,7 @@ namespace CaptainHook.Application.Tests.Handlers
                 .ReturnsAsync(new BusinessError("test error"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(false);
 
             var result = await Handler.Handle(request, CancellationToken.None);
@@ -102,7 +102,7 @@ namespace CaptainHook.Application.Tests.Handlers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()), Times.Never);
+            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Never);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
@@ -115,7 +115,7 @@ namespace CaptainHook.Application.Tests.Handlers
                 .Throws<Exception>();
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(false);
 
             var result = await Handler.Handle(request, CancellationToken.None);
@@ -124,7 +124,7 @@ namespace CaptainHook.Application.Tests.Handlers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<UnhandledExceptionError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()), Times.Never);
+            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Never);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
@@ -137,7 +137,7 @@ namespace CaptainHook.Application.Tests.Handlers
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(new DirectorServiceIsBusyError());
 
             var result = await Handler.Handle(request, CancellationToken.None);
@@ -146,7 +146,7 @@ namespace CaptainHook.Application.Tests.Handlers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
@@ -159,16 +159,16 @@ namespace CaptainHook.Application.Tests.Handlers
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
-                .ReturnsAsync(new ReaderCreationError(new SubscriberEntity("subscriber")));
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
+                .ReturnsAsync(new ReaderCreateError(new SubscriberEntity("subscriber")));
 
             var result = await Handler.Handle(request, CancellationToken.None);
 
             using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<ReaderCreationError>();
+            result.Error.Should().BeOfType<ReaderCreateError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
@@ -181,7 +181,7 @@ namespace CaptainHook.Application.Tests.Handlers
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                  .Throws<Exception>();
 
             var result = await Handler.Handle(request, CancellationToken.None);
@@ -190,7 +190,7 @@ namespace CaptainHook.Application.Tests.Handlers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<UnhandledExceptionError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
@@ -203,7 +203,7 @@ namespace CaptainHook.Application.Tests.Handlers
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new BusinessError("test error"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(true);
 
             var result = await Handler.Handle(request, CancellationToken.None);
@@ -211,7 +211,7 @@ namespace CaptainHook.Application.Tests.Handlers
             using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 
@@ -224,7 +224,7 @@ namespace CaptainHook.Application.Tests.Handlers
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .Throws<Exception>();
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, request))))
                 .ReturnsAsync(false);
 
             var result = await Handler.Handle(request, CancellationToken.None);
@@ -232,7 +232,7 @@ namespace CaptainHook.Application.Tests.Handlers
             using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 

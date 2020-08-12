@@ -48,7 +48,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var request = new UpsertSubscriberRequest("event", "subscriber", subscriberDto);
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.IsAny<SubscriberId>()))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(true);
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
@@ -111,7 +111,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new DirectorServiceIsBusyError());
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
@@ -125,12 +125,12 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new ReaderCreationError(new SubscriberEntity("subscriber")));
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(new ReaderCreateError(new SubscriberEntity("subscriber")));
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
-            var expectedResult = new OperationResult<SubscriberDto>(new ReaderCreationError(new SubscriberEntity("subscriber")));
+            var expectedResult = new OperationResult<SubscriberDto>(new ReaderCreateError(new SubscriberEntity("subscriber")));
             result.Should().BeEquivalentTo(expectedResult);
         }
 
@@ -139,7 +139,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
                  .Throws<Exception>();
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
@@ -153,7 +153,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.IsAny<SubscriberEntity>()))
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(true);
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new BusinessError("test error"));
@@ -169,7 +169,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _directorServiceMock.Setup(r => r.ProvisionReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(false);
+            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(false);
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>())).Throws<Exception>();
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);

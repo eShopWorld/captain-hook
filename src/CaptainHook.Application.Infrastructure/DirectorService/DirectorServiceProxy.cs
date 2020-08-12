@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
@@ -20,21 +21,34 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             _directorService = directorService;
         }
 
-        public async Task<OperationResult<bool>> ProvisionReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
         {
-            throw new NotImplementedException();
+            return await CallDirector(s => new CreateReader {Subscriber = s}, subscriber);
+        }
 
-            //var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
-            //var createReaderResult = await _directorService.ApplyReaderChange(subscriberConfigs.Single());
+        public async Task<OperationResult<bool>> UpdateReaderAsync(SubscriberEntity subscriber)
+        {
+            return await CallDirector(s => new UpdateReader {Subscriber = s}, subscriber);
+        }
 
-            //return createReaderResult switch
-            //{
-            //    ReaderChangeResult.Success => true,
-            //    ReaderChangeResult.CreateFailed => new ReaderCreationError(subscriber),
-            //    ReaderChangeResult.DeleteFailed => new ReaderUpdateError(subscriber),
-            //    ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
-            //    _ => new BusinessError("Director Service returned unknown result.")
-            //};
+        private async Task<OperationResult<bool>> CallDirector(Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
+        {
+            var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
+            var singleSubscriber = subscriberConfigs.Single();
+
+            var request = requestFunc(singleSubscriber);
+            var createReaderResult = await _directorService.ApplyReaderChange(request);
+
+            return createReaderResult switch
+            {
+                ReaderChangeResult.Success => true,
+                ReaderChangeResult.CreateFailed => new ReaderCreateError(subscriber),
+                ReaderChangeResult.DeleteFailed => new ReaderDeleteError(subscriber),
+                ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
+                ReaderChangeResult.ReaderAlreadyExist => new ReaderAlreadyExistsError(subscriber),
+                ReaderChangeResult.ReaderDoesNotExist => new ReaderDoesNotExistError(subscriber),
+                _ => new BusinessError("Director Service returned unknown result.")
+            };
         }
     }
 }

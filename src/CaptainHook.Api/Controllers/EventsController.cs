@@ -61,7 +61,7 @@ namespace CaptainHook.Api.Controllers
                  {
                      ValidationError validationError => BadRequest(validationError),
                      DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
-                     ReaderCreationError readerCreationError => UnprocessableEntity(readerCreationError),
+                     ReaderCreateError readerCreationError => UnprocessableEntity(readerCreationError),
                      CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
                      _ => StatusCode(StatusCodes.Status500InternalServerError, error) 
                  },
@@ -94,7 +94,7 @@ namespace CaptainHook.Api.Controllers
                  {
                      ValidationError validationError => BadRequest(validationError),
                      DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
-                     ReaderCreationError readerCreationError => UnprocessableEntity(readerCreationError),
+                     ReaderCreateError readerCreationError => UnprocessableEntity(readerCreationError),
                      CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
                      _ => StatusCode(StatusCodes.Status500InternalServerError, error)
                  },
