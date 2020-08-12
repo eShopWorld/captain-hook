@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
@@ -9,26 +9,44 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
+using Eshopworld.Core;
 using MediatR;
+using Polly;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
     public class UpsertWebhookRequestHandler : IRequestHandler<UpsertWebhookRequest, OperationResult<EndpointDto>>
     {
+        private static readonly TimeSpan[] DefaultRetrySleepDurations = {
+            TimeSpan.FromSeconds(1.0),
+            TimeSpan.FromSeconds(2.0),
+        };
+
         private readonly ISubscriberRepository _subscriberRepository;
+
         private readonly IDirectorServiceProxy _directorService;
 
-        public UpsertWebhookRequestHandler(ISubscriberRepository subscriberRepository,
-            IDirectorServiceProxy directorService)
+        private readonly IBigBrother _bigBrother;
+
+        private readonly TimeSpan[] _retrySleepDurations;
+
+        public UpsertWebhookRequestHandler(
+            ISubscriberRepository subscriberRepository,
+            IDirectorServiceProxy directorService,
+            IBigBrother bigBrother,
+            TimeSpan[] _sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;
+            _bigBrother = bigBrother;
+            _retrySleepDurations = _sleepDurations ?? DefaultRetrySleepDurations;
         }
 
-        public async Task<OperationResult<EndpointDto>> Handle(UpsertWebhookRequest request,
+        public async Task<OperationResult<EndpointDto>> Handle(
+            UpsertWebhookRequest request,
             CancellationToken cancellationToken)
         {
-            try
+            async Task<OperationResult<EndpointDto>> AddOrUpdateEndpointAsync()
             {
                 var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
                 var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
@@ -38,15 +56,26 @@ namespace CaptainHook.Application.Handlers.Subscribers
                     return await AddAsync(request, cancellationToken);
                 }
 
-                if (!existingItem.IsError)
+                if (! existingItem.IsError)
                 {
-                    return await UpdateAsync(request, existingItem.Data, cancellationToken);
+                    return await UpdateAsync(request, existingItem.Data);
                 }
 
                 return existingItem.Error;
             }
+
+            try
+            {
+                var executionResult = await Policy
+                    .HandleResult<OperationResult<EndpointDto>>(result => result.Error is CannotUpdateEntityError)
+                    .WaitAndRetryAsync(_retrySleepDurations)
+                    .ExecuteAsync(AddOrUpdateEndpointAsync);
+
+                return executionResult;
+            }
             catch (Exception ex)
             {
+                _bigBrother.Publish(ex.ToExceptionEvent());
                 return new UnhandledExceptionError($"Error processing {nameof(UpsertWebhookRequest)}", ex);
             }
         }
@@ -74,8 +103,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         private async Task<OperationResult<EndpointDto>> UpdateAsync(
             UpsertWebhookRequest request,
-            SubscriberEntity existingItem,
-            CancellationToken cancellationToken)
+            SubscriberEntity existingItem)
         {
             var endpoint = MapRequestToEndpoint(request, existingItem);
             var addWebhookResult = existingItem.AddWebhookEndpoint(endpoint);
@@ -98,8 +126,6 @@ namespace CaptainHook.Application.Handlers.Subscribers
             }
 
             return request.Endpoint;
-
-            //repeat if error
         }
 
         private static EndpointEntity MapRequestToEndpoint(UpsertWebhookRequest request, SubscriberEntity parent)
