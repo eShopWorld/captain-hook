@@ -119,9 +119,8 @@ namespace CaptainHook.Api.Tests
         {
             var webhooks = new CaptainHookContractWebhooksDto(endpoints: new[] { new CaptainHookContractEndpointDto()
             {
-                Uri = "http://some.url/",
+                Uri = "http://blah.blah",
                 HttpVerb = "PUT",
-                //Uri = EnvironmentSettings.Configuration["PeterPanBaseUrl"],
                 Authentication = GetTestAuthenticationDto()
             }
             });
