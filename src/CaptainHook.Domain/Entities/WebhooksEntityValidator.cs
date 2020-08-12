@@ -15,7 +15,7 @@ namespace CaptainHook.Domain.Entities
 
             RuleFor(x => x)
                 .Must(ContainOnlyDefaultEndpointIfNoSelectionRule)
-                .WithMessage("Only default endpoint is allowed if no selection rule provided");
+                .WithMessage("Only a single default endpoint is allowed if no selection rule provided");
         }
 
         private bool ContainOnlyDefaultEndpointIfNoSelectionRule(WebhooksEntity webhooks)
@@ -25,7 +25,8 @@ namespace CaptainHook.Domain.Entities
 
         private static bool ContainOnlySingleWebhookWithNoSelector(IEnumerable<EndpointEntity> endpoints)
         {
-            return endpoints?.Count(e => string.IsNullOrEmpty(e.Selector)) == endpoints?.Count();
+            return endpoints?.Count(e => string.IsNullOrEmpty(e.Selector)) == 1
+                && endpoints?.Count() == 1;
         }
     }
 }

@@ -41,7 +41,7 @@ namespace CaptainHook.Domain.Tests.Entities
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x)
-                .WithErrorMessage("Only default endpoint is allowed if no selection rule provided");
+                .WithErrorMessage("Only a single default endpoint is allowed if no selection rule provided");
         }
 
         [Fact, IsUnit]
@@ -65,7 +65,31 @@ namespace CaptainHook.Domain.Tests.Entities
 
             // Assert
             result.ShouldHaveValidationErrorFor(x => x)
-                .WithErrorMessage("Only default endpoint is allowed if no selection rule provided");
+                .WithErrorMessage("Only a single default endpoint is allowed if no selection rule provided");
+        }
+
+        [Fact, IsUnit]
+        public void Validate_NoSelectionRuleAndCollectionWithMultipleDefaultEndpoints_FailsValidation()
+        {
+            // Arrange
+            var endpoints = new WebhooksEntity(null, new[]
+            {
+                new EndpointBuilder()
+                    .WithSelector(null)
+                    .WithUri("https://uri.com")
+                    .Create(),
+                new EndpointBuilder()
+                    .WithSelector(null)
+                    .WithUri("https://uri2.com")
+                    .Create()
+            });
+
+            // Act
+            var result = _validator.TestValidate(endpoints);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(x => x)
+                .WithErrorMessage("Only a single default endpoint is allowed if no selection rule provided");
         }
 
         [Fact, IsUnit]
