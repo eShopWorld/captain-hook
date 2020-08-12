@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
@@ -21,22 +23,32 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
 
         public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
         {
-            var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
-            var createReaderResult = await _directorService.CreateReaderAsync(subscriberConfigs.Single());
+            return await CallDirector(s => new CreateReader {Subscriber = s}, subscriber);
+        }
+
+        public async Task<OperationResult<bool>> UpdateReaderAsync(SubscriberEntity subscriber)
+        {
+            return await CallDirector(s => new UpdateReader {Subscriber = s}, subscriber);
+        }
+
+        private async Task<OperationResult<bool>> CallDirector(Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
+        {
+            var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriberAsync(subscriber);
+            var singleSubscriber = subscriberConfigs.Single();
+
+            var request = requestFunc(singleSubscriber);
+            var createReaderResult = await _directorService.ApplyReaderChange(request);
 
             return createReaderResult switch
             {
-                CreateReaderResult.Created => true,
-                CreateReaderResult.AlreadyExists => true,
-                CreateReaderResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
-                CreateReaderResult.Failed => new ReaderCreationError(subscriber),
+                ReaderChangeResult.Success => true,
+                ReaderChangeResult.CreateFailed => new ReaderCreateError(subscriber),
+                ReaderChangeResult.DeleteFailed => new ReaderDeleteError(subscriber),
+                ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
+                ReaderChangeResult.ReaderAlreadyExist => new ReaderAlreadyExistsError(subscriber),
+                ReaderChangeResult.ReaderDoesNotExist => new ReaderDoesNotExistError(subscriber),
                 _ => new BusinessError("Director Service returned unknown result.")
             };
-        }
-
-        public Task<OperationResult<bool>> UpdateReaderAsync(SubscriberEntity subscriber)
-        {
-            return Task.FromResult(new OperationResult<bool>(true));
         }
     }
 }

@@ -19,7 +19,6 @@ namespace CaptainHook.Application.Validators.Common
 
             // selector in Replace dictionary is required only temporary
             RuleFor(x => x.Replace).NotEmpty()
-                .Must(x => x.ContainsKey("selector")).WithMessage("Routes dictionary must temporarily contain an item with 'selector' key")
                 .Must(ContainAllReplacementsForUri).WithMessage("Routes dictionary must contain all items defined in the Uri");
         }
 

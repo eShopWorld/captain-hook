@@ -121,16 +121,16 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         }
 
         [Fact, IsUnit]
-        public async Task When_DirectorServiceFailsToCreateReaderAsync_Then_OperationFails()
+        public async Task When_DirectorServiceFailsToRefreshReaderAsync_Then_OperationFails()
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new ReaderCreationError(new SubscriberEntity("subscriber")));
+                .ReturnsAsync(new ReaderCreateError(new SubscriberEntity("subscriber")));
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
-            var expectedResult = new OperationResult<SubscriberDto>(new ReaderCreationError(new SubscriberEntity("subscriber")));
+            var expectedResult = new OperationResult<SubscriberDto>(new ReaderCreateError(new SubscriberEntity("subscriber")));
             result.Should().BeEquivalentTo(expectedResult);
         }
 
