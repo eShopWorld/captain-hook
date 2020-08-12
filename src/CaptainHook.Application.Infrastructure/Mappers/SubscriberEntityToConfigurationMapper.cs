@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -56,13 +57,13 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         private async Task<SubscriberConfiguration> MapForUriTransformAsync(SubscriberEntity entity)
         {
-            var replacements = new Dictionary<string, string>(entity.Webhooks.Endpoints
+            var replacements = entity.Webhooks.Endpoints
                 .SelectMany(x => x.UriTransform.Replace)
-                .GroupBy(x => x.Key)
-                .Select(x => x.First()))
-            {
-                { "selector", entity.Webhooks.SelectionRule }
-            };
+                .GroupBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(x => x.First())
+                .ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+
+            replacements["selector"] = entity.Webhooks.SelectionRule;
 
             var routes = await MapWebhooksToRoutesAsync(entity.Webhooks);
 
