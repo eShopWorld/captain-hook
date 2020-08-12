@@ -58,6 +58,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         private async Task<SubscriberConfiguration> MapForUriTransformAsync(SubscriberEntity entity)
         {
             var replacements = entity.Webhooks.Endpoints
+                .Where(x => x.UriTransform?.Replace != null)
                 .SelectMany(x => x.UriTransform.Replace)
                 .GroupBy(x => x.Key, StringComparer.OrdinalIgnoreCase)
                 .Select(x => x.First())
