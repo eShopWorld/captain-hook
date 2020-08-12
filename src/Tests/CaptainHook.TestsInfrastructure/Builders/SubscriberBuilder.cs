@@ -7,6 +7,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
     {
         private string _name = "captain-hook";
         private EventEntity _event = new EventEntity("event");
+        private string _webhookSelectionRule = null;
         private readonly List<EndpointEntity> _webhooks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _callbacks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _dlq = new List<EndpointEntity>();
@@ -20,6 +21,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberBuilder WithEvent(string name)
         {
             _event = new EventEntity(name);
+            return this;
+        }
+
+        public SubscriberBuilder WithWebhookSelectionRule(string selectionRule)
+        {
+            _webhookSelectionRule = selectionRule;
             return this;
         }
 
@@ -48,9 +55,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         {
             var subscriber = new SubscriberEntity(_name);
             subscriber.SetParentEvent(_event);
-
-            _webhooks.ForEach(x => subscriber.AddWebhookEndpoint(x));
-
+            subscriber.AddWebhooks(new WebhooksEntity(_webhookSelectionRule, _webhooks));
             return subscriber;
         }
     }

@@ -2,11 +2,11 @@
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Validators;
 using CaptainHook.Contract;
-using CaptainHook.TestsInfrastructure;
 using CaptainHook.TestsInfrastructure.Builders;
 using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using FluentValidation.TestHelper;
 using Xunit;
 
 namespace CaptainHook.Application.Tests.RequestValidators
@@ -20,7 +20,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var request = new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().Create());
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
             result.IsValid.Should().BeTrue();
         }
@@ -37,9 +37,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.IsValid.Should().BeTrue();
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Theory, IsUnit]
@@ -48,9 +48,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var request = new UpsertWebhookRequest(invalidString, "subscriber", new EndpointDtoBuilder().Create());
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(UpsertWebhookRequest.EventName));
+            result.ShouldHaveValidationErrorFor(x => x.EventName);
         }
 
         [Theory, IsUnit]
@@ -59,9 +59,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
         {
             var request = new UpsertWebhookRequest("event", invalidString, new EndpointDtoBuilder().Create());
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(UpsertWebhookRequest.SubscriberName));
+            result.ShouldHaveValidationErrorFor(x => x.SubscriberName);
         }
 
         [Theory, IsUnit]
@@ -71,9 +71,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new EndpointDtoBuilder().With(x => x.Uri, uri).Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(EndpointDto.Uri));
+            result.ShouldHaveValidationErrorFor(x => x.Endpoint.Uri);
         }
 
         [Theory, IsUnit]
@@ -83,9 +83,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new EndpointDtoBuilder().With(x => x.Uri, uri).Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(EndpointDto.Uri));
+            result.ShouldHaveValidationErrorFor(x => x.Endpoint.Uri);
         }
 
         [Theory, IsUnit]
@@ -95,9 +95,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(EndpointDto.HttpVerb));
+            result.ShouldHaveValidationErrorFor(x => x.Endpoint.HttpVerb);
         }
 
         [Theory, IsUnit]
@@ -107,9 +107,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var dto = new EndpointDtoBuilder().With(x => x.HttpVerb, httpVerb).Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(EndpointDto.HttpVerb));
+            result.ShouldHaveValidationErrorFor(x => x.Endpoint.HttpVerb);
         }
 
         [Fact, IsUnit]
@@ -121,9 +121,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
                 .Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.IsValid.Should().BeTrue();
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Fact, IsUnit]
@@ -135,9 +135,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
                 .Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(UriTransformDto.Replace));
+            result.ShouldHaveValidationErrorFor(x => x.Endpoint.UriTransform.Replace);
         }
 
         [Fact, IsUnit]
@@ -149,9 +149,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
                 .Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(UriTransformDto.Replace));
+            result.ShouldHaveValidationErrorFor(x => x.Endpoint.UriTransform.Replace);
         }
 
         [Fact, IsUnit]
@@ -163,9 +163,9 @@ namespace CaptainHook.Application.Tests.RequestValidators
                 .Create();
             var request = new UpsertWebhookRequest("event", "subscriber", dto);
 
-            var result = _validator.Validate(request);
+            var result = _validator.TestValidate(request);
 
-            result.AssertSingleFailure(nameof(UriTransformDto.Replace));
+            result.ShouldHaveValidationErrorFor(x => x.Endpoint.UriTransform.Replace);
         }
     }
 }

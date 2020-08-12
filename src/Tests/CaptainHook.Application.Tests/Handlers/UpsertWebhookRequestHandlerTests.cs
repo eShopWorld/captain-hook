@@ -15,6 +15,7 @@ using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using FluentValidation;
 using Moq;
 using Xunit;
 
@@ -24,6 +25,9 @@ namespace CaptainHook.Application.Tests.Handlers
     {
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
+
+        private readonly Mock<IValidator<SubscriberEntity>> _subscriberValidatorMock =
+            new Mock<IValidator<SubscriberEntity>>();
 
         private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(_repositoryMock.Object, _directorServiceMock.Object);
 
@@ -59,7 +63,7 @@ namespace CaptainHook.Application.Tests.Handlers
             var subscriberEntity = new SubscriberBuilder()
                 .WithEvent("event")
                 .WithName("subscriber")
-                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector", 
+                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", null, 
                     authentication: new AuthenticationEntity(
                         "captain-hook-id",
                         new SecretStoreEntity("kvname", "kv-secret-name"),
@@ -81,7 +85,7 @@ namespace CaptainHook.Application.Tests.Handlers
             result.Data.Should().BeEquivalentTo(request.Endpoint);
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-            _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
+            _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 
         [Fact, IsUnit]
