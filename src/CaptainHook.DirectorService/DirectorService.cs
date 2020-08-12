@@ -34,7 +34,7 @@ namespace CaptainHook.DirectorService
         private readonly IReaderServicesManager _readerServicesManager;
         private readonly IReaderServiceChangesDetector _readerServiceChangeDetector;
         private readonly ISubscriberConfigurationLoader _subscriberConfigurationLoader;
-        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
+        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations = new Dictionary<string, SubscriberConfiguration>();
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
