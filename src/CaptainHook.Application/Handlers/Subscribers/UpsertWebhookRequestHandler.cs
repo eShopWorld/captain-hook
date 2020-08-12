@@ -9,6 +9,7 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
+using Eshopworld.Core;
 using MediatR;
 using Polly;
 
@@ -25,15 +26,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         private readonly IDirectorServiceProxy _directorService;
 
+        private readonly IBigBrother _bigBrother;
+
         private readonly TimeSpan[] _retrySleepDurations;
 
         public UpsertWebhookRequestHandler(
             ISubscriberRepository subscriberRepository,
             IDirectorServiceProxy directorService,
+            IBigBrother bigBrother,
             TimeSpan[] _sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;
+            _bigBrother = bigBrother;
             _retrySleepDurations = _sleepDurations ?? DefaultRetrySleepDurations;
         }
 
@@ -70,6 +75,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             }
             catch (Exception ex)
             {
+                _bigBrother.Publish(ex.ToExceptionEvent());
                 return new UnhandledExceptionError($"Error processing {nameof(UpsertWebhookRequest)}", ex);
             }
         }

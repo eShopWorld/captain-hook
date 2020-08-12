@@ -13,10 +13,10 @@ using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.TestsInfrastructure.Builders;
+using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using FluentValidation;
 using Moq;
 using Xunit;
 
@@ -28,12 +28,10 @@ namespace CaptainHook.Application.Tests.Handlers
 
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
 
-        private readonly Mock<IValidator<SubscriberEntity>> _subscriberValidatorMock =
-            new Mock<IValidator<SubscriberEntity>>();
-
         private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(
             _repositoryMock.Object,
-            _directorServiceMock.Object,
+            _directorServiceMock.Object, 
+            Mock.Of<IBigBrother>(),
             new[]
             {
                 TimeSpan.FromMilliseconds(10.0),
