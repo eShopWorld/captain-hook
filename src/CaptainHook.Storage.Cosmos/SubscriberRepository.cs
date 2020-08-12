@@ -184,8 +184,7 @@ namespace CaptainHook.Storage.Cosmos
                 Id = subscriberEntity.Id,
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
-                Webhooks = Map(subscriberEntity.Webhooks),
-                Etag = subscriberEntity.Etag
+                Webhooks = Map(subscriberEntity.Webhooks)
             };
         }
 

@@ -145,5 +145,23 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
             result.ShouldNotHaveAnyValidationErrors();
         }
+
+        [Fact, IsUnit]
+        public void When_TheresNoSelectionRuleAndOneEndpointOnlyWithNoSelector_Then_ValidationSucceeds()
+        {
+            var endpoints = new List<EndpointDto>()
+            {
+                new EndpointDtoBuilder().With(x => x.Selector, null).Create(),
+            };
+            var webhooksDto = new WebhooksDtoBuilder()
+                .With(x => x.SelectionRule, null)
+                .With(x => x.Endpoints, endpoints).Create();
+            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
     }
 }

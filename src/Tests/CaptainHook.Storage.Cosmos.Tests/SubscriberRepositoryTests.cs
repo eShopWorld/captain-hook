@@ -470,8 +470,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SelectionRule = "rule",
                     Endpoints = new EndpointSubdocument[] { }
-                },
-                Etag = "version1"
+                }
             };
 
             subscriber.AddWebhooks(new WebhooksEntity("rule"));
