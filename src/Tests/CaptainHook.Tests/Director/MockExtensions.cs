@@ -5,7 +5,7 @@ using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using Eshopworld.Core;
 using Moq;
 
-namespace CaptainHook.Tests.Director.ReaderServiceManagement
+namespace CaptainHook.Tests.Director
 {
     internal static class MockExtensions
     {

@@ -46,7 +46,7 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             _bigBrother = bigBrother;
         }
 
-        public async Task RefreshReadersAsync(IEnumerable<ReaderChangeInfo> changeSet, CancellationToken cancellationToken)
+        public async Task<Dictionary<string, RefreshReaderResult>> RefreshReadersAsync(IEnumerable<ReaderChangeInfo> changeSet, CancellationToken cancellationToken)
         {
             LogEvent(changeSet.ToArray());
 
@@ -58,42 +58,44 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
                 .Where(change => (change.ChangeType & ReaderChangeType.ToBeRemoved) != 0)
                 .Select(change => change.OldReader.ServiceNameWithSuffix);
 
-            await CreateReaderServicesAsync(servicesToCreate, cancellationToken);
+            var result = await CreateReaderServicesAsync(servicesToCreate, cancellationToken);
             await DeleteReaderServicesAsync(allServiceNamesToDelete, cancellationToken);
+
+            return result;
         }
 
-        public async Task<ReaderProvisionResult> ProvisionReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken)
-        {
-            var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
-            var existingReaders = deployedServices
-                .Where(ExistingReaderDefinition.IsValidReaderService)
-                .Select(s => new ExistingReaderDefinition(s));
+        //public async Task<ReaderProvisionResult> ProvisionReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken)
+        //{
+        //    var deployedServices = await _fabricClientWrapper.GetServiceUriListAsync();
+        //    var existingReaders = deployedServices
+        //        .Where(ExistingReaderDefinition.IsValidReaderService)
+        //        .Select(s => new ExistingReaderDefinition(s));
 
-            var desiredReader = new DesiredReaderDefinition(subscriber);
-            var existingReader = existingReaders.SingleOrDefault(r => desiredReader.IsTheSameService(r));
+        //    var desiredReader = new DesiredReaderDefinition(subscriber);
+        //    var existingReader = existingReaders.SingleOrDefault(r => desiredReader.IsTheSameService(r));
 
-            if (!existingReader.IsValid)
-            {
-                LogEvent(ReaderChangeInfo.ToBeCreated(desiredReader));
+        //    if (!existingReader.IsValid)
+        //    {
+        //        LogEvent(ReaderChangeInfo.ToBeCreated(desiredReader));
 
-                var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { desiredReader }, cancellationToken);
-                return creationResult ? ReaderProvisionResult.Success : ReaderProvisionResult.CreateFailed;
-            }
+        //        var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { desiredReader }, cancellationToken);
+        //        return creationResult ? ReaderProvisionResult.Success : ReaderProvisionResult.CreateFailed;
+        //    }
 
-            if (!desiredReader.IsUnchanged(existingReader))
-            {
-                LogEvent(ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader));
+        //    if (!desiredReader.IsUnchanged(existingReader))
+        //    {
+        //        LogEvent(ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader));
 
-                var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { desiredReader }, cancellationToken);
-                if (!creationResult)
-                    return ReaderProvisionResult.UpdateFailed;
+        //        var creationResult = await CreateReaderServicesAsync(new List<DesiredReaderDefinition> { desiredReader }, cancellationToken);
+        //        if (!creationResult)
+        //            return ReaderProvisionResult.UpdateFailed;
 
-                var deletionResult = await DeleteReaderServicesAsync(new[] { existingReader.ServiceNameWithSuffix }, cancellationToken);
-                return deletionResult ? ReaderProvisionResult.Success : ReaderProvisionResult.UpdateFailed;
-            }
+        //        var deletionResult = await DeleteReaderServicesAsync(new[] { existingReader.ServiceNameWithSuffix }, cancellationToken);
+        //        return deletionResult ? ReaderProvisionResult.Success : ReaderProvisionResult.UpdateFailed;
+        //    }
 
-            return ReaderProvisionResult.NoActionTaken;
-        }
+        //    return ReaderProvisionResult.NoActionTaken;
+        //}
 
         private void LogEvent(params ReaderChangeInfo[] changeSet)
         {
@@ -112,14 +114,17 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             _bigBrother.Publish(new RefreshSubscribersEvent(added, deleted, updated));
         }
 
-        private async Task<bool> CreateReaderServicesAsync(IEnumerable<DesiredReaderDefinition> readerDefinitions, CancellationToken cancellationToken)
+        private async Task<Dictionary<string, RefreshReaderResult>> CreateReaderServicesAsync(IEnumerable<DesiredReaderDefinition> readerDefinitions, CancellationToken cancellationToken)
         {
+            var result = new Dictionary<string, RefreshReaderResult>();
+
             foreach (var reader in readerDefinitions)
             {
-                if (cancellationToken.IsCancellationRequested) return false;
+                if (cancellationToken.IsCancellationRequested)
+                    return result;
 
+                var key = SubscriberConfiguration.Key(reader.SubscriberConfig.EventType, reader.SubscriberConfig.SubscriberName);
                 var initializationData = EventReaderInitData.FromSubscriberConfiguration(reader.SubscriberConfig).ToByteArray();
-
                 var description = new ServiceCreationDescription(
                     serviceName: reader.ServiceNameWithSuffix,
                     serviceTypeName: ServiceNaming.EventReaderServiceType,
@@ -129,24 +134,24 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
                 {
                     await _fabricClientWrapper.CreateServiceAsync(description, cancellationToken);
                     _bigBrother.Publish(new ReaderServiceCreatedEvent(reader.ServiceNameWithSuffix));
+                    result.Add(key, RefreshReaderResult.Success);
                 }
                 catch (Exception e)
                 {
                     _bigBrother.Publish(new ReaderServiceCreationFailedEvent(reader.ServiceNameWithSuffix, e));
-                    return false;
+                    result.Add(key, RefreshReaderResult.CreateFailed);
                 }
             }
 
-            return true;
+            return result;
         }
 
-        private async Task<bool> DeleteReaderServicesAsync(IEnumerable<string> oldNames, CancellationToken cancellationToken)
+        private async Task DeleteReaderServicesAsync(IEnumerable<string> oldNames, CancellationToken cancellationToken)
         {
             var toDelete = oldNames.ToHashSet();
 
             while (toDelete.Any())
             {
-
                 var tasks = toDelete
                     .Select(name => new ReaderTask(name, _fabricClientWrapper.DeleteServiceAsync(name, cancellationToken)))
                     .ToArray();
@@ -175,11 +180,8 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
                     _bigBrother.Publish(deletionEvent);
 
                     toDelete.ExceptWith(completedTasks.Select(t => t.Name));
-                    return false;
                 }
             }
-
-            return true;
         }
     }
 }

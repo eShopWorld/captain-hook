@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
-using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.DirectorService.ReaderServiceManagement
 {
@@ -15,14 +13,14 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
         /// <param name="changeSet">List of changes to be applied to the readers</param>
         /// <param name="cancellationToken">A cancellation token</param>
         /// <returns></returns>
-        Task RefreshReadersAsync(IEnumerable<ReaderChangeInfo> changeSet, CancellationToken cancellationToken);
+        Task<Dictionary<string, RefreshReaderResult>> RefreshReadersAsync(IEnumerable<ReaderChangeInfo> changeSet, CancellationToken cancellationToken);
+    }
 
-        /// <summary>
-        /// Creates or updates single reader based on provided subscriber information.
-        /// </summary>
-        /// <param name="changeInfo">Change to be applied</param>
-        /// <param name="cancellationToken">A cancellation token</param>
-        /// <returns></returns>
-        Task<ReaderProvisionResult> ProvisionReaderAsync(SubscriberConfiguration subscriber, CancellationToken cancellationToken);
+    public enum RefreshReaderResult
+    {
+        None,
+        Success,
+        CreateFailed,
+        DeleteFailed
     }
 }

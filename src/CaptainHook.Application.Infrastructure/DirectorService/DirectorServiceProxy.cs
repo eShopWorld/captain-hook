@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
@@ -21,18 +22,19 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
 
         public async Task<OperationResult<bool>> ProvisionReaderAsync(SubscriberEntity subscriber)
         {
-            var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
-            var createReaderResult = await _directorService.ProvisionReaderAsync(subscriberConfigs.Single());
+            throw new NotImplementedException();
 
-            return createReaderResult switch
-            {
-                ReaderProvisionResult.Success => true,
-                ReaderProvisionResult.NoActionTaken => true,
-                ReaderProvisionResult.CreateFailed => new ReaderCreationError(subscriber),
-                ReaderProvisionResult.UpdateFailed => new ReaderUpdateError(subscriber),
-                ReaderProvisionResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
-                _ => new BusinessError("Director Service returned unknown result.")
-            };
+            //var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriber(subscriber);
+            //var createReaderResult = await _directorService.ApplyReaderChange(subscriberConfigs.Single());
+
+            //return createReaderResult switch
+            //{
+            //    ReaderChangeResult.Success => true,
+            //    ReaderChangeResult.CreateFailed => new ReaderCreationError(subscriber),
+            //    ReaderChangeResult.DeleteFailed => new ReaderUpdateError(subscriber),
+            //    ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
+            //    _ => new BusinessError("Director Service returned unknown result.")
+            //};
         }
     }
 }
