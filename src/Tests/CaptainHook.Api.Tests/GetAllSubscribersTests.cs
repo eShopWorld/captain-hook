@@ -63,7 +63,7 @@ namespace CaptainHook.Api.Tests
         }
 
         [Fact, IsIntegration]
-        public async Task PutSubscriber_WhenAuthenticated_ShouldCreateResource() // rename this to something else
+        public async Task PutSubscriber_WhenAuthenticated_ShouldCreateResource()
         {
             // Arrange
             CaptainHookContractSubscriberDto dto = GetTestSubscriberDto();
@@ -73,11 +73,11 @@ namespace CaptainHook.Api.Tests
             var result = await _authenticatedClient.PutSuscriberWithHttpMessagesAsync(eventName, subscriberName, dto);
 
             // Assert
-            result.Response.StatusCode.Should().Be(StatusCodes.Status201Created); // or status 201 created
+            result.Response.StatusCode.Should().Be(StatusCodes.Status201Created); 
         }
 
         [Fact, IsIntegration]
-        public async Task PutWebhook_WhenUnauthenticated_ShouldReturn401Unauthorized() // rename this to something else
+        public async Task PutWebhook_WhenUnauthenticated_ShouldReturn401Unauthorized() 
         {
             // Arrange
             CaptainHookContractEndpointDto dto = GetTestEndpointDto();
@@ -91,7 +91,7 @@ namespace CaptainHook.Api.Tests
         }
 
         [Fact, IsIntegration]
-        public async Task PutWebhook_WhenAuthenticated_ShouldCreateResource() // rename this to something else
+        public async Task PutWebhook_WhenAuthenticated_ShouldCreateResource() 
         {
             // Arrange
             CaptainHookContractEndpointDto dto = GetTestEndpointDto();
@@ -112,7 +112,7 @@ namespace CaptainHook.Api.Tests
 
         private string GetEventName()
         {
-            return "integrationtest.event.type-" + Stopwatch.GetTimestamp(); // new every time
+            return "integrationtest.event.type-" + Stopwatch.GetTimestamp();
         }
 
         private CaptainHookContractSubscriberDto GetTestSubscriberDto()
