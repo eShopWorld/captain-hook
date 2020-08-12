@@ -100,34 +100,6 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             };
         }
 
-        private async Task<SubscriberConfiguration> MapSingleWebhookWithUriTransformAsync(EndpointEntity endpoint, SubscriberEntity entity)
-        {
-            return new SubscriberConfiguration
-            {
-                Name = entity.Id,
-                SubscriberName = entity.Name,
-                EventType = entity.ParentEvent.Name,
-                WebhookRequestRules = new List<WebhookRequestRule>
-                {
-                    new WebhookRequestRule
-                    {
-                        Source = new SourceParserLocation { Replace = endpoint.UriTransform.Replace },
-                        Destination = new ParserLocation { RuleAction = RuleAction.RouteAndReplace },
-                        Routes = new List<WebhookConfigRoute>
-                        {
-                            new WebhookConfigRoute
-                            {
-                                Uri = endpoint.Uri,
-                                HttpVerb = endpoint.HttpVerb,
-                                Selector = endpoint.Selector,
-                                AuthenticationConfig = await MapAuthenticationAsync(endpoint.Authentication),
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
         private async Task<AuthenticationConfig> MapAuthenticationAsync(AuthenticationEntity cosmosAuthentication)
         {
             if (cosmosAuthentication?.SecretStore?.SecretName == null)
