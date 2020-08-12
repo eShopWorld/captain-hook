@@ -1,17 +1,17 @@
-﻿using System.Collections.Generic;
-using CaptainHook.Common.Configuration;
+﻿using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Validation;
 using CaptainHook.Tests.Builders;
-using CaptainHook.TestsInfrastructure;
 using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
-using FluentAssertions;
+using FluentValidation.TestHelper;
 using Xunit;
 
 namespace CaptainHook.Tests.Validation
 {
     public class WebhookRequestRuleForRouteAndReplaceValidatorTests
     {
+        private readonly WebhookRequestRuleForRouteAndReplaceValidator _validator = new WebhookRequestRuleForRouteAndReplaceValidator();
+
         private static WebhookRequestRuleBuilder GetValidWebhookRequestRuleBuilder()
         {
             var ruleBuilder = new WebhookRequestRuleBuilder()
@@ -32,9 +32,9 @@ namespace CaptainHook.Tests.Validation
         {
             var rule = GetValidWebhookRequestRuleBuilder().Create();
 
-            var result = new WebhookRequestRuleForRouteAndReplaceValidator().Validate(rule);
+            var result = _validator.TestValidate(rule);
 
-            result.IsValid.Should().BeTrue();
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Theory, IsUnit]
@@ -44,7 +44,9 @@ namespace CaptainHook.Tests.Validation
             var rule = GetValidWebhookRequestRuleBuilder().Create();
             rule.Destination.RuleAction = ruleAction;
 
-            VerifySingleFailure(rule, nameof(ParserLocation.RuleAction));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor(x => x.Destination.RuleAction);
         }
 
         [Fact, IsUnit]
@@ -53,7 +55,9 @@ namespace CaptainHook.Tests.Validation
             var rule = GetValidWebhookRequestRuleBuilder().Create();
             rule.Source.Path = "some-path";
 
-            VerifySingleFailure(rule, nameof(SourceParserLocation.Path));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor(x => x.Source.Path);
         }
 
         [Fact, IsUnit]
@@ -70,11 +74,13 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{not-selector}.company.com/order/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule, nameof(SourceParserLocation.Replace));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor(x => x.Source.Replace);
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(EmptyStrings))]
+        [ClassData(typeof(EmptyStrings))]
         public void When_Replace_contains_default_selector_with_empty_value_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
@@ -87,11 +93,13 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.company.com/"))
                 .Create();
 
-            VerifySingleFailure(rule, nameof(SourceParserLocation.Replace));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor(x => x.Source.Replace);
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(EmptyStrings))]
+        [ClassData(typeof(EmptyStrings))]
         public void When_Replace_contains_nondefault_selector_with_empty_value_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
@@ -105,7 +113,9 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.company.com/custom/{custom-selector}"))
                 .Create();
 
-            VerifySingleFailure(rule, nameof(SourceParserLocation.Replace));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor(x => x.Source.Replace);
         }
 
         [Fact, IsUnit]
@@ -122,11 +132,13 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://test-api-{selector}.company.com/api/v2/{missing-action}/Put/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule, nameof(WebhookConfigRoute.Uri));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor("Routes[0].Uri");
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(EmptyStrings))]
+        [ClassData(typeof(EmptyStrings))]
         public void When_Route_contains_empty_Uri_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
@@ -139,7 +151,9 @@ namespace CaptainHook.Tests.Validation
                     .WithUri(invalidValue))
                 .Create();
 
-            VerifySingleFailure(rule, nameof(WebhookConfigRoute.Uri));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor("Routes[0].Uri");
         }
 
         [Fact, IsUnit]
@@ -159,7 +173,9 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.other-company.com/order/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule, nameof(WebhookRequestRule.Routes));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor(x => x.Routes);
         }
 
         [Fact, IsUnit]
@@ -179,11 +195,13 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.other-company.com/order/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule, nameof(WebhookRequestRule.Routes));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor(x => x.Routes);
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(EmptyStrings))]
+        [ClassData(typeof(EmptyStrings))]
         public void When_Route_Uri_selector_is_empty_then_validation_should_fail(string invalidValue)
         {
             var rule = new WebhookRequestRuleBuilder()
@@ -200,7 +218,9 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.company.com/order/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule, nameof(WebhookConfigRoute.Selector));
+            var result = _validator.TestValidate(rule);
+
+            result.ShouldHaveValidationErrorFor("Routes[1].Selector");
         }
 
         [Fact, IsUnit]
@@ -223,21 +243,9 @@ namespace CaptainHook.Tests.Validation
                     .WithUri("https://api-{selector}.yet-another-company.com/order/{orderCode}"))
                 .Create();
 
-            VerifySingleFailure(rule, nameof(WebhookRequestRule.Routes));
-        }
+            var result = _validator.TestValidate(rule);
 
-        public static IEnumerable<object[]> EmptyStrings =>
-           new List<object[]>
-           {
-                new object[] { null },
-                new object[] { string.Empty },
-                new object[] { "   " },
-           };
-
-        private void VerifySingleFailure(WebhookRequestRule rule, string propertyName)
-        {
-            var result = new WebhookRequestRuleForRouteAndReplaceValidator().Validate(rule);
-            result.AssertSingleFailure(propertyName);
+            result.ShouldHaveValidationErrorFor(x => x.Routes);
         }
     }
 }

@@ -4,7 +4,7 @@ using CaptainHook.Tests.Builders;
 using CaptainHook.TestsInfrastructure;
 using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
-using FluentAssertions;
+using FluentValidation.TestHelper;
 using Xunit;
 
 namespace CaptainHook.Tests.Validation
@@ -35,9 +35,9 @@ namespace CaptainHook.Tests.Validation
         {
             var webhookConfig = GetValidWebhookConfigBuilder().Create();
 
-            var result = _validator.Validate(webhookConfig);
+            var result = _validator.TestValidate(webhookConfig);
 
-            result.IsValid.Should().BeTrue();
+            result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Theory, IsUnit]
@@ -47,9 +47,9 @@ namespace CaptainHook.Tests.Validation
             var webhookConfig = GetValidWebhookConfigBuilder().Create();
             webhookConfig.WebhookRequestRules[0].Destination.RuleAction = ruleAction;
 
-            var result = _validator.Validate(webhookConfig);
+            var result = _validator.TestValidate(webhookConfig);
 
-            result.AssertSingleFailure(nameof(WebhookConfig.WebhookRequestRules));
+            result.ShouldHaveValidationErrorFor(x => x.WebhookRequestRules);
         }
 
         [Fact, IsUnit]
@@ -60,9 +60,9 @@ namespace CaptainHook.Tests.Validation
                     .WithDestination(ruleAction: RuleAction.Route))
                 .Create();
 
-            var result = _validator.Validate(webhookConfig);
+            var result = _validator.TestValidate(webhookConfig);
 
-            result.AssertSingleFailure(nameof(WebhookConfig.WebhookRequestRules));
+            result.ShouldHaveValidationErrorFor(x => x.WebhookRequestRules);
         }
 
         [Fact, IsUnit]
@@ -73,9 +73,9 @@ namespace CaptainHook.Tests.Validation
                     .WithDestination(ruleAction: RuleAction.Add, location: Location.Uri))
                 .Create();
 
-            var result = _validator.Validate(webhookConfig);
+            var result = _validator.TestValidate(webhookConfig);
 
-            result.AssertSingleFailure(nameof(WebhookConfig.WebhookRequestRules));
+            result.ShouldHaveValidationErrorFor(x => x.WebhookRequestRules);
         }
     }
 }

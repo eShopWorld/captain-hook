@@ -15,16 +15,16 @@ namespace CaptainHook.Application.Validators.Dtos
             CascadeMode = CascadeMode.StopOnFirstFailure;
 
             RuleFor(x => x.SelectionRule).NotEmpty()
-                .Must(BeValidJsonPathExpression).WithMessage("The SelectionRule must be a valid JSONPath expression");
-
-            RuleFor(x => x.Endpoints).NotEmpty()
-                .Must(list => list.Count >= 1).WithMessage("Webhooks list must contain at list one endpoint");
+                .Must(BeValidJsonPathExpression).WithMessage("The SelectionRule must be a valid JSONPath expression")
+                .When(TheresAtLeastOneEndpointWithSelectorDefined);
 
             RuleFor(x => x.Endpoints)
+                .NotNull()
+                .WithMessage("Webhooks list must contain at list one endpoint")
+                .NotEmpty()
+                .WithMessage("Webhooks list must contain at list one endpoint")
                 .Must(ContainAtMostOneEndpointWithNoSelector)
-                .WithMessage("There can be only one endpoint with no selector");
-
-            RuleFor(x => x.Endpoints)
+                .WithMessage("There can be only one endpoint with no selector")
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
                 .WithMessage("There cannot be multiple endpoints with the same selector");
 
@@ -32,14 +32,19 @@ namespace CaptainHook.Application.Validators.Dtos
                 .SetValidator(new EndpointDtoValidator());
         }
 
+        private bool TheresAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
+        {
+            return webhooks.Endpoints?.Any(e => !string.IsNullOrWhiteSpace(e.Selector)) ?? false;
+        }
+
         private bool ContainAtMostOneEndpointWithNoSelector(List<EndpointDto> endpoints)
         {
-            return endpoints.Count(x => x.Selector == null) <= 1;
+            return endpoints?.Count(x => x.Selector == null) <= 1;
         }
 
         private bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)
         {
-            return !endpoints
+            return !(endpoints ?? Enumerable.Empty<EndpointDto>())
                 .Where(x => x.Selector != null)
                 .GroupBy(x => x.Selector)
                 .Any(x => x.Count() > 1);
