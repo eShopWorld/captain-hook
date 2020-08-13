@@ -22,13 +22,7 @@ namespace CaptainHook.Api.Tests.Config
 
         public ICaptainHookClient GetApiClient()
         {
-            var tb = new RefreshingTokenProviderOptions(
-                EnvironmentSettings.StsSettings.Issuer, 
-                EnvironmentSettings.StsSettings.Subject, 
-                EnvironmentSettings.StsSettings.ClientId, 
-                EnvironmentSettings.StsSettings.Scopes, 
-                EnvironmentSettings.StsSettings.Audience);
-            var token = new TokenCredentialsBuilder(tb).Build();
+            var token = new TokenCredentialsBuilder().Build();
             return new CaptainHookClient(_CaptainHookTestUri, token);
         }
 
