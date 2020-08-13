@@ -15,7 +15,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         [Fact, IsUnit]
         public void When_RequestIsValid_Then_NoFailuresReturned()
         {
-            var request = new DeleteWebhookRequest("event", "subscriber");
+            var request = new DeleteWebhookRequest("event", "subscriber", "selector");
 
             var result = _validator.TestValidate(request);
 
@@ -26,7 +26,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         [ClassData(typeof(EmptyStrings))]
         public void When_EventIsEmpty_Then_ValidationFails(string invalidString)
         {
-            var request = new DeleteWebhookRequest(invalidString, "subscriber");
+            var request = new DeleteWebhookRequest(invalidString, "subscriber", "selector");
 
             var result = _validator.TestValidate(request);
 
@@ -37,11 +37,22 @@ namespace CaptainHook.Application.Tests.RequestValidators
         [ClassData(typeof(EmptyStrings))]
         public void When_SubscriberIsEmpty_Then_ValidationFails(string invalidString)
         {
-            var request = new DeleteWebhookRequest("event", invalidString);
+            var request = new DeleteWebhookRequest("event", invalidString, "selector");
 
             var result = _validator.TestValidate(request);
 
             result.ShouldHaveValidationErrorFor(x => x.SubscriberName);
+        }
+
+        [Theory, IsUnit]
+        [ClassData(typeof(EmptyStrings))]
+        public void When_SelectorIsEmpty_Then_ValidationFails(string invalidString)
+        {
+            var request = new DeleteWebhookRequest("event", "subscriber", invalidString);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Selector);
         }
     }
 }
