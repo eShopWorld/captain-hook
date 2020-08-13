@@ -26,7 +26,7 @@ namespace CaptainHook.Api.Tests
         }
 
         [Fact, IsIntegration]
-        public async Task GetAllSubscribers_WhenUnauthenticated_ReturnsUnauthorized()
+        public async Task GetAllSubscribers_WhenUnauthenticated_Returns401Unauthorized()
         {
             // Act
             var result = await _unauthenticatedClient.GetAllWithHttpMessagesAsync();
@@ -52,7 +52,7 @@ namespace CaptainHook.Api.Tests
         }
 
         [Fact, IsIntegration]
-        public async Task PutSubscriber_WhenUnauthenticated_Return401Unauthorized() 
+        public async Task PutSubscriber_WhenUnauthenticated_Returns401Unauthorized() 
         {
             // Arrange
             string eventName = GetEventName();
@@ -66,7 +66,7 @@ namespace CaptainHook.Api.Tests
         }
 
         [Fact, IsIntegration]
-        public async Task PutSubscriber_WhenAuthenticated_ShouldCreateResource()
+        public async Task PutSubscriber_WhenAuthenticated_Returns201Created()
         {
             // Arrange
             CaptainHookContractSubscriberDto dto = GetTestSubscriberDto();
@@ -81,7 +81,7 @@ namespace CaptainHook.Api.Tests
         }
 
         [Fact, IsIntegration]
-        public async Task PutWebhook_WhenUnauthenticated_Return401Unauthorized() 
+        public async Task PutWebhook_WhenUnauthenticated_Returns401Unauthorized() 
         {
             // Arrange
             string eventName = GetEventName();
@@ -94,7 +94,7 @@ namespace CaptainHook.Api.Tests
         }
 
         [Fact, IsIntegration]
-        public async Task PutWebhook_WhenAuthenticated_ShouldCreateResource() 
+        public async Task PutWebhook_WhenAuthenticated_Returns201Created() 
         {
             // Arrange
             CaptainHookContractEndpointDto dto = GetTestEndpointDto();
