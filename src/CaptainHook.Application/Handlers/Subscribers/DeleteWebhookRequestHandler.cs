@@ -89,7 +89,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 return saveResult.Error;
             }
 
-            return MapToDto(existingItem);
+            return MapToDto(saveResult);
         }
 
         private SubscriberDto MapToDto(SubscriberEntity subscriber)

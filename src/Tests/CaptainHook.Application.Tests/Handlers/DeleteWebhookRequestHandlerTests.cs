@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,61 +26,33 @@ namespace CaptainHook.Application.Tests.Handlers
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
 
-        private static AuthenticationEntity authentication = new AuthenticationEntity(
+        private static AuthenticationEntity _authentication = new AuthenticationEntity(
                 "captain-hook-id",
                 new SecretStoreEntity("kvname", "kv-secret-name"),
                 "https://blah-blah.sts.eshopworld.com",
                 "OIDC",
-                new[] { "scope1" }
-            );
+                new[] { "scope1" });
 
-        private readonly SubscriberBuilder _subscriberBuilder = new SubscriberBuilder()
+        private static readonly SubscriberBuilder _subscriberBuilder = new SubscriberBuilder()
                .WithEvent("event")
                .WithName("subscriber")
                .WithWebhookSelectionRule("$.Test")
-               .WithWebhook("https://blah.blah.eshopworld.com/default/", "POST", null, authentication: authentication)
-               .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: authentication)
-               .WithWebhook("https://blah.blah.eshopworld.com/other-webhook/", "POST", "non-deletable", authentication: authentication);
-
-
-        //private SubscriberEntity _defaultSubscriber = new SubscriberBuilder()
-        //       .WithEvent("event")
-        //       .WithName("subscriber")
-        //       .WithWebhookSelectionRule("$.Test")
-        //       .WithWebhook("https://blah.blah.eshopworld.com/default/", "POST", null, authentication: authentication)
-        //       .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: authentication)
-        //       .WithWebhook("https://blah.blah.eshopworld.com/other-webhook/", "POST", "non-deletable", authentication: authentication)
-        //    .Create();
+               .WithWebhook("https://blah.blah.eshopworld.com/default/", "POST", null, authentication: _authentication)
+               .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: _authentication)
+               .WithWebhook("https://blah.blah.eshopworld.com/other-webhook/", "POST", "non-deletable", authentication: _authentication);
 
         private readonly DeleteWebhookRequest _defaultRequest = new DeleteWebhookRequest("event", "subscriber", "selector");
 
         public DeleteWebhookRequestHandlerTests()
         {
-            //authentication = new AuthenticationEntity(
-            //    "captain-hook-id",
-            //    new SecretStoreEntity("kvname", "kv-secret-name"),
-            //    "https://blah-blah.sts.eshopworld.com",
-            //    "OIDC",
-            //    new[] { "scope1" }
-            //);
-
-            //_defaultSubscriber = new SubscriberBuilder()
-            //   .WithEvent("event")
-            //   .WithName("subscriber")
-            //   .WithWebhookSelectionRule("$.Test")
-            //   .WithWebhook("https://blah.blah.eshopworld.com/default/", "POST", null, authentication: authentication)
-            //   .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: authentication)
-            //   .WithWebhook("https://blah.blah.eshopworld.com/other-webhook/", "POST", "non-deletable", authentication: authentication)
-            //   .Create();
-
-            var _defaultSubscriber = _subscriberBuilder.Create();
-
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-               .ReturnsAsync(() => _subscriberBuilder.Create());
-            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
+            // SubscriberEntity returned from Repository.Get must be the same instance as returned from Repository.Update to preserve changes in endpoints applied during tests
+            var subscriber = _subscriberBuilder.Create();
+            _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+               .ReturnsAsync(subscriber);
+            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(true);
-            _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(() => _subscriberBuilder.Create());
+            _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.Is<SubscriberEntity>(x => x.Id.Equals(new SubscriberId("event", "subscriber")))))
+                .ReturnsAsync(subscriber);
         }
 
         private DeleteWebhookRequestHandler Handler => new DeleteWebhookRequestHandler(
@@ -97,13 +68,6 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_EndpointCanBeDeleted_Then_ChangesWillBeAppliedByDirectorServiceAndStoredInRepository()
         {
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(_defaultSubscriber);
-            //_directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-            //    .ReturnsAsync(true);
-            //_repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
-            //    .ReturnsAsync(new SubscriberEntity("subscriber"));
-
             var result = await Handler.Handle(new DeleteWebhookRequest("event", "subscriber", "selector"), CancellationToken.None);
 
             using var scope = new AssertionScope();
@@ -132,20 +96,6 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_EndpointDoesNotExist_Then_EndpointNotFoundInSubscriberErrorReturned()
         {
-            //var subscriberEntity =  new SubscriberBuilder()
-            //   .WithEvent("event")
-            //   .WithName("subscriber")
-            //   .WithWebhookSelectionRule("$.Test")
-            //   .WithWebhook("https://blah.blah.eshopworld.com/default/", "POST", null, authentication: authentication)
-            //   .WithWebhook("https://blah.blah.eshopworld.com/other-webhook/", "POST", "non-deletable", authentication: authentication)
-            //   .Create();
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(subscriberEntity);
-
-            //_repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-            //    .ReturnsAsync(subscriberEntity);
-            //_directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(true);
-
             var result = await Handler.Handle(new DeleteWebhookRequest("event", "subscriber", "unknown-selector"), CancellationToken.None);
 
             using var scope = new AssertionScope();
@@ -159,11 +109,8 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_SubscriberDoesNotExist_Then_EntityNotFoundErrorReturned()
         {
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+            _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            //_repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-            //    .ReturnsAsync(new SubscriberEntity("subscriber"));
-            //_directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(true);
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
@@ -182,13 +129,13 @@ namespace CaptainHook.Application.Tests.Handlers
                .WithEvent("event")
                .WithName("subscriber")
                .WithWebhookSelectionRule("$.Test")
-               .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: authentication)
+               .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: _authentication)
                .Create();
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+            _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriberEntity);
-            _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
+            _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(subscriberEntity);
-            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(true);
+            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(true);
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
@@ -203,12 +150,8 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_RepositoryThrowsAnExceptionRetrievingSubscriberData_Then_OperationFails()
         {
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+            _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .Throws<Exception>();
-            //_repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-            //    .ReturnsAsync(new SubscriberEntity("subscriber"));
-            //_directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultRequest))))
-            //    .ReturnsAsync(false);
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
@@ -223,27 +166,7 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_DirectorServiceIsBusyReloading_Then_OperationFails()
         {
-            //var subscriberEntity = new SubscriberBuilder()
-            //    .WithEvent("event")
-            //    .WithName("subscriber")
-            //    .WithWebhookSelectionRule("$.Test")
-            //    .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
-            //        authentication: new AuthenticationEntity(
-            //            "captain-hook-id",
-            //            new SecretStoreEntity("kvname", "kv-secret-name"),
-            //            "https://blah-blah.sts.eshopworld.com",
-            //            "OIDC",
-            //            new[] { "scope1" }
-            //            )
-            //    ).Create();
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(subscriberEntity);
-
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            //_repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-            //    .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(s => s.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(new DirectorServiceIsBusyError());
+            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(new DirectorServiceIsBusyError());
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
@@ -258,27 +181,7 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_DirectorServiceFailsToUpdateReaderBecauseOfCreateError_Then_OperationFails()
         {
-            //var subscriberEntity = new SubscriberBuilder()
-            //    .WithEvent("event")
-            //    .WithName("subscriber")
-            //    .WithWebhookSelectionRule("$.Test")
-            //    .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
-            //        authentication: new AuthenticationEntity(
-            //            "captain-hook-id",
-            //            new SecretStoreEntity("kvname", "kv-secret-name"),
-            //            "https://blah-blah.sts.eshopworld.com",
-            //            "OIDC",
-            //            new[] { "scope1" }
-            //            )
-            //    ).Create();
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(subscriberEntity);
-
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            //_repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-            //    .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
+            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new ReaderCreateError(new SubscriberEntity("subscriber")));
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
@@ -294,27 +197,7 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_DirectorServiceFailsToUpdateReaderBecauseOfDeleteError_Then_OperationFails()
         {
-            //var subscriberEntity = new SubscriberBuilder()
-            //    .WithEvent("event")
-            //    .WithName("subscriber")
-            //    .WithWebhookSelectionRule("$.Test")
-            //    .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
-            //        authentication: new AuthenticationEntity(
-            //            "captain-hook-id",
-            //            new SecretStoreEntity("kvname", "kv-secret-name"),
-            //            "https://blah-blah.sts.eshopworld.com",
-            //            "OIDC",
-            //            new[] { "scope1" }
-            //            )
-            //    ).Create();
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(subscriberEntity);
-
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            //_repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-            //    .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
+            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new ReaderDeleteError(new SubscriberEntity("subscriber")));
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
@@ -330,24 +213,7 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_DirectorServiceThrowsAnExceptionDuringReaderUpdate_Then_UnhandledExceptionErrorReturned()
         {
-            //var subscriberEntity = new SubscriberBuilder()
-            //    .WithEvent("event")
-            //    .WithName("subscriber")
-            //    .WithWebhookSelectionRule("$.Test")
-            //    .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
-            //        authentication: new AuthenticationEntity(
-            //            "captain-hook-id",
-            //            new SecretStoreEntity("kvname", "kv-secret-name"),
-            //            "https://blah-blah.sts.eshopworld.com",
-            //            "OIDC",
-            //            new[] { "scope1" }
-            //            )
-            //    ).Create();
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(subscriberEntity);
-            //_repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-            //    .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).Throws<Exception>();
+            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).Throws<Exception>();
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
@@ -362,24 +228,8 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_RepositoryFailsSavingSubscriberAfterSuccessfulReaderCreation_Then_ErrorIsReturned()
         {
-            //var subscriberEntity = new SubscriberBuilder()
-            //     .WithEvent("event")
-            //     .WithName("subscriber")
-            //     .WithWebhookSelectionRule("$.Test")
-            //     .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
-            //         authentication: new AuthenticationEntity(
-            //             "captain-hook-id",
-            //             new SecretStoreEntity("kvname", "kv-secret-name"),
-            //             "https://blah-blah.sts.eshopworld.com",
-            //             "OIDC",
-            //             new[] { "scope1" }
-            //             )
-            //     ).Create();
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(subscriberEntity);
-            _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
+            _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new BusinessError("test error"));
-            //_directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(true);
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
@@ -394,23 +244,7 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_RepositoryThrowsAnExceptionSavingSubscriberAfterSuccessfulReaderCreation_Then_UnhandledExceptionErrorReturned()
         {
-            //var subscriberEntity = new SubscriberBuilder()
-            //     .WithEvent("event")
-            //     .WithName("subscriber")
-            //     .WithWebhookSelectionRule("$.Test")
-            //     .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
-            //         authentication: new AuthenticationEntity(
-            //             "captain-hook-id",
-            //             new SecretStoreEntity("kvname", "kv-secret-name"),
-            //             "https://blah-blah.sts.eshopworld.com",
-            //             "OIDC",
-            //             new[] { "scope1" }
-            //             )
-            //     ).Create();
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(subscriberEntity);
-            _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>())).ThrowsAsync(new Exception());
-            //_directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(false);
+            _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>())).ThrowsAsync(new Exception());
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
@@ -425,41 +259,15 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_RepositoryReturnsCannotUpdateEntityError_Then_OperationIsRetried3Times()
         {
-            //SubscriberEntity SubscriberEntityFunc() =>
-            //    new SubscriberBuilder().WithEvent("event")
-            //        .WithName("subscriber")
-            //        .WithWebhookSelectionRule("$.Test")
-            //        .WithWebhook(
-            //            "https://blah.blah.eshopworld.com/oldwebhook/",
-            //            "POST",
-            //            "abc",
-            //            authentication: new AuthenticationEntity(
-            //                "captain-hook-id",
-            //                new SecretStoreEntity("kvname", "kv-secret-name"),
-            //                "https://blah-blah.sts.eshopworld.com",
-            //                "OIDC",
-            //                new[] { "scope1" }))
-            //        .Create();
-
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(() => SubscriberEntityFunc());
-            //_directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-            //    .ReturnsAsync(true);
-
-            SubscriberEntity SubscriberEntityFunc() => _subscriberBuilder.Create();
-
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync(() => SubscriberEntityFunc());
-
-            _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
+            // here we need new instance every time
+            _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+              .ReturnsAsync(() => _subscriberBuilder.Create());
+            _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()));
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
-            var expectedResult = new OperationResult<EndpointDto>(new CannotUpdateEntityError("dummy-type", new Exception()));
-            result.Should().BeEquivalentTo(expectedResult);
-
-            //result.Should().BeEquivalentTo(new CannotUpdateEntityError("dummy-type", new Exception()));
+            result.Should().BeEquivalentTo(new OperationResult<EndpointDto>(new CannotUpdateEntityError("dummy-type", new Exception())));
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(3));
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(3));
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(3));
@@ -468,27 +276,10 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_RepositoryReturnsCannotUpdateEntityErrorForFirstAttempt_Then_SucceedsOnSecondTry()
         {
-            //SubscriberEntity SubscriberEntityFunc() =>
-            //    new SubscriberBuilder().WithEvent("event")
-            //        .WithName("subscriber")
-            //        .WithWebhookSelectionRule("$.Test")
-            //        .WithWebhook(
-            //            "https://blah.blah.eshopworld.com/oldwebhook/",
-            //            "POST",
-            //            "abc",
-            //            authentication: new AuthenticationEntity(
-            //                "captain-hook-id",
-            //                new SecretStoreEntity("kvname", "kv-secret-name"),
-            //                "https://blah-blah.sts.eshopworld.com",
-            //                "OIDC",
-            //                new[] { "scope1" }))
-            //        .Create();
-            //_repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-            //    .ReturnsAsync(() => SubscriberEntityFunc());
-            //_directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-            //    .ReturnsAsync(true);
-
-            _repositoryMock.SetupSequence(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
+            // here we need new instance every time
+            _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+              .ReturnsAsync(() => _subscriberBuilder.Create());
+            _repositoryMock.SetupSequence(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()))
                 .ReturnsAsync(() => _subscriberBuilder.Create());
 
