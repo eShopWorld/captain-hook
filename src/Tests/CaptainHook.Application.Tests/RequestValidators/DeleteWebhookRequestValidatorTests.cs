@@ -12,10 +12,12 @@ namespace CaptainHook.Application.Tests.RequestValidators
     {
         private readonly DeleteWebhookRequestValidator _validator = new DeleteWebhookRequestValidator();
 
-        [Fact, IsUnit]
-        public void When_RequestIsValid_Then_NoFailuresReturned()
+        [Theory, IsUnit]
+        [InlineData("selector")]
+        [ClassData(typeof(EmptyStrings))]
+        public void When_RequestIsValid_Then_NoFailuresReturned(string validSelector)
         {
-            var request = new DeleteWebhookRequest("event", "subscriber", "selector");
+            var request = new DeleteWebhookRequest("event", "subscriber", validSelector);
 
             var result = _validator.TestValidate(request);
 
@@ -42,17 +44,6 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var result = _validator.TestValidate(request);
 
             result.ShouldHaveValidationErrorFor(x => x.SubscriberName);
-        }
-
-        [Theory, IsUnit]
-        [ClassData(typeof(EmptyStrings))]
-        public void When_SelectorIsEmpty_Then_ValidationFails(string invalidString)
-        {
-            var request = new DeleteWebhookRequest("event", "subscriber", invalidString);
-
-            var result = _validator.TestValidate(request);
-
-            result.ShouldHaveValidationErrorFor(x => x.Selector);
         }
     }
 }
