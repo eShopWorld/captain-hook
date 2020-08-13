@@ -7,6 +7,7 @@ using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
 using EShopworld.Security.Services.Testing.Settings;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
@@ -37,13 +38,17 @@ namespace CaptainHook.Api.Tests
         [Fact, IsIntegration]
         public async Task GetAllSubscribers_WhenAuthenticated_ReturnsNonEmptyList()
         {
-            // Act - Assert 1
+            // Act 1
             var result = await _authenticatedClient.GetAllWithHttpMessagesAsync();
-            result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
-
-            // Act - Assert 2
-            var content = await result.Response.Content.ReadAsStringAsync();
-            content.Should().NotBeNullOrEmpty();
+            using (new AssertionScope())
+            {
+                // Assert 1
+                result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+                
+                // Act - Assert 2
+                var content = await result.Response.Content.ReadAsStringAsync();
+                content.Should().NotBeNullOrEmpty();
+            }
         }
 
         [Fact, IsIntegration]
