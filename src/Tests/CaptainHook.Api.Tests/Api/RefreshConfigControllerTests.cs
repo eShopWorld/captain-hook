@@ -10,11 +10,11 @@ using Xunit;
 namespace CaptainHook.Api.Tests
 {
     [Collection(ApiClientCollection.TestFixtureName)]
-    public class RefreshConfigTests : IDisposable
+    public class RefreshConfigControllerTests : IDisposable
     {
         private readonly ICaptainHookClient _apiClient;
 
-        public RefreshConfigTests(ApiClientFixture testFixture)
+        public RefreshConfigControllerTests(ApiClientFixture testFixture)
         {
             _apiClient = testFixture.GetApiClient();
         }

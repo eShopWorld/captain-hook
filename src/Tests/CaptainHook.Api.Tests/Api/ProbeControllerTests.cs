@@ -11,11 +11,11 @@ using Xunit;
 namespace CaptainHook.Api.Tests
 {
     [Collection(ApiClientCollection.TestFixtureName)]
-    public class ProbeTests : IDisposable
+    public class ProbeControllerTests : IDisposable
     {
         private readonly ICaptainHookClient _unauthenticatedClient;
 
-        public ProbeTests(ApiClientFixture testFixture)
+        public ProbeControllerTests(ApiClientFixture testFixture)
         {
             _unauthenticatedClient = testFixture.GetApiUnauthenticatedClient();
         }
