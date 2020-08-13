@@ -7,6 +7,7 @@
 namespace CaptainHook.Api.Client
 {
     using Microsoft.Rest;
+    using Models;
     using Newtonsoft.Json;
     using System.Collections;
     using System.Collections.Generic;
@@ -38,6 +39,46 @@ namespace CaptainHook.Api.Client
         /// </summary>
         ServiceClientCredentials Credentials { get; }
 
+
+        /// <summary>
+        /// Insert or update a web hook
+        /// </summary>
+        /// <param name='eventName'>
+        /// Event name
+        /// </param>
+        /// <param name='subscriberName'>
+        /// Subscriber name
+        /// </param>
+        /// <param name='body'>
+        /// Webhook configuration
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<object>> PutWebhookWithHttpMessagesAsync(string eventName, string subscriberName, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Insert or update a subscriber
+        /// </summary>
+        /// <param name='eventName'>
+        /// Event name
+        /// </param>
+        /// <param name='subscriberName'>
+        /// Subscriber name
+        /// </param>
+        /// <param name='body'>
+        /// Webhook configuration
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<object>> PutSuscriberWithHttpMessagesAsync(string eventName, string subscriberName, CaptainHookContractSubscriberDto body = default(CaptainHookContractSubscriberDto), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Returns a probe result
