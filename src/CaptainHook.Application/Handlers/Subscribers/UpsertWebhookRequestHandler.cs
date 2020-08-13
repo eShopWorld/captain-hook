@@ -10,6 +10,7 @@ using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using Eshopworld.Core;
+using Kusto.Cloud.Platform.Utils;
 using MediatR;
 using Polly;
 
@@ -34,12 +35,12 @@ namespace CaptainHook.Application.Handlers.Subscribers
             ISubscriberRepository subscriberRepository,
             IDirectorServiceProxy directorService,
             IBigBrother bigBrother,
-            TimeSpan[] _sleepDurations = null)
+            TimeSpan[] sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository;
             _directorService = directorService;
             _bigBrother = bigBrother;
-            _retrySleepDurations = _sleepDurations ?? DefaultRetrySleepDurations;
+            _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 
         public async Task<OperationResult<EndpointDto>> Handle(
@@ -84,8 +85,13 @@ namespace CaptainHook.Application.Handlers.Subscribers
             UpsertWebhookRequest request,
             CancellationToken cancellationToken)
         {
-            var subscriber = MapRequestToSubscriber(request);
+            var subscriberResult = MapRequestToSubscriber(request);
+            if (subscriberResult.IsError)
+            {
+                return subscriberResult.Error;
+            }
 
+            var subscriber = subscriberResult.Data;
             var directorResult = await _directorService.CreateReaderAsync(subscriber);
             if (directorResult.IsError)
             {
@@ -139,13 +145,13 @@ namespace CaptainHook.Application.Handlers.Subscribers
             return endpoint;
         }
 
-        private static SubscriberEntity MapRequestToSubscriber(UpsertWebhookRequest request)
+        private static OperationResult<SubscriberEntity> MapRequestToSubscriber(UpsertWebhookRequest request)
         {
             var subscriber = new SubscriberEntity(request.SubscriberName, new EventEntity(request.EventName));
             var endpoint = MapRequestToEndpoint(request, subscriber);
-            subscriber.AddWebhookEndpoint(endpoint);
+            var addWebhookResult = subscriber.AddWebhookEndpoint(endpoint);
 
-            return subscriber;
+            return addWebhookResult?.Error ?? addWebhookResult;
         }
     }
 }
