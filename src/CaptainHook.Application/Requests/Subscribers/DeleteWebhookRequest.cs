@@ -4,7 +4,7 @@ using MediatR;
 
 namespace CaptainHook.Application.Requests.Subscribers
 {
-    public class DeleteWebhookRequest : IRequest<OperationResult<EndpointDto>>
+    public class DeleteWebhookRequest : IRequest<OperationResult<SubscriberDto>>
     {
         public string EventName { get; }
         public string SubscriberName { get; }
