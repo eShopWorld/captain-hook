@@ -17,7 +17,11 @@ namespace CaptainHook.Api.Tests
         {
         }
 
-        [Fact, IsIntegration]
+        /// <summary>
+        /// Tests configuration reload. Marked as [IsDev] since if this test passes, all other tests against the API will fail until the reload is complete. 
+        /// </summary>
+        /// <returns></returns>
+        [Fact, IsDev]
         public async Task RefreshConfig_WhenAuthenticated_Returns202Accepted()
         {
             var result = await AuthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
