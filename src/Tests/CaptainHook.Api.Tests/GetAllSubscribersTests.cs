@@ -7,8 +7,6 @@ using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
 using EShopworld.Security.Services.Testing.Settings;
 using FluentAssertions;
-using FluentAssertions.Common;
-using Kusto.Data.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
@@ -20,7 +18,6 @@ namespace CaptainHook.Api.Tests
         private readonly ICaptainHookClient _authenticatedClient;
         private readonly ICaptainHookClient _unauthenticatedClient;
 
-
         public GetAllSubscribersTests(ApiClientFixture testFixture)
         {
             _authenticatedClient = testFixture.GetApiClient();
@@ -30,33 +27,34 @@ namespace CaptainHook.Api.Tests
         [Fact, IsIntegration]
         public async Task GetAllSubscribers_WhenUnauthenticated_ReturnsUnauthorized()
         {
+            // Act
             var result = await _unauthenticatedClient.GetAllWithHttpMessagesAsync();
 
-            var _ = await result.Response.Content.ReadAsStringAsync();
-
+            // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
         }
 
         [Fact, IsIntegration]
         public async Task GetAllSubscribers_WhenAuthenticated_ReturnsNonEmptyList()
         {
+            // Act - Assert 1
             var result = await _authenticatedClient.GetAllWithHttpMessagesAsync();
-
             result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+
+            // Act - Assert 2
             var content = await result.Response.Content.ReadAsStringAsync();
             content.Should().NotBeNullOrEmpty();
         }
 
         [Fact, IsIntegration]
-        public async Task PutSubscriber_WhenUnauthenticated_ShouldReturn401Unauthorized() // TODO (Nikhil): Confirm this, should this even work?
+        public async Task PutSubscriber_WhenUnauthenticated_Return401Unauthorized() 
         {
             // Arrange
-            CaptainHookContractSubscriberDto dto = GetTestSubscriberDto();
             string eventName = GetEventName();
             string subscriberName = GetSubscriberName();
 
             // Act
-            var result = await _unauthenticatedClient.PutSuscriberWithHttpMessagesAsync(eventName, subscriberName, dto);
+            var result = await _unauthenticatedClient.PutSuscriberWithHttpMessagesAsync(eventName, subscriberName);
 
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
@@ -70,6 +68,7 @@ namespace CaptainHook.Api.Tests
             string eventName = GetEventName();
             string subscriberName = GetSubscriberName();
 
+            // Act
             var result = await _authenticatedClient.PutSuscriberWithHttpMessagesAsync(eventName, subscriberName, dto);
 
             // Assert
@@ -77,17 +76,16 @@ namespace CaptainHook.Api.Tests
         }
 
         [Fact, IsIntegration]
-        public async Task PutWebhook_WhenUnauthenticated_ShouldReturn401Unauthorized() 
+        public async Task PutWebhook_WhenUnauthenticated_Return401Unauthorized() 
         {
             // Arrange
-            CaptainHookContractEndpointDto dto = GetTestEndpointDto();
             string eventName = GetEventName();
             string subscriberName = GetSubscriberName();
 
             // Act
-            var result = await _unauthenticatedClient.PutWebhookWithHttpMessagesAsync(eventName, subscriberName, dto);
+            var result = await _unauthenticatedClient.PutWebhookWithHttpMessagesAsync(eventName, subscriberName);
             // Assert
-            result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized); // or status 201 created
+            result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
         }
 
         [Fact, IsIntegration]
@@ -102,7 +100,7 @@ namespace CaptainHook.Api.Tests
             var result = await _authenticatedClient.PutWebhookWithHttpMessagesAsync(eventName, subscriberName, dto);
 
             // Assert
-            result.Response.StatusCode.Should().Be(StatusCodes.Status201Created); // or status 201 created
+            result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
         }
 
         private string GetSubscriberName()
@@ -125,8 +123,7 @@ namespace CaptainHook.Api.Tests
             }
             });
             webhooks.SelectionRule = "$.tenantcode";
-            var dto = new CaptainHookContractSubscriberDto(webhooks);
-            return dto;
+            return new CaptainHookContractSubscriberDto(webhooks);
         }
 
         private CaptainHookContractAuthenticationDto GetTestAuthenticationDto()

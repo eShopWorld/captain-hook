@@ -8,7 +8,7 @@ namespace CaptainHook.Api.Tests.Config
 {
     public class ApiClientFixture
     {
-        private Uri _CaptainHookTestUri;
+        private readonly Uri _CaptainHookTestUri;
 
         public ApiClientFixture()
         {
