@@ -34,7 +34,7 @@ namespace CaptainHook.DirectorService
         private readonly IReaderServicesManager _readerServicesManager;
         private readonly IReaderServiceChangesDetector _readerServiceChangeDetector;
         private readonly ISubscriberConfigurationLoader _subscriberConfigurationLoader;
-        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations;
+        private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations = new Dictionary<string, SubscriberConfiguration>();
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
@@ -224,13 +224,21 @@ namespace CaptainHook.DirectorService
                         var refreshResult = await _readerServicesManager.RefreshReadersAsync(new[] { changeInfo }, _cancellationToken);
 
                         var singleResult = refreshResult.SingleOrDefault();
-                        return singleResult.Value switch
+                        switch (singleResult.Value)
                         {
-                            RefreshReaderResult.Success => ReaderChangeResult.Success,
-                            RefreshReaderResult.CreateFailed => ReaderChangeResult.CreateFailed,
-                            RefreshReaderResult.DeleteFailed => ReaderChangeResult.DeleteFailed,
-                            _ => ReaderChangeResult.None
-                        };
+                            case RefreshReaderResult.Success:
+                                {
+                                    var key = SubscriberConfiguration.Key(readerChange.Subscriber.EventType, readerChange.Subscriber.SubscriberName);
+                                    _subscriberConfigurations[key] = readerChange.Subscriber;
+                                    return ReaderChangeResult.Success;
+                                }
+                            case RefreshReaderResult.CreateFailed:
+                                return ReaderChangeResult.CreateFailed;
+                            case RefreshReaderResult.DeleteFailed:
+                                return ReaderChangeResult.DeleteFailed;
+                            default:
+                                return ReaderChangeResult.None;
+                        }
                     }
                 }
                 finally

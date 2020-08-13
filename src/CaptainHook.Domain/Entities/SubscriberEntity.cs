@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
@@ -12,7 +11,7 @@ namespace CaptainHook.Domain.Entities
     /// </summary>
     public class SubscriberEntity
     {
-        private static readonly IValidator<IEnumerable<EndpointEntity>> EndpointsValidator = new EndpointsCollectionValidator();
+        private static readonly IValidator<WebhooksEntity> WebhooksValidator = new WebhooksEntityValidator();
 
         private static readonly ValidationErrorBuilder ValidationErrorBuilder = new ValidationErrorBuilder();
 
@@ -61,8 +60,10 @@ namespace CaptainHook.Domain.Entities
                 Webhooks = new WebhooksEntity();
             }
 
-            var collectionForValidation = Webhooks.Endpoints.Concat(new[] { endpointModel });
-            var validationResult = EndpointsValidator.Validate(collectionForValidation);
+            var extendedEndpointsCollection = Webhooks.Endpoints.Concat(new[] { endpointModel });
+            var endpointsEntityForValidation = new WebhooksEntity(Webhooks.SelectionRule, extendedEndpointsCollection);
+
+            var validationResult = WebhooksValidator.Validate(endpointsEntityForValidation);
 
             if (validationResult.IsValid)
             {
