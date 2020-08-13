@@ -66,12 +66,16 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
             var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-            if (existingItem.Error is EntityNotFoundError)
+            if (existingItem.IsError)
             {
                 return existingItem.Error;
             }
 
-            existingItem.Data.RemoveWebhookEndpoint(request.Selector);
+            var removeResult = existingItem.Data.RemoveWebhookEndpoint(request.Selector);
+            if (removeResult.IsError)
+            {
+                return removeResult.Error;
+            }
 
             var directorResult = await _directorService.UpdateReaderAsync(existingItem);
             if (directorResult.IsError)
