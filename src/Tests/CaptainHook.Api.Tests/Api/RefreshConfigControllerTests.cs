@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
+using CaptainHook.Api.Tests.Api;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -10,26 +11,26 @@ using Xunit;
 namespace CaptainHook.Api.Tests
 {
     [Collection(ApiClientCollection.TestFixtureName)]
-    public class RefreshConfigControllerTests : IDisposable
+    public class RefreshConfigControllerTests : ControllerTestBase
     {
-        private readonly ICaptainHookClient _apiClient;
-
-        public RefreshConfigControllerTests(ApiClientFixture testFixture)
+        public RefreshConfigControllerTests(ApiClientFixture testFixture) : base(testFixture)
         {
-            _apiClient = testFixture.GetApiClient();
         }
 
-        [Fact, IsDev]
-        public async Task RefreshConfig_ValidEvent_ValidResponse()
+        [Fact, IsIntegration]
+        public async Task RefreshConfig_WhenAuthenticated_Returns202Accepted()
         {
-            var result = await _apiClient.ReloadConfigurationWithHttpMessagesAsync();
+            var result = await AuthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
 
             result.Response.StatusCode.Should().Be(StatusCodes.Status202Accepted);
         }
 
-        public void Dispose()
+        [Fact, IsIntegration]
+        public async Task RefreshConfig_WhenUnauthenticated_Returns401Unauthorized()
         {
-            _apiClient.Dispose();
+            var result = await UnauthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
+
+            result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
         }
     }
 }

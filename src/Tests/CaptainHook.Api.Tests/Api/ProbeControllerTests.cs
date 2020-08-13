@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
+using CaptainHook.Api.Tests.Api;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -11,19 +12,16 @@ using Xunit;
 namespace CaptainHook.Api.Tests
 {
     [Collection(ApiClientCollection.TestFixtureName)]
-    public class ProbeControllerTests : IDisposable
+    public class ProbeControllerTests : ControllerTestBase
     {
-        private readonly ICaptainHookClient _unauthenticatedClient;
-
-        public ProbeControllerTests(ApiClientFixture testFixture)
+        public ProbeControllerTests(ApiClientFixture testFixture) : base(testFixture)
         {
-            _unauthenticatedClient = testFixture.GetApiUnauthenticatedClient();
         }
 
         [Fact, IsDev]
         public async Task GetProbe_QueryProbe_ValidResponse()
         {
-            var response = await _unauthenticatedClient.GetProbeWithHttpMessagesAsync();
+            var response = await UnauthenticatedClient.GetProbeWithHttpMessagesAsync();
             var content = await response.Response.Content.ReadAsStringAsync();
 
             using (new AssertionScope())
@@ -31,11 +29,6 @@ namespace CaptainHook.Api.Tests
                 response.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
                 content.Should().Be("Healthy");
             }
-        }
-
-        public void Dispose()
-        {
-            _unauthenticatedClient.Dispose();
         }
     }
 }

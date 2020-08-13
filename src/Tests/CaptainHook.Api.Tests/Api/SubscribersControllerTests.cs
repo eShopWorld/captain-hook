@@ -1,8 +1,7 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
-using CaptainHook.Api.Client;
 using CaptainHook.Api.Client.Models;
+using CaptainHook.Api.Tests.Api;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
 using EShopworld.Security.Services.Testing.Settings;
@@ -14,22 +13,17 @@ using Xunit;
 namespace CaptainHook.Api.Tests
 {
     [Collection(ApiClientCollection.TestFixtureName)]
-    public class SubscribersControllerTests : IDisposable
+    public class SubscribersControllerTests : ControllerTestBase
     {
-        private readonly ICaptainHookClient _authenticatedClient;
-        private readonly ICaptainHookClient _unauthenticatedClient;
-
-        public SubscribersControllerTests(ApiClientFixture testFixture)
+        public SubscribersControllerTests(ApiClientFixture testFixture) : base(testFixture)
         {
-            _authenticatedClient = testFixture.GetApiClient();
-            _unauthenticatedClient = testFixture.GetApiUnauthenticatedClient();
         }
 
         [Fact, IsIntegration]
         public async Task GetAllSubscribers_WhenUnauthenticated_Returns401Unauthorized()
         {
             // Act
-            var result = await _unauthenticatedClient.GetAllWithHttpMessagesAsync();
+            var result = await UnauthenticatedClient.GetAllWithHttpMessagesAsync();
 
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
@@ -39,7 +33,7 @@ namespace CaptainHook.Api.Tests
         public async Task GetAllSubscribers_WhenAuthenticated_ReturnsNonEmptyList()
         {
             // Act 1
-            var result = await _authenticatedClient.GetAllWithHttpMessagesAsync();
+            var result = await AuthenticatedClient.GetAllWithHttpMessagesAsync();
             using (new AssertionScope())
             {
                 // Assert 1
@@ -49,105 +43,6 @@ namespace CaptainHook.Api.Tests
                 var content = await result.Response.Content.ReadAsStringAsync();
                 content.Should().NotBeNullOrEmpty();
             }
-        }
-
-        [Fact, IsIntegration]
-        public async Task PutSubscriber_WhenUnauthenticated_Returns401Unauthorized() 
-        {
-            // Arrange
-            string eventName = GetEventName();
-            string subscriberName = GetSubscriberName();
-
-            // Act
-            var result = await _unauthenticatedClient.PutSuscriberWithHttpMessagesAsync(eventName, subscriberName);
-
-            // Assert
-            result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
-        }
-
-        [Fact, IsIntegration]
-        public async Task PutSubscriber_WhenAuthenticated_Returns201Created()
-        {
-            // Arrange
-            CaptainHookContractSubscriberDto dto = GetTestSubscriberDto();
-            string eventName = GetEventName();
-            string subscriberName = GetSubscriberName();
-
-            // Act
-            var result = await _authenticatedClient.PutSuscriberWithHttpMessagesAsync(eventName, subscriberName, dto);
-
-            // Assert
-            result.Response.StatusCode.Should().Be(StatusCodes.Status201Created); 
-        }
-
-        [Fact, IsIntegration]
-        public async Task PutWebhook_WhenUnauthenticated_Returns401Unauthorized() 
-        {
-            // Arrange
-            string eventName = GetEventName();
-            string subscriberName = GetSubscriberName();
-
-            // Act
-            var result = await _unauthenticatedClient.PutWebhookWithHttpMessagesAsync(eventName, subscriberName);
-            // Assert
-            result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
-        }
-
-        [Fact, IsIntegration]
-        public async Task PutWebhook_WhenAuthenticated_Returns201Created() 
-        {
-            // Arrange
-            CaptainHookContractEndpointDto dto = GetTestEndpointDto();
-            string eventName = GetEventName();
-            string subscriberName = GetSubscriberName();
-
-            // Act
-            var result = await _authenticatedClient.PutWebhookWithHttpMessagesAsync(eventName, subscriberName, dto);
-
-            // Assert
-            result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
-        }
-
-        private string GetSubscriberName()
-        {
-            return "int-test-subscriber-" + Stopwatch.GetTimestamp(); // new every time
-        }
-
-        private string GetEventName()
-        {
-            return "integrationtest.event.type-" + Stopwatch.GetTimestamp();
-        }
-
-        private CaptainHookContractSubscriberDto GetTestSubscriberDto()
-        {
-            var webhooks = new CaptainHookContractWebhooksDto(endpoints: new[] { new CaptainHookContractEndpointDto()
-            {
-                Uri = "http://blah.blah",
-                HttpVerb = "PUT",
-                Authentication = GetTestAuthenticationDto()
-            }
-            });
-            webhooks.SelectionRule = "$.tenantcode";
-            return new CaptainHookContractSubscriberDto(webhooks);
-        }
-
-        private CaptainHookContractAuthenticationDto GetTestAuthenticationDto()
-        {
-            return new CaptainHookContractAuthenticationDto(
-                                "OIDC", "tooling.eda.client", EnvironmentSettings.StsSettings.Issuer,
-                                new CaptainHookContractClientSecretDto(EnvironmentSettings.Configuration["KEYVAULT_URL"], "CaptainHook--ApiSecret"),
-                                new string[] { "eda.peterpan.delivery.api.all" });
-        }
-
-        private CaptainHookContractEndpointDto GetTestEndpointDto()
-        {
-            return new CaptainHookContractEndpointDto("http://blah.blah", "PUT", GetTestAuthenticationDto());
-        }
-
-        public void Dispose()
-        {
-            _authenticatedClient.Dispose();
-            _unauthenticatedClient.Dispose();
         }
     }
 }
