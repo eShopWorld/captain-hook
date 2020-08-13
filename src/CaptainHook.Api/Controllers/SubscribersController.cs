@@ -41,10 +41,12 @@ namespace CaptainHook.Api.Controllers
         /// <response code="200">Subscribers retrieved properly</response>
         /// <response code="503">Configuration has not been fully loaded yet</response>
         /// <response code="500">An error occurred while processing the request</response>
+        /// <response code="401">An error occurred while processing the request</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetAll()
         {
             try
