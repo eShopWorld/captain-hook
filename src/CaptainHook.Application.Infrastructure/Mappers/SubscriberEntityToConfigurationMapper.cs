@@ -64,7 +64,10 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 .Select(x => x.First())
                 .ToDictionary(x => x.Key, x => x.Value);
 
-            replacements["selector"] = entity.Webhooks.SelectionRule;
+            if (!string.IsNullOrEmpty(entity.Webhooks.SelectionRule))
+            {
+                replacements["selector"] = entity.Webhooks.SelectionRule;
+            }
 
             var routes = await MapWebhooksToRoutesAsync(entity.Webhooks);
 

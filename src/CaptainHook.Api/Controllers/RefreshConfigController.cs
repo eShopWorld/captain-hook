@@ -35,10 +35,12 @@ namespace CaptainHook.Api.Controllers
         /// <response code="202">Configuration reload has been requested</response>
         /// <response code="400">Configuration reload has not been requested due to an error</response>
         /// <response code="409">Configuration reload has not been requested as another reload is in progress</response>
+        /// <response code="401">Request not authorized</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> ReloadConfiguration()
         {
             try
