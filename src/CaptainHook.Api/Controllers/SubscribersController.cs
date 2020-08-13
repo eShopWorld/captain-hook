@@ -41,7 +41,7 @@ namespace CaptainHook.Api.Controllers
         /// <response code="200">Subscribers retrieved properly</response>
         /// <response code="503">Configuration has not been fully loaded yet</response>
         /// <response code="500">An error occurred while processing the request</response>
-        /// <response code="401">An error occurred while processing the request</response>
+        /// <response code="401">Request not authorized</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
