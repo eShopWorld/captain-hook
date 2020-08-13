@@ -38,5 +38,11 @@ namespace CaptainHook.Domain.Entities
         {
             _endpoints.Add(endpointModel);
         }
+
+        public bool RemoveEndpoint(string selector)
+        {
+            var endpoint = _endpoints.SingleOrDefault(x => x.Selector.Equals(selector, StringComparison.InvariantCultureIgnoreCase));
+            return endpoint != null && _endpoints.Remove(endpoint);
+        }
     }
 }
