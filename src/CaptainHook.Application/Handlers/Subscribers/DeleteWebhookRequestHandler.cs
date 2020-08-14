@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +11,7 @@ using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using Eshopworld.Core;
+using Kusto.Cloud.Platform.Utils;
 using MediatR;
 using Polly;
 
@@ -41,7 +41,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
-            _retrySleepDurations = sleepDurations ?? DefaultRetrySleepDurations;
+            _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 
         public async Task<OperationResult<SubscriberDto>> Handle(DeleteWebhookRequest request, CancellationToken cancellationToken)
