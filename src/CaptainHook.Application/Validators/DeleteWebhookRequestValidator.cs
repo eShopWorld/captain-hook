@@ -11,6 +11,7 @@ namespace CaptainHook.Application.Validators
 
             RuleFor(x => x.EventName).NotEmpty();
             RuleFor(x => x.SubscriberName).NotEmpty();
+            RuleFor(x => x.Selector).NotEmpty().When(x => x.Selector != null);
         }
     }
 }

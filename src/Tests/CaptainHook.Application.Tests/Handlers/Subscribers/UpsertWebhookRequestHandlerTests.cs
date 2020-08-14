@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +19,7 @@ using FluentAssertions.Execution;
 using Moq;
 using Xunit;
 
-namespace CaptainHook.Application.Tests.Handlers
+namespace CaptainHook.Application.Tests.Handlers.Subscribers
 {
     public class UpsertWebhookRequestHandlerTests
     {

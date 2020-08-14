@@ -2,7 +2,6 @@
 using CaptainHook.Application.Validators;
 using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
-using FluentAssertions;
 using FluentValidation.TestHelper;
 using Xunit;
 
@@ -14,14 +13,26 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [InlineData("selector")]
-        [ClassData(typeof(EmptyStrings))]
+        [InlineData(null)]
         public void When_RequestIsValid_Then_NoFailuresReturned(string validSelector)
         {
             var request = new DeleteWebhookRequest("event", "subscriber", validSelector);
 
             var result = _validator.TestValidate(request);
 
-            AssertionExtensions.Should(result.IsValid).BeTrue();
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Theory, IsUnit]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void When_SelectorIsINvalid_Then_ValidationFails(string selector)
+        {
+            var request = new DeleteWebhookRequest("event", "subscriber", selector);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Selector);
         }
 
         [Theory, IsUnit]
