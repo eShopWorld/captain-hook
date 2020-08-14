@@ -46,20 +46,12 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         public async Task<OperationResult<SubscriberDto>> Handle(DeleteWebhookRequest request, CancellationToken cancellationToken)
         {
-            try
-            {
-                var executionResult = await Policy
-                    .HandleResult<OperationResult<SubscriberDto>>(result => result.Error is CannotUpdateEntityError)
-                    .WaitAndRetryAsync(_retrySleepDurations)
-                    .ExecuteAsync(() => DeleteEndpointAsync(request));
+            var executionResult = await Policy
+                .HandleResult<OperationResult<SubscriberDto>>(result => result.Error is CannotUpdateEntityError)
+                .WaitAndRetryAsync(_retrySleepDurations)
+                .ExecuteAsync(() => DeleteEndpointAsync(request));
 
-                return executionResult;
-            }
-            catch (Exception ex)
-            {
-                _bigBrother.Publish(ex.ToExceptionEvent());
-                return new UnhandledExceptionError($"Error processing {nameof(DeleteWebhookRequest)}", ex);
-            }
+            return executionResult;
         }
 
         private async Task<OperationResult<SubscriberDto>> DeleteEndpointAsync(DeleteWebhookRequest request)

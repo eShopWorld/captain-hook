@@ -114,26 +114,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         }
 
         [Fact, IsUnit]
-        public async Task When_RepositoryThrowsAnExceptionRetrievingSubscriberData_Then_OperationFails()
-        {
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .Throws<Exception>();
-            _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-                .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
-                .ReturnsAsync(false);
-
-            var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
-
-            using var scope = new AssertionScope();
-            result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<UnhandledExceptionError>();
-            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Never);
-            _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
-        }
-
-        [Fact, IsUnit]
         public async Task When_DirectorServiceIsBusyReloading_Then_OperationFails()
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
@@ -174,26 +154,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         }
 
         [Fact, IsUnit]
-        public async Task When_DirectorServiceThrowsAnExceptionDuringReaderCreation_Then_OperationFails()
-        {
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-                .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
-                 .Throws<Exception>();
-
-            var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
-
-            using var scope = new AssertionScope();
-            result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<UnhandledExceptionError>();
-            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-            _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
-        }
-
-        [Fact, IsUnit]
         public async Task When_RepositoryFailsSavingSubscriberAfterSuccessfulReaderCreation_Then_OperationFails()
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
@@ -202,25 +162,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(new BusinessError("test error"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
                 .ReturnsAsync(true);
-
-            var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
-
-            using var scope = new AssertionScope();
-            result.IsError.Should().BeTrue();
-            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-            _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-        }
-
-        [Fact, IsUnit]
-        public async Task When_RepositoryThrowsAnExceptionSavingSubscriberAfterSuccessfulReaderCreation_Then_OperationFails()
-        {
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
-                .Throws<Exception>();
-            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
-                .ReturnsAsync(false);
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 

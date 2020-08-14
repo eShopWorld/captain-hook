@@ -65,20 +65,12 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 return existingItem.Error;
             }
 
-            try
-            {
-                var executionResult = await Policy
-                    .HandleResult<OperationResult<EndpointDto>>(result => result.Error is CannotUpdateEntityError)
-                    .WaitAndRetryAsync(_retrySleepDurations)
-                    .ExecuteAsync(AddOrUpdateEndpointAsync);
+            var executionResult = await Policy
+                .HandleResult<OperationResult<EndpointDto>>(result => result.Error is CannotUpdateEntityError)
+                .WaitAndRetryAsync(_retrySleepDurations)
+                .ExecuteAsync(AddOrUpdateEndpointAsync);
 
-                return executionResult;
-            }
-            catch (Exception ex)
-            {
-                _bigBrother.Publish(ex.ToExceptionEvent());
-                return new UnhandledExceptionError($"Error processing {nameof(UpsertWebhookRequest)}", ex);
-            }
+            return executionResult;
         }
 
         private async Task<OperationResult<EndpointDto>> AddAsync(

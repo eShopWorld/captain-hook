@@ -148,22 +148,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         }
 
         [Fact, IsUnit]
-        public async Task When_RepositoryThrowsAnExceptionRetrievingSubscriberData_Then_OperationFails()
-        {
-            _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .Throws<Exception>();
-
-            var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
-
-            using var scope = new AssertionScope();
-            result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<UnhandledExceptionError>();
-            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Never);
-            _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
-        }
-
-        [Fact, IsUnit]
         public async Task When_DirectorServiceIsBusyReloading_Then_OperationFails()
         {
             _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(new DirectorServiceIsBusyError());
@@ -211,21 +195,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         }
 
         [Fact, IsUnit]
-        public async Task When_DirectorServiceThrowsAnExceptionDuringReaderUpdate_Then_UnhandledExceptionErrorReturned()
-        {
-            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).Throws<Exception>();
-
-            var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
-
-            using var scope = new AssertionScope();
-            result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<UnhandledExceptionError>();
-            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-            _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
-        }
-
-        [Fact, IsUnit]
         public async Task When_RepositoryFailsSavingSubscriberAfterSuccessfulReaderCreation_Then_ErrorIsReturned()
         {
             _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
@@ -236,21 +205,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             using var scope = new AssertionScope();
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();
-            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-            _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-        }
-
-        [Fact, IsUnit]
-        public async Task When_RepositoryThrowsAnExceptionSavingSubscriberAfterSuccessfulReaderCreation_Then_UnhandledExceptionErrorReturned()
-        {
-            _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>())).ThrowsAsync(new Exception());
-
-            var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
-
-            using var scope = new AssertionScope();
-            result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<UnhandledExceptionError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
