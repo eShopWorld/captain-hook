@@ -70,6 +70,59 @@ namespace CaptainHook.Api.Controllers
         }
 
         /// <summary>
+        /// Delete the default webhook for the provided event and subscriber
+        /// </summary>
+        /// <param name="eventName">Event name</param>
+        /// <param name="subscriberName">Subscriber name</param>
+        /// <returns></returns>
+        [HttpDelete("{eventName}/subscriber/{subscriberName}/webhooks/endpoint")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult>
+            DeleteWebhook([FromRoute] string eventName, [FromRoute] string subscriberName) =>
+            await DeleteWebhook(eventName, subscriberName, null);
+
+        /// <summary>
+        /// Delete a webhook for the provided event, subscriber and selector
+        /// </summary>
+        /// <param name="eventName">Event name</param>
+        /// <param name="subscriberName">Subscriber name</param>
+        /// <param name="selector">Endpoint selector</param>
+        /// <returns></returns>
+        [HttpDelete("{eventName}/subscriber/{subscriberName}/webhooks/endpoint/{selector}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteWebhook([FromRoute] string eventName, [FromRoute] string subscriberName, [FromRoute] string selector)
+        {
+            var request = new DeleteWebhookRequest(eventName, subscriberName, selector);
+            var result = await _mediator.Send(request);
+
+            return result.Match<IActionResult>(
+                error => error switch
+                {
+                    ValidationError validationError => BadRequest(validationError),
+                    CannotRemoveLastEndpointFromSubscriberError cannotRemoveLast => BadRequest(cannotRemoveLast),
+                    EndpointNotFoundInSubscriberError endpointNotFound => BadRequest(endpointNotFound),
+                    EntityNotFoundError entityNotFoundError => NotFound(entityNotFoundError),
+                    DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
+                    ReaderDeleteError readerDeleteError => UnprocessableEntity(readerDeleteError),
+                    ReaderDoesNotExistError readerDoesNotExistError => UnprocessableEntity(readerDoesNotExistError),
+                    CannotUpdateEntityError cannotUpdateEntityError => StatusCode(StatusCodes.Status500InternalServerError, cannotUpdateEntityError),
+                    _ => StatusCode(StatusCodes.Status500InternalServerError, error)
+                },
+                Ok
+            );
+        }
+
+        /// <summary>
         /// Insert or update a subscriber
         /// </summary>
         /// <param name="eventName">Event name</param>
