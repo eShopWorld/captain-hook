@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +19,7 @@ using FluentAssertions.Execution;
 using Moq;
 using Xunit;
 
-namespace CaptainHook.Application.Tests.Handlers
+namespace CaptainHook.Application.Tests.Handlers.Subscribers
 {
     public class UpsertWebhookRequestHandlerTests
     {
@@ -30,6 +29,20 @@ namespace CaptainHook.Application.Tests.Handlers
 
         private readonly UpsertWebhookRequest _defaultUpsertRequest =
             new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().With(x => x.Selector, null).Create());
+
+        private static readonly SubscriberBuilder DefaultSubscriberBuilder = new SubscriberBuilder().WithEvent("event")
+            .WithName("subscriber")
+            .WithWebhookSelectionRule("$.Test")
+            .WithWebhook(
+                "https://blah.blah.eshopworld.com/oldwebhook/",
+                "POST",
+                "abc",
+                authentication: new AuthenticationEntity(
+                    "captain-hook-id",
+                    new SecretStoreEntity("kvname", "kv-secret-name"),
+                    "https://blah-blah.sts.eshopworld.com",
+                    "OIDC",
+                    new[] { "scope1" }));
 
         private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(
             _repositoryMock.Object,
@@ -62,18 +75,7 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_Subscriber_DoesExist_Then_SameEndpointReturned()
         {
-            var subscriberEntity = new SubscriberBuilder()
-                .WithEvent("event")
-                .WithName("subscriber")
-                .WithWebhookSelectionRule("$.Test")
-                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "abc", 
-                    authentication: new AuthenticationEntity(
-                        "captain-hook-id",
-                        new SecretStoreEntity("kvname", "kv-secret-name"),
-                        "https://blah-blah.sts.eshopworld.com",
-                        "OIDC",
-                        new[] { "scope1" })
-                ).Create();
+            var subscriberEntity = DefaultSubscriberBuilder.Create();
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriberEntity);
             _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
@@ -232,24 +234,8 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_DocumentUpdateFails_Then_OperationIsRetried3Times()
         {
-            SubscriberEntity SubscriberEntityFunc() =>
-                new SubscriberBuilder().WithEvent("event")
-                    .WithName("subscriber")
-                    .WithWebhookSelectionRule("$.Test")
-                    .WithWebhook(
-                        "https://blah.blah.eshopworld.com/oldwebhook/",
-                        "POST",
-                        "abc",
-                        authentication: new AuthenticationEntity(
-                            "captain-hook-id",
-                            new SecretStoreEntity("kvname", "kv-secret-name"),
-                            "https://blah-blah.sts.eshopworld.com",
-                            "OIDC",
-                            new[] { "scope1" }))
-                    .Create();
-
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync(() => SubscriberEntityFunc());
+                .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
             _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(true);
             _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
@@ -267,28 +253,13 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_DocumentUpdateFails_Then_SucceedsOnSecondTry()
         {
-            SubscriberEntity SubscriberEntityFunc() =>
-                new SubscriberBuilder().WithEvent("event")
-                    .WithName("subscriber")
-                    .WithWebhookSelectionRule("$.Test")
-                    .WithWebhook(
-                        "https://blah.blah.eshopworld.com/oldwebhook/",
-                        "POST",
-                        "abc",
-                        authentication: new AuthenticationEntity(
-                            "captain-hook-id",
-                            new SecretStoreEntity("kvname", "kv-secret-name"),
-                            "https://blah-blah.sts.eshopworld.com",
-                            "OIDC",
-                            new[] { "scope1" }))
-                    .Create();
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync(() => SubscriberEntityFunc());
+                .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
             _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(true);
             _repositoryMock.SetupSequence(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()))
-                .ReturnsAsync(SubscriberEntityFunc());
+                .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -302,33 +273,18 @@ namespace CaptainHook.Application.Tests.Handlers
         [Fact, IsUnit]
         public async Task When_DocumentUpdateFailsAndDocumentIsRemoved_Then_TriesToAddOnSecondTry()
         {
-            SubscriberEntity SubscriberEntityFunc() =>
-                new SubscriberBuilder().WithEvent("event")
-                    .WithName("subscriber")
-                    .WithWebhookSelectionRule("$.Test")
-                    .WithWebhook(
-                        "https://blah.blah.eshopworld.com/oldwebhook/",
-                        "POST",
-                        "abc",
-                        authentication: new AuthenticationEntity(
-                            "captain-hook-id",
-                            new SecretStoreEntity("kvname", "kv-secret-name"),
-                            "https://blah-blah.sts.eshopworld.com",
-                            "OIDC",
-                            new[] { "scope1" }))
-                    .Create();
             _repositoryMock.SetupSequence(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync(() => SubscriberEntityFunc())
+                .ReturnsAsync(() => DefaultSubscriberBuilder.Create())
                 .ReturnsAsync(new EntityNotFoundError("dummy-type", "dummy-key"));
             _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(true);
             _repositoryMock.SetupSequence(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()))
-                .ReturnsAsync(SubscriberEntityFunc());
+                .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
             _directorServiceMock.Setup(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(true);
             _repositoryMock.Setup(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(SubscriberEntityFunc());
+                .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 

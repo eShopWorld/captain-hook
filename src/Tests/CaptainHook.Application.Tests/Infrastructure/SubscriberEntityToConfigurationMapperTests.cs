@@ -311,5 +311,39 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 authenticationConfig.ClientId.Should().Be("captain-hook-id");
             }
         }
+
+        [Fact, IsUnit]
+        public async Task MapSubscriberAsync_NoSelectionRule_MapsFromFirstEndpoint()
+        {
+            // Arrange
+            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { {"selector", "$.Test" }});
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", "POST", null, uriTransform, authentication)
+                .Create();
+
+            // Act
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+
+            // Assert
+            var webhookRequestRule = new WebhookRequestRule
+            {
+                Source = new SourceParserLocation
+                {
+                    Replace = new Dictionary<string, string>
+                    {
+                        { "selector", "$.Test" }
+                    }
+                }
+            };
+
+            result.Should().HaveCount(1)
+                .And.Subject.First().WebhookRequestRules.Should().HaveCount(1)
+                .And.Subject.First().Should().BeEquivalentTo(
+                    webhookRequestRule,
+                    opt => opt.Including(x => x.Source.Replace));
+
+        }
     }
 }

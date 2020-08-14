@@ -7,6 +7,7 @@
 namespace CaptainHook.Api.Client
 {
     using Microsoft.Rest;
+    using Models;
     using System.Collections;
     using System.Collections.Generic;
     using System.Threading;
@@ -17,6 +18,144 @@ namespace CaptainHook.Api.Client
     /// </summary>
     public static partial class CaptainHookClientExtensions
     {
+            /// <summary>
+            /// Insert or update a web hook
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='body'>
+            /// Webhook configuration
+            /// </param>
+            public static object PutWebhook(this ICaptainHookClient operations, string eventName, string subscriberName, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto))
+            {
+                return operations.PutWebhookAsync(eventName, subscriberName, body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Insert or update a web hook
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='body'>
+            /// Webhook configuration
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<object> PutWebhookAsync(this ICaptainHookClient operations, string eventName, string subscriberName, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.PutWebhookWithHttpMessagesAsync(eventName, subscriberName, body, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Insert or update a web hook
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='body'>
+            /// Webhook configuration
+            /// </param>
+            /// <param name='customHeaders'>
+            /// Headers that will be added to request.
+            /// </param>
+            public static HttpOperationResponse<object> PutWebhookWithHttpMessages(this ICaptainHookClient operations, string eventName, string subscriberName, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto), Dictionary<string, List<string>> customHeaders = null)
+            {
+                return operations.PutWebhookWithHttpMessagesAsync(eventName, subscriberName, body, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Insert or update a subscriber
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='body'>
+            /// Webhook configuration
+            /// </param>
+            public static object PutSuscriber(this ICaptainHookClient operations, string eventName, string subscriberName, CaptainHookContractSubscriberDto body = default(CaptainHookContractSubscriberDto))
+            {
+                return operations.PutSuscriberAsync(eventName, subscriberName, body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Insert or update a subscriber
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='body'>
+            /// Webhook configuration
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<object> PutSuscriberAsync(this ICaptainHookClient operations, string eventName, string subscriberName, CaptainHookContractSubscriberDto body = default(CaptainHookContractSubscriberDto), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.PutSuscriberWithHttpMessagesAsync(eventName, subscriberName, body, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Insert or update a subscriber
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='body'>
+            /// Webhook configuration
+            /// </param>
+            /// <param name='customHeaders'>
+            /// Headers that will be added to request.
+            /// </param>
+            public static HttpOperationResponse<object> PutSuscriberWithHttpMessages(this ICaptainHookClient operations, string eventName, string subscriberName, CaptainHookContractSubscriberDto body = default(CaptainHookContractSubscriberDto), Dictionary<string, List<string>> customHeaders = null)
+            {
+                return operations.PutSuscriberWithHttpMessagesAsync(eventName, subscriberName, body, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
             /// <summary>
             /// Returns a probe result
             /// </summary>
