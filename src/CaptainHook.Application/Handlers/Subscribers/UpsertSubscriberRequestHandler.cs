@@ -27,36 +27,29 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         public async Task<OperationResult<SubscriberDto>> Handle(UpsertSubscriberRequest request, CancellationToken cancellationToken)
         {
-            try
+            var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
+            var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
+
+            if (!(existingItem.Error is EntityNotFoundError))
             {
-                var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
-                var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
-
-                if (!(existingItem.Error is EntityNotFoundError))
-                {
-                    return new BusinessError("Updating subscribers not supported!");
-                }
-
-                var subscriber = MapRequestToEntity(request);
-
-                var directorResult = await _directorService.CreateReaderAsync(subscriber);
-                if (directorResult.IsError)
-                {
-                    return directorResult.Error;
-                }
-
-                var saveResult = await _subscriberRepository.AddSubscriberAsync(subscriber);
-                if (saveResult.IsError)
-                {
-                    return saveResult.Error;
-                }
-
-                return request.Subscriber;
+                return new BusinessError("Updating subscribers not supported!");
             }
-            catch (Exception ex)
+
+            var subscriber = MapRequestToEntity(request);
+
+            var directorResult = await _directorService.CreateReaderAsync(subscriber);
+            if (directorResult.IsError)
             {
-                return new UnhandledExceptionError($"Error processing {nameof(UpsertSubscriberRequest)}", ex);
+                return directorResult.Error;
             }
+
+            var saveResult = await _subscriberRepository.AddSubscriberAsync(subscriber);
+            if (saveResult.IsError)
+            {
+                return saveResult.Error;
+            }
+
+            return request.Subscriber;
         }
 
         private static SubscriberEntity MapRequestToEntity(UpsertSubscriberRequest request)
