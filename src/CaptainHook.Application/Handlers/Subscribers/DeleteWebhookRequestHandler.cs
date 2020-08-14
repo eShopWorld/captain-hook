@@ -37,9 +37,9 @@ namespace CaptainHook.Application.Handlers.Subscribers
             IBigBrother bigBrother,
             TimeSpan[] sleepDurations = null)
         {
-            _subscriberRepository = subscriberRepository;
-            _directorService = directorService;
-            _bigBrother = bigBrother;
+            _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
+            _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
+            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
             _retrySleepDurations = sleepDurations ?? DefaultRetrySleepDurations;
         }
 
