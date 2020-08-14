@@ -17,7 +17,8 @@ namespace CaptainHook.Api.Tests
         {
         }
 
-        [Fact, IsIntegration]
+
+        [Fact(Skip = "A successful RefreshConfig makes the other tests fail until refresh is complete"), IsIntegration]
         public async Task RefreshConfig_WhenAuthenticated_Returns202Accepted()
         {
             var result = await AuthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
