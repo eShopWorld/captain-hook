@@ -57,7 +57,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             catch (Exception ex)
             {
                 _bigBrother.Publish(ex.ToExceptionEvent());
-                return new UnhandledExceptionError($"Error processing {nameof(UpsertWebhookRequest)}", ex);
+                return new UnhandledExceptionError($"Error processing {nameof(DeleteWebhookRequest)}", ex);
             }
         }
 
