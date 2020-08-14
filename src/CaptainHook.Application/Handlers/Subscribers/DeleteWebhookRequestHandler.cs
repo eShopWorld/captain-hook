@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -98,6 +99,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             {
                 Webhooks = new WebhooksDto
                 {
+                    SelectionRule = subscriber.Webhooks.SelectionRule,
                     Endpoints = subscriber.Webhooks.Endpoints.Select(MapEndpointDto).ToList()
                 }
             };
@@ -110,6 +112,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 Selector = endpointEntity.Selector,
                 Uri = endpointEntity.Uri,
                 HttpVerb = endpointEntity.HttpVerb,
+                UriTransform = new UriTransformDto { Replace = endpointEntity.UriTransform.Replace },
+                Authentication = new AuthenticationDto
+                {
+                    Uri = endpointEntity.Authentication.Uri,
+                    ClientId = endpointEntity.Authentication.ClientId,
+                    Scopes = endpointEntity.Authentication.Scopes.ToList(),
+                    Type = endpointEntity.Authentication.Type,
+                    ClientSecret = new ClientSecretDto
+                    {
+                        Name = endpointEntity.Authentication.SecretStore.SecretName,
+                        Vault = endpointEntity.Authentication.SecretStore.KeyVaultName
+                    }
+                }
             };
         }
     }
