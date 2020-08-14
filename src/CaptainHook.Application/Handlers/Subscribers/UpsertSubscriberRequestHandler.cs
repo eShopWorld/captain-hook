@@ -14,15 +14,15 @@ using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
-    public class UpsertSubscriberRequestHandler: IRequestHandler<UpsertSubscriberRequest, OperationResult<SubscriberDto>>
+    public class UpsertSubscriberRequestHandler : IRequestHandler<UpsertSubscriberRequest, OperationResult<SubscriberDto>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
 
         public UpsertSubscriberRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceProxy directorService)
         {
-            _subscriberRepository = subscriberRepository;
-            _directorService = directorService;
+            _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
+            _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
         }
 
         public async Task<OperationResult<SubscriberDto>> Handle(UpsertSubscriberRequest request, CancellationToken cancellationToken)
