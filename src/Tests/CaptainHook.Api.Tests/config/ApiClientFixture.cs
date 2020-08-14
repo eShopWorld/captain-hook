@@ -8,23 +8,22 @@ namespace CaptainHook.Api.Tests.Config
 {
     public class ApiClientFixture
     {
-        private static Uri CaptainHookTestUri = new Uri("https://localhost:24010");
+        private readonly Uri _CaptainHookTestUri;
+
+        public ApiClientFixture()
+        {
+            _CaptainHookTestUri = new Uri(EnvironmentSettings.Configuration["CaptainHookApiUri"]);
+        }
 
         public ICaptainHookClient GetApiUnauthenticatedClient()
         {
-            return new CaptainHookClient(CaptainHookTestUri, AnonymousCredential.Instance);
+            return new CaptainHookClient(_CaptainHookTestUri, AnonymousCredential.Instance);
         }
 
         public ICaptainHookClient GetApiClient()
         {
-            var tb = new RefreshingTokenProviderOptions(
-                EnvironmentSettings.StsSettings.Issuer, 
-                EnvironmentSettings.StsSettings.Subject, 
-                EnvironmentSettings.StsSettings.ClientId, 
-                EnvironmentSettings.StsSettings.Scopes, 
-                EnvironmentSettings.StsSettings.Audience);
-            var token = new TokenCredentialsBuilder(tb).Build();
-            return new CaptainHookClient(CaptainHookTestUri, token);
+            var token = new TokenCredentialsBuilder().Build();
+            return new CaptainHookClient(_CaptainHookTestUri, token);
         }
 
         private class AnonymousCredential : ServiceClientCredentials

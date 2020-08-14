@@ -2,7 +2,7 @@
 {
     public enum RefreshReaderResult
     {
-        None,
+        None = 0,
         Success,
         CreateFailed,
         DeleteFailed

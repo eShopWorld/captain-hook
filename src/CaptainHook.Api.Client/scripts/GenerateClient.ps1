@@ -59,6 +59,7 @@ function Generate-CSharp-Client
 	Try
 	{
 		Write-Output "Generating 'swagger.json' from $(Resolve-Path $apiDll) ..."
+		$env:KEYVAULT_BASE_URI = "https://esw-tooling-ci-we.vault.azure.net/"
 		& $swaggerPath tofile --output swagger.json --serializeasv2 $apiDll v1
 		
 		& $autorestPath --input-file="swagger.json" --sync-methods=all --add-credentials=true --override-client-name=$ClientName --clear-output-folder --namespace=$ClientNamespace --csharp --output-folder=$clientOutputFolder --client-side-validation=$false
