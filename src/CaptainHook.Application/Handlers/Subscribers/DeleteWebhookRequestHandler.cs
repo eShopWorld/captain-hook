@@ -112,7 +112,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 Selector = endpointEntity.Selector,
                 Uri = endpointEntity.Uri,
                 HttpVerb = endpointEntity.HttpVerb,
-                UriTransform = new UriTransformDto { Replace = endpointEntity.UriTransform.Replace },
+                UriTransform = MapUriTransform(endpointEntity.UriTransform),
                 Authentication = new AuthenticationDto
                 {
                     Uri = endpointEntity.Authentication.Uri,
@@ -126,6 +126,11 @@ namespace CaptainHook.Application.Handlers.Subscribers
                     }
                 }
             };
+        }
+
+        private UriTransformDto MapUriTransform(UriTransformEntity uriTransform)
+        {
+            return uriTransform == null ? null : new UriTransformDto { Replace = uriTransform.Replace };
         }
     }
 }
