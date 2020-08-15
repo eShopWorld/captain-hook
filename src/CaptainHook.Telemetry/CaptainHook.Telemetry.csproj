@@ -11,8 +11,8 @@
   <ItemGroup>
     <PackageReference Include="Autofac" Version="5.2.0" />
     <PackageReference Include="Autofac.ServiceFabric" Version="3.0.0" />
-    <PackageReference Include="Eshopworld.Telemetry" Version="3.1.4" />
-    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.0.470" />
+    <PackageReference Include="Eshopworld.Telemetry" Version="3.1.5" />
+    <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.1.456" />
   </ItemGroup>
 
 </Project>
