@@ -14,49 +14,42 @@ using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
-    public class UpsertSubscriberRequestHandler: IRequestHandler<UpsertSubscriberRequest, OperationResult<SubscriberDto>>
+    public class UpsertSubscriberRequestHandler : IRequestHandler<UpsertSubscriberRequest, OperationResult<SubscriberDto>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
 
         public UpsertSubscriberRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceProxy directorService)
         {
-            _subscriberRepository = subscriberRepository;
-            _directorService = directorService;
+            _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
+            _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
         }
 
         public async Task<OperationResult<SubscriberDto>> Handle(UpsertSubscriberRequest request, CancellationToken cancellationToken)
         {
-            try
+            var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
+            var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
+
+            if (!(existingItem.Error is EntityNotFoundError))
             {
-                var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
-                var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
-
-                if (!(existingItem.Error is EntityNotFoundError))
-                {
-                    return new BusinessError("Updating subscribers not supported!");
-                }
-
-                var subscriber = MapRequestToEntity(request);
-
-                var directorResult = await _directorService.CreateReaderAsync(subscriber);
-                if (directorResult.IsError)
-                {
-                    return directorResult.Error;
-                }
-
-                var saveResult = await _subscriberRepository.AddSubscriberAsync(subscriber);
-                if (saveResult.IsError)
-                {
-                    return saveResult.Error;
-                }
-
-                return request.Subscriber;
+                return new BusinessError("Updating subscribers not supported!");
             }
-            catch (Exception ex)
+
+            var subscriber = MapRequestToEntity(request);
+
+            var directorResult = await _directorService.CreateReaderAsync(subscriber);
+            if (directorResult.IsError)
             {
-                return new UnhandledExceptionError($"Error processing {nameof(UpsertSubscriberRequest)}", ex);
+                return directorResult.Error;
             }
+
+            var saveResult = await _subscriberRepository.AddSubscriberAsync(subscriber);
+            if (saveResult.IsError)
+            {
+                return saveResult.Error;
+            }
+
+            return request.Subscriber;
         }
 
         private static SubscriberEntity MapRequestToEntity(UpsertSubscriberRequest request)

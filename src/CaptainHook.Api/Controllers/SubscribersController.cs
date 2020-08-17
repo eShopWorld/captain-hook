@@ -5,6 +5,7 @@ using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using Eshopworld.Core;
+using Kusto.Cloud.Platform.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -55,7 +56,7 @@ namespace CaptainHook.Api.Controllers
                 var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
                 var subscribers = await directorServiceClient.GetAllSubscribersAsync();
 
-                if(subscribers == null)
+                if(subscribers.Count == 0)
                 {
                     return StatusCode(StatusCodes.Status503ServiceUnavailable);
                 }

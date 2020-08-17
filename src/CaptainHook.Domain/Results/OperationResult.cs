@@ -36,5 +36,7 @@ namespace CaptainHook.Domain.Results
         public static implicit operator OperationResult<TData>(ErrorBase error) => new OperationResult<TData>(error);
 
         public static implicit operator OperationResult<TData>(TData data) => new OperationResult<TData>(data);
+
+        public static implicit operator TData(OperationResult<TData> result) => result.Data;
     }
 }
