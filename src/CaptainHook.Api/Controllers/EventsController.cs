@@ -7,7 +7,6 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using MediatR;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
