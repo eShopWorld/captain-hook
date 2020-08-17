@@ -139,6 +139,13 @@ namespace CaptainHook.DirectorService
             return Task.FromResult(RequestReloadConfigurationResult.ReloadInProgress);
         }
 
+        public Task<ReloadConfigurationStatus> GetReloadConfigurationStatusAsync()
+        {
+            var status = _refreshInProgress ? ReloadConfigurationStatus.InProgress : ReloadConfigurationStatus.Loaded;
+
+            return Task.FromResult(status);
+        }
+
         public Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribersAsync()
         {
             return Task.FromResult(_subscriberConfigurations);
