@@ -83,7 +83,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult>
-            DeleteWebhook([FromRoute] string eventName, [FromRoute] string subscriberName) =>
+            DeleteDefaultWebhook([FromRoute] string eventName, [FromRoute] string subscriberName) =>
             await DeleteWebhook(eventName, subscriberName, null);
 
         /// <summary>
