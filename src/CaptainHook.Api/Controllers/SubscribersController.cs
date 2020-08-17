@@ -44,7 +44,7 @@ namespace CaptainHook.Api.Controllers
         /// <response code="500">An error occurred while processing the request</response>
         /// <response code="401">Request not authorized</response>
         [HttpGet]
-        [ProducesResponseType(typeof(IDictionary<string, SubscriberConfiguration>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
