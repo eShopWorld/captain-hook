@@ -95,18 +95,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         }
 
         [Fact, IsUnit]
-        public async Task When_RepositoryThrowsAnExceptionRetrievingSubscriberData_Then_OperationFails()
-        {
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .Throws<Exception>();
-
-            var result = await _handler.Handle(_testRequest, CancellationToken.None);
-
-            var expectedResult = new OperationResult<SubscriberDto>(new UnhandledExceptionError("Error processing UpsertSubscriberRequest", new Exception()));
-            result.Should().BeEquivalentTo(expectedResult);
-        }
-
-        [Fact, IsUnit]
         public async Task When_DirectorServiceIsBusyReloading_Then_OperationFails()
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
@@ -135,20 +123,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         }
 
         [Fact, IsUnit]
-        public async Task When_DirectorServiceThrowsAnExceptionDuringReaderCreation_Then_OperationFails()
-        {
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
-                 .Throws<Exception>();
-
-            var result = await _handler.Handle(_testRequest, CancellationToken.None);
-
-            var expectedResult = new OperationResult<SubscriberDto>(new UnhandledExceptionError("Error processing UpsertSubscriberRequest", new Exception()));
-            result.Should().BeEquivalentTo(expectedResult);
-        }
-
-        [Fact, IsUnit]
         public async Task When_RepositoryFailsSavingSubscriberAfterSuccessfulReaderCreation_Then_OperationFails()
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
@@ -161,20 +135,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
             var expectedResult = new OperationResult<SubscriberDto>(new BusinessError("test error"));
-            result.Should().BeEquivalentTo(expectedResult);
-        }
-
-        [Fact, IsUnit]
-        public async Task When_RepositoryThrowsAnExceptionSavingSubscriberAfterSuccessfulReaderCreation_Then_OperationFails()
-        {
-            _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
-            _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(false);
-            _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>())).Throws<Exception>();
-
-            var result = await _handler.Handle(_testRequest, CancellationToken.None);
-
-            var expectedResult = new OperationResult<SubscriberDto>(new UnhandledExceptionError("Error processing UpsertSubscriberRequest", new Exception()));
             result.Should().BeEquivalentTo(expectedResult);
         }
     }

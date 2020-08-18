@@ -76,6 +76,18 @@ namespace CaptainHook.Domain.Entities
             return ValidationErrorBuilder.Build(validationResult);
         }
 
+        public OperationResult<SubscriberEntity> RemoveWebhookEndpoint(string selector)
+        {
+            if (Webhooks.Endpoints.Count() == 1)
+                return new CannotRemoveLastEndpointFromSubscriberError(this);
+
+            if (!Webhooks.RemoveEndpoint(selector))
+                return new EndpointNotFoundInSubscriberError(selector, this);
+
+            return this;
+        }
+
+
         public SubscriberEntity AddWebhooks(WebhooksEntity webhooks)
         {
             foreach (var webhooksEndpoint in webhooks.Endpoints)
