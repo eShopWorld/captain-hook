@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.EventHandlerActor.Handlers;
@@ -11,7 +10,7 @@ using Moq;
 using ServiceFabric.Mocks;
 using Xunit;
 
-namespace CaptainHook.Tests.Services.Actors
+namespace CaptainHook.EventHandlerActor.Tests
 {
     public class EventHandlerActorTests
     {
@@ -29,10 +28,10 @@ namespace CaptainHook.Tests.Services.Actors
             Assert.True(timers.Any());
         }
 
-        private static EventHandlerActor.EventHandlerActor CreateEventHandlerActor(ActorId id, IBigBrother bigBrother)
+        private static EventHandlerActor CreateEventHandlerActor(ActorId id, IBigBrother bigBrother)
         {
-            ActorBase ActorFactory(ActorService service, ActorId actorId) => new EventHandlerActor.EventHandlerActor(service, id, new Mock<IEventHandlerFactory>().Object, bigBrother);
-            var svc = MockActorServiceFactory.CreateActorServiceForActor<EventHandlerActor.EventHandlerActor>(ActorFactory);
+            ActorBase ActorFactory(ActorService service, ActorId actorId) => new EventHandlerActor(service, id, new Mock<IEventHandlerFactory>().Object, bigBrother);
+            var svc = MockActorServiceFactory.CreateActorServiceForActor<EventHandlerActor>(ActorFactory);
             var actor = svc.Activate(id);
             return actor;
         }

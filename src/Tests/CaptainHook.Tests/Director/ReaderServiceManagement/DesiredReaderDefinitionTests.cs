@@ -1,6 +1,6 @@
 ﻿using CaptainHook.Common;
 using CaptainHook.DirectorService.ReaderServiceManagement;
-using CaptainHook.Tests.Builders;
+using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using Xunit;
 
