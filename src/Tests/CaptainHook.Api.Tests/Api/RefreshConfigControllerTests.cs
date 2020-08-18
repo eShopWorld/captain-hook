@@ -1,9 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Net;
+using System.Threading.Tasks;
 using CaptainHook.Api.Tests.Api;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Rest;
+using Polly;
 using Xunit;
 
 namespace CaptainHook.Api.Tests
@@ -15,13 +19,45 @@ namespace CaptainHook.Api.Tests
         {
         }
 
-
-        [Fact(Skip = "Skipped: a successful RefreshConfig makes the other tests fail until refresh is complete."), IsIntegration]
+        [Fact, IsIntegration]
         public async Task RefreshConfig_WhenAuthenticated_Returns202Accepted()
         {
-            var result = await AuthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
+            // Arrange
+            var refreshRetryPolicy = Policy /* poll until no conflict */
+                .HandleResult<HttpOperationResponse>(msg => msg.Response.StatusCode == HttpStatusCode.Accepted)
+                .WaitAndRetryAsync(30, i => TimeSpan.FromMilliseconds(2000));
 
+            // Act 1
+            var result = await AuthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
+            // Assert - Reload should return 202
             result.Response.StatusCode.Should().Be(StatusCodes.Status202Accepted);
+
+            // Act 2
+            result = await AuthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
+            // Assert - Subsequent immediate reload should return 409
+            result.Response.StatusCode.Should().Be(StatusCodes.Status409Conflict);
+
+            // 3 - Wait until the reload status is green (Ok)
+            result = await refreshRetryPolicy.ExecuteAsync(async () =>
+                await AuthenticatedClient.GetConfigurationStatusWithHttpMessagesAsync());
+
+            result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        }
+
+        [Fact, IsIntegration]
+        public async Task GetConfigurationStatus_WhenUnauthenticated_Returns401Unauthorized()
+        {
+            var result = await UnauthenticatedClient.GetConfigurationStatusWithHttpMessagesAsync();
+
+            result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+        }
+
+        [Fact, IsIntegration]
+        public async Task GetConfigurationStatus_WhenAuthenticated_Returns200Ok()
+        {
+            var result = await AuthenticatedClient.GetConfigurationStatusWithHttpMessagesAsync();
+
+            result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
         }
 
         [Fact, IsIntegration]
