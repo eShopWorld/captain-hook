@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using CaptainHook.Api.Client;
+﻿using System.Threading.Tasks;
 using CaptainHook.Api.Tests.Api;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
@@ -21,7 +19,7 @@ namespace CaptainHook.Api.Tests
         [Fact(Skip = "Skipped: a successful RefreshConfig makes the other tests fail until refresh is complete."), IsIntegration]
         public async Task RefreshConfig_WhenAuthenticated_Returns202Accepted()
         {
-            var result = await AuthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
+            var result = await AuthenticatedClient.ReloadWithHttpMessagesAsync();
 
             result.Response.StatusCode.Should().Be(StatusCodes.Status202Accepted);
         }
@@ -29,7 +27,7 @@ namespace CaptainHook.Api.Tests
         [Fact, IsIntegration]
         public async Task RefreshConfig_WhenUnauthenticated_Returns401Unauthorized()
         {
-            var result = await UnauthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
+            var result = await UnauthenticatedClient.ReloadWithHttpMessagesAsync();
 
             result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
         }
