@@ -21,7 +21,7 @@ namespace CaptainHook.Api.Tests.Integration
         [Fact, IsIntegration]
         public async Task RefreshConfig_WhenAuthenticated_Returns202AcceptedAndWaitForReloadToFinish()
         {
-            var refreshRetryPolicy = Policy /* poll until no conflict */
+            var configStatusRetryPolicy = Policy /* poll until no conflict */
                 .HandleResult<HttpOperationResponse>(msg => msg.Response.StatusCode == HttpStatusCode.Accepted)
                 .WaitAndRetryAsync(100, i => TimeSpan.FromSeconds(2d));
 
@@ -36,7 +36,7 @@ namespace CaptainHook.Api.Tests.Integration
             result.Response.StatusCode.Should().Be(StatusCodes.Status409Conflict);
 
             // 3 - Wait until the reload status is green (Ok)
-            result = await refreshRetryPolicy.ExecuteAsync(async () =>
+            result = await configStatusRetryPolicy.ExecuteAsync(async () =>
                 await AuthenticatedClient.GetConfigurationStatusWithHttpMessagesAsync());
 
             result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);

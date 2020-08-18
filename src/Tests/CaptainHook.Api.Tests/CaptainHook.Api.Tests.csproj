@@ -10,19 +10,24 @@
 
   <ItemGroup>
     <Content Include="appsettings.CI.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.DEVELOPMENT.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.PREP.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.TEST.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

@@ -10,7 +10,7 @@ namespace CaptainHook.Api.Tests.Integration
         protected readonly ICaptainHookClient AuthenticatedClient;
         protected readonly ICaptainHookClient UnauthenticatedClient;
 
-        public ControllerTestBase(ApiClientFixture testFixture)
+        protected ControllerTestBase(ApiClientFixture testFixture)
         {
             AuthenticatedClient = testFixture.GetApiClient();
             UnauthenticatedClient = testFixture.GetApiUnauthenticatedClient();
