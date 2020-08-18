@@ -37,9 +37,9 @@ namespace CaptainHook.Application.Handlers.Subscribers
             IBigBrother bigBrother,
             TimeSpan[] sleepDurations = null)
         {
-            _subscriberRepository = subscriberRepository;
-            _directorService = directorService;
-            _bigBrother = bigBrother;
+            _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
+            _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
+            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
             _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 
@@ -57,7 +57,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                     return await AddAsync(request, cancellationToken);
                 }
 
-                if (! existingItem.IsError)
+                if (!existingItem.IsError)
                 {
                     return await UpdateAsync(request, existingItem.Data);
                 }
@@ -65,20 +65,12 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 return existingItem.Error;
             }
 
-            try
-            {
-                var executionResult = await Policy
-                    .HandleResult<OperationResult<EndpointDto>>(result => result.Error is CannotUpdateEntityError)
-                    .WaitAndRetryAsync(_retrySleepDurations)
-                    .ExecuteAsync(AddOrUpdateEndpointAsync);
+            var executionResult = await Policy
+                .HandleResult<OperationResult<EndpointDto>>(result => result.Error is CannotUpdateEntityError)
+                .WaitAndRetryAsync(_retrySleepDurations)
+                .ExecuteAsync(AddOrUpdateEndpointAsync);
 
-                return executionResult;
-            }
-            catch (Exception ex)
-            {
-                _bigBrother.Publish(ex.ToExceptionEvent());
-                return new UnhandledExceptionError($"Error processing {nameof(UpsertWebhookRequest)}", ex);
-            }
+            return executionResult;
         }
 
         private async Task<OperationResult<EndpointDto>> AddAsync(

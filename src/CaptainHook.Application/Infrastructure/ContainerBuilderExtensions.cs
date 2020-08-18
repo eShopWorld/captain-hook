@@ -31,6 +31,7 @@ namespace CaptainHook.Application.Infrastructure
                 builder.RegisterType(validator.ValidatorType).As(validator.InterfaceType);
             }
 
+            builder.RegisterGeneric(typeof(ExceptionHandlingPipelineBehavior<,>)).As(typeof(IPipelineBehavior<,>));
             builder.RegisterGeneric(typeof(ValidatorPipelineBehavior<,>)).As(typeof(IPipelineBehavior<,>));
         }
     }
