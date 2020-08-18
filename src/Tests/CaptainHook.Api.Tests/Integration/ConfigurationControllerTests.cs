@@ -12,9 +12,9 @@ using Xunit;
 namespace CaptainHook.Api.Tests.Integration
 {
     [Collection(ApiClientCollection.TestFixtureName)]
-    public class RefreshConfigControllerTests : ControllerTestBase
+    public class ConfigurationControllerTests : ControllerTestBase
     {
-        public RefreshConfigControllerTests(ApiClientFixture testFixture) : base(testFixture)
+        public ConfigurationControllerTests(ApiClientFixture testFixture) : base(testFixture)
         {
         }
 
