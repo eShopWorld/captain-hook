@@ -19,7 +19,7 @@ namespace CaptainHook.Api.Tests
         [Fact(Skip = "Skipped: a successful RefreshConfig makes the other tests fail until refresh is complete."), IsIntegration]
         public async Task RefreshConfig_WhenAuthenticated_Returns202Accepted()
         {
-            var result = await AuthenticatedClient.ReloadWithHttpMessagesAsync();
+            var result = await AuthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
 
             result.Response.StatusCode.Should().Be(StatusCodes.Status202Accepted);
         }
@@ -27,7 +27,7 @@ namespace CaptainHook.Api.Tests
         [Fact, IsIntegration]
         public async Task RefreshConfig_WhenUnauthenticated_Returns401Unauthorized()
         {
-            var result = await UnauthenticatedClient.ReloadWithHttpMessagesAsync();
+            var result = await UnauthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
 
             result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
         }

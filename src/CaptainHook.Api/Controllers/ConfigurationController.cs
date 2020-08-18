@@ -41,7 +41,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Reload()
+        public async Task<IActionResult> ReloadConfiguration()
         {
             try
             {
@@ -72,7 +72,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetStatus()
+        public async Task<IActionResult> GetConfigurationStatus()
         {
             try
             {
