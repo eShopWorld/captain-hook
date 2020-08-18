@@ -5,7 +5,6 @@ using CaptainHook.Common.ServiceModels;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using System.Collections.Generic;
-using CaptainHook.Tests.Builders;
 using Xunit;
 
 namespace CaptainHook.Tests.Services.Reliable

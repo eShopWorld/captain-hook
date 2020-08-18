@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
-using CaptainHook.Tests.Builders;
+using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using FluentAssertions.Execution;

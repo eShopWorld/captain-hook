@@ -1,12 +1,12 @@
 ﻿using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Validation;
-using CaptainHook.Tests.Builders;
+using CaptainHook.TestsInfrastructure.Builders;
 using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
 using FluentValidation.TestHelper;
 using Xunit;
 
-namespace CaptainHook.Tests.Validation
+namespace CaptainHook.EventHandlerActor.Tests.Validation
 {
     public class WebhookRequestRuleForRouteAndReplaceValidatorTests
     {

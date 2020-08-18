@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Message;
 using CaptainHook.EventHandlerActor.Handlers.Requests;
-using CaptainHook.Tests.Builders;
+using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -12,7 +12,7 @@ using FluentValidation.Results;
 using Moq;
 using Xunit;
 
-namespace CaptainHook.Tests.Services.Actors.Requests
+namespace CaptainHook.EventHandlerActor.Tests.Handlers.Requests
 {
     public class RouteAndReplaceRequestBuilderTests
     {
