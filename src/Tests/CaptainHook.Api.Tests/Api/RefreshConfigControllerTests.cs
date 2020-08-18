@@ -20,12 +20,11 @@ namespace CaptainHook.Api.Tests
         }
 
         [Fact, IsIntegration]
-        public async Task RefreshConfig_WhenAuthenticated_Returns202Accepted()
+        public async Task RefreshConfig_WhenAuthenticated_Returns202AcceptedAndWaitForReloadToFinish()
         {
-            // Arrange
             var refreshRetryPolicy = Policy /* poll until no conflict */
                 .HandleResult<HttpOperationResponse>(msg => msg.Response.StatusCode == HttpStatusCode.Accepted)
-                .WaitAndRetryAsync(30, i => TimeSpan.FromMilliseconds(2000));
+                .WaitAndRetryAsync(100, i => TimeSpan.FromSeconds(2d));
 
             // Act 1
             var result = await AuthenticatedClient.ReloadConfigurationWithHttpMessagesAsync();
