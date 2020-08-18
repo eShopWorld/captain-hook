@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using CaptainHook.Api.Client;
+﻿using System.Threading.Tasks;
 using CaptainHook.Api.Tests.Api;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;

@@ -91,16 +91,19 @@ namespace CaptainHook.Api
                 _configuration.GetSection("ServiceConfigurationOptions").Bind(serviceConfiguration);
 
                 services.AddControllers(options =>
-                {
-                    var policy = ScopePolicy.Create(serviceConfiguration.RequiredScopes?.ToArray() ?? new string[0]);
+                    {
+                        var policy =
+                            ScopePolicy.Create(serviceConfiguration.RequiredScopes?.ToArray() ?? new string[0]);
 
-                    var filter = EnvironmentHelper.IsInFabric ?
-                        (IFilterMetadata)new AuthorizeFilter(policy) :
-                        new AllowAnonymousFilter();
+                        var filter = EnvironmentHelper.IsInFabric
+                            ? (IFilterMetadata) new AuthorizeFilter(policy)
+                            : new AllowAnonymousFilter();
 
-                    options.Filters.Add(filter);
-
-                }).AddNewtonsoftJson();
+                        options.Filters.Add(filter);
+                    })
+                    .AddNewtonsoftJson()
+                    .ConfigureApiBehaviorOptions(options =>
+                        options.SuppressMapClientErrors = true);
 
                 services.AddApiVersioning(options => options.AssumeDefaultVersionWhenUnspecified = true);
                 services.AddHealthChecks();

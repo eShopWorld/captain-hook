@@ -17,5 +17,6 @@ namespace CaptainHook.Application.Infrastructure.DirectorService.Remoting
         Task<RequestReloadConfigurationResult> RequestReloadConfigurationAsync();
         Task<IDictionary<string, SubscriberConfiguration>> GetAllSubscribersAsync();
         Task<ReaderChangeResult> ApplyReaderChange(ReaderChangeBase readerChange);
+        Task<ReloadConfigurationStatus> GetReloadConfigurationStatusAsync();
     }
 }

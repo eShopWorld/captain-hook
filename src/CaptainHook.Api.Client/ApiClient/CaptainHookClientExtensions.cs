@@ -19,6 +19,84 @@ namespace CaptainHook.Api.Client
     public static partial class CaptainHookClientExtensions
     {
             /// <summary>
+            /// Reloads configuration for Captain Hook
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            public static void ReloadConfiguration(this ICaptainHookClient operations)
+            {
+                operations.ReloadConfigurationAsync().GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Reloads configuration for Captain Hook
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task ReloadConfigurationAsync(this ICaptainHookClient operations, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.ReloadConfigurationWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Reloads configuration for Captain Hook
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='customHeaders'>
+            /// Headers that will be added to request.
+            /// </param>
+            public static HttpOperationResponse ReloadConfigurationWithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
+            {
+                return operations.ReloadConfigurationWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Returns whether an existing configuration reload request is in progress
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            public static void GetConfigurationStatus(this ICaptainHookClient operations)
+            {
+                operations.GetConfigurationStatusAsync().GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Returns whether an existing configuration reload request is in progress
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task GetConfigurationStatusAsync(this ICaptainHookClient operations, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.GetConfigurationStatusWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Returns whether an existing configuration reload request is in progress
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='customHeaders'>
+            /// Headers that will be added to request.
+            /// </param>
+            public static HttpOperationResponse GetConfigurationStatusWithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
+            {
+                return operations.GetConfigurationStatusWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
             /// Insert or update a web hook
             /// </summary>
             /// <param name='operations'>
@@ -193,45 +271,6 @@ namespace CaptainHook.Api.Client
             public static HttpOperationResponse GetProbeWithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
             {
                 return operations.GetProbeWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Reloads configuration for Captain Hook
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            public static void ReloadConfiguration(this ICaptainHookClient operations)
-            {
-                operations.ReloadConfigurationAsync().GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Reloads configuration for Captain Hook
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task ReloadConfigurationAsync(this ICaptainHookClient operations, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.ReloadConfigurationWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Reloads configuration for Captain Hook
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='customHeaders'>
-            /// Headers that will be added to request.
-            /// </param>
-            public static HttpOperationResponse ReloadConfigurationWithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
-            {
-                return operations.ReloadConfigurationWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
             }
 
             /// <summary>
