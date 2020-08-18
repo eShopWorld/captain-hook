@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using CaptainHook.Api.Tests.Api;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -10,7 +9,7 @@ using Microsoft.Rest;
 using Polly;
 using Xunit;
 
-namespace CaptainHook.Api.Tests
+namespace CaptainHook.Api.Tests.Integration
 {
     [Collection(ApiClientCollection.TestFixtureName)]
     public class RefreshConfigControllerTests : ControllerTestBase

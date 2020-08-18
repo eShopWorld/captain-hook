@@ -1,7 +1,4 @@
-using System;
 using System.Threading.Tasks;
-using CaptainHook.Api.Client;
-using CaptainHook.Api.Tests.Api;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -9,7 +6,7 @@ using FluentAssertions.Execution;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
-namespace CaptainHook.Api.Tests
+namespace CaptainHook.Api.Tests.Integration
 {
     [Collection(ApiClientCollection.TestFixtureName)]
     public class ProbeControllerTests : ControllerTestBase
