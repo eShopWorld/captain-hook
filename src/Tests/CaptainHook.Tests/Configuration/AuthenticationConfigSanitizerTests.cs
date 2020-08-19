@@ -1,6 +1,6 @@
 ﻿using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
-using CaptainHook.Tests.Builders;
+using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Xunit;

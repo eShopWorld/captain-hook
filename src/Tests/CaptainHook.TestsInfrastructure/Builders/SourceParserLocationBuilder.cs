@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
 
-namespace CaptainHook.Tests.Builders
+namespace CaptainHook.TestsInfrastructure.Builders
 {
-    internal class SourceParserLocationBuilder
+    public class SourceParserLocationBuilder
     {
         private string _path;
         private Location _location = Location.Body;

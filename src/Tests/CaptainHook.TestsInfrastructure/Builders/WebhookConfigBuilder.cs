@@ -4,12 +4,11 @@ using System.Net.Http;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 
-namespace CaptainHook.Tests.Builders
+namespace CaptainHook.TestsInfrastructure.Builders
 {
-    internal class SubscriberConfigurationBuilder
+    public class WebhookConfigBuilder
     {
         private string _type = "event1";
-        private string _subscriberName = "captain-hook";
         private string _uri = "https://blah.blah.eshopworld.com";
         private HttpMethod _httpMethod = HttpMethod.Post;
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
@@ -19,34 +18,27 @@ namespace CaptainHook.Tests.Builders
             Password = "password",
         };
         private List<WebhookRequestRule> _webhookRequestRules;
-        private WebhookConfig _callback;
-        private bool _asDlq;
 
-        public SubscriberConfigurationBuilder WithType(string type)
+        public WebhookConfigBuilder WithType(string type)
         {
             _type = type;
             return this;
         }
 
-        public SubscriberConfigurationBuilder WithSubscriberName(string subscriberName)
-        {
-            _subscriberName = subscriberName;
-            return this;
-        }
-
-        public SubscriberConfigurationBuilder WithUri(string uri)
+        public WebhookConfigBuilder WithUri(string uri)
         {
             _uri = uri;
             return this;
         }
 
-        public SubscriberConfigurationBuilder AsDLQ (bool asDlq = true)
+        public WebhookConfigBuilder WithHttpVerb(string httpVerb)
         {
-            _asDlq = asDlq;
+            _httpMethod = new HttpMethod(httpVerb);
+
             return this;
         }
 
-        public SubscriberConfigurationBuilder WithOidcAuthentication()
+        public WebhookConfigBuilder WithOidcAuthentication()
         {
             _authenticationConfig = new OidcAuthenticationConfig
             {
@@ -60,7 +52,7 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
-        public SubscriberConfigurationBuilder WithBasicAuthentication()
+        public WebhookConfigBuilder WithBasicAuthentication()
         {
             _authenticationConfig = new BasicAuthenticationConfig
             {
@@ -72,33 +64,28 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
-        // TODO: remove or use version of this method which accepts SubscriberConfigurationBuilder
-        public SubscriberConfigurationBuilder WithCallback(string uri = "https://callback.eshopworld.com")
+        public WebhookConfigBuilder WithNoAuthentication()
         {
-            _callback = new WebhookConfig
+            _authenticationConfig = new AuthenticationConfig
             {
-                Name = "callback",
-                HttpMethod = HttpMethod.Post,
-                Uri = uri,
-                EventType = "event1",
-                AuthenticationConfig = new AuthenticationConfig
-                {
-                    Type = AuthenticationType.None
-                },
+                Type = AuthenticationType.None
             };
 
             return this;
         }
 
-        public SubscriberConfigurationBuilder WithCallback(Action<SubscriberConfigurationBuilder> callbackBuilder)
-        {
-            var builder = new SubscriberConfigurationBuilder();
-            callbackBuilder(builder);
-            _callback = builder.Create();
+        public WebhookConfigBuilder SetWebhookRequestRule(Action<WebhookRequestRuleBuilder> ruleBuilder)
+        {            
+            var builder = new WebhookRequestRuleBuilder();
+            ruleBuilder(builder);
+            _webhookRequestRules = new List<WebhookRequestRule>
+            {
+                builder.Create()
+            };
             return this;
         }
 
-        public SubscriberConfigurationBuilder AddWebhookRequestRule(Action<WebhookRequestRuleBuilder> ruleBuilder)
+        public WebhookConfigBuilder AddWebhookRequestRule(Action<WebhookRequestRuleBuilder> ruleBuilder)
         {
             if (_webhookRequestRules == null)
             {
@@ -111,23 +98,19 @@ namespace CaptainHook.Tests.Builders
             return this;
         }
 
-        public SubscriberConfiguration Create()
+        public WebhookConfig Create()
         {
-            var subscriber = new SubscriberConfiguration
+            var webhookConfig = new WebhookConfig
             {
                 Name = _type,
                 EventType = _type,
-                SubscriberName = _subscriberName,
                 HttpMethod = _httpMethod,
                 Uri = _uri,
                 AuthenticationConfig = _authenticationConfig,
-                Callback = _callback,
                 WebhookRequestRules = _webhookRequestRules,
-                DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode: (SubscriberDlqMode?) null
             };
 
-            return subscriber;
+            return webhookConfig;
         }
-
     }
 }

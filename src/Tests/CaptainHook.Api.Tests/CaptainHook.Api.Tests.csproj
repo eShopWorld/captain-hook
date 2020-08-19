@@ -10,19 +10,24 @@
 
   <ItemGroup>
     <Content Include="appsettings.CI.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.DEVELOPMENT.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.PREP.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.TEST.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
@@ -31,6 +36,7 @@
     <PackageReference Include="EShopworld.Security.Services.Testing" Version="2.6.3" />
     <PackageReference Include="Eshopworld.Tests.Core" Version="2.0.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+    <PackageReference Include="Polly" Version="7.2.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0">
       <PrivateAssets>all</PrivateAssets>

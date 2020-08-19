@@ -7,7 +7,7 @@ using Eshopworld.Tests.Core;
 using Moq;
 using Xunit;
 
-namespace CaptainHook.Tests.Services.Actors.Requests
+namespace CaptainHook.EventHandlerActor.Tests.Handlers.Requests
 {
     public class RequestBuilderDispatcherTests
     {
