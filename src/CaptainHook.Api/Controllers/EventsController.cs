@@ -117,7 +117,7 @@ namespace CaptainHook.Api.Controllers
                     CannotUpdateEntityError cannotUpdateEntityError => StatusCode(StatusCodes.Status500InternalServerError, cannotUpdateEntityError),
                     _ => StatusCode(StatusCodes.Status500InternalServerError, error)
                 },
-                Ok
+                _ => NoContent()
             );
         }
 
