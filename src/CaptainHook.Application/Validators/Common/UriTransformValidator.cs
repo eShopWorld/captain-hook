@@ -19,13 +19,21 @@ namespace CaptainHook.Application.Validators.Common
 
             // selector in Replace dictionary is required only temporary
             RuleFor(x => x.Replace).NotEmpty()
-                .Must(ContainAllReplacementsForUris).WithMessage("Routes dictionary must contain all the placeholders defined in each URI");
+                .Must(ContainAllReplacementsForUris).WithMessage("URI Transform dictionary must contain all the placeholders defined in each URI");
         }
 
         private bool ContainAllReplacementsForUris(IDictionary<string, string> replace)
         {
-            var values = _uris.SelectMany(u => _extractSelectorsFromUri.Matches(u)).Select(m => m.Value);
+            var values = _uris
+                .SelectMany(u => _extractSelectorsFromUri.Matches(u))
+                .Select(m => m.Value)
+                .Where(DoesNotContainSelectorString);
             return values.All(replace.ContainsKey);
+        }
+
+        private bool DoesNotContainSelectorString(string value)
+        {
+            return !value.Equals("selector", System.StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
