@@ -45,7 +45,7 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// Webhooks
         /// </summary>
         [JsonProperty("webhooks")]
-        public WebhookSubdocument Webhooks { get; set; }
+        public WebhookDocument Webhooks { get; set; }
 
         /// <summary>
         /// ETag of the document from Cosmos Db

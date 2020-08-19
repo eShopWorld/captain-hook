@@ -64,7 +64,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             // Arrange
             var eventName = "eventName";
-            var endpoint = new EndpointSubdocument
+            var endpoint = new EndpointDocument
             {
                 HttpVerb = "POST",
                 Uri = "http://test",
@@ -83,7 +83,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = eventName,
-                Webhooks = new WebhookSubdocument
+                Webhooks = new WebhookDocument
                 {
                     SelectionRule = "rule",
                     Endpoints = new[] { endpoint }
@@ -119,12 +119,12 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SubscriberName = "subscriberName",
                     EventName = eventName,
-                    Webhooks = new WebhookSubdocument
+                    Webhooks = new WebhookDocument
                     {
                         SelectionRule = "rule",
                         Endpoints = new[]
                         {
-                            new EndpointSubdocument
+                            new EndpointDocument
                             {
                                 HttpVerb = "POST",
                                 Uri = "http://test",
@@ -139,7 +139,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                     Uri = "uri"
                                 }
                             },
-                            new EndpointSubdocument
+                            new EndpointDocument
                             {
                                 HttpVerb = "GET",
                                 Uri = "http://test2",
@@ -238,7 +238,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             // Arrange
             var eventName = "eventName";
-            var endpoint = new EndpointSubdocument
+            var endpoint = new EndpointDocument
             {
                 HttpVerb = "POST",
                 Uri = "http://test",
@@ -257,7 +257,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = eventName,
-                Webhooks = new WebhookSubdocument
+                Webhooks = new WebhookDocument
                 {
                     SelectionRule = "rule",
                     Endpoints = new[] { endpoint }
@@ -293,12 +293,12 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     SubscriberName = "subscriberName",
                     EventName = eventName,
-                    Webhooks = new WebhookSubdocument
+                    Webhooks = new WebhookDocument
                     {
                         SelectionRule = "rule",
                         Endpoints = new[]
                         {
-                            new EndpointSubdocument
+                            new EndpointDocument
                             {
                                 HttpVerb = "POST",
                                 Uri = "http://test",
@@ -313,7 +313,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                     Uri = "uri"
                                 }
                             },
-                            new EndpointSubdocument
+                            new EndpointDocument
                             {
                                 HttpVerb = "GET",
                                 Uri = "http://test2",
@@ -386,10 +386,10 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
-                Webhooks = new WebhookSubdocument
+                Webhooks = new WebhookDocument
                 {
                     SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
+                    Endpoints = new EndpointDocument[] { }
                 }
             };
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
@@ -437,10 +437,10 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
-                Webhooks = new WebhookSubdocument
+                Webhooks = new WebhookDocument
                 {
                     SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
+                    Endpoints = new EndpointDocument[] { }
                 }
             };
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
@@ -466,14 +466,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 Id = subscriberId,
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
-                Webhooks = new WebhookSubdocument
+                Webhooks = new WebhookDocument
                 {
                     SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
+                    Endpoints = new EndpointDocument[] { }
                 }
             };
 
-            subscriber.AddWebhooks(new WebhooksEntity("rule"));
+            subscriber.AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()));
 
             // Act
             await _repository.UpdateSubscriberAsync(subscriber);
@@ -510,10 +510,10 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 Id = "eventName-subscriberName",
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
-                Webhooks = new WebhookSubdocument
+                Webhooks = new WebhookDocument
                 {
                     SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
+                    Endpoints = new EndpointDocument[] { }
                 }
             };
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
@@ -537,10 +537,10 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
-                Webhooks = new WebhookSubdocument
+                Webhooks = new WebhookDocument
                 {
                     SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
+                    Endpoints = new EndpointDocument[] { }
                 }
             };
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));

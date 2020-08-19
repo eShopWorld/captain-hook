@@ -10,7 +10,6 @@ using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
-using Eshopworld.Core;
 
 namespace CaptainHook.Storage.Cosmos
 {
@@ -188,28 +187,27 @@ namespace CaptainHook.Storage.Cosmos
             };
         }
 
-        private WebhookSubdocument Map(WebhooksEntity webhooksEntity)
+        private WebhookDocument Map(WebhooksEntity webhooksEntity)
         {
             var endpoints = 
                 webhooksEntity.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint))
-                ?? Enumerable.Empty<EndpointSubdocument>();
+                ?? Enumerable.Empty<EndpointDocument>();
 
-            return new WebhookSubdocument
+            return new WebhookDocument
             {
                 SelectionRule = webhooksEntity.SelectionRule,
                 Endpoints = endpoints.ToArray()
             };
         }
 
-        private EndpointSubdocument Map(EndpointEntity endpointEntity)
+        private EndpointDocument Map(EndpointEntity endpointEntity)
         {
-            return new EndpointSubdocument
+            return new EndpointDocument
             {
                 Selector = endpointEntity.Selector,
                 HttpVerb = endpointEntity.HttpVerb,
                 Uri = endpointEntity.Uri,
-                Authentication = Map(endpointEntity.Authentication),
-                UriTransform = Map(endpointEntity.UriTransform)
+                Authentication = Map(endpointEntity.Authentication)
             };
         }
 
@@ -232,22 +230,17 @@ namespace CaptainHook.Storage.Cosmos
             return subscriberEntity;
         }
 
-        private WebhooksEntity Map(WebhookSubdocument webhookSubdocument, SubscriberEntity subscriberEntity)
+        private WebhooksEntity Map(WebhookDocument webhookDocument, SubscriberEntity subscriberEntity)
         {
-            var webhookEntity = new WebhooksEntity(webhookSubdocument.SelectionRule);
-            foreach(var endpointSubdocument in webhookSubdocument.Endpoints)
-            {
-                webhookEntity.AddEndpoint(Map(endpointSubdocument, subscriberEntity));
-            }
-
-            return webhookEntity;
+            var uriTransformEntity = Map(webhookDocument.UriTransform);
+            var endpoints = webhookDocument.Endpoints.Select(x => Map(x, subscriberEntity));
+            return new WebhooksEntity(webhookDocument.SelectionRule, endpoints, uriTransformEntity);
         }
 
-        private EndpointEntity Map(EndpointSubdocument endpoint, SubscriberEntity subscriberEntity)
+        private EndpointEntity Map(EndpointDocument endpoint, SubscriberEntity subscriberEntity)
         {
             var authentication = Map(endpoint.Authentication);
-            var uriTransform = Map(endpoint.UriTransform);
-            return new EndpointEntity(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.Selector, subscriberEntity, uriTransform);
+            return new EndpointEntity(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.Selector, subscriberEntity);
         }
 
         private UriTransformEntity Map(UriTransformDocument uriTransform)

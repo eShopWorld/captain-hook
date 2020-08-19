@@ -8,23 +8,23 @@ namespace CaptainHook.Application.Validators.Common
 {
     public class UriTransformValidator : AbstractValidator<UriTransformDto>
     {
-        private readonly string _uri;
+        private readonly string[] _uris;
         private static readonly Regex _extractSelectorsFromUri = new Regex("(?<=\\{).+?(?=\\})", RegexOptions.Compiled);
 
-        public UriTransformValidator(string uri)
+        public UriTransformValidator(IEnumerable<EndpointDto> endpoints)
         {
-            _uri = uri;
+            _uris = endpoints.Select(x => x.Uri).ToArray();
 
             CascadeMode = CascadeMode.StopOnFirstFailure;
 
             // selector in Replace dictionary is required only temporary
             RuleFor(x => x.Replace).NotEmpty()
-                .Must(ContainAllReplacementsForUri).WithMessage("Routes dictionary must contain all items defined in the Uri");
+                .Must(ContainAllReplacementsForUris).WithMessage("Routes dictionary must contain all the placeholders defined in each URI");
         }
 
-        private bool ContainAllReplacementsForUri(IDictionary<string, string> replace)
+        private bool ContainAllReplacementsForUris(IDictionary<string, string> replace)
         {
-            var values = _extractSelectorsFromUri.Matches(_uri).Select(m => m.Value);
+            var values = _uris.SelectMany(u => _extractSelectorsFromUri.Matches(u)).Select(m => m.Value);
             return values.All(replace.ContainsKey);
         }
     }

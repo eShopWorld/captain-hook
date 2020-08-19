@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -32,7 +31,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         {
             if (string.IsNullOrEmpty(entity.Webhooks?.SelectionRule) &&
                 entity.Webhooks?.Endpoints?.Count() == 1 &&
-                entity.Webhooks?.Endpoints?.FirstOrDefault()?.UriTransform == null)
+                entity.Webhooks?.UriTransform == null)
             {
                 return await MapSingleWebhookWithNoUriTransformAsync(entity);
             }
@@ -57,12 +56,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         private async Task<SubscriberConfiguration> MapForUriTransformAsync(SubscriberEntity entity)
         {
-            var replacements = entity.Webhooks.Endpoints
-                .Where(x => x.UriTransform?.Replace != null)
-                .SelectMany(x => x.UriTransform.Replace)
-                .GroupBy(x => x.Key)
-                .Select(x => x.First())
-                .ToDictionary(x => x.Key, x => x.Value);
+            var replacements = entity.Webhooks.UriTransform?.Replace ?? new Dictionary<string, string>();
 
             if (!string.IsNullOrEmpty(entity.Webhooks.SelectionRule))
             {

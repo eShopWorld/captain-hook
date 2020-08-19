@@ -24,11 +24,6 @@ namespace CaptainHook.Contract
         public AuthenticationDto Authentication { get; set; }
 
         /// <summary>
-        /// URI transformation
-        /// </summary>
-        public UriTransformDto UriTransform { get; set; }
-
-        /// <summary>
         /// Selector
         /// </summary>
         public string Selector { get; set; }

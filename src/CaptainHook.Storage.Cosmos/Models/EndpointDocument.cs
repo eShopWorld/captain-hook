@@ -1,12 +1,11 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
     /// <summary>
     /// Endpoint model in Cosmos DB
     /// </summary>
-    internal class EndpointSubdocument
+    internal class EndpointDocument
     {
         /// <summary>
         /// Endpoint URI
@@ -31,11 +30,5 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// </summary>
         [JsonProperty("httpVerb")]
         public string HttpVerb { get; set; }
-
-        /// <summary>
-        /// Defines Uri transformation definition
-        /// </summary>
-        [JsonProperty("uriTransform", NullValueHandling = NullValueHandling.Ignore)]
-        public UriTransformDocument UriTransform { get; set; }
     }
 }
