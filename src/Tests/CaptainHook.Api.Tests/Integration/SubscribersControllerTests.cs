@@ -1,16 +1,12 @@
-﻿using System.Diagnostics;
-using System.Threading.Tasks;
-using CaptainHook.Api.Client.Models;
-using CaptainHook.Api.Tests.Api;
+﻿using System.Threading.Tasks;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
-using EShopworld.Security.Services.Testing.Settings;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
-namespace CaptainHook.Api.Tests
+namespace CaptainHook.Api.Tests.Integration
 {
     [Collection(ApiClientCollection.TestFixtureName)]
     public class SubscribersControllerTests : ControllerTestBase

@@ -1,10 +1,9 @@
-﻿using System.Reflection.Metadata;
-using CaptainHook.Common.Authentication;
+﻿using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 
-namespace CaptainHook.Tests.Builders
+namespace CaptainHook.TestsInfrastructure.Builders
 {
-    internal class WebhookConfigRouteBuilder
+    public class WebhookConfigRouteBuilder
     {
         private string _selector;
         private string _uri;

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using CaptainHook.Common.Configuration;
 
-namespace CaptainHook.Tests.Builders
+namespace CaptainHook.TestsInfrastructure.Builders
 {
-    internal class WebhookRequestRuleBuilder
+    public class WebhookRequestRuleBuilder
     {
         private SourceParserLocation _source;
         private ParserLocation _destination;

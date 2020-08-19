@@ -1,10 +1,8 @@
-﻿using CaptainHook.Api.Client;
+﻿using System;
+using CaptainHook.Api.Client;
 using CaptainHook.Api.Tests.Config;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace CaptainHook.Api.Tests.Api
+namespace CaptainHook.Api.Tests.Integration
 {
     public abstract class ControllerTestBase : IDisposable
     {
@@ -12,7 +10,7 @@ namespace CaptainHook.Api.Tests.Api
         protected readonly ICaptainHookClient AuthenticatedClient;
         protected readonly ICaptainHookClient UnauthenticatedClient;
 
-        public ControllerTestBase(ApiClientFixture testFixture)
+        protected ControllerTestBase(ApiClientFixture testFixture)
         {
             AuthenticatedClient = testFixture.GetApiClient();
             UnauthenticatedClient = testFixture.GetApiUnauthenticatedClient();
