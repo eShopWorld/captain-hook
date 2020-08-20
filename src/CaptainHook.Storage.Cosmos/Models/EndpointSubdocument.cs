@@ -5,7 +5,7 @@ namespace CaptainHook.Storage.Cosmos.Models
     /// <summary>
     /// Endpoint model in Cosmos DB
     /// </summary>
-    internal class EndpointDocument
+    internal class EndpointSubdocument
     {
         /// <summary>
         /// Endpoint URI

@@ -1,5 +1,4 @@
-﻿using CaptainHook.Domain.ValueObjects;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
@@ -45,7 +44,7 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// Webhooks
         /// </summary>
         [JsonProperty("webhooks")]
-        public WebhookDocument Webhooks { get; set; }
+        public WebhookSubdocument Webhooks { get; set; }
 
         /// <summary>
         /// ETag of the document from Cosmos Db

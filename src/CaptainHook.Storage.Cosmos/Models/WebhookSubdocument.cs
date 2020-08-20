@@ -5,13 +5,13 @@ namespace CaptainHook.Storage.Cosmos.Models
     /// <summary>
     /// Webhook model in Cosmos DB
     /// </summary>
-    internal class WebhookDocument
+    internal class WebhookSubdocument
     {
         /// <summary>
         /// Subscriber endpoints
         /// </summary>
         [JsonProperty(PropertyName = "endpoints")]
-        public EndpointDocument[] Endpoints { get; set; }
+        public EndpointSubdocument[] Endpoints { get; set; }
 
         /// <summary>
         /// Webhook selector
@@ -23,6 +23,6 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// Defines Uri transformation definition
         /// </summary>
         [JsonProperty("uriTransform", NullValueHandling = NullValueHandling.Ignore)]
-        public UriTransformDocument UriTransform { get; set; }
+        public UriTransformSubdocument UriTransform { get; set; }
     }
 }

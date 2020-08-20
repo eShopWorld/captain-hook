@@ -187,22 +187,22 @@ namespace CaptainHook.Storage.Cosmos
             };
         }
 
-        private WebhookDocument Map(WebhooksEntity webhooksEntity)
+        private WebhookSubdocument Map(WebhooksEntity webhooksEntity)
         {
             var endpoints = 
                 webhooksEntity.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint))
-                ?? Enumerable.Empty<EndpointDocument>();
+                ?? Enumerable.Empty<EndpointSubdocument>();
 
-            return new WebhookDocument
+            return new WebhookSubdocument
             {
                 SelectionRule = webhooksEntity.SelectionRule,
                 Endpoints = endpoints.ToArray()
             };
         }
 
-        private EndpointDocument Map(EndpointEntity endpointEntity)
+        private EndpointSubdocument Map(EndpointEntity endpointEntity)
         {
-            return new EndpointDocument
+            return new EndpointSubdocument
             {
                 Selector = endpointEntity.Selector,
                 HttpVerb = endpointEntity.HttpVerb,
@@ -211,9 +211,9 @@ namespace CaptainHook.Storage.Cosmos
             };
         }
 
-        private UriTransformDocument Map(UriTransformEntity uriTransform)
+        private UriTransformSubdocument Map(UriTransformEntity uriTransform)
         {
-            return uriTransform?.Replace != null ? new UriTransformDocument(uriTransform.Replace) : null;
+            return uriTransform?.Replace != null ? new UriTransformSubdocument(uriTransform.Replace) : null;
         }
 
         private SubscriberEntity Map(SubscriberDocument subscriberDocument)
@@ -230,27 +230,27 @@ namespace CaptainHook.Storage.Cosmos
             return subscriberEntity;
         }
 
-        private WebhooksEntity Map(WebhookDocument webhookDocument, SubscriberEntity subscriberEntity)
+        private WebhooksEntity Map(WebhookSubdocument webhookSubdocument, SubscriberEntity subscriberEntity)
         {
-            var uriTransformEntity = Map(webhookDocument.UriTransform);
-            var endpoints = webhookDocument.Endpoints.Select(x => Map(x, subscriberEntity));
-            return new WebhooksEntity(webhookDocument.SelectionRule, endpoints, uriTransformEntity);
+            var uriTransformEntity = Map(webhookSubdocument.UriTransform);
+            var endpoints = webhookSubdocument.Endpoints.Select(x => Map(x, subscriberEntity));
+            return new WebhooksEntity(webhookSubdocument.SelectionRule, endpoints, uriTransformEntity);
         }
 
-        private EndpointEntity Map(EndpointDocument endpoint, SubscriberEntity subscriberEntity)
+        private EndpointEntity Map(EndpointSubdocument endpointSubdocument, SubscriberEntity subscriberEntity)
         {
-            var authentication = Map(endpoint.Authentication);
-            return new EndpointEntity(endpoint.Uri, authentication, endpoint.HttpVerb, endpoint.Selector, subscriberEntity);
+            var authentication = Map(endpointSubdocument.Authentication);
+            return new EndpointEntity(endpointSubdocument.Uri, authentication, endpointSubdocument.HttpVerb, endpointSubdocument.Selector, subscriberEntity);
         }
 
-        private UriTransformEntity Map(UriTransformDocument uriTransform)
+        private UriTransformEntity Map(UriTransformSubdocument uriTransformSubdocument)
         {
-            if (uriTransform?.Replace == null)
+            if (uriTransformSubdocument?.Replace == null)
             {
                 return null;
             }
 
-            return new UriTransformEntity(uriTransform.Replace);
+            return new UriTransformEntity(uriTransformSubdocument.Replace);
         }
 
         private AuthenticationEntity Map(AuthenticationData authentication)

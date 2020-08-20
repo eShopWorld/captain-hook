@@ -4,9 +4,9 @@ using Newtonsoft.Json;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
-    public class UriTransformDocument
+    public class UriTransformSubdocument
     {
-        public UriTransformDocument(IDictionary<string, string> replace)
+        public UriTransformSubdocument(IDictionary<string, string> replace)
         {
             Replace = new ReadOnlyDictionary<string, string>(replace ?? new Dictionary<string, string>());
         }
