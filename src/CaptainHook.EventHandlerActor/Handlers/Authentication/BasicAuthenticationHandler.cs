@@ -29,21 +29,28 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <returns></returns>
         public virtual async Task<string> GetTokenAsync(CancellationToken cancellationToken)
         {
-            var encodedValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{BasicAuthenticationConfig.Username}:{BasicAuthenticationConfig.Password}"));
+            var encodedValue = CreateBasicAuthToken(BasicAuthenticationConfig.Username, BasicAuthenticationConfig.Password);
             var token = $"Basic {encodedValue}";
 
             return await Task.FromResult(token);
         }
 
+        public static string CreateBasicAuthToken(string username, string password)
+        {
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));
+        }
+
         public bool HasConfigChanged(AuthenticationConfig newConfig)
         {
-            if (newConfig?.Type == this.BasicAuthenticationConfig.Type && newConfig is BasicAuthenticationConfig authConfig)
+            var hasChanged = true;
+            if (newConfig is BasicAuthenticationConfig authConfig)
             {
-                if(authConfig.Username == BasicAuthenticationConfig.Username && authConfig.Password == BasicAuthenticationConfig.Password)
-                    return false;
+                if (authConfig.Username == BasicAuthenticationConfig.Username && authConfig.Password == BasicAuthenticationConfig.Password)
+                {
+                    hasChanged = false;
+                }
             }
-
-            return true;
+            return hasChanged;
         }
     }
 }
