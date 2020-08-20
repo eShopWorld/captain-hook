@@ -1,5 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
@@ -11,5 +13,12 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// </summary>
         /// <returns></returns>
         Task<string> GetTokenAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Checks if the authentication associated with the handler is the same as the new config.
+        /// </summary>
+        /// <param name="newConfig">Authentication config to check against</param>
+        /// <returns>True if the Configs are different</returns>
+        bool HasConfigChanged(AuthenticationConfig newConfig);
     }
 }

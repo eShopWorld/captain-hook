@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
 using IdentityModel.Client;
@@ -81,6 +83,23 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             }
 
             return $"Bearer {OidcAuthenticationToken.AccessToken}";
+        }
+
+        public bool HasConfigChanged(AuthenticationConfig newConfig)
+        {
+            if (newConfig is OidcAuthenticationConfig oidcNewConfig)
+            {
+                var equality = oidcNewConfig.Uri == OidcAuthenticationConfig.Uri
+                               && oidcNewConfig.ClientId == OidcAuthenticationConfig.ClientId
+                               && oidcNewConfig.ClientSecret == OidcAuthenticationConfig.ClientSecret
+                               && oidcNewConfig.GrantType == OidcAuthenticationConfig.GrantType
+                               && oidcNewConfig.RefreshBeforeInSeconds == OidcAuthenticationConfig.RefreshBeforeInSeconds
+                               && oidcNewConfig.Scopes.Length == OidcAuthenticationConfig.Scopes.Length
+                               && oidcNewConfig.Scopes.All(scope => OidcAuthenticationConfig.Scopes.Contains(scope));
+                return !equality;
+            }
+
+            return true;
         }
 
         /// <summary>

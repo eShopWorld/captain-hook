@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 {
@@ -32,6 +33,17 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             var token = $"Basic {encodedValue}";
 
             return await Task.FromResult(token);
+        }
+
+        public bool HasConfigChanged(AuthenticationConfig newConfig)
+        {
+            if (newConfig?.Type == this.BasicAuthenticationConfig.Type && newConfig is BasicAuthenticationConfig authConfig)
+            {
+                if(authConfig.Username == BasicAuthenticationConfig.Username && authConfig.Password == BasicAuthenticationConfig.Password)
+                    return false;
+            }
+
+            return true;
         }
     }
 }
