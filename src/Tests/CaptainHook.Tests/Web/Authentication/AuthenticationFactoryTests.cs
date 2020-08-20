@@ -23,14 +23,6 @@ namespace CaptainHook.Tests.Web.Authentication
 {
     public class AuthenticationFactoryTests
     {
-        private IBigBrother _bigBrother;
-
-        public AuthenticationFactoryTests()
-        {
-            _bigBrother = new Mock<BigBrother>().Object;
-
-        }
-
         public static IEnumerable<object[]> AuthenticationTestData =>
             new List<object[]>
             {
@@ -118,47 +110,43 @@ namespace CaptainHook.Tests.Web.Authentication
         [Fact, IsUnit]
         public async Task ChangeOidcAuthentication()
         {
+            // Arrange
             var uri = "http://localhost/api/v2/oidc";
+            var cancellationToken = new CancellationToken();
+
             var tokenWebhookConfigMap = GetOidcAuthChangeTestData(uri);
-
-            CancellationToken cancellationToken = new CancellationToken();
-
+            var bigBrother = new Mock<BigBrother>().Object;
             var mockHttp = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
+            
+            foreach (var kvPair in tokenWebhookConfigMap)
+            {
+                var webhookConfig = kvPair.Value;
+                var expectedAccessToken = kvPair.Key;
+
+                SetupMockHttpResponse(mockHttp, webhookConfig.AuthenticationConfig as OidcAuthenticationConfig, expectedAccessToken);
+            }
+
+            /* Auth handler factory to respond using mock http client */
+            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(
+                    new Dictionary<string, HttpClient> { { new Uri(uri).Host, mockHttp.ToHttpClient() } }), bigBrother);
+
+            // Act
             var receivedTokens = new List<string>();
             var expectedTokens = new List<string>();
 
-            foreach (KeyValuePair<string, WebhookConfig> kvPair in tokenWebhookConfigMap)
+            foreach (var kvPair in tokenWebhookConfigMap)
             {
                 var webhookConfig = kvPair.Value;
                 var expectedAccessToken = kvPair.Key;
-
-                if (webhookConfig.AuthenticationConfig is OidcAuthenticationConfig config)
-                {
-                    SetupMockHttpResponse(mockHttp, config, expectedAccessToken);
-                }
-            }
-
-
-            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(
-                    new Dictionary<string, HttpClient>
-                    {
-                        {new Uri(uri).Host, mockHttp.ToHttpClient()}
-                    }),
-                _bigBrother);
-
-            foreach (KeyValuePair<string, WebhookConfig> kvPair in tokenWebhookConfigMap)
-            {
-                var webhookConfig = kvPair.Value;
-                var expectedAccessToken = kvPair.Key;
-
 
                 var handler = await factory.GetAsync(webhookConfig, cancellationToken);
                 var token = await handler.GetTokenAsync(cancellationToken);
-                
+
                 expectedTokens.Add($"Bearer {expectedAccessToken}");
                 receivedTokens.Add(token);
             }
 
+            // Assert
             expectedTokens.Should().Equal(receivedTokens);
         }
 
@@ -192,7 +180,7 @@ namespace CaptainHook.Tests.Web.Authentication
                     }));
 
         }
-        
+
         private static OidcAuthenticationConfig NewOidcAuthenticationConfig(string clientId, string clientSecret, int refreshBeforeInSeconds, string uri, string[] scopes)
         {
             return new OidcAuthenticationConfig
