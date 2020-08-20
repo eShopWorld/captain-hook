@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
@@ -22,6 +23,55 @@ namespace CaptainHook.Tests.Web.Authentication
                 new object[] { new WebhookConfig{Name = "custom", Uri = "http://localhost/api/v3/custom", AuthenticationConfig = new OidcAuthenticationConfig{ Type = AuthenticationType.Custom}}, new MmAuthenticationHandler(new Mock<IHttpClientFactory>().Object, new OidcAuthenticationConfig(), new Mock<IBigBrother>().Object)  },
 
             };
+
+        public static IEnumerable<object[]> AuthenticationChangeTestData => new List<object[]>
+        {
+            new object[] {
+                new List<WebhookConfig>
+                {
+                    new WebhookConfig { Name = "basic", Uri = "http://host1/api/v1/basic", AuthenticationConfig = new BasicAuthenticationConfig { Type = AuthenticationType.Basic, Username = "userblue", Password = "initialPassword" }},
+                    new WebhookConfig { Name = "basic", Uri = "http://host1/api/v1/basic", AuthenticationConfig = new BasicAuthenticationConfig { Type = AuthenticationType.Basic, Username = "userblue", Password = "changedPassword" }},
+                    new WebhookConfig { Name = "basic", Uri = "http://host1/api/v1/basic", AuthenticationConfig = new BasicAuthenticationConfig { Type = AuthenticationType.Basic, Username = "usergreen", Password = "changedPassword" }},
+                    new WebhookConfig { Name = "basic", Uri = "http://host2/api/v1/basic", AuthenticationConfig = new BasicAuthenticationConfig { Type = AuthenticationType.Basic, Username = "usergreen", Password = "differenturl" }}
+                }
+            },
+            new object[] {
+                new List<WebhookConfig>
+            {
+                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
+                    { // Start
+                        ClientId = "ClientId1", ClientSecret = "secretv1", RefreshBeforeInSeconds = 200, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new []{ "all" }
+                    }
+                },
+                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
+                    { // Change RefreshInterval
+                        ClientId = "ClientId1", ClientSecret = "secretv1", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new []{ "all" }
+                    }
+                },
+                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
+                    { // Change ClientId
+                        ClientId = "ClientId2", ClientSecret = "secretv1", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new []{ "all" }
+                    }
+                },
+                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
+                    { // Change ClientSecret
+                        ClientId = "ClientId2", ClientSecret = "secretv2", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new []{ "all" }
+                    }
+                },
+                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
+                    { // Add Scope
+                        ClientId = "ClientId2", ClientSecret = "secretv2", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new [] { "all", "newScope", "removeScope" }
+                    }
+                },
+                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
+                    { // Remove Scope
+                        ClientId = "ClientId2", ClientSecret = "secretv2", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new [] { "all", "newScope" }
+                    }
+                }
+            }
+
+            }
+        };
 
         public static IEnumerable<object[]> NoneAuthenticationTestData =>
             new List<object[]>
@@ -60,6 +110,24 @@ namespace CaptainHook.Tests.Web.Authentication
             var handler = await factory.GetAsync(config, CancellationToken.None);
 
             Assert.Null(handler);
+        }
+
+        [IsUnit]
+        [Theory]
+        [MemberData(nameof(AuthenticationChangeTestData))]
+        public async Task ChangeAuthentication(IEnumerable<WebhookConfig> flippingAuthenticationTestData)
+        {
+
+
+            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), new Mock<IBigBrother>().Object);
+            string lastToken = null;
+            foreach (WebhookConfig webhookConfig in flippingAuthenticationTestData)
+            {
+                var handler = await factory.GetAsync(webhookConfig, CancellationToken.None);
+                var token = await handler.GetTokenAsync(CancellationToken.None);
+                Assert.NotEqual(token, lastToken);
+                lastToken = token;
+            }
         }
     }
 }
