@@ -93,7 +93,7 @@ namespace CaptainHook.Api.Controllers
         /// <param name="selector">Endpoint selector</param>
         /// <returns></returns>
         [HttpDelete("{eventName}/subscriber/{subscriberName}/webhooks/endpoint/{selector}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
