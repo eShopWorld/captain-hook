@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
-using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
 using IdentityModel.Client;
@@ -94,8 +93,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                                && oidcNewConfig.ClientSecret == OidcAuthenticationConfig.ClientSecret
                                && oidcNewConfig.GrantType == OidcAuthenticationConfig.GrantType
                                && oidcNewConfig.RefreshBeforeInSeconds == OidcAuthenticationConfig.RefreshBeforeInSeconds
-                               && oidcNewConfig.Scopes.Length == OidcAuthenticationConfig.Scopes.Length
-                               && oidcNewConfig.Scopes.All(scope => OidcAuthenticationConfig.Scopes.Contains(scope));
+                               && oidcNewConfig.Scopes.OrderBy(_ => _).SequenceEqual(OidcAuthenticationConfig.Scopes.OrderBy(_=>_));
                 return !equality;
             }
 
