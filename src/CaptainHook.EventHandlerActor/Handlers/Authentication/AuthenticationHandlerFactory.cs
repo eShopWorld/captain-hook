@@ -90,13 +90,9 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 if (_handlers.TryGetValue(key, out var handler))
                 {
                     if (handler.HasConfigChanged(newConfig.AuthenticationConfig))
-                    {
                         _handlers.TryRemove(key, out _);
-                    }
                     else
-                    {
                         return;
-                    }
                 }
                 action();
             }
