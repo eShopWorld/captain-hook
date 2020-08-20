@@ -34,42 +34,6 @@ namespace CaptainHook.Tests.Web.Authentication
                     new WebhookConfig { Name = "basic", Uri = "http://host1/api/v1/basic", AuthenticationConfig = new BasicAuthenticationConfig { Type = AuthenticationType.Basic, Username = "usergreen", Password = "changedPassword" }},
                     new WebhookConfig { Name = "basic", Uri = "http://host2/api/v1/basic", AuthenticationConfig = new BasicAuthenticationConfig { Type = AuthenticationType.Basic, Username = "usergreen", Password = "differenturl" }}
                 }
-            },
-            new object[] {
-                new List<WebhookConfig>
-            {
-                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
-                    { // Start
-                        ClientId = "ClientId1", ClientSecret = "secretv1", RefreshBeforeInSeconds = 200, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new []{ "all" }
-                    }
-                },
-                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
-                    { // Change RefreshInterval
-                        ClientId = "ClientId1", ClientSecret = "secretv1", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new []{ "all" }
-                    }
-                },
-                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
-                    { // Change ClientId
-                        ClientId = "ClientId2", ClientSecret = "secretv1", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new []{ "all" }
-                    }
-                },
-                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
-                    { // Change ClientSecret
-                        ClientId = "ClientId2", ClientSecret = "secretv2", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new []{ "all" }
-                    }
-                },
-                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
-                    { // Add Scope
-                        ClientId = "ClientId2", ClientSecret = "secretv2", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new [] { "all", "newScope", "removeScope" }
-                    }
-                },
-                new WebhookConfig { Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig
-                    { // Remove Scope
-                        ClientId = "ClientId2", ClientSecret = "secretv2", RefreshBeforeInSeconds = 20, Type = AuthenticationType.OIDC, Uri = "http://localhost/api/v2/oidc", Scopes = new [] { "all", "newScope" }
-                    }
-                }
-            }
-
             }
         };
 
@@ -112,16 +76,18 @@ namespace CaptainHook.Tests.Web.Authentication
             Assert.Null(handler);
         }
 
+        /// <summary>
+        /// Checks that the auth token changes with any change in basic auth params
+        /// </summary>
+        /// <param name="webhookConfigs"></param>
         [IsUnit]
         [Theory]
         [MemberData(nameof(AuthenticationChangeTestData))]
-        public async Task ChangeAuthentication(IEnumerable<WebhookConfig> flippingAuthenticationTestData)
+        public async Task ChangeAuthentication(IEnumerable<WebhookConfig> webhookConfigs)
         {
-
-
             var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), new Mock<IBigBrother>().Object);
             string lastToken = null;
-            foreach (WebhookConfig webhookConfig in flippingAuthenticationTestData)
+            foreach (WebhookConfig webhookConfig in webhookConfigs)
             {
                 var handler = await factory.GetAsync(webhookConfig, CancellationToken.None);
                 var token = await handler.GetTokenAsync(CancellationToken.None);
