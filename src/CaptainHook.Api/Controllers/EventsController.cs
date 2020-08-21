@@ -80,6 +80,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult>
             DeleteDefaultWebhook([FromRoute] string eventName, [FromRoute] string subscriberName) =>
@@ -98,6 +99,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteWebhook([FromRoute] string eventName, [FromRoute] string subscriberName, [FromRoute] string selector)
         {
@@ -135,6 +137,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> PutSuscriber([FromRoute] string eventName, [FromRoute] string subscriberName, [FromBody] SubscriberDto dto)
         {
