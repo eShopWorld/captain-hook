@@ -163,5 +163,73 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
             result.ShouldNotHaveAnyValidationErrors();
         }
+
+        [Fact, IsUnit]
+        public void When_UriTransformDoesNotHaveAllReplacements_Then_ValidationFails()
+        {
+            var uriTransform = new UriTransformDto
+            {
+                Replace = new Dictionary<string, string>
+                {
+                    { "token1", "Value1" }
+                }
+            };
+            var endpoints = new List<EndpointDto>()
+            {
+                new EndpointDtoBuilder()
+                    .With(x => x.Selector, null)
+                    .With(x => x.Uri, "http://www.uri1.com/{selector}/{token1}")
+                    .Create(),
+                new EndpointDtoBuilder()
+                    .With(x => x.Selector, "selector1")
+                    .With(x => x.Uri, "http://www.uri2.com/{selector}/{token2}")
+                    .Create()
+            };
+            var webhooksDto = new WebhooksDtoBuilder()
+                .With(x => x.Endpoints, endpoints)
+                .With(x => x.UriTransform, uriTransform)
+                .Create();
+            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.UriTransform.Replace);
+        }
+
+        [Fact, IsUnit]
+        public void When_UriTransformHasAllReplacements_Then_ValidationSucceeds()
+        {
+            var uriTransform = new UriTransformDto
+            {
+                Replace = new Dictionary<string, string>
+                {
+                    { "token1", "Value1" },
+                    { "token2", "Value2" },
+                    { "token3", "Value3" }
+                }
+            };
+            var endpoints = new List<EndpointDto>()
+            {
+                new EndpointDtoBuilder()
+                    .With(x => x.Selector, null)
+                    .With(x => x.Uri, "http://www.uri1.com/{selector}/{token1}")
+                    .Create(),
+                new EndpointDtoBuilder()
+                    .With(x => x.Selector, "selector1")
+                    .With(x => x.Uri, "http://www.uri2.com/{selector}/{token2}")
+                    .Create()
+            };
+            var webhooksDto = new WebhooksDtoBuilder()
+                .With(x => x.Endpoints, endpoints)
+                .With(x => x.UriTransform, uriTransform)
+                .Create();
+            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
     }
 }

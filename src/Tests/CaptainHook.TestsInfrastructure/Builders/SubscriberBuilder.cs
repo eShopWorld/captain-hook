@@ -8,6 +8,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _name = "captain-hook";
         private EventEntity _event = new EventEntity("event");
         private string _webhookSelectionRule = null;
+        private UriTransformEntity _uriTransformEntity;
         private readonly List<EndpointEntity> _webhooks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _callbacks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _dlq = new List<EndpointEntity>();
@@ -24,29 +25,35 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
+        public SubscriberBuilder WithWebhookUriTransform(UriTransformEntity uriTransformEntity)
+        {
+            _uriTransformEntity = uriTransformEntity;
+            return this;
+        }
+
         public SubscriberBuilder WithWebhookSelectionRule(string selectionRule)
         {
             _webhookSelectionRule = selectionRule;
             return this;
         }
 
-        public SubscriberBuilder WithWebhook(string uri, string httpVerb, string selector, UriTransformEntity uriTransform = null, AuthenticationEntity authentication = null)
+        public SubscriberBuilder WithWebhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null, uriTransform);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null);
             _webhooks.Add(endpoint);
             return this;
         }
 
-        public SubscriberBuilder WithCallback(string uri, string httpVerb, string selector, UriTransformEntity uriTransform = null, AuthenticationEntity authentication = null)
+        public SubscriberBuilder WithCallback(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null, uriTransform);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null);
             _callbacks.Add(endpoint);
             return this;
         }
 
-        public SubscriberBuilder WithDlq(string uri, string httpVerb, string selector, UriTransformEntity uriTransform = null, AuthenticationEntity authentication = null)
+        public SubscriberBuilder WithDlq(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null, uriTransform);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null);
             _dlq.Add(endpoint);
             return this;
         }
@@ -55,7 +62,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         {
             var subscriber = new SubscriberEntity(_name);
             subscriber.SetParentEvent(_event);
-            subscriber.AddWebhooks(new WebhooksEntity(_webhookSelectionRule, _webhooks));
+            subscriber.AddWebhooks(new WebhooksEntity(_webhookSelectionRule, _webhooks, _uriTransformEntity));
             return subscriber;
         }
     }
