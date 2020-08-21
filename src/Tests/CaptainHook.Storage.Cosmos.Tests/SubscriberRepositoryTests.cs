@@ -465,7 +465,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 }
             };
 
-            subscriber.AddWebhooks(new WebhooksEntity("rule"));
+            subscriber.AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()));
 
             // Act
             await _repository.UpdateSubscriberAsync(subscriber);

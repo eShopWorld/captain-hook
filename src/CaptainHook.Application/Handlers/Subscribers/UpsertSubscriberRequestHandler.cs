@@ -56,7 +56,9 @@ namespace CaptainHook.Application.Handlers.Subscribers
         {
             var webhooks = new WebhooksEntity(
                 request.Subscriber.Webhooks.SelectionRule,
-                request.Subscriber.Webhooks.Endpoints?.Select(MapEndpointEntity) ?? Enumerable.Empty<EndpointEntity>());
+                request.Subscriber.Webhooks.Endpoints?.Select(MapEndpointEntity) ?? Enumerable.Empty<EndpointEntity>(),
+                MapUriTransformEntity(request.Subscriber.Webhooks.UriTransform));
+            
             var subscriber = new SubscriberEntity(
                     request.SubscriberName,
                     new EventEntity(request.EventName))
@@ -65,12 +67,21 @@ namespace CaptainHook.Application.Handlers.Subscribers
             return subscriber;
         }
 
+        private static UriTransformEntity MapUriTransformEntity(UriTransformDto uriTransformDto)
+        {
+            if(uriTransformDto?.Replace == null)
+            {
+                return null;
+            }
+
+            return new UriTransformEntity(uriTransformDto.Replace);
+        }
+
         private static EndpointEntity MapEndpointEntity(EndpointDto endpointDto)
         {
             var authDto = endpointDto.Authentication;
             var authenticationEntity = new AuthenticationEntity(authDto.ClientId, authDto.ClientSecretKeyName, authDto.Uri, authDto.Type, authDto.Scopes.ToArray());
-            var uriTransformEntity = endpointDto.UriTransform != null ? new UriTransformEntity(endpointDto.UriTransform.Replace) : null;
-            var endpoint = new EndpointEntity(endpointDto.Uri, authenticationEntity, endpointDto.HttpVerb, endpointDto.Selector, uriTransform: uriTransformEntity);
+            var endpoint = new EndpointEntity(endpointDto.Uri, authenticationEntity, endpointDto.HttpVerb, endpointDto.Selector);
 
             return endpoint;
         }

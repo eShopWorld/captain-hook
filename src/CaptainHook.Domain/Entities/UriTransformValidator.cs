@@ -1,23 +1,21 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CaptainHook.Contract;
 using FluentValidation;
 
-namespace CaptainHook.Application.Validators.Common
+namespace CaptainHook.Domain.Entities
 {
-    public class UriTransformValidator : AbstractValidator<UriTransformDto>
+    public class UriTransformValidator : AbstractValidator<UriTransformEntity>
     {
         private readonly string[] _uris;
         private static readonly Regex _extractSelectorsFromUri = new Regex("(?<=\\{).+?(?=\\})", RegexOptions.Compiled);
 
-        public UriTransformValidator(IEnumerable<EndpointDto> endpoints)
+        public UriTransformValidator(IEnumerable<EndpointEntity> endpoints)
         {
             _uris = endpoints.Select(x => x.Uri).ToArray();
 
             CascadeMode = CascadeMode.StopOnFirstFailure;
 
-            // selector in Replace dictionary is required only temporary
             RuleFor(x => x.Replace).NotEmpty()
                 .Must(ContainAllReplacementsForUris).WithMessage("URI Transform dictionary must contain all the placeholders defined in each URI");
         }

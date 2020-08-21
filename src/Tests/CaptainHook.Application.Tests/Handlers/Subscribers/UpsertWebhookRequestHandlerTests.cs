@@ -245,7 +245,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             return entity.Name == request.SubscriberName
                    && entity.ParentEvent.Name == request.EventName
                    && endpointEntity.Uri == request.Endpoint.Uri
-                   && MatchUriTransforms(request.Endpoint.UriTransform, endpointEntity.UriTransform)
                    && endpointEntity.Authentication.Type.Equals(request.Endpoint.Authentication.Type, StringComparison.CurrentCultureIgnoreCase);
         }
 

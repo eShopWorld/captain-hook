@@ -30,16 +30,15 @@
         /// </summary>
         public string Selector { get; }
 
-        public UriTransformEntity UriTransform { get; }
+        
 
         public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector, 
-            SubscriberEntity subscriber = null, UriTransformEntity uriTransform = null)
+            SubscriberEntity subscriber = null)
         {
             Uri = uri;
             Authentication = authentication;
             HttpVerb = httpVerb;
             Selector = selector;
-            UriTransform = uriTransform;
 
             SetParentSubscriber(subscriber);
         }

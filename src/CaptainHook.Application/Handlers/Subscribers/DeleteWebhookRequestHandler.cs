@@ -92,6 +92,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 Webhooks = new WebhooksDto
                 {
                     SelectionRule = subscriber.Webhooks.SelectionRule,
+                    UriTransform = MapUriTransform(subscriber.Webhooks.UriTransform),
                     Endpoints = subscriber.Webhooks.Endpoints.Select(MapEndpointDto).ToList()
                 }
             };
@@ -104,7 +105,6 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 Selector = endpointEntity.Selector,
                 Uri = endpointEntity.Uri,
                 HttpVerb = endpointEntity.HttpVerb,
-                UriTransform = MapUriTransform(endpointEntity.UriTransform),
                 Authentication = new OidcAuthenticationDto
                 {
                     Uri = endpointEntity.Authentication.Uri,

@@ -39,7 +39,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             var endpointDto = new EndpointDtoBuilder()
                 .With(x => x.Uri, "https://blah-{selector}.eshopworld.com/webhook/")
-                .With(x => x.UriTransform, new UriTransformDto { Replace = new Dictionary<string, string> { ["selector"] = "$.TenantCode" } })
                 .Create();
             var subscriberDto = new SubscriberDtoBuilder()
                 .With(s => s.Webhooks,

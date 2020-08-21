@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
@@ -31,11 +30,5 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// </summary>
         [JsonProperty("httpVerb")]
         public string HttpVerb { get; set; }
-
-        /// <summary>
-        /// Defines Uri transformation definition
-        /// </summary>
-        [JsonProperty("uriTransform", NullValueHandling = NullValueHandling.Ignore)]
-        public UriTransformDocument UriTransform { get; set; }
     }
 }
