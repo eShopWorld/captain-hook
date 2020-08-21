@@ -26,9 +26,9 @@ namespace CaptainHook.Tests.Web.Authentication
         public static IEnumerable<object[]> AuthenticationTestData =>
             new List<object[]>
             {
-                new object[] { new WebhookConfig{Name = "basic", Uri = "http://localhost/api/v1/basic", AuthenticationConfig = new BasicAuthenticationConfig()}, new BasicAuthenticationHandler(new BasicAuthenticationConfig()),  },
-                new object[] { new WebhookConfig{Name = "oidc", Uri = "http://localhost/api/v2/oidc", AuthenticationConfig = new OidcAuthenticationConfig()}, new OidcAuthenticationHandler(new Mock<IHttpClientFactory>().Object, new OidcAuthenticationConfig(), new Mock<IBigBrother>().Object) },
-                new object[] { new WebhookConfig{Name = "custom", Uri = "http://localhost/api/v3/custom", AuthenticationConfig = new OidcAuthenticationConfig{ Type = AuthenticationType.Custom}}, new MmAuthenticationHandler(new Mock<IHttpClientFactory>().Object, new OidcAuthenticationConfig(), new Mock<IBigBrother>().Object)  },
+                new object[] { NewWebhookConfig("basic", "http://localhost/api/v1/basic", new BasicAuthenticationConfig()) , new BasicAuthenticationHandler(new BasicAuthenticationConfig()) },
+                new object[] { NewWebhookConfig("oidc", "http://localhost/api/v2/oidc", new OidcAuthenticationConfig()), new OidcAuthenticationHandler(new Mock<IHttpClientFactory>().Object, new OidcAuthenticationConfig(), new Mock<IBigBrother>().Object) },
+                new object[] { NewWebhookConfig("custom", "http://localhost/api/v3/custom", new OidcAuthenticationConfig { Type = AuthenticationType.Custom}), new MmAuthenticationHandler(new Mock<IHttpClientFactory>().Object, new OidcAuthenticationConfig(), new Mock<IBigBrother>().Object)  },
 
             };
 
@@ -55,7 +55,7 @@ namespace CaptainHook.Tests.Web.Authentication
         [IsUnit]
         [Theory]
         [MemberData(nameof(AuthenticationTestData))]
-        public async Task GetTokenProvider(WebhookConfig config, IAuthenticationHandler expectedHandler)
+        public async Task AuthenticationHandler_Returns_RespectiveHandlerForConfigType(WebhookConfig config, IAuthenticationHandler expectedHandler)
         {
             var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), new Mock<IBigBrother>().Object);
 
@@ -70,7 +70,7 @@ namespace CaptainHook.Tests.Web.Authentication
         [IsUnit]
         [Theory]
         [MemberData(nameof(NoneAuthenticationTestData))]
-        public async Task NoAuthentication(WebhookConfig config)
+        public async Task When_AuthConfigIsNull_ExpectNullAuthenticationHandler(WebhookConfig config)
         {
             var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), new Mock<IBigBrother>().Object);
 
@@ -83,7 +83,7 @@ namespace CaptainHook.Tests.Web.Authentication
         /// Checks that the auth token changes with any change in basic auth params
         /// </summary>
         [Fact, IsUnit]
-        public async Task ChangeBasicAuthentication()
+        public async Task When_BasicAuthParamsUpdated_ExpectUpdatedTokenInRequests()
         {
             var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), new Mock<IBigBrother>().Object);
 
@@ -108,7 +108,7 @@ namespace CaptainHook.Tests.Web.Authentication
         /// Checks that the auth token changes with changes in OIDC auth parameters
         /// </summary>
         [Fact, IsUnit]
-        public async Task ChangeOidcAuthentication()
+        public async Task When_OidccAuthParamsUpdated_ExpectUpdatedTokenInRequests()
         {
             // Arrange
             var uri = "http://localhost/api/v2/oidc";
