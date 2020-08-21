@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
@@ -61,7 +62,7 @@ namespace CaptainHook.Domain.Entities
             }
 
             var extendedEndpointsCollection = Webhooks.Endpoints.Concat(new[] { endpointModel });
-            var endpointsEntityForValidation = new WebhooksEntity(Webhooks.SelectionRule, extendedEndpointsCollection);
+            var endpointsEntityForValidation = new WebhooksEntity(Webhooks.SelectionRule, extendedEndpointsCollection, Webhooks.UriTransform);
 
             var validationResult = WebhooksValidator.Validate(endpointsEntityForValidation);
 
@@ -87,7 +88,6 @@ namespace CaptainHook.Domain.Entities
             return this;
         }
 
-
         public SubscriberEntity AddWebhooks(WebhooksEntity webhooks)
         {
             foreach (var webhooksEndpoint in webhooks.Endpoints)
@@ -95,7 +95,7 @@ namespace CaptainHook.Domain.Entities
                 webhooksEndpoint.SetParentSubscriber(this);
             }
 
-            Webhooks = new WebhooksEntity(webhooks.SelectionRule, webhooks.Endpoints);
+            Webhooks = new WebhooksEntity(webhooks.SelectionRule, webhooks.Endpoints, webhooks.UriTransform);
 
             return this;
         }

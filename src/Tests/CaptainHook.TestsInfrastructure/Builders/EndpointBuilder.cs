@@ -12,8 +12,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
 
         private AuthenticationEntity _authentication;
 
-        private UriTransformEntity _uriTransform;
-
         public EndpointBuilder WithUri(string uri)
         {
             _uri = uri;
@@ -38,15 +36,9 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        public EndpointBuilder WithUriTransform(UriTransformEntity uriTransform)
-        {
-            _uriTransform = uriTransform;
-            return this;
-        }
-
         public EndpointEntity Create()
         {
-            return new EndpointEntity(_uri, _authentication, _httpVerb, _selector, uriTransform: _uriTransform);
+            return new EndpointEntity(_uri, _authentication, _httpVerb, _selector);
         }
     }
 }

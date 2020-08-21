@@ -18,5 +18,11 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// </summary>
         [JsonProperty("selectionRule")]
         public string SelectionRule { get; set; }
+
+        /// <summary>
+        /// Defines Uri transformation definition
+        /// </summary>
+        [JsonProperty("uriTransform", NullValueHandling = NullValueHandling.Ignore)]
+        public UriTransformSubdocument UriTransform { get; set; }
     }
 }

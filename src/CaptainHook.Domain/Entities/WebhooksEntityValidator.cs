@@ -16,6 +16,10 @@ namespace CaptainHook.Domain.Entities
             RuleFor(x => x)
                 .Must(ContainOnlyDefaultEndpointIfNoSelectionRule)
                 .WithMessage("Only a single default endpoint is allowed if no selection rule provided");
+
+            RuleFor(x => x.UriTransform)
+                .SetValidator((webhooksEntity, uriTransform) => new UriTransformValidator(webhooksEntity.Endpoints))
+                    .When(x => x.UriTransform?.Replace != null, ApplyConditionTo.CurrentValidator);
         }
 
         private bool ContainOnlyDefaultEndpointIfNoSelectionRule(WebhooksEntity webhooks)

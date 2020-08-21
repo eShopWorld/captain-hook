@@ -1,4 +1,5 @@
-﻿using CaptainHook.Contract;
+﻿using CaptainHook.Application.Validators.Common;
+using CaptainHook.Contract;
 using FluentValidation;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
@@ -30,6 +31,11 @@ namespace CaptainHook.Application.Validators.Dtos
 
             RuleForEach(x => x.Endpoints)
                 .SetValidator(new EndpointDtoValidator());
+
+            RuleFor(x => x.UriTransform)
+                .SetValidator((webhooksDto, uriTransform) => new UriTransformValidator(webhooksDto.Endpoints))
+                    .When(x => x.UriTransform?.Replace != null, ApplyConditionTo.CurrentValidator);
+
         }
 
         private bool TheresAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
