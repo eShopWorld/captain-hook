@@ -3,7 +3,7 @@ using CaptainHook.Contract;
 
 namespace CaptainHook.TestsInfrastructure.Builders
 {
-    public class AuthenticationDtoBuilder : SimpleBuilder<AuthenticationDto>
+    public class AuthenticationDtoBuilder : SimpleBuilder<OidcAuthenticationDto>
     {
         public AuthenticationDtoBuilder()
         {
@@ -11,7 +11,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
             With(x => x.ClientId, "clientId");
             With(x => x.Uri, "https://security-api.com/token");
             With(x => x.Scopes, new List<string> { "test.scope.api" });
-            With(x => x.ClientSecret, new ClientSecretDto { Name = "secret-name", Vault = "secret-vault" });
+            With(x => x.ClientSecretKeyName, "secret-name");
         }
     }
 }

@@ -68,8 +68,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private static EndpointEntity MapEndpointEntity(EndpointDto endpointDto)
         {
             var authDto = endpointDto.Authentication;
-            var secretStoreEntity = new SecretStoreEntity(authDto.ClientSecret.Vault, authDto.ClientSecret.Name);
-            var authenticationEntity = new AuthenticationEntity(authDto.ClientId, secretStoreEntity, authDto.Uri, authDto.Type, authDto.Scopes.ToArray());
+            var authenticationEntity = new AuthenticationEntity(authDto.ClientId, authDto.ClientSecretKeyName, authDto.Uri, authDto.Type, authDto.Scopes.ToArray());
             var uriTransformEntity = endpointDto.UriTransform != null ? new UriTransformEntity(endpointDto.UriTransform.Replace) : null;
             var endpoint = new EndpointEntity(endpointDto.Uri, authenticationEntity, endpointDto.HttpVerb, endpointDto.Selector, uriTransform: uriTransformEntity);
 

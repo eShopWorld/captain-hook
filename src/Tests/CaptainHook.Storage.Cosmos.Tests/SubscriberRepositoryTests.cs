@@ -72,7 +72,6 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 Authentication = new AuthenticationData
                 {
                     ClientId = "clientid",
-                    KeyVaultName = "keyvaultname",
                     Scopes = new string[] { "scope" },
                     SecretName = "secret",
                     Type = "type",
@@ -95,8 +94,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
             var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
-            var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
-            var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
+            var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, endpoint.Authentication.SecretName, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
             var expectedWebhooksEntity = new WebhooksEntity(sampleDocument.Webhooks.SelectionRule, new List<EndpointEntity> { expectedEndpointEntity });
             expectedSubscriberEntity.AddWebhooks(expectedWebhooksEntity);
@@ -132,7 +130,6 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                 Authentication = new AuthenticationData
                                 {
                                     ClientId = "clientid",
-                                    KeyVaultName = "keyvaultname",
                                     Scopes = new[] { "scope" },
                                     SecretName = "secret",
                                     Type = "type",
@@ -147,7 +144,6 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                 Authentication = new AuthenticationData
                                 {
                                     ClientId = "clientid",
-                                    KeyVaultName = "keyvaultname",
                                     Scopes = new[] { "scope" },
                                     SecretName = "secret",
                                     Type = "type",
@@ -176,7 +172,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                             "http://test",
                             new AuthenticationEntity(
                                 "clientid",
-                                new SecretStoreEntity("keyvaultname", "secret"),
+                                "secret",
                                 "uri",
                                 "type",
                                 new[] { "scope" }),
@@ -185,7 +181,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                         new EndpointEntity("http://test2",
                             new AuthenticationEntity(
                                 "clientid",
-                                new SecretStoreEntity("keyvaultname", "secret"),
+                                "secret",
                                 "uri",
                                 "type",
                                 new[] { "scope" }),
@@ -246,7 +242,6 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 Authentication = new AuthenticationData
                 {
                     ClientId = "clientid",
-                    KeyVaultName = "keyvaultname",
                     Scopes = new string[] { "scope" },
                     SecretName = "secret",
                     Type = "type",
@@ -269,8 +264,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
             var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
-            var sampleAuthStoreEntity = new SecretStoreEntity(endpoint.Authentication.KeyVaultName, endpoint.Authentication.SecretName);
-            var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, sampleAuthStoreEntity, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
+            var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, endpoint.Authentication.SecretName, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
             var expectedWebhooksEntity = new WebhooksEntity(sampleDocument.Webhooks.SelectionRule, new List<EndpointEntity> { expectedEndpointEntity });
             expectedSubscriberEntity.AddWebhooks(expectedWebhooksEntity);
@@ -306,7 +300,6 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                 Authentication = new AuthenticationData
                                 {
                                     ClientId = "clientid",
-                                    KeyVaultName = "keyvaultname",
                                     Scopes = new[] { "scope" },
                                     SecretName = "secret",
                                     Type = "type",
@@ -321,7 +314,6 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                 Authentication = new AuthenticationData
                                 {
                                     ClientId = "clientid",
-                                    KeyVaultName = "keyvaultname",
                                     Scopes = new[] { "scope" },
                                     SecretName = "secret",
                                     Type = "type",
@@ -348,7 +340,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                         "http://test",
                         new AuthenticationEntity(
                             "clientid",
-                            new SecretStoreEntity("keyvaultname", "secret"),
+                            "secret",
                             "uri",
                             "type",
                             new[] { "scope" }),
@@ -357,7 +349,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                     new EndpointEntity("http://test2",
                         new AuthenticationEntity(
                             "clientid",
-                            new SecretStoreEntity("keyvaultname", "secret"),
+                            "secret",
                             "uri",
                             "type",
                             new[] { "scope" }),

@@ -39,7 +39,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 "abc",
                 authentication: new AuthenticationEntity(
                     "captain-hook-id",
-                    new SecretStoreEntity("kvname", "kv-secret-name"),
+                    "kv-secret-name",
                     "https://blah-blah.sts.eshopworld.com",
                     "OIDC",
                     new[] { "scope1" }));

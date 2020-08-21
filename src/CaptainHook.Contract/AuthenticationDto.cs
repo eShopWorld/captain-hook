@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Runtime.Serialization;
 
 namespace CaptainHook.Contract
 {
-    public class AuthenticationDto
+    [KnownType(typeof(OidcAuthenticationDto))]
+    [KnownType(typeof(BasicAuthenticationDto))]
+    public abstract class AuthenticationDto
     {
         public string Type { get; set; }
-        public string ClientId { get; set; }
-        public string Uri { get; set; }
-        public ClientSecretDto ClientSecret { get; set; }
-        public List<string> Scopes { get; set; }
     }
 }
