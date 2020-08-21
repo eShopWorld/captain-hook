@@ -11,7 +11,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 {
     public class AuthenticationDtoValidatorTests
     {
-        private readonly AuthenticationDtoValidator _validator = new AuthenticationDtoValidator();
+        private readonly AuthenticationDtoValidator<OidcAuthenticationDto> _validator = new AuthenticationDtoValidator<OidcAuthenticationDto>();
 
         [Fact, IsUnit]
         public void When_RequestIsValid_Then_NoFailuresReturned()

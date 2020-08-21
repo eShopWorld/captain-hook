@@ -13,7 +13,7 @@ namespace CaptainHook.Application.Validators.Dtos
 
         public WebhooksDtoValidator()
         {
-            CascadeMode = CascadeMode.StopOnFirstFailure;
+            CascadeMode = CascadeMode.Stop;
 
             RuleFor(x => x.SelectionRule).NotEmpty()
                 .Must(BeValidJsonPathExpression).WithMessage("The SelectionRule must be a valid JSONPath expression")

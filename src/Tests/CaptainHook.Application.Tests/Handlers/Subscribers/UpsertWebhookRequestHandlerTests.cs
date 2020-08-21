@@ -37,11 +37,10 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 "https://blah.blah.eshopworld.com/oldwebhook/",
                 "POST",
                 "abc",
-                authentication: new AuthenticationEntity(
+                authentication: new OidcAuthenticationEntity(
                     "captain-hook-id",
                     "kv-secret-name",
                     "https://blah-blah.sts.eshopworld.com",
-                    "OIDC",
                     new[] { "scope1" }));
 
         private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(
@@ -245,7 +244,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             return entity.Name == request.SubscriberName
                    && entity.ParentEvent.Name == request.EventName
                    && endpointEntity.Uri == request.Endpoint.Uri
-                   && endpointEntity.Authentication.Type.Equals(request.Endpoint.Authentication.Type, StringComparison.CurrentCultureIgnoreCase);
+                   && endpointEntity.Authentication.GetType() == request.Endpoint.Authentication.GetType();
         }
 
         private static bool MatchUriTransforms(UriTransformDto dto, UriTransformEntity entity)

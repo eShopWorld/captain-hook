@@ -107,11 +107,10 @@ namespace CaptainHook.Tests.Director
                         "https://cosmos.eshopworld.com/testevent/",
                         "POST",
                         "selector",
-                        authentication: new AuthenticationEntity(
+                        authentication: new OidcAuthenticationEntity(
                             "captain-hook-id",
                             "kv-secret-name",
                             "https://blah-blah.sts.eshopworld.com",
-                            "type",
                             new[] { "scope1" })
                     ).Create(),
             };

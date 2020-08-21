@@ -56,9 +56,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
         {
             var webhooks = new WebhooksEntity(
                 request.Subscriber.Webhooks.SelectionRule,
-                request.Subscriber.Webhooks.Endpoints?.Select(MapEndpointEntity) ?? Enumerable.Empty<EndpointEntity>(),
-                MapUriTransformEntity(request.Subscriber.Webhooks.UriTransform));
-            
+                request.Subscriber.Webhooks.Endpoints?.Select(MapEndpointEntity) ?? Enumerable.Empty<EndpointEntity>());
             var subscriber = new SubscriberEntity(
                     request.SubscriberName,
                     new EventEntity(request.EventName))
@@ -67,23 +65,22 @@ namespace CaptainHook.Application.Handlers.Subscribers
             return subscriber;
         }
 
-        private static UriTransformEntity MapUriTransformEntity(UriTransformDto uriTransformDto)
-        {
-            if(uriTransformDto?.Replace == null)
-            {
-                return null;
-            }
-
-            return new UriTransformEntity(uriTransformDto.Replace);
-        }
-
         private static EndpointEntity MapEndpointEntity(EndpointDto endpointDto)
         {
-            var authDto = endpointDto.Authentication;
-            var authenticationEntity = new AuthenticationEntity(authDto.ClientId, authDto.ClientSecretKeyName, authDto.Uri, authDto.Type, authDto.Scopes.ToArray());
+            var authenticationEntity = MapAuthentication(endpointDto.Authentication);
             var endpoint = new EndpointEntity(endpointDto.Uri, authenticationEntity, endpointDto.HttpVerb, endpointDto.Selector);
 
             return endpoint;
+        }
+
+        private static AuthenticationEntity MapAuthentication(AuthenticationDto authenticationDto)
+        {
+            return authenticationDto switch
+            {
+                BasicAuthenticationDto dto => new BasicAuthenticationEntity(dto.Username, dto.Password),
+                OidcAuthenticationDto dto => new OidcAuthenticationEntity(dto.ClientId, dto.ClientSecretKeyName, dto.Uri, dto.Scopes?.ToArray()),
+                _ => null,
+            };
         }
     }
 }

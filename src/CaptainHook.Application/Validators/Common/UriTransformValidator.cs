@@ -15,7 +15,7 @@ namespace CaptainHook.Application.Validators.Common
         {
             _uris = endpoints.Select(x => x.Uri).ToArray();
 
-            CascadeMode = CascadeMode.StopOnFirstFailure;
+            CascadeMode = CascadeMode.Stop;
 
             // selector in Replace dictionary is required only temporary
             RuleFor(x => x.Replace).NotEmpty()

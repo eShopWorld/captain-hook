@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -99,20 +100,38 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             };
         }
 
-        private async Task<AuthenticationConfig> MapAuthenticationAsync(AuthenticationEntity cosmosAuthentication)
+        private async Task<AuthenticationConfig> MapAuthenticationAsync(AuthenticationEntity authenticationEntity)
         {
-            if (cosmosAuthentication?.ClientSecretKeyName == null)
+            return authenticationEntity switch
+            {
+                OidcAuthenticationEntity ent => await MapOidcAuthenticationAsync(ent),
+                BasicAuthenticationEntity ent => MapBasicAuthentication(ent),
+                _ => null
+            };
+        }
+
+        private async Task<OidcAuthenticationConfig> MapOidcAuthenticationAsync(OidcAuthenticationEntity authenticationEntity)
+        {
+            if (authenticationEntity?.ClientSecretKeyName == null)
                 return null;
 
-            var secretValue = await _secretProvider.GetSecretValueAsync(cosmosAuthentication.ClientSecretKeyName);
+            var secretValue = await _secretProvider.GetSecretValueAsync(authenticationEntity.ClientSecretKeyName);
 
             return new OidcAuthenticationConfig
             {
-                Type = AuthenticationType.OIDC,
-                ClientId = cosmosAuthentication.ClientId,
+                ClientId = authenticationEntity.ClientId,
                 ClientSecret = secretValue,
-                Uri = cosmosAuthentication.Uri,
-                Scopes = cosmosAuthentication.Scopes,
+                Uri = authenticationEntity.Uri,
+                Scopes = authenticationEntity.Scopes,
+            };
+        }
+
+        private BasicAuthenticationConfig MapBasicAuthentication(BasicAuthenticationEntity authenticationEntity)
+        {
+            return new BasicAuthenticationConfig
+            {
+                Username = authenticationEntity.Username,
+                Password = authenticationEntity.Password
             };
         }
 

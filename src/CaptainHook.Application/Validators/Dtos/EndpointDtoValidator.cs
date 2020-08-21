@@ -8,14 +8,16 @@ namespace CaptainHook.Application.Validators.Dtos
     {
         public EndpointDtoValidator()
         {
-            CascadeMode = CascadeMode.StopOnFirstFailure;
+            CascadeMode = CascadeMode.Stop;
 
             RuleFor(x => x.HttpVerb).NotEmpty()
                 .SetValidator(new HttpVerbValidator());
             RuleFor(x => x.Uri).NotEmpty()
                 .SetValidator(new UriValidator());
             RuleFor(x => x.Authentication).NotNull()
-                .SetValidator(new AuthenticationDtoValidator());
+                .SetValidator(new PolymorphicValidator<EndpointDto, AuthenticationDto>()
+                    .Add(new BasicAuthenticationValidator())
+                    .Add(new OidcAuthenticationValidator()));
         }
     }
 }

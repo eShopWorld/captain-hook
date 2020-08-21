@@ -207,7 +207,7 @@ namespace CaptainHook.Storage.Cosmos
                 Selector = endpointEntity.Selector,
                 HttpVerb = endpointEntity.HttpVerb,
                 Uri = endpointEntity.Uri,
-                Authentication = Map(endpointEntity.Authentication)
+                Authentication = MapToAuthenticationSubdocument(endpointEntity.Authentication)
             };
         }
 
@@ -239,7 +239,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private EndpointEntity Map(EndpointSubdocument endpointSubdocument, SubscriberEntity subscriberEntity)
         {
-            var authentication = Map(endpointSubdocument.Authentication);
+            var authentication = MapToAuthenticationEntity(endpointSubdocument.Authentication);
             return new EndpointEntity(endpointSubdocument.Uri, authentication, endpointSubdocument.HttpVerb, endpointSubdocument.Selector, subscriberEntity);
         }
 
@@ -253,20 +253,33 @@ namespace CaptainHook.Storage.Cosmos
             return new UriTransformEntity(uriTransformSubdocument.Replace);
         }
 
-        private AuthenticationEntity Map(AuthenticationData authentication)
+        private AuthenticationEntity MapToAuthenticationEntity(AuthenticationSubdocument authentication)
         {
-            return new AuthenticationEntity(authentication.ClientId, authentication.SecretName, authentication.Uri, authentication.Type, authentication.Scopes);
+            return authentication switch
+            {
+                BasicAuthenticationSubdocument doc => new BasicAuthenticationEntity(doc.Username, doc.Password),
+                OidcAuthenticationSubdocument doc => new OidcAuthenticationEntity(doc.ClientId, doc.SecretName, doc.Uri, doc.Scopes),
+                _ => null
+            };
         }
 
-        private AuthenticationData Map(AuthenticationEntity authenticationEntity)
+        private AuthenticationSubdocument MapToAuthenticationSubdocument(AuthenticationEntity authenticationEntity)
         {
-            return new AuthenticationData
+            return authenticationEntity switch
             {
-                SecretName = authenticationEntity.ClientSecretKeyName,
-                Scopes = authenticationEntity.Scopes,
-                ClientId = authenticationEntity.ClientId,
-                Uri = authenticationEntity.Uri,
-                Type = authenticationEntity.Type
+                BasicAuthenticationEntity ent => new BasicAuthenticationSubdocument
+                {
+                    Username = ent.Username,
+                    Password = ent.Password
+                },
+                OidcAuthenticationEntity ent => new OidcAuthenticationSubdocument
+                {
+                    SecretName = ent.ClientSecretKeyName,
+                    Scopes = ent.Scopes,
+                    ClientId = ent.ClientId,
+                    Uri = ent.Uri
+                },
+                _ => null
             };
         }
 

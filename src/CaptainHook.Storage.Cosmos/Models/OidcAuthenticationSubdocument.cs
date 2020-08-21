@@ -3,9 +3,9 @@
 namespace CaptainHook.Storage.Cosmos.Models
 {
     /// <summary>
-    /// Authentication model in cosmos db
+    /// OIDC authentication model in cosmos db
     /// </summary>
-    internal class AuthenticationData
+    internal class OidcAuthenticationSubdocument : AuthenticationSubdocument
     {
         /// <summary>
         /// Client id for authentication
@@ -18,12 +18,6 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// </summary>
         [JsonProperty("secretName")]
         public string SecretName { get; set; }
-
-        /// <summary>
-        /// Authentication type
-        /// </summary>
-        [JsonProperty("type")]
-        public string Type { get; set; }
 
         /// <summary>
         /// URI for authentication

@@ -64,19 +64,19 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             // Arrange
             var eventName = "eventName";
+            var auth = new OidcAuthenticationSubdocument
+            {
+                ClientId = "clientid",
+                Scopes = new string[] { "scope" },
+                SecretName = "secret",
+                Uri = "uri"
+            };
             var endpoint = new EndpointSubdocument
             {
                 HttpVerb = "POST",
                 Uri = "http://test",
                 Selector = "selector",
-                Authentication = new AuthenticationData
-                {
-                    ClientId = "clientid",
-                    Scopes = new string[] { "scope" },
-                    SecretName = "secret",
-                    Type = "type",
-                    Uri = "uri"
-                }
+                Authentication = auth
             };
             var sampleDocument = new SubscriberDocument()
             {
@@ -94,7 +94,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
             var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
-            var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, endpoint.Authentication.SecretName, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
+            var expectedAuthenticationEntity = new OidcAuthenticationEntity(auth.ClientId, auth.SecretName, auth.Uri, auth.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
             var expectedWebhooksEntity = new WebhooksEntity(sampleDocument.Webhooks.SelectionRule, new List<EndpointEntity> { expectedEndpointEntity });
             expectedSubscriberEntity.AddWebhooks(expectedWebhooksEntity);
@@ -127,12 +127,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                 HttpVerb = "POST",
                                 Uri = "http://test",
                                 Selector = "selector",
-                                Authentication = new AuthenticationData
+                                Authentication = new OidcAuthenticationSubdocument
                                 {
                                     ClientId = "clientid",
                                     Scopes = new[] { "scope" },
                                     SecretName = "secret",
-                                    Type = "type",
                                     Uri = "uri"
                                 }
                             },
@@ -141,12 +140,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                 HttpVerb = "GET",
                                 Uri = "http://test2",
                                 Selector = "selector2",
-                                Authentication = new AuthenticationData
+                                Authentication = new OidcAuthenticationSubdocument
                                 {
                                     ClientId = "clientid",
                                     Scopes = new[] { "scope" },
                                     SecretName = "secret",
-                                    Type = "type",
                                     Uri = "uri"
                                 }
                             }
@@ -170,20 +168,18 @@ namespace CaptainHook.Storage.Cosmos.Tests
                     {
                         new EndpointEntity(
                             "http://test",
-                            new AuthenticationEntity(
+                            new OidcAuthenticationEntity(
                                 "clientid",
                                 "secret",
                                 "uri",
-                                "type",
                                 new[] { "scope" }),
                             "POST",
                             "selector"),
                         new EndpointEntity("http://test2",
-                            new AuthenticationEntity(
+                            new OidcAuthenticationEntity(
                                 "clientid",
                                 "secret",
                                 "uri",
-                                "type",
                                 new[] { "scope" }),
                             "GET",
                             "selector2")
@@ -234,19 +230,19 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             // Arrange
             var eventName = "eventName";
+            var auth = new OidcAuthenticationSubdocument
+            {
+                ClientId = "clientid",
+                Scopes = new string[] { "scope" },
+                SecretName = "secret",
+                Uri = "uri"
+            };
             var endpoint = new EndpointSubdocument
             {
                 HttpVerb = "POST",
                 Uri = "http://test",
                 Selector = "selector",
-                Authentication = new AuthenticationData
-                {
-                    ClientId = "clientid",
-                    Scopes = new string[] { "scope" },
-                    SecretName = "secret",
-                    Type = "type",
-                    Uri = "uri"
-                }
+                Authentication = auth
             };
             var sampleDocument = new SubscriberDocument()
             {
@@ -264,7 +260,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
 
             var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
-            var expectedAuthenticationEntity = new AuthenticationEntity(endpoint.Authentication.ClientId, endpoint.Authentication.SecretName, endpoint.Authentication.Uri, endpoint.Authentication.Type, endpoint.Authentication.Scopes);
+            var expectedAuthenticationEntity = new OidcAuthenticationEntity(auth.ClientId, auth.SecretName, auth.Uri, auth.Scopes);
             var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
             var expectedWebhooksEntity = new WebhooksEntity(sampleDocument.Webhooks.SelectionRule, new List<EndpointEntity> { expectedEndpointEntity });
             expectedSubscriberEntity.AddWebhooks(expectedWebhooksEntity);
@@ -297,12 +293,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                 HttpVerb = "POST",
                                 Uri = "http://test",
                                 Selector = "selector",
-                                Authentication = new AuthenticationData
+                                Authentication = new OidcAuthenticationSubdocument
                                 {
                                     ClientId = "clientid",
                                     Scopes = new[] { "scope" },
                                     SecretName = "secret",
-                                    Type = "type",
                                     Uri = "uri"
                                 }
                             },
@@ -311,12 +306,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                 HttpVerb = "GET",
                                 Uri = "http://test2",
                                 Selector = "selector2",
-                                Authentication = new AuthenticationData
+                                Authentication = new OidcAuthenticationSubdocument
                                 {
                                     ClientId = "clientid",
                                     Scopes = new[] { "scope" },
                                     SecretName = "secret",
-                                    Type = "type",
                                     Uri = "uri"
                                 }
                             }
@@ -338,20 +332,18 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 {
                     new EndpointEntity(
                         "http://test",
-                        new AuthenticationEntity(
+                        new OidcAuthenticationEntity(
                             "clientid",
                             "secret",
                             "uri",
-                            "type",
                             new[] { "scope" }),
                         "POST",
                         "selector"),
                     new EndpointEntity("http://test2",
-                        new AuthenticationEntity(
+                        new OidcAuthenticationEntity(
                             "clientid",
                             "secret",
                             "uri",
-                            "type",
                             new[] { "scope" }),
                         "GET",
                         "selector2")
