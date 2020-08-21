@@ -101,7 +101,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         private async Task<AuthenticationConfig> MapAuthenticationAsync(AuthenticationEntity cosmosAuthentication)
         {
-            if (cosmosAuthentication?.ClientSecretKeyName == null)
+            if (string.IsNullOrWhiteSpace(cosmosAuthentication?.ClientSecretKeyName))
                 return null;
 
             var secretValue = await _secretProvider.GetSecretValueAsync(cosmosAuthentication.ClientSecretKeyName);
