@@ -27,7 +27,7 @@ namespace CaptainHook.Tests.Web.Authentication
 
         public AuthenticationFactoryTests()
         {
-            _bigBrother = new Mock<BigBrother>().Object;
+            _bigBrother = Mock.Of<BigBrother>();
         }
 
         public static IEnumerable<object[]> AuthenticationTestData =>
@@ -54,7 +54,7 @@ namespace CaptainHook.Tests.Web.Authentication
                 NewWebhookConfig("basic", "http://host2/api/v1/basic", NewBasicAuthenticationConfig("usergreen", "differenturl"))
             };
 
-        
+
         /// <summary>
         /// 
         /// </summary>
@@ -116,20 +116,17 @@ namespace CaptainHook.Tests.Web.Authentication
         /// Checks that the auth token changes with changes in OIDC auth parameters
         /// </summary>
         [Fact, IsUnit]
-        public async Task When_OidccAuthParamsUpdated_ExpectUpdatedTokenInRequests()
+        public async Task When_OidcAuthParamsUpdated_ExpectUpdatedTokenInRequests()
         {
             // Arrange
-            var uri = "http://localhost/api/v2/oidc";
+            const string uri = "http://localhost/api/v2/oidc";
             var cancellationToken = new CancellationToken();
 
             var tokenWebhookConfigMap = GetOidcAuthChangeTestData(uri);
             var mockHttp = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
-            
-            foreach (var kvPair in tokenWebhookConfigMap)
-            {
-                var webhookConfig = kvPair.Value;
-                var expectedAccessToken = kvPair.Key;
 
+            foreach (var (expectedAccessToken, webhookConfig) in tokenWebhookConfigMap)
+            {
                 SetupMockHttpResponse(mockHttp, webhookConfig.AuthenticationConfig as OidcAuthenticationConfig, expectedAccessToken);
             }
 
@@ -144,17 +141,16 @@ namespace CaptainHook.Tests.Web.Authentication
             foreach (var kvPair in tokenWebhookConfigMap)
             {
                 var webhookConfig = kvPair.Value;
-                var expectedAccessToken = kvPair.Key;
 
                 var handler = await factory.GetAsync(webhookConfig, cancellationToken);
                 var token = await handler.GetTokenAsync(cancellationToken);
 
-                expectedTokens.Add($"Bearer {expectedAccessToken}");
                 receivedTokens.Add(token);
             }
 
             // Assert
-            expectedTokens.Should().Equal(receivedTokens);
+            tokenWebhookConfigMap.Select(kv=> $"Bearer {kv.Key}")
+                .Should().Equal(receivedTokens);
         }
 
         private static Dictionary<string, WebhookConfig> GetOidcAuthChangeTestData(string uri)
