@@ -149,7 +149,8 @@ namespace CaptainHook.Tests.Web.Authentication
             }
 
             // Assert
-            tokenWebhookConfigMap.Keys.Should().Equal(receivedTokens);
+            tokenWebhookConfigMap.Select(kv=> $"Bearer {kv.Key}")
+                .Should().Equal(receivedTokens);
         }
 
         private static Dictionary<string, WebhookConfig> GetOidcAuthChangeTestData(string uri)
