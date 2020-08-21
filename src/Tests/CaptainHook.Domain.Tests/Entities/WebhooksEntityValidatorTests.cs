@@ -2,6 +2,7 @@
 using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using FluentValidation.TestHelper;
+using System.Collections.Generic;
 using Xunit;
 
 namespace CaptainHook.Domain.Tests.Entities
@@ -126,6 +127,58 @@ namespace CaptainHook.Domain.Tests.Entities
                     .WithUri("https://uri.com")
                     .Create()
             });
+
+            // Act
+            var result = _validator.TestValidate(endpoints);
+
+            // Assert
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Fact, IsUnit]
+        public void Validate_WebhookWithTokenNotInUriTransform_FailsValidation()
+        {
+            // Arrange
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string>()
+            {
+                { "token1", "value1" },
+                { "token2", "value2" }
+            });
+            var endpoints = new WebhooksEntity("$.Test", new[]
+            {
+                new EndpointBuilder()
+                    .WithSelector("abc")
+                    .WithUri("https://uri.com/{selector}/{token3}")
+                    .Create()
+            }, uriTransform);
+
+            // Act
+            var result = _validator.TestValidate(endpoints);
+
+            // Assert
+            result.ShouldHaveValidationErrorFor(x => x.UriTransform.Replace);
+        }
+
+        [Fact, IsUnit]
+        public void Validate_WebhookWithAllTokensInUriTransform_SucceedsValidation()
+        {
+            // Arrange
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string>()
+            {
+                { "token1", "value1" },
+                { "token2", "value2" }
+            });
+            var endpoints = new WebhooksEntity("$.Test", new[]
+            {
+                new EndpointBuilder()
+                    .WithSelector("abc1")
+                    .WithUri("https://uri1.com/{selector}/{token1}")
+                    .Create(),
+                new EndpointBuilder()
+                    .WithSelector("abc2")
+                    .WithUri("https://uri2.com/{selector}/{token2}")
+                    .Create()
+            }, uriTransform);
 
             // Act
             var result = _validator.TestValidate(endpoints);

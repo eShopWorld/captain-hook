@@ -1,5 +1,4 @@
-﻿using CaptainHook.Domain.ValueObjects;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
