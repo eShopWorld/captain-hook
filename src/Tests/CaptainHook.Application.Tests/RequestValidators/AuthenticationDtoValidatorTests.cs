@@ -89,7 +89,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_ScopesAreEmpty_Then_ValidationFails()
+        public void When_ScopesIsEmpty_Then_ValidationFails()
         {
             var dto = new AuthenticationDtoBuilder().With(x => x.Scopes, null).Create();
 
@@ -110,39 +110,26 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_ClientSecretIsNull_Then_ValidationFails()
+        public void When_ClientSecretKeyIsNull_Then_ValidationFails()
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.ClientSecret, null).Create();
+            var dto = new AuthenticationDtoBuilder().With(x => x.ClientSecretKeyName, null).Create();
 
             var result = _validator.TestValidate(dto);
 
-            result.ShouldHaveValidationErrorFor(x => x.ClientSecret);
+            result.ShouldHaveValidationErrorFor(x => x.ClientSecretKeyName);
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_ClientSecretNameIsEmpty_Then_ValidationFails(string invalidString)
+        public void When_ClientSecretKeyNameIsEmpty_Then_ValidationFails(string invalidString)
         {
             var dto = new AuthenticationDtoBuilder()
-                .With(x => x.ClientSecret, new ClientSecretDto { Name = invalidString, Vault = "vault" })
+                .With(x => x.ClientSecretKeyName, invalidString)
                 .Create();
 
             var result = _validator.TestValidate(dto);
 
-            result.ShouldHaveValidationErrorFor(x => x.ClientSecret.Name);
-        }
-
-        [Theory, IsUnit]
-        [ClassData(typeof(EmptyStrings))]
-        public void When_ClientSecretVaultIsEmpty_Then_ValidationFails(string invalidString)
-        {
-            var dto = new AuthenticationDtoBuilder()
-                .With(x => x.ClientSecret, new ClientSecretDto { Name = "secret-name", Vault = invalidString })
-                .Create();
-
-            var result = _validator.TestValidate(dto);
-
-            result.ShouldHaveValidationErrorFor(x => x.ClientSecret.Vault);
+            result.ShouldHaveValidationErrorFor(x => x.ClientSecretKeyName);
         }
     }
 }

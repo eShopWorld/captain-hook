@@ -11,9 +11,9 @@
         public string ClientId { get; }
 
         /// <summary>
-        /// The secret storage
+        /// Name of the secret key which holds the actual secret
         /// </summary>
-        public SecretStoreEntity SecretStore { get; }
+        public string ClientSecretKeyName { get; }
 
         /// <summary>
         /// Authentication URI
@@ -30,10 +30,10 @@
         /// </summary>
         public string[] Scopes { get; }
 
-        public AuthenticationEntity(string clientId, SecretStoreEntity secretStore, string uri, string type, string[] scopes)
+        public AuthenticationEntity(string clientId, string clientSecretKeyName, string uri, string type, string[] scopes)
         {
             ClientId = clientId;
-            SecretStore = secretStore;
+            ClientSecretKeyName = clientSecretKeyName;
             Uri = uri;
             Type = type;
             Scopes = scopes;

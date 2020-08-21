@@ -14,12 +14,6 @@ namespace CaptainHook.Storage.Cosmos.Models
         public string ClientId { get; set; }
 
         /// <summary>
-        /// Keyvault holding the actual secret
-        /// </summary>
-        [JsonProperty("keyVaultName")]
-        public string KeyVaultName { get; set; }
-
-        /// <summary>
         /// Name of the secret holding the actual secret in the referenced keyvault
         /// </summary>
         [JsonProperty("secretName")]

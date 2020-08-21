@@ -101,10 +101,10 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         private async Task<AuthenticationConfig> MapAuthenticationAsync(AuthenticationEntity cosmosAuthentication)
         {
-            if (cosmosAuthentication?.SecretStore?.SecretName == null)
+            if (string.IsNullOrWhiteSpace(cosmosAuthentication?.ClientSecretKeyName))
                 return null;
 
-            var secretValue = await _secretProvider.GetSecretValueAsync(cosmosAuthentication.SecretStore.SecretName);
+            var secretValue = await _secretProvider.GetSecretValueAsync(cosmosAuthentication.ClientSecretKeyName);
 
             return new OidcAuthenticationConfig
             {
