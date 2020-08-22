@@ -38,8 +38,8 @@ namespace CaptainHook.Application.Validators
 
 		private class ValidatorWrapper : AbstractValidator<TInterface>
 		{
+			private readonly IValidator _innerValidator;
 
-			private IValidator _innerValidator;
 			public ValidatorWrapper(IValidator innerValidator)
 			{
 				_innerValidator = innerValidator;

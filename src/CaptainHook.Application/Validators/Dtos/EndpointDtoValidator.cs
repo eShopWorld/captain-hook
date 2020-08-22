@@ -1,6 +1,7 @@
 ﻿using CaptainHook.Application.Validators.Common;
 using CaptainHook.Contract;
 using FluentValidation;
+using System.Security.Cryptography.X509Certificates;
 
 namespace CaptainHook.Application.Validators.Dtos
 {
@@ -15,6 +16,7 @@ namespace CaptainHook.Application.Validators.Dtos
             RuleFor(x => x.Uri).NotEmpty()
                 .SetValidator(new UriValidator());
             RuleFor(x => x.Authentication).NotNull()
+                .WithMessage($"Authentication type must be one of these values: {BasicAuthenticationDto.Type}, {OidcAuthenticationDto.Type}.")
                 .SetValidator(new PolymorphicValidator<EndpointDto, AuthenticationDto>()
                     .Add(new BasicAuthenticationValidator())
                     .Add(new OidcAuthenticationValidator()));

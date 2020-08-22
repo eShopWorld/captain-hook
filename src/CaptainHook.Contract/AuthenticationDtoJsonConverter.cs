@@ -15,12 +15,9 @@ namespace CaptainHook.Contract
         {
             JObject jObject = JObject.Load(reader);
 
-            // Using a nullable bool here in case "is_album" is not present on an item
             var typeDesc = jObject["type"]?.Value<string>();
 
-            AuthenticationDto item;
-
-            item = typeDesc switch
+            AuthenticationDto item = typeDesc switch
             {
                 OidcAuthenticationDto.Type => new OidcAuthenticationDto(),
                 BasicAuthenticationDto.Type => new BasicAuthenticationDto(),
@@ -28,18 +25,17 @@ namespace CaptainHook.Contract
             };
 
 
-            serializer.Populate(jObject.CreateReader(), item);
+            if (item != null)
+            {
+                serializer.Populate(jObject.CreateReader(), item);
+            }
 
             return item;
         }
 
-        public override bool CanWrite
-        {
-            get { return false; }
-        }
+        public override bool CanWrite => false;
 
-        public override void WriteJson(JsonWriter writer,
-            object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }
