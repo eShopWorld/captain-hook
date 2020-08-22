@@ -11,125 +11,174 @@ namespace CaptainHook.Application.Tests.RequestValidators
 {
     public class AuthenticationDtoValidatorTests
     {
-        private readonly AuthenticationDtoValidator<OidcAuthenticationDto> _validator = new AuthenticationDtoValidator<OidcAuthenticationDto>();
+        private readonly AuthenticationDtoValidator<OidcAuthenticationDto> _oidcValidator = new AuthenticationDtoValidator<OidcAuthenticationDto>();
+        private readonly AuthenticationDtoValidator<BasicAuthenticationDto> _basicValidator = new AuthenticationDtoValidator<BasicAuthenticationDto>();
 
         [Fact, IsUnit]
-        public void When_RequestIsValid_Then_NoFailuresReturned()
+        public void When_RequestIsValidOidc_Then_NoFailuresReturned()
         {
-            var dto = new AuthenticationDtoBuilder().Create();
+            var dto = new OidcAuthenticationDtoBuilder().Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
             result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Fact, IsUnit]
-        public void When_TypeIsLowercase_Then_NoFailuresReturned()
+        public void When_RequestIsValidBasic_Then_NoFailuresReturned()
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.Type, "oidc").Create();
+            var dto = new BasicAuthenticationDtoBuilder().Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _basicValidator.TestValidate(dto);
 
             result.ShouldNotHaveAnyValidationErrors();
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_TypeIsEmpty_Then_ValidationFails(string invalidString)
+        public void When_TypeIsEmptyForOidc_Then_ValidationFails(string invalidString)
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.Type, invalidString).Create();
+            var dto = new OidcAuthenticationDtoBuilder().With(x => x.AuthenticationType, invalidString).Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
-            result.ShouldHaveValidationErrorFor(x => x.Type);
+            result.ShouldHaveValidationErrorFor(x => x.AuthenticationType);
+        }
+
+        [Theory, IsUnit]
+        [ClassData(typeof(EmptyStrings))]
+        public void When_TypeIsEmptyForBasic_Then_ValidationFails(string invalidString)
+        {
+            var dto = new BasicAuthenticationDtoBuilder().With(x => x.AuthenticationType, invalidString).Create();
+
+            var result = _basicValidator.TestValidate(dto);
+
+            result.ShouldHaveValidationErrorFor(x => x.AuthenticationType);
         }
 
         [Theory, IsUnit]
         [InlineData("unknown type")]
-        public void When_TypeIsUnknown_Then_ValidationFails(string invalidString)
+        public void When_TypeIsUnknownForOidc_Then_ValidationFails(string invalidString)
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.Type, invalidString).Create();
+            var dto = new OidcAuthenticationDtoBuilder().With(x => x.AuthenticationType, invalidString).Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
-            result.ShouldHaveValidationErrorFor(x => x.Type);
+            result.ShouldHaveValidationErrorFor(x => x.AuthenticationType);
+        }
+
+        [Theory, IsUnit]
+        [InlineData("unknown type")]
+        public void When_TypeIsUnknownForBasic_Then_ValidationFails(string invalidString)
+        {
+            var dto = new BasicAuthenticationDtoBuilder().With(x => x.AuthenticationType, invalidString).Create();
+
+            var result = _basicValidator.TestValidate(dto);
+
+            result.ShouldHaveValidationErrorFor(x => x.AuthenticationType);
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_ClientIdIsEmpty_Then_ValidationFails(string invalidString)
+        public void When_ClientIdIsEmptyForOidc_Then_ValidationFails(string invalidString)
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.ClientId, invalidString).Create();
+            var dto = new OidcAuthenticationDtoBuilder().With(x => x.ClientId, invalidString).Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
             result.ShouldHaveValidationErrorFor(x => x.ClientId);
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_UriIsEmpty_Then_ValidationFails(string invalidString)
+        public void When_UriIsEmptyForOidc_Then_ValidationFails(string invalidString)
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.Uri, invalidString).Create();
+            var dto = new OidcAuthenticationDtoBuilder().With(x => x.Uri, invalidString).Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
             result.ShouldHaveValidationErrorFor(x => x.Uri);
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(InvalidUris))]
-        public void When_UriIsInvalid_Then_ValidationFails(string invalidString)
+        public void When_UriIsInvalidForOidc_Then_ValidationFails(string invalidString)
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.Uri, invalidString).Create();
+            var dto = new OidcAuthenticationDtoBuilder().With(x => x.Uri, invalidString).Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
             result.ShouldHaveValidationErrorFor(x => x.Uri);
         }
 
         [Fact, IsUnit]
-        public void When_ScopesIsEmpty_Then_ValidationFails()
+        public void When_ScopesIsEmptyForOidc_Then_ValidationFails()
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.Scopes, null).Create();
+            var dto = new OidcAuthenticationDtoBuilder().With(x => x.Scopes, null).Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
             result.ShouldHaveValidationErrorFor(x => x.Scopes);
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_ScopesContainsSingleEmptyItem_Then_ValidationFails(string invalidString)
+        public void When_ScopesContainsSingleEmptyItemForOidc_Then_ValidationFails(string invalidString)
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.Scopes, new List<string> { invalidString }).Create();
+            var dto = new OidcAuthenticationDtoBuilder().With(x => x.Scopes, new List<string> { invalidString }).Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
             result.ShouldHaveValidationErrorFor(x => x.Scopes);
         }
 
         [Fact, IsUnit]
-        public void When_ClientSecretKeyIsNull_Then_ValidationFails()
+        public void When_ClientSecretKeyIsNullForOidc_Then_ValidationFails()
         {
-            var dto = new AuthenticationDtoBuilder().With(x => x.ClientSecretKeyName, null).Create();
+            var dto = new OidcAuthenticationDtoBuilder().With(x => x.ClientSecretKeyName, null).Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
             result.ShouldHaveValidationErrorFor(x => x.ClientSecretKeyName);
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_ClientSecretKeyNameIsEmpty_Then_ValidationFails(string invalidString)
+        public void When_ClientSecretKeyNameIsEmptyForOidc_Then_ValidationFails(string invalidString)
         {
-            var dto = new AuthenticationDtoBuilder()
+            var dto = new OidcAuthenticationDtoBuilder()
                 .With(x => x.ClientSecretKeyName, invalidString)
                 .Create();
 
-            var result = _validator.TestValidate(dto);
+            var result = _oidcValidator.TestValidate(dto);
 
             result.ShouldHaveValidationErrorFor(x => x.ClientSecretKeyName);
+        }
+
+        [Theory, IsUnit]
+        [ClassData(typeof(EmptyStrings))]
+        public void When_UsernameIsEmptyForBasic_Then_ValidationFails(string invalidString)
+        {
+            var dto = new BasicAuthenticationDtoBuilder()
+                .With(x => x.Username, invalidString)
+                .Create();
+
+            var result = _basicValidator.TestValidate(dto);
+
+            result.ShouldHaveValidationErrorFor(x => x.Username);
+        }
+
+        [Theory, IsUnit]
+        [ClassData(typeof(EmptyStrings))]
+        public void When_PasswordIsEmptyForBasic_Then_ValidationFails(string invalidString)
+        {
+            var dto = new BasicAuthenticationDtoBuilder()
+                .With(x => x.Password, invalidString)
+                .Create();
+
+            var result = _basicValidator.TestValidate(dto);
+
+            result.ShouldHaveValidationErrorFor(x => x.Password);
         }
     }
 }

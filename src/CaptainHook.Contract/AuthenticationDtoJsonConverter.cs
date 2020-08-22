@@ -24,7 +24,6 @@ namespace CaptainHook.Contract
                 _ => null
             };
 
-
             if (item != null)
             {
                 serializer.Populate(jObject.CreateReader(), item);
