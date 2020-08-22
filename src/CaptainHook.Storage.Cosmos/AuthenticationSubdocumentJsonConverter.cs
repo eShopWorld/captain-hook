@@ -22,15 +22,15 @@ namespace CaptainHook.Storage.Cosmos
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             // First, just read the JSON as a JObject
-            var obj = JObject.Load(reader);
+            var jObject = JObject.Load(reader);
 
             // Then look at the type property:
-            var typeDesc = obj["type"]?.Value<string>()?.ToLower();
+            var typeDesc = jObject["type"]?.Value<string>();
             
             return typeDesc switch
             {
-                "basic" => obj.ToObject<BasicAuthenticationSubdocument>(serializer),// Deserialize as a FileItem
-                "oidc" => obj.ToObject<OidcAuthenticationSubdocument>(serializer),// Deserialize as a FolderItem
+                BasicAuthenticationSubdocument.Type => jObject.ToObject<BasicAuthenticationSubdocument>(serializer),
+                OidcAuthenticationSubdocument.Type => jObject.ToObject<OidcAuthenticationSubdocument>(serializer),
                 _ => throw new InvalidOperationException($"Unknown authentication document type '{typeDesc}'."),
             };
         }

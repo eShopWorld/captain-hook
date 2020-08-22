@@ -1,14 +1,19 @@
-﻿namespace CaptainHook.Storage.Cosmos.Models
+﻿using Newtonsoft.Json;
+
+namespace CaptainHook.Storage.Cosmos.Models
 {
     /// <summary>
     /// OIDC authentication model in cosmos db
     /// </summary>
     internal class OidcAuthenticationSubdocument : AuthenticationSubdocument
     {
+        public const string Type = "OIDC";
+
         /// <summary>
         /// Authentication type
         /// </summary>
-        public override string Type => "OIDC";
+        [JsonProperty("type")]
+        public override string AuthenticationType => Type;
 
         /// <summary>
         /// Client id for authentication

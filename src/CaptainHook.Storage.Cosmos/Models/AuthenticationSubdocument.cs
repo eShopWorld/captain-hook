@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.Storage.Cosmos.Models
+﻿using Newtonsoft.Json;
+
+namespace CaptainHook.Storage.Cosmos.Models
 {
     /// <summary>
     /// Authentication model in cosmos db
@@ -8,6 +10,7 @@
         /// <summary>
         /// Authentication type
         /// </summary>
-        public abstract string Type { get; }
+        [JsonProperty("type")]
+        public abstract string AuthenticationType { get; }
     }
 }
