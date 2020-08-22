@@ -10,25 +10,22 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Endpoint URI
         /// </summary>
-        [JsonProperty("uri")]
         public string Uri { get; set; }
 
         /// <summary>
         /// Endpoint selector
         /// </summary>
-        [JsonProperty("selector", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Selector { get; set; }
 
         /// <summary>
         /// Endpoint authentication
         /// </summary>
-        [JsonProperty("authentication")]
         public AuthenticationSubdocument Authentication { get; set; }
 
         /// <summary>
         /// Endpoint HTTP verb
         /// </summary>
-        [JsonProperty("httpVerb")]
         public string HttpVerb { get; set; }
     }
 }

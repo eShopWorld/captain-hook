@@ -10,6 +10,9 @@ using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
+using Microsoft.Azure.Cosmos;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace CaptainHook.Storage.Cosmos
 {
@@ -22,6 +25,21 @@ namespace CaptainHook.Storage.Cosmos
         private readonly ICosmosDbRepository _cosmosDbRepository;
         private readonly ISubscriberQueryBuilder _endpointQueryBuilder;
 
+        private static readonly IContractResolver CamelCaseContractResolver = new DefaultContractResolver
+        {
+            NamingStrategy = new CamelCaseNamingStrategy()
+        };
+
+        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
+        {
+            Converters = { new AuthenticationSubdocumentJsonConverter() },
+            ContractResolver = CamelCaseContractResolver
+        };
+
+        private static readonly CosmosClientOptions CosmosClientOptions = new CosmosClientOptions
+        {
+            Serializer = new JsonCosmosSerializer(SerializerSettings),
+        };
 
         public string CollectionName { get; } = "subscribers";
 
@@ -32,8 +50,8 @@ namespace CaptainHook.Storage.Cosmos
         /// <param name="setup">The setup</param>
         /// <param name="queryBuilder">The query builder</param>
         /// <param name="bigBrother">A BigBrother instance</param>
-        /// <exception cref="System.ArgumentNullException">If cosmosDbRepository is null</exception>
-        /// <exception cref="System.ArgumentNullException">If endpointQueryBuilder is null</exception>
+        /// <exception cref="ArgumentNullException">If cosmosDbRepository is null</exception>
+        /// <exception cref="ArgumentNullException">If endpointQueryBuilder is null</exception>
         public SubscriberRepository(
             ICosmosDbRepository cosmosDbRepository,
             ISubscriberQueryBuilder queryBuilder)
@@ -41,7 +59,9 @@ namespace CaptainHook.Storage.Cosmos
             _cosmosDbRepository = cosmosDbRepository ?? throw new ArgumentNullException(nameof(cosmosDbRepository));
             _endpointQueryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
 
-            _cosmosDbRepository.UseCollection(CollectionName);
+            _cosmosDbRepository
+                .UseCollection(CollectionName)
+                .UseCosmosClientOptions(CosmosClientOptions);
         }
 
         public Task<OperationResult<SubscriberEntity>> GetSubscriberAsync(SubscriberId subscriberId)
