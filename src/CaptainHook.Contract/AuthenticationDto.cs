@@ -8,6 +8,7 @@ namespace CaptainHook.Contract
     [JsonConverter(typeof(AuthenticationDtoJsonConverter))]
     public abstract class AuthenticationDto
     {
-        public string Type { get; set; }
+        [JsonProperty("type")]
+        public string AuthenticationType { get; set; }
     }
 }

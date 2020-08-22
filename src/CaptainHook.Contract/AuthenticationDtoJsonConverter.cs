@@ -11,20 +11,19 @@ namespace CaptainHook.Contract
             return typeof(AuthenticationDto).IsAssignableFrom(objectType);
         }
 
-        public override object ReadJson(JsonReader reader,
-            Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             JObject jObject = JObject.Load(reader);
 
             // Using a nullable bool here in case "is_album" is not present on an item
-            string type = (string)jObject["type"];
+            var typeDesc = jObject["type"]?.Value<string>();
 
             AuthenticationDto item;
 
-            item = type?.ToLower() switch
+            item = typeDesc switch
             {
-                "oidc" => new OidcAuthenticationDto(),
-                "basic" => new BasicAuthenticationDto(),
+                OidcAuthenticationDto.Type => new OidcAuthenticationDto(),
+                BasicAuthenticationDto.Type => new BasicAuthenticationDto(),
                 _ => null
             };
 
