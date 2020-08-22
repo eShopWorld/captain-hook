@@ -6,6 +6,11 @@
     internal class OidcAuthenticationSubdocument : AuthenticationSubdocument
     {
         /// <summary>
+        /// Authentication type
+        /// </summary>
+        public override string Type => "OIDC";
+
+        /// <summary>
         /// Client id for authentication
         /// </summary>
         public string ClientId { get; set; }

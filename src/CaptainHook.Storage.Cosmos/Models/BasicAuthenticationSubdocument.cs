@@ -6,6 +6,11 @@
     internal class BasicAuthenticationSubdocument : AuthenticationSubdocument
     {
         /// <summary>
+        /// Authentication type
+        /// </summary>
+        public override string Type => "Basic";
+
+        /// <summary>
         /// Username for basic authentication
         /// </summary>
         public string Username { get; set; }
