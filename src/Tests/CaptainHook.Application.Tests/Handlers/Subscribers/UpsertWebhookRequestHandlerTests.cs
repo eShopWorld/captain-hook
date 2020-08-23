@@ -244,7 +244,32 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             return entity.Name == request.SubscriberName
                    && entity.ParentEvent.Name == request.EventName
                    && endpointEntity.Uri == request.Endpoint.Uri
-                   && endpointEntity.Authentication.GetType() == request.Endpoint.Authentication.GetType();
+                   && MatchAuthentications(endpointEntity.Authentication, request.Endpoint.Authentication);
+        }
+
+        private static bool MatchAuthentications(AuthenticationEntity entity, AuthenticationDto dto)
+        {
+            return entity switch
+            {
+                BasicAuthenticationEntity basicEntity => MatchBasicAuthentication(basicEntity, (BasicAuthenticationDto)dto),
+                OidcAuthenticationEntity oidcEntity => MatchOidcAuthentication(oidcEntity, (OidcAuthenticationDto)dto),
+                _ => false
+            };
+        }
+
+        private static bool MatchOidcAuthentication(OidcAuthenticationEntity entity, OidcAuthenticationDto dto)
+        {
+            return
+                entity.ClientId == dto.ClientId &&
+                entity.Uri == dto.Uri &&
+                entity.Scopes.SequenceEqual(dto.Scopes);
+        }
+
+        private static bool MatchBasicAuthentication(BasicAuthenticationEntity entity, BasicAuthenticationDto dto)
+        {
+            return
+                entity.Username == dto.Username &&
+                entity.Password == dto.Password;
         }
 
         private static bool MatchUriTransforms(UriTransformDto dto, UriTransformEntity entity)

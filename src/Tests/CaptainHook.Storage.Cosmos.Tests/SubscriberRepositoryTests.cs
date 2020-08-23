@@ -7,8 +7,6 @@ using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Exceptions;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using FluentAssertions.Common;
-using FluentAssertions.Execution;
 using Microsoft.Azure.Cosmos;
 using Moq;
 using System;
@@ -28,6 +26,13 @@ namespace CaptainHook.Storage.Cosmos.Tests
         public SubscriberRepositoryTests()
         {
             _cosmosDbRepositoryMock = new Mock<ICosmosDbRepository>();
+            _cosmosDbRepositoryMock
+                .Setup(x => x.UseCollection(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(_cosmosDbRepositoryMock.Object);
+            _cosmosDbRepositoryMock
+                .Setup(x => x.UseCosmosClientOptions(It.IsAny<CosmosClientOptions>()))
+                .Returns(_cosmosDbRepositoryMock.Object);
+
             _queryBuilderMock = new Mock<ISubscriberQueryBuilder>();
 
             _repository = new SubscriberRepository(_cosmosDbRepositoryMock.Object, _queryBuilderMock.Object);

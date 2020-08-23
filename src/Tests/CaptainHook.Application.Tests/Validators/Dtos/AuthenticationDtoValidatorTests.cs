@@ -7,12 +7,12 @@ using Eshopworld.Tests.Core;
 using FluentValidation.TestHelper;
 using Xunit;
 
-namespace CaptainHook.Application.Tests.RequestValidators
+namespace CaptainHook.Application.Tests.Validators.Dtos
 {
     public class AuthenticationDtoValidatorTests
     {
-        private readonly AuthenticationDtoValidator<OidcAuthenticationDto> _oidcValidator = new AuthenticationDtoValidator<OidcAuthenticationDto>();
-        private readonly AuthenticationDtoValidator<BasicAuthenticationDto> _basicValidator = new AuthenticationDtoValidator<BasicAuthenticationDto>();
+        private readonly OidcAuthenticationValidator _oidcValidator = new OidcAuthenticationValidator();
+        private readonly BasicAuthenticationValidator _basicValidator = new BasicAuthenticationValidator();
 
         [Fact, IsUnit]
         public void When_RequestIsValidOidc_Then_NoFailuresReturned()
@@ -32,50 +32,6 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var result = _basicValidator.TestValidate(dto);
 
             result.ShouldNotHaveAnyValidationErrors();
-        }
-
-        [Theory, IsUnit]
-        [ClassData(typeof(EmptyStrings))]
-        public void When_TypeIsEmptyForOidc_Then_ValidationFails(string invalidString)
-        {
-            var dto = new OidcAuthenticationDtoBuilder().With(x => x.AuthenticationType, invalidString).Create();
-
-            var result = _oidcValidator.TestValidate(dto);
-
-            result.ShouldHaveValidationErrorFor(x => x.AuthenticationType);
-        }
-
-        [Theory, IsUnit]
-        [ClassData(typeof(EmptyStrings))]
-        public void When_TypeIsEmptyForBasic_Then_ValidationFails(string invalidString)
-        {
-            var dto = new BasicAuthenticationDtoBuilder().With(x => x.AuthenticationType, invalidString).Create();
-
-            var result = _basicValidator.TestValidate(dto);
-
-            result.ShouldHaveValidationErrorFor(x => x.AuthenticationType);
-        }
-
-        [Theory, IsUnit]
-        [InlineData("unknown type")]
-        public void When_TypeIsUnknownForOidc_Then_ValidationFails(string invalidString)
-        {
-            var dto = new OidcAuthenticationDtoBuilder().With(x => x.AuthenticationType, invalidString).Create();
-
-            var result = _oidcValidator.TestValidate(dto);
-
-            result.ShouldHaveValidationErrorFor(x => x.AuthenticationType);
-        }
-
-        [Theory, IsUnit]
-        [InlineData("unknown type")]
-        public void When_TypeIsUnknownForBasic_Then_ValidationFails(string invalidString)
-        {
-            var dto = new BasicAuthenticationDtoBuilder().With(x => x.AuthenticationType, invalidString).Create();
-
-            var result = _basicValidator.TestValidate(dto);
-
-            result.ShouldHaveValidationErrorFor(x => x.AuthenticationType);
         }
 
         [Theory, IsUnit]
