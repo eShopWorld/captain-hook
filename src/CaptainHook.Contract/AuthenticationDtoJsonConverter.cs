@@ -6,9 +6,14 @@ namespace CaptainHook.Contract
 {
     public class AuthenticationDtoJsonConverter : JsonConverter
     {
+        private static readonly Type AuthenticationDtoType = typeof(AuthenticationDto);
+
+        public override bool CanRead => true;
+        public override bool CanWrite => false;
+
         public override bool CanConvert(Type objectType)
         {
-            return typeof(AuthenticationDto).IsAssignableFrom(objectType);
+            return AuthenticationDtoType.IsAssignableFrom(objectType);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -32,11 +37,9 @@ namespace CaptainHook.Contract
             return item;
         }
 
-        public override bool CanWrite => false;
-
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException("This converter handles only deserialization, not serialization.");
         }
     }
 }

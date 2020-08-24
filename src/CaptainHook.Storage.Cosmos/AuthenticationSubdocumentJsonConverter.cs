@@ -7,11 +7,10 @@ namespace CaptainHook.Storage.Cosmos
 {
     internal class AuthenticationSubdocumentJsonConverter : JsonConverter
     {
-        // This converter handles only deserialization, not serialization.
+        private static readonly Type AuthenticationSubdocumentType = typeof(AuthenticationSubdocument);
+
         public override bool CanRead => true;
         public override bool CanWrite => false;
-
-        private static readonly Type AuthenticationSubdocumentType = typeof(AuthenticationSubdocument);
 
         public override bool CanConvert(Type objectType)
         {
