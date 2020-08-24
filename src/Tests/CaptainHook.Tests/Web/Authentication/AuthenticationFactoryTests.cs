@@ -46,16 +46,6 @@ namespace CaptainHook.Tests.Web.Authentication
                 new object[] { new WebhookConfig { Name = "none", Uri = "http://localhost/api/v1/none"} }
             };
 
-        public static IEnumerable<WebhookConfig> ChangeBasicAuthenticationTestData =>
-            new List<WebhookConfig>
-            {
-                NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "initialPassword"),
-                NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "changedPassword"),
-                NewWebhookConfig("basic", "http://host1/api/v1/basic", "usergreen", "changedPassword"),
-                NewWebhookConfig("basic", "http://host2/api/v1/basic", "usergreen", "differenturl")
-            };
-
-
         /// <summary>
         /// 
         /// </summary>
@@ -92,24 +82,34 @@ namespace CaptainHook.Tests.Web.Authentication
         /// Checks that the auth token changes with any change in basic auth params
         /// </summary>
         [Fact, IsUnit]
-        public async Task When_BasicAuthParamsUpdated_ExpectUpdatedTokenInRequests()
+        public async Task When_BasicAuthParamsUpdated_ExpectUpdatedHandler()
         {
+            // Arrange
+            IEnumerable<WebhookConfig> changeBasicAuthenticationTestData = new List<WebhookConfig>
+            {
+                NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "initialPassword"),
+                NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "changedPassword"),
+                NewWebhookConfig("basic", "http://host1/api/v1/basic", "usergreen", "changedPassword"),
+                NewWebhookConfig("basic", "http://host2/api/v1/basic", "usergreen", "differenturl")
+            };
+
             var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), _bigBrother);
             var handlers = new List<IAuthenticationHandler>();
 
-            foreach (WebhookConfig webhookConfig in ChangeBasicAuthenticationTestData)
+            // Act
+            foreach (WebhookConfig webhookConfig in changeBasicAuthenticationTestData)
             {
                 handlers.Add(await factory.GetAsync(webhookConfig, CancellationToken.None));
             }
 
+            // Assert
             handlers.Should().OnlyHaveUniqueItems();
         }
 
         /// <summary>
         /// Checks that the auth token changes with changes in OIDC auth parameters
         /// </summary>
-        [Fact, IsUnit]
-        public async Task When_OidcAuthParamsUpdated_ExpectUpdatedTokenInRequests()
+        [Fact, IsUnit] public async Task When_OidcAuthParamsUpdated_ExpectUpdatedHandler()
         {
             // Arrange
             const string uri = "http://localhost/api/v2/oidc";
@@ -125,7 +125,7 @@ namespace CaptainHook.Tests.Web.Authentication
 
             /* Auth handler factory to respond using mock http client */
             var httpClientFactory = new HttpClientFactory(
-                new Dictionary<string, HttpClient> {{new Uri(uri).Host, mockHttp.ToHttpClient()}});
+                new Dictionary<string, HttpClient> { { new Uri(uri).Host, mockHttp.ToHttpClient() } });
             var factory = new AuthenticationHandlerFactory(httpClientFactory, _bigBrother);
 
             // Act
