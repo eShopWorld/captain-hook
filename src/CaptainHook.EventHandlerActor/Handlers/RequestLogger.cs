@@ -7,6 +7,7 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
+using Eshopworld.DevOps;
 using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -36,6 +37,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         )
         {
             var webhookRules = CollectRules (config);
+            var canLogPayload = (EswDevOpsSdk.GetEnvironment() != DeploymentEnvironment.Prod && EswDevOpsSdk.GetEnvironment() != DeploymentEnvironment.Sand);
 
             if (response.IsSuccessStatusCode)
             {
@@ -56,9 +58,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 _bigBrother.Publish(new FailedWebHookEvent(
                     httpClient.DefaultRequestHeaders.ToString(),
                     response.Headers.ToString(),
-                    messageData.Payload ?? string.Empty,
-                    await GetPayloadAsync(response),
-                    actualPayload,
+                    canLogPayload ? messageData.Payload ?? string.Empty : string.Empty, // request body
+                    await GetResponsePayloadAsync(response), // response body
+                    canLogPayload ? actualPayload : string.Empty,  // messagePayload
                     messageData.EventHandlerActorId,
                     messageData.Type,
                     $"Response status code {response.StatusCode}",
@@ -79,7 +81,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return list == null ? null: JsonConvert.SerializeObject (list, Formatting.None);
         }
 
-        private static async Task<string> GetPayloadAsync(HttpResponseMessage response)
+        private static async Task<string> GetResponsePayloadAsync(HttpResponseMessage response)
         {
             if (response?.Content == null)
             {

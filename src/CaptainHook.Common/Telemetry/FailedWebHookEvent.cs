@@ -37,13 +37,14 @@ namespace CaptainHook.Common.Telemetry
 
         public string ResponseHeaders { get; set; }
 
+        // sent for all environments except for SAND and PROD
         public string MessagePayload { get; set; }
 
         public string RequestBody { get; set; }
 
         public string ResponseBody { get; set; }
 
-        //only sent for 401 responses
+        // only sent for 401 responses
         public string AuthToken { get; set; }
     }
 }
