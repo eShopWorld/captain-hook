@@ -1,9 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using CaptainHook.Contract;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 
-namespace CaptainHook.Contract
+namespace CaptainHook.Api
 {
+    /// <summary>
+    /// JSON converter for Authentication DTO
+    /// </summary>
     public class AuthenticationDtoJsonConverter : JsonConverter
     {
         private static readonly Type AuthenticationDtoType = typeof(AuthenticationDto);

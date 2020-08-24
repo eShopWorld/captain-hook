@@ -5,7 +5,6 @@ namespace CaptainHook.Contract
 {
     [KnownType(typeof(OidcAuthenticationDto))]
     [KnownType(typeof(BasicAuthenticationDto))]
-    [JsonConverter(typeof(AuthenticationDtoJsonConverter))]
     public abstract class AuthenticationDto
     {
         [JsonProperty("type")]
