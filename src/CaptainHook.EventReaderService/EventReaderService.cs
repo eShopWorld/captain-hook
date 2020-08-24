@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -260,20 +261,16 @@ namespace CaptainHook.EventReaderService
 
                             _inflightMessages.TryAdd(messageData.CorrelationId, handleData); //should again always succeed
 
-                            await _proxyFactory.CreateActorProxy<IEventHandlerActor>(
-                                    new ActorId(messageData.EventHandlerActorId),
-                                    serviceName: ServiceNaming.EventHandlerServiceShortName)
-                                .Handle(messageData);
+                            var eventHandlerActor = _proxyFactory.CreateActorProxy<IEventHandlerActor>(
+                                new ActorId(messageData.EventHandlerActorId),
+                                serviceName: ServiceNaming.EventHandlerServiceShortName);
+
+                            await eventHandlerActor.Handle(messageData);
                         }
                     }
-                    catch (ServiceBusException serviceBusException)
+                    catch (Exception exception) when (exception is ServiceBusException || exception is SocketException)
                     {
-                        _bigBrother.Publish(serviceBusException.ToExceptionEvent());
-
-                        await Policy
-                            .Handle<ServiceBusException>()
-                            .WaitAndRetryForeverAsync(_exponentialBackoff, OnServiceBusExceptionRetryAsync)
-                            .ExecuteAsync(ct => SetupServiceBusAsync(ct), cancellationToken);
+                        await ResetConnection(exception, cancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -292,6 +289,17 @@ namespace CaptainHook.EventReaderService
             {
                 _bigBrother.Publish(exception.ToExceptionEvent());
             }
+        }
+
+        private async Task ResetConnection<TException>(TException exception, CancellationToken cancellationToken)
+        where TException : Exception
+        {
+            _bigBrother.Publish(exception.ToExceptionEvent());
+
+            await Policy
+                .Handle<TException>()
+                .WaitAndRetryForeverAsync(_exponentialBackoff, OnServiceBusExceptionRetryAsync)
+                .ExecuteAsync(SetupServiceBusAsync, cancellationToken);
         }
 
         private void OnServiceBusExceptionRetryAsync(Exception exception, int retryCount, TimeSpan interval)
