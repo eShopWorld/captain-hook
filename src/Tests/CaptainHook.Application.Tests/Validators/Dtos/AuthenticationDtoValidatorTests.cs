@@ -58,6 +58,7 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
 
         [Theory, IsUnit]
         [ClassData(typeof(InvalidUris))]
+        [InlineData("https://test{template}url.com")]
         public void When_UriIsInvalidForOidc_Then_ValidationFails(string invalidString)
         {
             var dto = new OidcAuthenticationDtoBuilder().With(x => x.Uri, invalidString).Create();

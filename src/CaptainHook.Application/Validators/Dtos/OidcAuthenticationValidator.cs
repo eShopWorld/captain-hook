@@ -11,7 +11,7 @@ namespace CaptainHook.Application.Validators.Dtos
             CascadeMode = CascadeMode.Stop;
 
             RuleFor(x => x.ClientId).NotEmpty();
-            RuleFor(x => x.Uri).NotEmpty().SetValidator(new UriValidator());
+            RuleFor(x => x.Uri).NotEmpty().SetValidator(new UriValidator(false));
             RuleFor(x => x.Scopes).NotEmpty();
             RuleForEach(x => x.Scopes).NotEmpty();
             RuleFor(x => x.ClientSecretKeyName).NotEmpty();
