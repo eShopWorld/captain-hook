@@ -25,22 +25,6 @@ namespace CaptainHook.Storage.Cosmos
         private readonly ICosmosDbRepository _cosmosDbRepository;
         private readonly ISubscriberQueryBuilder _endpointQueryBuilder;
 
-        private static readonly IContractResolver CamelCaseContractResolver = new DefaultContractResolver
-        {
-            NamingStrategy = new CamelCaseNamingStrategy()
-        };
-
-        private static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
-        {
-            Converters = { new AuthenticationSubdocumentJsonConverter() },
-            ContractResolver = CamelCaseContractResolver
-        };
-
-        private static readonly CosmosClientOptions CosmosClientOptions = new CosmosClientOptions
-        {
-            Serializer = new JsonCosmosSerializer(SerializerSettings),
-        };
-
         public string CollectionName { get; } = "subscribers";
 
         /// <summary>
@@ -59,9 +43,7 @@ namespace CaptainHook.Storage.Cosmos
             _cosmosDbRepository = cosmosDbRepository ?? throw new ArgumentNullException(nameof(cosmosDbRepository));
             _endpointQueryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
 
-            _cosmosDbRepository
-                .UseCollection(CollectionName)
-                .UseCosmosClientOptions(CosmosClientOptions);
+            _cosmosDbRepository.UseCollection(CollectionName);
         }
 
         public Task<OperationResult<SubscriberEntity>> GetSubscriberAsync(SubscriberId subscriberId)
