@@ -12,7 +12,6 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Authentication type
         /// </summary>
-        [JsonProperty("type")]
         public override string AuthenticationType => Type;
 
         /// <summary>
