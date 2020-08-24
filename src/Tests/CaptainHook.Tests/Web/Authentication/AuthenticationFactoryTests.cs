@@ -30,7 +30,6 @@ namespace CaptainHook.Tests.Web.Authentication
         {
             _bigBrother = Mock.Of<IBigBrother>();
         }
-
         public static IEnumerable<object[]> AuthenticationTestData =>
             new List<object[]>
             {
@@ -109,7 +108,8 @@ namespace CaptainHook.Tests.Web.Authentication
         /// <summary>
         /// Checks that the auth token changes with changes in OIDC auth parameters
         /// </summary>
-        [Fact, IsUnit] public async Task When_OidcAuthParamsUpdated_ExpectUpdatedHandler()
+        [Fact, IsUnit] 
+        public async Task When_OidcAuthParamsUpdated_ExpectUpdatedHandler()
         {
             // Arrange
             const string uri = "http://localhost/api/v2/oidc";
