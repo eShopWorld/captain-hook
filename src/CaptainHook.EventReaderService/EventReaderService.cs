@@ -270,7 +270,7 @@ namespace CaptainHook.EventReaderService
                     }
                     catch (Exception exception) when (exception is ServiceBusException || exception is SocketException)
                     {
-                        await ResetConnection(exception, cancellationToken);
+                        await ResetConnectionAsync(exception, cancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -291,8 +291,8 @@ namespace CaptainHook.EventReaderService
             }
         }
 
-        private async Task ResetConnection<TException>(TException exception, CancellationToken cancellationToken)
-        where TException : Exception
+        private async Task ResetConnectionAsync<TException>(TException exception, CancellationToken cancellationToken)
+            where TException : Exception
         {
             _bigBrother.Publish(exception.ToExceptionEvent());
 
