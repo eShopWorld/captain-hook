@@ -54,15 +54,28 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         private static SubscriberEntity MapRequestToEntity(UpsertSubscriberRequest request)
         {
+            var uriTransform = MapUriTransformEntity(request.Subscriber.Webhooks.UriTransform);
+
             var webhooks = new WebhooksEntity(
                 request.Subscriber.Webhooks.SelectionRule,
-                request.Subscriber.Webhooks.Endpoints?.Select(MapEndpointEntity) ?? Enumerable.Empty<EndpointEntity>());
+                request.Subscriber.Webhooks.Endpoints?.Select(MapEndpointEntity) ?? Enumerable.Empty<EndpointEntity>(),
+                uriTransform);
             var subscriber = new SubscriberEntity(
                     request.SubscriberName,
                     new EventEntity(request.EventName))
                 .AddWebhooks(webhooks);
 
             return subscriber;
+        }
+
+        private static UriTransformEntity MapUriTransformEntity(UriTransformDto uriTransformDto)
+        {
+            if (uriTransformDto?.Replace == null)
+            {
+                return null;
+            }
+
+            return new UriTransformEntity(uriTransformDto.Replace);
         }
 
         private static EndpointEntity MapEndpointEntity(EndpointDto endpointDto)
