@@ -23,11 +23,11 @@ namespace CaptainHook.Tests.Web.Authentication
 {
     public class AuthenticationFactoryTests
     {
-        private readonly BigBrother _bigBrother;
+        private readonly IBigBrother _bigBrother;
 
         public AuthenticationFactoryTests()
         {
-            _bigBrother = Mock.Of<BigBrother>();
+            _bigBrother = Mock.Of<IBigBrother>();
         }
 
         public static IEnumerable<object[]> AuthenticationTestData =>
