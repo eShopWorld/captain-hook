@@ -120,7 +120,8 @@ namespace CaptainHook.Tests.Services.Reliable
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
             //Assert that the dictionary contains 1 processing message and associated handle            
-            Assert.Equal(expectedHandleCount, service._inflightMessages.Count);
+            //Assert.Equal(expectedHandleCount, service._inflightMessages.Count);
+            expectedHandleCount.Should().Be(service._inflightMessages.Count);
         }
 
         [Fact]
@@ -158,7 +159,7 @@ namespace CaptainHook.Tests.Services.Reliable
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
             //Assert can cancel the service from running
-            Assert.True(cancellationTokenSource.IsCancellationRequested);
+            cancellationTokenSource.IsCancellationRequested.Should().BeTrue();
         }
 
         [Theory]
@@ -217,7 +218,7 @@ namespace CaptainHook.Tests.Services.Reliable
             await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
-            Assert.Equal(expectedHandlerId, service.HandlerCount);
+            expectedHandlerId.Should().Be(service.HandlerCount);
         }
 
         [Theory]
@@ -293,8 +294,8 @@ namespace CaptainHook.Tests.Services.Reliable
 
         [Theory]
         [IsUnit]
-        [InlineData("test.type", "test.type-1", 1)]
-        [InlineData("test.type", "test.type-2", 5)]
+        [InlineData("test.type", "test.type-subA-1", 1)]
+        [InlineData("test.type", "test.type-subA-2", 5)]
         public async Task InitSubscriberDataIsPassedToHandlers(string eventName, string handlerName, int messageCount)
         {
             var actor = CreateMockEventHandlerActor(new ActorId(handlerName));
@@ -348,7 +349,9 @@ namespace CaptainHook.Tests.Services.Reliable
             await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
-            actor.MessageDataInstances.Select(m => m.SubscriberConfig).Should().AllBeEquivalentTo(subscriberConfiguration);
+            var subscriberConfigurations = actor.MessageDataInstances.Select(m => m.SubscriberConfig).ToList();
+            subscriberConfigurations.Should().HaveCountGreaterOrEqualTo(1);
+            subscriberConfigurations.Should().AllBeEquivalentTo(subscriberConfiguration);
         }
 
         /// <summary>
