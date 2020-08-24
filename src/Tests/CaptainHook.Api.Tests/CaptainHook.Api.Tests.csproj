@@ -18,7 +18,6 @@
 		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.json">
-		<DependentUpon>appsettings.json</DependentUpon>
 		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.PREP.json">
