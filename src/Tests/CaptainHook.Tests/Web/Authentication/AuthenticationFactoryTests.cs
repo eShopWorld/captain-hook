@@ -13,6 +13,7 @@ using Eshopworld.Core;
 using Eshopworld.Telemetry;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using Kusto.Cloud.Platform.Utils;
 using Moq;
 using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
@@ -48,10 +49,10 @@ namespace CaptainHook.Tests.Web.Authentication
         public static IEnumerable<WebhookConfig> ChangeBasicAuthenticationTestData =>
             new List<WebhookConfig>
             {
-                NewWebhookConfig("basic", "http://host1/api/v1/basic", NewBasicAuthenticationConfig("userblue", "initialPassword")),
-                NewWebhookConfig("basic", "http://host1/api/v1/basic", NewBasicAuthenticationConfig("userblue", "changedPassword")),
-                NewWebhookConfig("basic", "http://host1/api/v1/basic", NewBasicAuthenticationConfig("usergreen", "changedPassword")),
-                NewWebhookConfig("basic", "http://host2/api/v1/basic", NewBasicAuthenticationConfig("usergreen", "differenturl"))
+                NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "initialPassword"),
+                NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "changedPassword"),
+                NewWebhookConfig("basic", "http://host1/api/v1/basic", "usergreen", "changedPassword"),
+                NewWebhookConfig("basic", "http://host2/api/v1/basic", "usergreen", "differenturl")
             };
 
 
@@ -94,22 +95,14 @@ namespace CaptainHook.Tests.Web.Authentication
         public async Task When_BasicAuthParamsUpdated_ExpectUpdatedTokenInRequests()
         {
             var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), _bigBrother);
-
-            var expectedTokens = new List<string>();
-            var receivedTokens = new List<string>();
+            var handlers = new List<IAuthenticationHandler>();
 
             foreach (WebhookConfig webhookConfig in ChangeBasicAuthenticationTestData)
             {
-                var authConfig = webhookConfig.AuthenticationConfig as BasicAuthenticationConfig;
-                var handler = await factory.GetAsync(webhookConfig, CancellationToken.None);
-                var token = await handler.GetTokenAsync(CancellationToken.None);
-
-                expectedTokens.Add(
-                    $"Basic {BasicAuthenticationHandler.CreateBasicAuthToken(authConfig.Username, authConfig.Password)}");
-                receivedTokens.Add(token);
+                handlers.Add(await factory.GetAsync(webhookConfig, CancellationToken.None));
             }
 
-            receivedTokens.Should().Equal(expectedTokens);
+            handlers.Should().OnlyHaveUniqueItems();
         }
 
         /// <summary>
@@ -131,26 +124,19 @@ namespace CaptainHook.Tests.Web.Authentication
             }
 
             /* Auth handler factory to respond using mock http client */
-            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(
-                    new Dictionary<string, HttpClient> { { new Uri(uri).Host, mockHttp.ToHttpClient() } }), _bigBrother);
+            var httpClientFactory = new HttpClientFactory(
+                new Dictionary<string, HttpClient> {{new Uri(uri).Host, mockHttp.ToHttpClient()}});
+            var factory = new AuthenticationHandlerFactory(httpClientFactory, _bigBrother);
 
             // Act
-            var receivedTokens = new List<string>();
-            var expectedTokens = new List<string>();
-
-            foreach (var kvPair in tokenWebhookConfigMap)
+            var handlers = new List<IAuthenticationHandler>();
+            foreach (var (_, webhookConfig) in tokenWebhookConfigMap)
             {
-                var webhookConfig = kvPair.Value;
-
-                var handler = await factory.GetAsync(webhookConfig, cancellationToken);
-                var token = await handler.GetTokenAsync(cancellationToken);
-
-                receivedTokens.Add(token);
+                handlers.Add(await factory.GetAsync(webhookConfig, cancellationToken));
             }
 
-            // Assert
-            tokenWebhookConfigMap.Select(kv=> $"Bearer {kv.Key}")
-                .Should().Equal(receivedTokens);
+            // Assert 
+            handlers.Should().OnlyHaveUniqueItems();
         }
 
         private static Dictionary<string, WebhookConfig> GetOidcAuthChangeTestData(string uri)
@@ -203,10 +189,9 @@ namespace CaptainHook.Tests.Web.Authentication
             { Name = name, Uri = uri, AuthenticationConfig = config };
         }
 
-        private static AuthenticationConfig NewBasicAuthenticationConfig(string username, string password)
+        private static WebhookConfig NewWebhookConfig(string name, string uri, string username, string password)
         {
-            return new BasicAuthenticationConfig
-            { Type = AuthenticationType.Basic, Username = username, Password = password };
+            return NewWebhookConfig(name, uri, new BasicAuthenticationConfig { Type = AuthenticationType.Basic, Username = username, Password = password });
         }
     }
 }

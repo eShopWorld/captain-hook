@@ -93,7 +93,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                                && oidcNewConfig.ClientSecret == OidcAuthenticationConfig.ClientSecret
                                && oidcNewConfig.GrantType == OidcAuthenticationConfig.GrantType
                                && oidcNewConfig.RefreshBeforeInSeconds == OidcAuthenticationConfig.RefreshBeforeInSeconds
-                               && oidcNewConfig.Scopes.OrderBy(_ => _).SequenceEqual(OidcAuthenticationConfig.Scopes.OrderBy(_=>_));
+                               && oidcNewConfig.Scopes.SequenceEqual(OidcAuthenticationConfig.Scopes);
                 return !equality;
             }
 
