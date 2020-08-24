@@ -10,5 +10,10 @@ namespace CaptainHook.Contract
         public string Uri { get; set; }
         public string ClientSecretKeyName { get; set; }
         public List<string> Scopes { get; set; }
+
+        public OidcAuthenticationDto()
+        {
+            AuthenticationType = Type;
+        }
     }
 }
