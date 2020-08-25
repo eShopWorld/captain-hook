@@ -27,7 +27,7 @@ using Xunit;
 
 namespace CaptainHook.Tests.Services.Reliable
 {
-    public class EventReaderTests
+    public class EventReaderServiceTests
     {
         private readonly StatefulServiceContext _context;
 
@@ -41,7 +41,7 @@ namespace CaptainHook.Tests.Services.Reliable
 
         private readonly Mock<IMessageReceiver> _mockMessageProvider;
 
-        public EventReaderTests()
+        public EventReaderServiceTests()
         {
             var subscriberConfiguration = new SubscriberConfiguration
             {
@@ -226,8 +226,7 @@ namespace CaptainHook.Tests.Services.Reliable
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
             var subscriberConfigurations = actor.MessageDataInstances.Select(m => m.SubscriberConfig).ToList();
-            subscriberConfigurations.Should().HaveCountGreaterOrEqualTo(1);
-            subscriberConfigurations.Should().AllBeEquivalentTo(subscriberConfiguration);
+            subscriberConfigurations.Should().HaveCountGreaterOrEqualTo(1).And.AllBeEquivalentTo(subscriberConfiguration);
         }
 
         /// <summary>
