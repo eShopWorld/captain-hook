@@ -61,19 +61,48 @@ namespace CaptainHook.Tests.Services.Reliable
             _mockMessageProvider = new Mock<IMessageReceiver>();
         }
 
-        private Mock<IServiceBusManager> CreateMockServiceBusProvider()
+        private Mock<IServiceBusManager> CreateMockServiceBusManager(string eventName = "", int messageCount = 0)
         {
-            var mockServiceBusProvider = new Mock<IServiceBusManager>();
-            mockServiceBusProvider
+            var count = 0;
+            _mockMessageProvider
+                .Setup(s => s.ReceiveAsync(It.IsAny<int>(), It.IsAny<TimeSpan>()))
+                .ReturnsAsync(() =>
+                {
+                    if (count >= messageCount)
+                    {
+                        return new List<Message>();
+                    }
+
+                    count++;
+                    return CreateMessage(eventName);
+                });
+
+
+            var mockServiceBusManager = new Mock<IServiceBusManager>();
+            mockServiceBusManager
                 .Setup(s => s.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
-            mockServiceBusProvider
+            mockServiceBusManager
                 .Setup(s => s.CreateMessageReceiver(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns(_mockMessageProvider.Object);
-            mockServiceBusProvider
+            mockServiceBusManager
                 .Setup(s => s.GetLockToken(It.IsAny<Message>()))
                 .Returns(Guid.NewGuid().ToString);
 
-            return mockServiceBusProvider;
+            return mockServiceBusManager;
+        }
+
+        private EventReaderService.EventReaderService CreateService(
+            Mock<IServiceBusManager> mockServiceBusManager, 
+            MockActorProxyFactory mockActorProxyFactory = null, 
+            StatefulServiceContext context = null)
+        {
+            return new EventReaderService.EventReaderService(
+                context ?? _context,
+                _stateManager,
+                _mockedBigBrother,
+                mockServiceBusManager.Object,
+                mockActorProxyFactory ?? _mockActorProxyFactory,
+                _config);
         }
 
         /// <summary>
@@ -91,32 +120,10 @@ namespace CaptainHook.Tests.Services.Reliable
         public async Task CanGetMessage(string eventName, string handlerName, int expectedHandleCount, int messageCount)
         {
             _mockActorProxyFactory.RegisterActor(CreateMockEventHandlerActor(new ActorId(handlerName)));
-
-            var count = 0;
-            _mockMessageProvider
-                .Setup(s => s.ReceiveAsync(It.IsAny<int>(), It.IsAny<TimeSpan>()))
-                .ReturnsAsync(() =>
-                {
-                    if (count >= messageCount)
-                    {
-                        return new List<Message>();
-                    }
-
-                    count++;
-                    return CreateMessage(eventName);
-                });
-
-            var mockServiceBusProvider = CreateMockServiceBusProvider();
-
-            var service = new EventReaderService.EventReaderService(
-                _context,
-                _stateManager,
-                _mockedBigBrother,
-                mockServiceBusProvider.Object,
-                _mockActorProxyFactory,
-                _config);
-
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var mockServiceBusManager = CreateMockServiceBusManager(eventName, messageCount);
+            var service = CreateService(mockServiceBusManager);
+
             await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
@@ -128,21 +135,10 @@ namespace CaptainHook.Tests.Services.Reliable
         [IsUnit]
         public async Task CanCancelService()
         {
-            _mockMessageProvider.Setup(s => s.ReceiveAsync(
-                It.IsAny<int>(),
-                It.IsAny<TimeSpan>())).ReturnsAsync(new List<Message>());
-
-            var mockServiceBusProvider = CreateMockServiceBusProvider();
-
-            var service = new EventReaderService.EventReaderService(
-                _context,
-                _stateManager,
-                _mockedBigBrother,
-                mockServiceBusProvider.Object,
-                new MockActorProxyFactory(),
-                _config);
-
+            var mockServiceBusManager = CreateMockServiceBusManager();
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+            var service = CreateService(mockServiceBusManager, new MockActorProxyFactory());
+
             await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
@@ -164,31 +160,10 @@ namespace CaptainHook.Tests.Services.Reliable
                 mockActorProxyFactory.RegisterActor(CreateMockEventHandlerActor(new ActorId($"{eventName}-{i + 1}")));
             }
 
-            //return messages up to the limit of the test requirements
-            var count = 0;
-            _mockMessageProvider.Setup(s => s.ReceiveAsync(
-                It.IsAny<int>(),
-                It.IsAny<TimeSpan>())).ReturnsAsync(() =>
-            {
-                if (count >= messageCount)
-                {
-                    return new List<Message>();
-                }
-                count++;
-                return CreateMessage(eventName);
-            });
-
-            var mockServiceBusProvider = CreateMockServiceBusProvider();
-
-            var service = new EventReaderService.EventReaderService(
-                _context,
-                _stateManager,
-                _mockedBigBrother,
-                mockServiceBusProvider.Object,
-                mockActorProxyFactory,
-                _config);
-
+            var mockServiceBusManager = CreateMockServiceBusManager(eventName, messageCount);
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var service = CreateService(mockServiceBusManager, mockActorProxyFactory);
+
             await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
@@ -208,31 +183,10 @@ namespace CaptainHook.Tests.Services.Reliable
             int expectedStatMessageCount)
         {
             _mockActorProxyFactory.RegisterActor(CreateMockEventHandlerActor(new ActorId(handlerName)));
-
-            var count = 0;
-            _mockMessageProvider.Setup(s => s.ReceiveAsync(
-                It.IsAny<int>(),
-                It.IsAny<TimeSpan>())).ReturnsAsync(() =>
-                {
-                    if (count >= messageCount)
-                    {
-                        return new List<Message>();
-                    }
-                    count++;
-                    return CreateMessage(eventName);
-                });
-
-            var mockServiceBusProvider = CreateMockServiceBusProvider();
-
-            var service = new EventReaderService.EventReaderService(
-                _context,
-                _stateManager,
-                _mockedBigBrother,
-                mockServiceBusProvider.Object,
-                _mockActorProxyFactory,
-                _config);
-
+            var mockServiceBusManager = CreateMockServiceBusManager(eventName, messageCount);
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var service = CreateService(mockServiceBusManager);
+
             await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
@@ -264,36 +218,10 @@ namespace CaptainHook.Tests.Services.Reliable
 
             var subscriberConfiguration = new SubscriberConfiguration { EventType = eventName, SubscriberName = "subA" };
 
-            var context = CustomMockStatefulServiceContextFactory.Create(
-                ServiceNaming.EventReaderServiceType,
-                ServiceNaming.EventReaderServiceFullUri("test.type", "subA"),
-                EventReaderInitData.FromSubscriberConfiguration(subscriberConfiguration).ToByteArray(),
-                replicaId: (new Random(int.MaxValue)).Next());
-
-            var count = 0;
-            _mockMessageProvider.Setup(s => s.ReceiveAsync(
-                It.IsAny<int>(),
-                It.IsAny<TimeSpan>())).ReturnsAsync(() =>
-            {
-                if (count >= messageCount)
-                {
-                    return new List<Message>();
-                }
-                count++;
-                return CreateMessage(eventName);
-            });
-
-            var mockServiceBusProvider = CreateMockServiceBusProvider();
-
-            var service = new EventReaderService.EventReaderService(
-                context,
-                _stateManager,
-                _mockedBigBrother,
-                mockServiceBusProvider.Object,
-                _mockActorProxyFactory,
-                _config);
-
+            var mockServiceBusManager = CreateMockServiceBusManager(eventName, messageCount);
             var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            var service = CreateService(mockServiceBusManager);
+
             await service.InvokeOnOpenAsync(ReplicaOpenMode.New, cancellationTokenSource.Token);
             await service.InvokeRunAsync(cancellationTokenSource.Token);
 
@@ -316,28 +244,14 @@ namespace CaptainHook.Tests.Services.Reliable
                 _mockActorProxyFactory.RegisterActor(
                     CreateMockEventHandlerActor(new ActorId(string.Format(eventName + "-{0}", x))));
 
-            var count = 0;
-            _mockMessageProvider.Setup(s => s.ReceiveAsync(
-                It.IsAny<int>(),
-                It.IsAny<TimeSpan>())).ReturnsAsync(() =>
-            {
-                if (count >= messageCount)
-                {
-                    return new List<Message>();
-                }
-
-                count++;
-                return CreateMessage(eventName);
-            });
-
-            var mockServiceBusProvider = CreateMockServiceBusProvider();
+            var mockServiceBusManager = CreateMockServiceBusManager(eventName, messageCount);
 
             EventReaderService.EventReaderService Factory(StatefulServiceContext context, IReliableStateManagerReplica2 stateManager) =>
                 new EventReaderService.EventReaderService(
                     context,
                     stateManager,
                     _mockedBigBrother,
-                    mockServiceBusProvider.Object,
+                    mockServiceBusManager.Object,
                     _mockActorProxyFactory,
                     _config);
 
@@ -380,7 +294,6 @@ namespace CaptainHook.Tests.Services.Reliable
         {
             return new List<Message> { new Message(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new MessageData("Hello World 1", eventName, "subA", "service")))) };
         }
-
 
         private static MockEventHandlerActor CreateMockEventHandlerActor(ActorId id)
         {
