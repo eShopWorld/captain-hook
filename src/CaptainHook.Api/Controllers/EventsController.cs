@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Application.Results;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
@@ -62,7 +63,7 @@ namespace CaptainHook.Api.Controllers
                      DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
                      ReaderCreateError readerCreationError => UnprocessableEntity(readerCreationError),
                      CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
-                     _ => StatusCode(StatusCodes.Status500InternalServerError, error) 
+                     _ => StatusCode(StatusCodes.Status500InternalServerError, error)
                  },
                  endpointDto => Created($"/{eventName}/subscriber/{subscriberName}/webhooks/endpoint/", endpointDto)
              );
@@ -142,18 +143,22 @@ namespace CaptainHook.Api.Controllers
             var result = await _mediator.Send(request);
 
             return result.Match<IActionResult>(
-                 error => error switch
-                 {
-                     ValidationError validationError => BadRequest(validationError),
-                     DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
-                     ReaderCreateError readerCreationError => UnprocessableEntity(readerCreationError),
-                     CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
-                     _ => StatusCode(StatusCodes.Status500InternalServerError, error)
-                 },
-                 subscriberDto => Created($"/{eventName}/subscriber/{subscriberName}", subscriberDto)
+                    error => error switch
+                    {
+                        ValidationError validationError => BadRequest(validationError),
+                        DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
+                        ReaderCreateError readerCreationError => UnprocessableEntity(readerCreationError),
+                        CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
+                        _ => StatusCode(StatusCodes.Status500InternalServerError, error)
+                    },
+                    upsertResult => upsertResult.UpsertType switch
+                    {
+                        UpsertType.Created => Created($"/{eventName}/subscriber/{subscriberName}", upsertResult.Dto),
+                        UpsertType.Updated => Accepted($"/{eventName}/subscriber/{subscriberName}", upsertResult.Dto),
+                    }
              );
         }
 
-        
+
     }
 }

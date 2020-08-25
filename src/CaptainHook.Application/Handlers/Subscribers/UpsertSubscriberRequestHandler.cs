@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Application.Results;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
@@ -14,7 +15,7 @@ using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
-    public class UpsertSubscriberRequestHandler : IRequestHandler<UpsertSubscriberRequest, OperationResult<SubscriberDto>>
+    public class UpsertSubscriberRequestHandler : IRequestHandler<UpsertSubscriberRequest, OperationResult<UpsertResult<SubscriberDto>>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
@@ -25,18 +26,35 @@ namespace CaptainHook.Application.Handlers.Subscribers
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
         }
 
-        public async Task<OperationResult<SubscriberDto>> Handle(UpsertSubscriberRequest request, CancellationToken cancellationToken)
+        public async Task<OperationResult<UpsertResult<SubscriberDto>>> Handle(UpsertSubscriberRequest request, CancellationToken cancellationToken)
         {
             var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
             var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-            if (!(existingItem.Error is EntityNotFoundError))
+            var subscriber = MapRequestToEntity(request);
+            OperationResult<bool> saveResult;
+            UpsertType upsertType;
+            if (existingItem.Error is EntityNotFoundError)
             {
-                return new BusinessError("Updating subscribers not supported!");
+                saveResult = await InsertSubscriber(subscriber);
+                upsertType = UpsertType.Created;
+            }
+            else
+            {
+                saveResult = await UpdateSubscriber(subscriber);
+                upsertType = UpsertType.Updated;
             }
 
-            var subscriber = MapRequestToEntity(request);
+            if (saveResult.IsError)
+            {
+                return saveResult.Error;
+            }
 
+            return new UpsertResult<SubscriberDto>(request.Subscriber, upsertType);
+        }
+
+        private async Task<OperationResult<bool>> InsertSubscriber(SubscriberEntity subscriber)
+        {
             var directorResult = await _directorService.CreateReaderAsync(subscriber);
             if (directorResult.IsError)
             {
@@ -44,12 +62,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
             }
 
             var saveResult = await _subscriberRepository.AddSubscriberAsync(subscriber);
-            if (saveResult.IsError)
+            return saveResult.Error;
+        }
+
+        private async Task<OperationResult<bool>> UpdateSubscriber(SubscriberEntity subscriber)
+        {
+            var directorResult = await _directorService.UpdateReaderAsync(subscriber);
+            if (directorResult.IsError)
             {
-                return saveResult.Error;
+                return directorResult.Error;
             }
 
-            return request.Subscriber;
+            var saveResult = await _subscriberRepository.UpdateSubscriberAsync(subscriber);
+            return saveResult.Error;
         }
 
         private static SubscriberEntity MapRequestToEntity(UpsertSubscriberRequest request)
@@ -58,7 +83,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 request.Subscriber.Webhooks.SelectionRule,
                 request.Subscriber.Webhooks.Endpoints?.Select(MapEndpointEntity) ?? Enumerable.Empty<EndpointEntity>(),
                 MapUriTransformEntity(request.Subscriber.Webhooks.UriTransform));
-            
+
             var subscriber = new SubscriberEntity(
                     request.SubscriberName,
                     new EventEntity(request.EventName))
@@ -69,7 +94,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         private static UriTransformEntity MapUriTransformEntity(UriTransformDto uriTransformDto)
         {
-            if(uriTransformDto?.Replace == null)
+            if (uriTransformDto?.Replace == null)
             {
                 return null;
             }
