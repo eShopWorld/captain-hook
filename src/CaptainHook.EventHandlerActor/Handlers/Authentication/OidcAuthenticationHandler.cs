@@ -88,13 +88,21 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         {
             if (newConfig is OidcAuthenticationConfig oidcNewConfig)
             {
-                var equality = oidcNewConfig.Uri == OidcAuthenticationConfig.Uri
+                var equals = oidcNewConfig.Uri == OidcAuthenticationConfig.Uri
                                && oidcNewConfig.ClientId == OidcAuthenticationConfig.ClientId
                                && oidcNewConfig.ClientSecret == OidcAuthenticationConfig.ClientSecret
                                && oidcNewConfig.GrantType == OidcAuthenticationConfig.GrantType
-                               && oidcNewConfig.RefreshBeforeInSeconds == OidcAuthenticationConfig.RefreshBeforeInSeconds
-                               && oidcNewConfig.Scopes.SequenceEqual(OidcAuthenticationConfig.Scopes);
-                return !equality;
+                               && oidcNewConfig.RefreshBeforeInSeconds == OidcAuthenticationConfig.RefreshBeforeInSeconds;
+                
+                if (oidcNewConfig.Scopes != null)
+                {
+                    if (OidcAuthenticationConfig.Scopes != null)
+                        equals = equals && oidcNewConfig.Scopes.SequenceEqual(OidcAuthenticationConfig.Scopes);
+                    else
+                        equals = false;
+                }
+
+                return !equals;
             }
 
             return true;
