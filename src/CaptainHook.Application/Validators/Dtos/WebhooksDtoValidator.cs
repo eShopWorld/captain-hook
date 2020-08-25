@@ -1,9 +1,11 @@
-﻿using CaptainHook.Application.Validators.Common;
+﻿using System;
 using CaptainHook.Contract;
 using FluentValidation;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
+using CaptainHook.Domain.Entities;
+using UriTransformValidator = CaptainHook.Application.Validators.Common.UriTransformValidator;
 
 namespace CaptainHook.Application.Validators.Dtos
 {
@@ -17,20 +19,20 @@ namespace CaptainHook.Application.Validators.Dtos
 
             RuleFor(x => x.SelectionRule).NotEmpty()
                 .Must(BeValidJsonPathExpression).WithMessage("The SelectionRule must be a valid JSONPath expression")
-                .When(TheresAtLeastOneEndpointWithSelectorDefined);
+                .When(ThereIsAtLeastOneEndpointWithSelectorDefined);
 
             RuleFor(x => x.Endpoints)
                 .NotNull()
                 .WithMessage("Webhooks list must contain at list one endpoint")
                 .NotEmpty()
                 .WithMessage("Webhooks list must contain at list one endpoint")
-                .Must(ContainAtMostOneEndpointWithNoSelector)
-                .WithMessage("There can be only one endpoint with no selector")
+                .Must(ContainAtMostOneEndpointWithDefaultSelector)
+                .WithMessage("There can be only one endpoint with the default selector")
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
                 .WithMessage("There cannot be multiple endpoints with the same selector");
 
             RuleForEach(x => x.Endpoints)
-                .SetValidator(new EndpointDtoValidator());
+                .SetValidator(new UpsertSubscriberEndpointDtoValidator());
 
             RuleFor(x => x.UriTransform)
                 .SetValidator((webhooksDto, uriTransform) => new UriTransformValidator(webhooksDto.Endpoints))
@@ -38,27 +40,26 @@ namespace CaptainHook.Application.Validators.Dtos
 
         }
 
-        private bool TheresAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
+        private bool ThereIsAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
         {
-            return webhooks.Endpoints?.Any(e => !string.IsNullOrWhiteSpace(e.Selector)) ?? false;
+            return webhooks.Endpoints?.Any(e => !string.Equals(e.Selector, EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase)) ?? false;
         }
 
-        private bool ContainAtMostOneEndpointWithNoSelector(List<EndpointDto> endpoints)
+        private bool ContainAtMostOneEndpointWithDefaultSelector(List<EndpointDto> endpoints)
         {
-            return endpoints?.Count(x => x.Selector == null) <= 1;
+            return endpoints?.Count(x => string.Equals(x.Selector, EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase)) <= 1;
         }
 
         private bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)
         {
             return !(endpoints ?? Enumerable.Empty<EndpointDto>())
-                .Where(x => x.Selector != null)
                 .GroupBy(x => x.Selector)
                 .Any(x => x.Count() > 1);
         }
 
         private bool BeValidJsonPathExpression(string selectionRule)
         {
-            if(!selectionRule.StartsWith('$'))
+            if (!selectionRule.StartsWith('$'))
             {
                 return false;
             }
