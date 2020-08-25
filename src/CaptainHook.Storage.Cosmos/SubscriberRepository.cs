@@ -255,16 +255,14 @@ namespace CaptainHook.Storage.Cosmos
 
         private AuthenticationEntity Map(AuthenticationData authentication)
         {
-            var secretStore = new SecretStoreEntity(authentication.KeyVaultName, authentication.SecretName);
-            return new AuthenticationEntity(authentication.ClientId, secretStore, authentication.Uri, authentication.Type, authentication.Scopes);
+            return new AuthenticationEntity(authentication.ClientId, authentication.SecretName, authentication.Uri, authentication.Type, authentication.Scopes);
         }
 
         private AuthenticationData Map(AuthenticationEntity authenticationEntity)
         {
             return new AuthenticationData
             {
-                SecretName = authenticationEntity.SecretStore.SecretName,
-                KeyVaultName = authenticationEntity.SecretStore.KeyVaultName,
+                SecretName = authenticationEntity.ClientSecretKeyName,
                 Scopes = authenticationEntity.Scopes,
                 ClientId = authenticationEntity.ClientId,
                 Uri = authenticationEntity.Uri,

@@ -109,7 +109,7 @@ namespace CaptainHook.Tests.Director
                         "selector",
                         authentication: new AuthenticationEntity(
                             "captain-hook-id",
-                            new SecretStoreEntity("kvname", "kv-secret-name"),
+                            "kv-secret-name",
                             "https://blah-blah.sts.eshopworld.com",
                             "type",
                             new[] { "scope1" })

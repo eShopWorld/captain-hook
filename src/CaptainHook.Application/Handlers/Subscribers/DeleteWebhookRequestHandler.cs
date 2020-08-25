@@ -105,17 +105,13 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 Selector = endpointEntity.Selector,
                 Uri = endpointEntity.Uri,
                 HttpVerb = endpointEntity.HttpVerb,
-                Authentication = new AuthenticationDto
+                Authentication = new OidcAuthenticationDto
                 {
                     Uri = endpointEntity.Authentication.Uri,
                     ClientId = endpointEntity.Authentication.ClientId,
                     Scopes = endpointEntity.Authentication.Scopes.ToList(),
                     Type = endpointEntity.Authentication.Type,
-                    ClientSecret = new ClientSecretDto
-                    {
-                        Name = endpointEntity.Authentication.SecretStore.SecretName,
-                        Vault = endpointEntity.Authentication.SecretStore.KeyVaultName
-                    }
+                    ClientSecretKeyName = endpointEntity.Authentication.ClientSecretKeyName
                 }
             };
         }

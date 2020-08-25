@@ -28,7 +28,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
 
         private readonly UpsertWebhookRequest _defaultUpsertRequest =
-            new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().With(x => x.Selector, null).Create());
+            new UpsertWebhookRequest("event", "subscriber", "*", new EndpointDtoBuilder().Create());
 
         private static readonly SubscriberBuilder DefaultSubscriberBuilder = new SubscriberBuilder().WithEvent("event")
             .WithName("subscriber")
@@ -39,7 +39,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 "abc",
                 authentication: new AuthenticationEntity(
                     "captain-hook-id",
-                    new SecretStoreEntity("kvname", "kv-secret-name"),
+                    "kv-secret-name",
                     "https://blah-blah.sts.eshopworld.com",
                     "OIDC",
                     new[] { "scope1" }));

@@ -5,6 +5,8 @@
     /// </summary>
     public class EndpointEntity
     {
+        public const string DefaultEndpointSelector = "*";
+
         /// <summary>
         /// Parent subscriber model
         /// </summary>
@@ -29,8 +31,6 @@
         /// Endpoint selector
         /// </summary>
         public string Selector { get; }
-
-        
 
         public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector, 
             SubscriberEntity subscriber = null)

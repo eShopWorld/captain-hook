@@ -31,7 +31,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [InlineData("PUT")]
         public async Task MapSubscriberAsync_WithSingleWebhookAndNoUriTransformDefined_MapsToSingleWebhook(string httpVerb)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
                 "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var subscriber = new SubscriberBuilder()
                 .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, string.Empty, authentication: authentication)
@@ -63,7 +63,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [InlineData("PUT")]
         public async Task MapSubscriberAsync_WithSingleWebhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -106,7 +106,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [InlineData("PUT")]
         public async Task MapSubscriberAsync_WithMultipleWebhooksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -164,7 +164,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [InlineData("PUT")]
         public async Task MapSubscriberAsync_WithMultipleWebhooksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -222,7 +222,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [InlineData("PUT")]
         public async Task MapSubscriberAsync_WithMultipleWebhooksAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
@@ -280,7 +280,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [InlineData("PUT")]
         public async Task MapSubscriberAsync_WithSingleWebhookAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(null);
             var subscriber = new SubscriberBuilder()
@@ -321,7 +321,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         public async Task MapSubscriberAsync_NoSelectionRule_MapsFromFirstEndpoint()
         {
             // Arrange
-            var authentication = new AuthenticationEntity("captain-hook-id", new SecretStoreEntity("kvname", "kv-secret-name"),
+            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
                 "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { {"selector", "$.Test" }});
             var subscriber = new SubscriberBuilder()
