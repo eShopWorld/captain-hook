@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -10,10 +9,8 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
-using Eshopworld.Telemetry;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using Kusto.Cloud.Platform.Utils;
 using Moq;
 using Newtonsoft.Json;
 using RichardSzalay.MockHttp;
@@ -78,7 +75,7 @@ namespace CaptainHook.Tests.Web.Authentication
         }
 
         /// <summary>
-        /// Checks that the auth token changes with any change in basic auth params
+        /// Checks that the auth handler changes with any change in basic auth params
         /// </summary>
         [Fact, IsUnit]
         public async Task When_BasicAuthParamsUpdated_ExpectUpdatedHandler()
@@ -106,7 +103,7 @@ namespace CaptainHook.Tests.Web.Authentication
         }
 
         /// <summary>
-        /// Checks that the auth token changes with changes in OIDC auth parameters
+        /// Checks that the auth handler changes with changes in OIDC auth parameters
         /// </summary>
         [Fact, IsUnit] 
         public async Task When_OidcAuthParamsUpdated_ExpectUpdatedHandler()
