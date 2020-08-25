@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -93,7 +94,7 @@ namespace CaptainHook.Tests.Web.Authentication
             var handlers = new List<IAuthenticationHandler>();
 
             // Act
-            foreach (WebhookConfig webhookConfig in changeBasicAuthenticationTestData)
+            foreach (var webhookConfig in changeBasicAuthenticationTestData)
             {
                 handlers.Add(await factory.GetAsync(webhookConfig, CancellationToken.None));
             }
@@ -102,10 +103,54 @@ namespace CaptainHook.Tests.Web.Authentication
             handlers.Should().OnlyHaveUniqueItems();
         }
 
+
+        public static IEnumerable<object[]> ChangeBasicAuthenticationTestData = new List<object[]>
+        {
+            new object[]
+            {
+                new []
+                {
+                    NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "initialPassword"),
+                    NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "initialPassword")
+                }
+            },
+            new object[]
+            {
+                new []
+                {
+                    NewWebhookConfig("oidc", "http://localhost/api/v2/oidc", new OidcAuthenticationConfig()),
+                    NewWebhookConfig("oidc", "http://localhost/api/v2/oidc", new OidcAuthenticationConfig()),
+                }
+            }
+        };
+
+
+        /// <summary>
+        /// Checks that the auth factory returns the same handler does not change when auth params
+        /// </summary>
+        [Theory, IsUnit]
+        [MemberData(nameof(ChangeBasicAuthenticationTestData))]
+        public async Task When_AuthParamsUnchanged_ExpectSameHandler(WebhookConfig[] webhookConfigs)
+        {
+            // Arrange
+            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), _bigBrother);
+            var handlers = new List<IAuthenticationHandler>();
+            
+            // Act
+            foreach (var webhookConfig in webhookConfigs)
+            {
+                handlers.Add(await factory.GetAsync(webhookConfig, CancellationToken.None));
+            }
+
+            // Assert
+            handlers.Should().HaveCount(webhookConfigs.Length).
+                And.AllBeEquivalentTo(handlers.FirstOrDefault(), "The Auth Config has not changed");
+        }
+
         /// <summary>
         /// Checks that the auth handler changes with changes in OIDC auth parameters
         /// </summary>
-        [Fact, IsUnit] 
+        [Fact, IsUnit]
         public async Task When_OidcAuthParamsUpdated_ExpectUpdatedHandler()
         {
             // Arrange
@@ -115,9 +160,9 @@ namespace CaptainHook.Tests.Web.Authentication
             var tokenWebhookConfigMap = GetOidcAuthChangeTestData(uri);
             var mockHttp = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
 
-            foreach (var (expectedAccessToken, webhookConfig) in tokenWebhookConfigMap)
+            foreach (var webhookConfig in tokenWebhookConfigMap)
             {
-                SetupMockHttpResponse(mockHttp, webhookConfig.AuthenticationConfig as OidcAuthenticationConfig, expectedAccessToken);
+                SetupMockHttpResponse(mockHttp, webhookConfig.AuthenticationConfig as OidcAuthenticationConfig);
             }
 
             /* Auth handler factory to respond using mock http client */
@@ -127,7 +172,7 @@ namespace CaptainHook.Tests.Web.Authentication
 
             // Act
             var handlers = new List<IAuthenticationHandler>();
-            foreach (var (_, webhookConfig) in tokenWebhookConfigMap)
+            foreach (var webhookConfig in tokenWebhookConfigMap)
             {
                 handlers.Add(await factory.GetAsync(webhookConfig, cancellationToken));
             }
@@ -136,35 +181,31 @@ namespace CaptainHook.Tests.Web.Authentication
             handlers.Should().OnlyHaveUniqueItems();
         }
 
-        private static Dictionary<string, WebhookConfig> GetOidcAuthChangeTestData(string uri)
+        private static List<WebhookConfig> GetOidcAuthChangeTestData(string uri)
         {
-            return new Dictionary<string, WebhookConfig>
+            return new List<WebhookConfig>
             {
-                { "token1", NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig( // Start
-                    "ClientId1", "secretv1", 200, uri, new[]{ "all" })) },
-                { "token3", NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig( // Change ClientId
-                    "ClientId2", "secretv1", 20, uri, new[]{ "all" })) },
-                { "token4", NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig( // Change ClientSecret
-                    "ClientId2", "secretv2", 20, uri, new[]{ "all" })) },
-                { "token5", NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig( // Add Scope
-                    "ClientId2", "secretv2", 20, uri, new[] { "all", "newScope", "removeScope" })) },
-                { "token6", NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig(  // Remove Scope
-                    "ClientId2", "secretv2", 20, uri, new[] { "all", "newScope" })) }
+                NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig( // Start
+                    "ClientId1", "secretv1", 200, uri, new[]{ "all" })),
+                NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig( // Change ClientId
+                    "ClientId2", "secretv1", 20, uri, new[]{ "all" })) ,
+                NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig( // Change ClientSecret
+                    "ClientId2", "secretv2", 20, uri, new[]{ "all" })) ,
+                NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig( // Add Scope
+                    "ClientId2", "secretv2", 20, uri, new[] { "all", "newScope", "removeScope" })) ,
+                NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig(  // Remove Scope
+                    "ClientId2", "secretv2", 20, uri, new[] { "all", "newScope" }))
             };
         }
 
-        private static void SetupMockHttpResponse(MockHttpMessageHandler mockHttp, OidcAuthenticationConfig config, string expectedAccessToken)
+        private static void SetupMockHttpResponse(MockHttpMessageHandler mockHttp, OidcAuthenticationConfig config)
         {
             mockHttp.When(HttpMethod.Post, config.Uri)
                 .WithFormData("client_id", config.ClientId)
                 .WithFormData("client_secret", config.ClientSecret)
                 .WithFormData("scope", string.Join(" ", config.Scopes))
                 .Respond(HttpStatusCode.OK, "application/json",
-                    JsonConvert.SerializeObject(new OidcAuthenticationToken
-                    {
-                        AccessToken = expectedAccessToken
-                    }));
-
+                    JsonConvert.SerializeObject(new OidcAuthenticationToken()));
         }
 
         private static OidcAuthenticationConfig NewOidcAuthenticationConfig(string clientId, string clientSecret, int refreshBeforeInSeconds, string uri, string[] scopes)
