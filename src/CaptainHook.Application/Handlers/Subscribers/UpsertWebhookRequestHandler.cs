@@ -130,7 +130,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
         {
             var authDto = request.Endpoint.Authentication;
             var authenticationEntity = new AuthenticationEntity(authDto.ClientId, authDto.ClientSecretKeyName, authDto.Uri, authDto.Type, authDto.Scopes.ToArray());
-            var endpoint = new EndpointEntity(request.Endpoint.Uri, authenticationEntity, request.Endpoint.HttpVerb, request.Endpoint.Selector, parent);
+            var endpoint = new EndpointEntity(request.Endpoint.Uri, authenticationEntity, request.Endpoint.HttpVerb, request.Selector, parent);
 
             return endpoint;
         }
