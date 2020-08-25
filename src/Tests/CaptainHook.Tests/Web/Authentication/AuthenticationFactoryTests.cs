@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
@@ -13,8 +10,6 @@ using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Moq;
-using Newtonsoft.Json;
-using RichardSzalay.MockHttp;
 using Xunit;
 using IHttpClientFactory = CaptainHook.EventHandlerActor.Handlers.IHttpClientFactory;
 
@@ -41,6 +36,26 @@ namespace CaptainHook.Tests.Web.Authentication
             new List<object[]>
             {
                 new object[] { new WebhookConfig { Name = "none", Uri = "http://localhost/api/v1/none"} }
+            };
+
+        public static IEnumerable<object[]> ChangeBasicAuthenticationTestData = new List<object[]>
+            {
+                new object[]
+                {
+                    new []
+                    {
+                        NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "initialPassword"),
+                        NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "initialPassword")
+                    }
+                },
+                new object[]
+                {
+                    new []
+                    {
+                        NewWebhookConfig("oidc", "http://localhost/api/v2/oidc", new OidcAuthenticationConfig()),
+                        NewWebhookConfig("oidc", "http://localhost/api/v2/oidc", new OidcAuthenticationConfig()),
+                    }
+                }
             };
 
         /// <summary>
@@ -103,28 +118,6 @@ namespace CaptainHook.Tests.Web.Authentication
             handlers.Should().OnlyHaveUniqueItems();
         }
 
-
-        public static IEnumerable<object[]> ChangeBasicAuthenticationTestData = new List<object[]>
-        {
-            new object[]
-            {
-                new []
-                {
-                    NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "initialPassword"),
-                    NewWebhookConfig("basic", "http://host1/api/v1/basic", "userblue", "initialPassword")
-                }
-            },
-            new object[]
-            {
-                new []
-                {
-                    NewWebhookConfig("oidc", "http://localhost/api/v2/oidc", new OidcAuthenticationConfig()),
-                    NewWebhookConfig("oidc", "http://localhost/api/v2/oidc", new OidcAuthenticationConfig()),
-                }
-            }
-        };
-
-
         /// <summary>
         /// Checks that the auth factory returns the same handler does not change when auth params
         /// </summary>
@@ -158,17 +151,7 @@ namespace CaptainHook.Tests.Web.Authentication
             var cancellationToken = new CancellationToken();
 
             var tokenWebhookConfigMap = GetOidcAuthChangeTestData(uri);
-            var mockHttp = new MockHttpMessageHandler(BackendDefinitionBehavior.Always);
-
-            foreach (var webhookConfig in tokenWebhookConfigMap)
-            {
-                SetupMockHttpResponse(mockHttp, webhookConfig.AuthenticationConfig as OidcAuthenticationConfig);
-            }
-
-            /* Auth handler factory to respond using mock http client */
-            var httpClientFactory = new HttpClientFactory(
-                new Dictionary<string, HttpClient> { { new Uri(uri).Host, mockHttp.ToHttpClient() } });
-            var factory = new AuthenticationHandlerFactory(httpClientFactory, _bigBrother);
+            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), _bigBrother);
 
             // Act
             var handlers = new List<IAuthenticationHandler>();
@@ -196,16 +179,6 @@ namespace CaptainHook.Tests.Web.Authentication
                 NewWebhookConfig("oidc", uri, NewOidcAuthenticationConfig(  // Remove Scope
                     "ClientId2", "secretv2", 20, uri, new[] { "all", "newScope" }))
             };
-        }
-
-        private static void SetupMockHttpResponse(MockHttpMessageHandler mockHttp, OidcAuthenticationConfig config)
-        {
-            mockHttp.When(HttpMethod.Post, config.Uri)
-                .WithFormData("client_id", config.ClientId)
-                .WithFormData("client_secret", config.ClientSecret)
-                .WithFormData("scope", string.Join(" ", config.Scopes))
-                .Respond(HttpStatusCode.OK, "application/json",
-                    JsonConvert.SerializeObject(new OidcAuthenticationToken()));
         }
 
         private static OidcAuthenticationConfig NewOidcAuthenticationConfig(string clientId, string clientSecret, int refreshBeforeInSeconds, string uri, string[] scopes)
