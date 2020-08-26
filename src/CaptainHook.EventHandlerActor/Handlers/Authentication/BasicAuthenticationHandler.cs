@@ -33,5 +33,17 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 
             return await Task.FromResult(token);
         }
+        
+        public bool HasConfigChanged(AuthenticationConfig newConfig)
+        {
+            if (newConfig is BasicAuthenticationConfig authConfig)
+            {
+                if (authConfig.Username == BasicAuthenticationConfig.Username && authConfig.Password == BasicAuthenticationConfig.Password)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }

@@ -40,9 +40,10 @@ namespace CaptainHook.Api.Controllers
         /// </summary>
         /// <param name="eventName">Event name</param>
         /// <param name="subscriberName">Subscriber name</param>
+        /// /// <param name="selector">Endpoint selector, use * (asterisk) for the default endpoint</param>
         /// <param name="dto">Webhook configuration</param>
         /// <returns></returns>
-        [HttpPut("{eventName}/subscriber/{subscriberName}/webhooks/endpoint/")]
+        [HttpPut("{eventName}/subscriber/{subscriberName}/webhooks/endpoint/{selector}")]
         [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
@@ -50,9 +51,9 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> PutWebhook([FromRoute] string eventName, [FromRoute] string subscriberName, [FromBody] EndpointDto dto)
+        public async Task<IActionResult> PutWebhook([FromRoute] string eventName, [FromRoute] string subscriberName, [FromRoute] string selector, [FromBody] EndpointDto dto)
         {
-            var request = new UpsertWebhookRequest(eventName, subscriberName, dto);
+            var request = new UpsertWebhookRequest(eventName, subscriberName, selector, dto);
             var result = await _mediator.Send(request);
 
             return result.Match<IActionResult>(
@@ -64,34 +65,16 @@ namespace CaptainHook.Api.Controllers
                      CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
                      _ => StatusCode(StatusCodes.Status500InternalServerError, error) 
                  },
-                 endpointDto => Created($"/{eventName}/subscriber/{subscriberName}/webhooks/endpoint/", endpointDto)
+                 endpointDto => Created($"/{eventName}/subscriber/{subscriberName}/webhooks/endpoint/{selector}", endpointDto)
              );
         }
-
-        /// <summary>
-        /// Delete the default webhook for the provided event and subscriber
-        /// </summary>
-        /// <param name="eventName">Event name</param>
-        /// <param name="subscriberName">Subscriber name</param>
-        /// <returns></returns>
-        [HttpDelete("{eventName}/subscriber/{subscriberName}/webhooks/endpoint")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
-        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult>
-            DeleteDefaultWebhook([FromRoute] string eventName, [FromRoute] string subscriberName) =>
-            await DeleteWebhook(eventName, subscriberName, null);
 
         /// <summary>
         /// Delete a webhook for the provided event, subscriber and selector
         /// </summary>
         /// <param name="eventName">Event name</param>
         /// <param name="subscriberName">Subscriber name</param>
-        /// <param name="selector">Endpoint selector</param>
+        /// <param name="selector">Endpoint selector, use * (asterisk) for the default endpoint</param>
         /// <returns></returns>
         [HttpDelete("{eventName}/subscriber/{subscriberName}/webhooks/endpoint/{selector}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

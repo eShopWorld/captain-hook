@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentValidation;
 
@@ -24,12 +25,12 @@ namespace CaptainHook.Domain.Entities
 
         private bool ContainOnlyDefaultEndpointIfNoSelectionRule(WebhooksEntity webhooks)
         {
-            return ! string.IsNullOrEmpty(webhooks.SelectionRule) || ContainOnlySingleWebhookWithNoSelector(webhooks.Endpoints);
+            return ! string.IsNullOrEmpty(webhooks.SelectionRule) || ContainOnlySingleWebhookWithDefaultSelector(webhooks.Endpoints);
         }
 
-        private static bool ContainOnlySingleWebhookWithNoSelector(IEnumerable<EndpointEntity> endpoints)
+        private static bool ContainOnlySingleWebhookWithDefaultSelector(IEnumerable<EndpointEntity> endpoints)
         {
-            return endpoints?.Count(e => string.IsNullOrEmpty(e.Selector)) == 1
+            return endpoints?.Count(e => string.Equals(e.Selector, EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase)) == 1
                 && endpoints?.Count() == 1;
         }
     }

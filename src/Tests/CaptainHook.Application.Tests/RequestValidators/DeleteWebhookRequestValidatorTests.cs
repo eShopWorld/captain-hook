@@ -13,7 +13,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [InlineData("selector")]
-        [InlineData(null)]
+        [InlineData("*")]
         public void When_RequestIsValid_Then_NoFailuresReturned(string validSelector)
         {
             var request = new DeleteWebhookRequest("event", "subscriber", validSelector);
@@ -24,8 +24,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Theory, IsUnit]
-        [InlineData("")]
-        [InlineData("   ")]
+        [ClassData(typeof(EmptyStrings))]
         public void When_SelectorIsINvalid_Then_ValidationFails(string selector)
         {
             var request = new DeleteWebhookRequest("event", "subscriber", selector);
