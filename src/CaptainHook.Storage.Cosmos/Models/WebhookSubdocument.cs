@@ -10,19 +10,17 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Subscriber endpoints
         /// </summary>
-        [JsonProperty(PropertyName = "endpoints")]
         public EndpointSubdocument[] Endpoints { get; set; }
 
         /// <summary>
         /// Webhook selector
         /// </summary>
-        [JsonProperty("selectionRule")]
         public string SelectionRule { get; set; }
 
         /// <summary>
         /// Defines Uri transformation definition
         /// </summary>
-        [JsonProperty("uriTransform", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public UriTransformSubdocument UriTransform { get; set; }
     }
 }

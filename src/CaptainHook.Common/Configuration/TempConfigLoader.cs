@@ -33,6 +33,8 @@ namespace CaptainHook.Common.Configuration
                 AddEntry (client, "CaptainHook--DbConfiguration--DatabaseKey"),
                 AddEntry (client, "CaptainHook--DbConfiguration--Databases--EDA--1--CollectionName"),
                 AddEntry (client, "CaptainHook--DbConfiguration--Databases--EDA--1--PartitionKey"),
+
+                AddEntry (client, "CaptainHook--FeatureFlags--DisablePayloadLogging"),
             };
 
             var builder = new ConfigurationBuilder ();

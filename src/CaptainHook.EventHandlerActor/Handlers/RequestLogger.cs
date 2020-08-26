@@ -4,9 +4,11 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
+using Eshopworld.DevOps;
 using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -18,10 +20,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class RequestLogger : IRequestLogger
     {
         private readonly IBigBrother _bigBrother;
+        private readonly ConfigurationSettings _configurationSettings;
 
-        public RequestLogger(IBigBrother bigBrother)
+        public RequestLogger(
+            IBigBrother bigBrother,
+            ConfigurationSettings configurationSettings)
         {
             _bigBrother = bigBrother;
+            _configurationSettings = configurationSettings;
         }
 
         public async Task LogAsync(
@@ -52,13 +58,15 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
             else
             {
+                var canLogPayload = !(_configurationSettings.FeatureFlags.GetFlag<DisablePayloadLoggingFeatureFlag>()?.IsEnabled ?? false);
+                
                 // request failed
-                _bigBrother.Publish(new FailedWebHookEvent(
+                _bigBrother.Publish(new FailedWebhookEvent(
                     httpClient.DefaultRequestHeaders.ToString(),
                     response.Headers.ToString(),
-                    messageData.Payload ?? string.Empty,
-                    await GetPayloadAsync(response),
-                    actualPayload,
+                    canLogPayload ? messageData.Payload ?? string.Empty : string.Empty, // request body
+                    await GetResponsePayloadAsync(response), // response body
+                    canLogPayload ? actualPayload : string.Empty,  // messagePayload
                     messageData.EventHandlerActorId,
                     messageData.Type,
                     $"Response status code {response.StatusCode}",
@@ -79,7 +87,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return list == null ? null: JsonConvert.SerializeObject (list, Formatting.None);
         }
 
-        private static async Task<string> GetPayloadAsync(HttpResponseMessage response)
+        private static async Task<string> GetResponsePayloadAsync(HttpResponseMessage response)
         {
             if (response?.Content == null)
             {

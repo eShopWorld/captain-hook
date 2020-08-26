@@ -66,11 +66,10 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .WithEvent("event")
                 .WithName("subscriber")
                 .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
-                    authentication: new AuthenticationEntity(
+                    authentication: new OidcAuthenticationEntity(
                         "captain-hook-id",
                         "kv-secret-name",
                         "https://blah-blah.sts.eshopworld.com",
-                        "OIDC",
                         new[] { "scope1" })
                 ).Create();
 

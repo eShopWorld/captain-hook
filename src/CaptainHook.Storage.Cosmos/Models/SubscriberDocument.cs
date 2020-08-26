@@ -13,7 +13,6 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Identifier
         /// </summary>
-        [JsonProperty("id")]
         public string Id;
 
         /// <summary>
@@ -25,25 +24,21 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Partition key
         /// </summary>
-        [JsonProperty("pk")]
         public string Pk => GetPartitionKey(EventName);
 
         /// <summary>
         /// Subscriber name
         /// </summary>
-        [JsonProperty("subscriberName")]
         public string SubscriberName { get; set; }
 
         /// <summary>
         /// Event name
         /// </summary>
-        [JsonProperty("eventName")]
         public string EventName { get; set; }
 
         /// <summary>
         /// Webhooks
         /// </summary>
-        [JsonProperty("webhooks")]
         public WebhookSubdocument Webhooks { get; set; }
 
         /// <summary>
