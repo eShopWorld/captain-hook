@@ -62,8 +62,15 @@ namespace CaptainHook.Common.Configuration
 
         private static string GetSecretValue (SecretClient client, string key)
         {
-            var value = client.GetSecretAsync (key).ConfigureAwait (false).GetAwaiter ().GetResult ();
-            return value?.Value?.Value;
+            try
+            {
+                var value = client.GetSecretAsync(key).ConfigureAwait(false).GetAwaiter().GetResult();
+                return value?.Value?.Value;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
