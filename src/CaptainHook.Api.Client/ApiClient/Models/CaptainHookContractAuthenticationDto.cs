@@ -7,8 +7,6 @@
 namespace CaptainHook.Api.Client.Models
 {
     using Newtonsoft.Json;
-    using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
 
     public partial class CaptainHookContractAuthenticationDto
@@ -26,13 +24,9 @@ namespace CaptainHook.Api.Client.Models
         /// Initializes a new instance of the
         /// CaptainHookContractAuthenticationDto class.
         /// </summary>
-        public CaptainHookContractAuthenticationDto(string type = default(string), string clientId = default(string), string uri = default(string), CaptainHookContractClientSecretDto clientSecret = default(CaptainHookContractClientSecretDto), IList<string> scopes = default(IList<string>))
+        public CaptainHookContractAuthenticationDto(string authenticationType = default(string))
         {
-            Type = type;
-            ClientId = clientId;
-            Uri = uri;
-            ClientSecret = clientSecret;
-            Scopes = scopes;
+            AuthenticationType = authenticationType;
             CustomInit();
         }
 
@@ -43,28 +37,8 @@ namespace CaptainHook.Api.Client.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "type")]
-        public string Type { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "clientId")]
-        public string ClientId { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "uri")]
-        public string Uri { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "clientSecret")]
-        public CaptainHookContractClientSecretDto ClientSecret { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "scopes")]
-        public IList<string> Scopes { get; set; }
+        [JsonProperty(PropertyName = "authenticationType")]
+        public string AuthenticationType { get; set; }
 
     }
 }
