@@ -104,7 +104,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             SubscriberEntity existingItem)
         {
             var endpoint = MapRequestToEndpoint(request, existingItem);
-            var addWebhookResult = existingItem.AddWebhookEndpoint(endpoint);
+            var addWebhookResult = existingItem.SetWebhookEndpoint(endpoint);
 
             if (addWebhookResult.IsError)
             {
@@ -138,7 +138,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
         {
             var subscriber = new SubscriberEntity(request.SubscriberName, new EventEntity(request.EventName));
             var endpoint = MapRequestToEndpoint(request, subscriber);
-            var addWebhookResult = subscriber.AddWebhookEndpoint(endpoint);
+            var addWebhookResult = subscriber.SetWebhookEndpoint(endpoint);
 
             return addWebhookResult?.Error ?? addWebhookResult;
         }
