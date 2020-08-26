@@ -1,6 +1,8 @@
 ﻿using Autofac;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
+using Eshopworld.Data.CosmosDb;
+using Microsoft.Azure.Cosmos;
 
 namespace CaptainHook.Storage.Cosmos
 {
@@ -9,6 +11,14 @@ namespace CaptainHook.Storage.Cosmos
     /// </summary>
     public class CosmosDbStorageModule : Module
     {
+        private static readonly CosmosClientOptions CosmosClientOptions = new CosmosClientOptions
+        {
+            SerializerOptions = new CosmosSerializationOptions
+            {
+                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+            }
+        };
+
         /// <summary>
         /// Load module dependencies
         /// </summary>
@@ -22,6 +32,10 @@ namespace CaptainHook.Storage.Cosmos
             builder.RegisterType<SubscriberRepository>()
                 .As<ISubscriberRepository>()
                 .SingleInstance();
+            
+            builder.RegisterModule<CosmosDbModule>();
+
+            builder.RegisterInstance(CosmosClientOptions);
         }
     }
 }

@@ -128,9 +128,8 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         private static EndpointEntity MapRequestToEndpoint(UpsertWebhookRequest request, SubscriberEntity parent)
         {
-            var authDto = request.Endpoint.Authentication;
-            var authenticationEntity = new AuthenticationEntity(authDto.ClientId, authDto.ClientSecretKeyName, authDto.Uri, authDto.Type, authDto.Scopes.ToArray());
-            var endpoint = new EndpointEntity(request.Endpoint.Uri, authenticationEntity, request.Endpoint.HttpVerb, request.Selector, parent);
+            var authenticationEntity = MapAuthentication(request.Endpoint.Authentication);
+            var endpoint = new EndpointEntity(request.Endpoint.Uri, authenticationEntity, request.Endpoint.HttpVerb, request.Endpoint.Selector, parent);
 
             return endpoint;
         }
@@ -142,6 +141,16 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var addWebhookResult = subscriber.AddWebhookEndpoint(endpoint);
 
             return addWebhookResult?.Error ?? addWebhookResult;
+        }
+
+        private static AuthenticationEntity MapAuthentication(AuthenticationDto authenticationDto)
+        {
+            return authenticationDto switch
+            {
+                BasicAuthenticationDto dto => new BasicAuthenticationEntity(dto.Username, dto.Password),
+                OidcAuthenticationDto dto => new OidcAuthenticationEntity(dto.ClientId, dto.ClientSecretKeyName, dto.Uri, dto.Scopes?.ToArray()),
+                _ => null,
+            };
         }
     }
 }

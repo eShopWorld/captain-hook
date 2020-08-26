@@ -10,6 +10,7 @@ using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
+using Newtonsoft.Json;
 
 namespace CaptainHook.Storage.Cosmos
 {
@@ -19,9 +20,13 @@ namespace CaptainHook.Storage.Cosmos
     /// <seealso cref="ISubscriberRepository" />
     public class SubscriberRepository : ISubscriberRepository
     {
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
+        {
+            Converters = { new AuthenticationSubdocumentJsonConverter() }
+        };
+
         private readonly ICosmosDbRepository _cosmosDbRepository;
         private readonly ISubscriberQueryBuilder _endpointQueryBuilder;
-
 
         public string CollectionName { get; } = "subscribers";
 
@@ -32,8 +37,8 @@ namespace CaptainHook.Storage.Cosmos
         /// <param name="setup">The setup</param>
         /// <param name="queryBuilder">The query builder</param>
         /// <param name="bigBrother">A BigBrother instance</param>
-        /// <exception cref="System.ArgumentNullException">If cosmosDbRepository is null</exception>
-        /// <exception cref="System.ArgumentNullException">If endpointQueryBuilder is null</exception>
+        /// <exception cref="ArgumentNullException">If cosmosDbRepository is null</exception>
+        /// <exception cref="ArgumentNullException">If endpointQueryBuilder is null</exception>
         public SubscriberRepository(
             ICosmosDbRepository cosmosDbRepository,
             ISubscriberQueryBuilder queryBuilder)
@@ -59,9 +64,10 @@ namespace CaptainHook.Storage.Cosmos
             try
             {
                 var query = _endpointQueryBuilder.BuildSelectAllSubscribers();
-                var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
+                var subscribers = await _cosmosDbRepository.QueryAsync<dynamic>(query);
 
                 return subscribers
+                    .Select(Deserialize)
                     .Select(Map)
                     .ToList();
             }
@@ -108,8 +114,9 @@ namespace CaptainHook.Storage.Cosmos
             {
                 var subscriberDocument = Map(subscriberEntity);
 
-                var result = await _cosmosDbRepository.ReplaceAsync(subscriberDocument.Id, subscriberDocument, subscriberEntity.Etag);
-                return Map(result.Document);
+                var result = await _cosmosDbRepository.ReplaceAsync<dynamic>(subscriberDocument.Id, subscriberDocument, subscriberEntity.Etag);
+
+                return Map(Deserialize(result.Document));
             }
             catch (Exception exception)
             {
@@ -124,7 +131,7 @@ namespace CaptainHook.Storage.Cosmos
                 var subscriberDocument = Map(subscriberEntity);
 
                 var result = await _cosmosDbRepository.CreateAsync(subscriberDocument);
-                return Map(result.Document);
+                return Map(Deserialize(result.Document));
             }
             catch (Exception exception)
             {
@@ -137,7 +144,7 @@ namespace CaptainHook.Storage.Cosmos
             try
             {
                 var query = _endpointQueryBuilder.BuildSelectSubscriber(subscriberId, subscriberId.EventName);
-                var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
+                var subscribers = await _cosmosDbRepository.QueryAsync<dynamic>(query);
 
                 if (!subscribers.Any())
                 {
@@ -145,7 +152,8 @@ namespace CaptainHook.Storage.Cosmos
                 }
 
                 return subscribers
-                    .Select(x => Map(x))
+                    .Select(Deserialize)
+                    .Select(Map)
                     .First();
             }
             catch (Exception exception)
@@ -159,7 +167,7 @@ namespace CaptainHook.Storage.Cosmos
             try
             {
                 var query = _endpointQueryBuilder.BuildSelectForEventSubscribers(eventName);
-                var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
+                var subscribers = await _cosmosDbRepository.QueryAsync<dynamic>(query);
 
                 if (!subscribers.Any())
                 {
@@ -167,13 +175,19 @@ namespace CaptainHook.Storage.Cosmos
                 }
 
                 return subscribers
-                    .Select(x => Map(x))
+                    .Select(Deserialize)
+                    .Select(Map)
                     .ToList();
             }
             catch (Exception exception)
             {
                 return new CannotQueryEntityError(nameof(SubscriberEntity), exception);
             }
+        }
+
+        private static SubscriberDocument Deserialize(dynamic document)
+        {
+            return JsonConvert.DeserializeObject<SubscriberDocument>(document?.ToString(), JsonSerializerSettings);
         }
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)
@@ -207,7 +221,7 @@ namespace CaptainHook.Storage.Cosmos
                 Selector = endpointEntity.Selector,
                 HttpVerb = endpointEntity.HttpVerb,
                 Uri = endpointEntity.Uri,
-                Authentication = Map(endpointEntity.Authentication)
+                Authentication = MapToAuthenticationSubdocument(endpointEntity.Authentication)
             };
         }
 
@@ -239,7 +253,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private EndpointEntity Map(EndpointSubdocument endpointSubdocument, SubscriberEntity subscriberEntity)
         {
-            var authentication = Map(endpointSubdocument.Authentication);
+            var authentication = MapToAuthenticationEntity(endpointSubdocument.Authentication);
             return new EndpointEntity(endpointSubdocument.Uri, authentication, endpointSubdocument.HttpVerb, endpointSubdocument.Selector, subscriberEntity);
         }
 
@@ -253,20 +267,33 @@ namespace CaptainHook.Storage.Cosmos
             return new UriTransformEntity(uriTransformSubdocument.Replace);
         }
 
-        private AuthenticationEntity Map(AuthenticationData authentication)
+        private AuthenticationEntity MapToAuthenticationEntity(AuthenticationSubdocument authentication)
         {
-            return new AuthenticationEntity(authentication.ClientId, authentication.SecretName, authentication.Uri, authentication.Type, authentication.Scopes);
+            return authentication switch
+            {
+                BasicAuthenticationSubdocument doc => new BasicAuthenticationEntity(doc.Username, doc.Password),
+                OidcAuthenticationSubdocument doc => new OidcAuthenticationEntity(doc.ClientId, doc.SecretName, doc.Uri, doc.Scopes),
+                _ => null
+            };
         }
 
-        private AuthenticationData Map(AuthenticationEntity authenticationEntity)
+        private AuthenticationSubdocument MapToAuthenticationSubdocument(AuthenticationEntity authenticationEntity)
         {
-            return new AuthenticationData
+            return authenticationEntity switch
             {
-                SecretName = authenticationEntity.ClientSecretKeyName,
-                Scopes = authenticationEntity.Scopes,
-                ClientId = authenticationEntity.ClientId,
-                Uri = authenticationEntity.Uri,
-                Type = authenticationEntity.Type
+                BasicAuthenticationEntity ent => new BasicAuthenticationSubdocument
+                {
+                    Username = ent.Username,
+                    Password = ent.Password
+                },
+                OidcAuthenticationEntity ent => new OidcAuthenticationSubdocument
+                {
+                    SecretName = ent.ClientSecretKeyName,
+                    Scopes = ent.Scopes,
+                    ClientId = ent.ClientId,
+                    Uri = ent.Uri
+                },
+                _ => null
             };
         }
 

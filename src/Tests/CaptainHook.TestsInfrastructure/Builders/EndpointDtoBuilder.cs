@@ -9,7 +9,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
             With(e => e.Uri, "https://blah.blah.eshopworld.com/webhook/");
             With(e => e.Selector, "*");
             With(e => e.HttpVerb, "POST");
-            With(e => e.Authentication, new AuthenticationDtoBuilder().Create());
+            With(e => e.Authentication, new OidcAuthenticationDtoBuilder().Create());
         }
     }
 }

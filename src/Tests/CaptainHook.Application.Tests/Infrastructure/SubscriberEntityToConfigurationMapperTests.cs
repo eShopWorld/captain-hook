@@ -20,19 +20,34 @@ namespace CaptainHook.Application.Tests.Infrastructure
     {
         private readonly Mock<ISecretProvider> _secretProviderMock = new Mock<ISecretProvider>();
 
+        private static readonly string Secret = "MySecret";
+
+        private static readonly OidcAuthenticationEntity OidcAuthenticationEntity = new OidcAuthenticationEntity("captain-hook-id", "kv-secret-name", "https://blah-blah.sts.eshopworld.com", new[] { "scope1" });
+        private static readonly BasicAuthenticationEntity BasicAuthenticationEntity = new BasicAuthenticationEntity("mark", "lenders");
+
+        private static readonly OidcAuthenticationConfig OidcAuthenticationConfig = new OidcAuthenticationConfig { ClientId = "captain-hook-id", ClientSecret = Secret, Scopes = new[] { "scope1" }, Uri = "https://blah-blah.sts.eshopworld.com", Type = AuthenticationType.OIDC };
+        private static readonly BasicAuthenticationConfig BasicAuthenticationConfig = new BasicAuthenticationConfig { Username = "mark", Password = "lenders", Type = AuthenticationType.Basic };
+
+        public static IEnumerable<object[]> Data =>
+            new List<object[]>
+            {
+                new object[] { "POST", OidcAuthenticationEntity, OidcAuthenticationConfig },
+                new object[] { "GET", OidcAuthenticationEntity, OidcAuthenticationConfig },
+                new object[] { "PUT", OidcAuthenticationEntity, OidcAuthenticationConfig },
+                new object[] { "POST", BasicAuthenticationEntity, BasicAuthenticationConfig },
+                new object[] { "GET", BasicAuthenticationEntity, BasicAuthenticationConfig },
+                new object[] { "PUT", BasicAuthenticationEntity, BasicAuthenticationConfig }
+            };
+
         public SubscriberEntityToConfigurationMapperTests()
         {
-            _secretProviderMock.Setup(m => m.GetSecretValueAsync("kv-secret-name")).ReturnsAsync("my-password");
+            _secretProviderMock.Setup(m => m.GetSecretValueAsync("kv-secret-name")).ReturnsAsync(Secret);
         }
 
         [Theory, IsUnit]
-        [InlineData("POST")]
-        [InlineData("GET")]
-        [InlineData("PUT")]
-        public async Task MapSubscriberAsync_WithSingleWebhookAndNoUriTransformDefined_MapsToSingleWebhook(string httpVerb)
+        [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithSingleWebhookAndNoUriTransformDefined_MapsToSingleWebhook(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
-                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var subscriber = new SubscriberBuilder()
                 .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, string.Empty, authentication: authentication)
                 .Create();
@@ -48,23 +63,15 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.EventType.Should().Be("event");
                 subscriberConfiguration.Uri.Should().Be("https://blah-blah.eshopworld.com/webhook/");
                 subscriberConfiguration.HttpMethod.Should().Be(new HttpMethod(httpVerb));
-                subscriberConfiguration.AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
-                var authenticationConfig = subscriberConfiguration.AuthenticationConfig as OidcAuthenticationConfig;
-                authenticationConfig.Uri.Should().Be("https://blah-blah.sts.eshopworld.com");
-                authenticationConfig.Scopes.Should().Contain(new[] { "scope1" });
-                authenticationConfig.Type.Should().Be(AuthenticationType.OIDC);
-                authenticationConfig.ClientId.Should().Be("captain-hook-id");
+                
+                subscriberConfiguration.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
 
         [Theory, IsUnit]
-        [InlineData("POST")]
-        [InlineData("GET")]
-        [InlineData("PUT")]
-        public async Task MapSubscriberAsync_WithSingleWebhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb)
+        [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithSingleWebhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
-               "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
@@ -91,23 +98,14 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 rule.Destination.RuleAction.Should().Be(RuleAction.RouteAndReplace);
                 rule.Source.Replace.Should().ContainKey("orderCode").WhichValue.Should().Be("$.OrderCode");
 
-                rule.Routes[0].AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
-                var authenticationConfig = rule.Routes[0].AuthenticationConfig as OidcAuthenticationConfig;
-                authenticationConfig.Uri.Should().Be("https://blah-blah.sts.eshopworld.com");
-                authenticationConfig.Scopes.Should().Contain(new[] { "scope1" });
-                authenticationConfig.Type.Should().Be(AuthenticationType.OIDC);
-                authenticationConfig.ClientId.Should().Be("captain-hook-id");
+                rule.Routes[0].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
 
         [Theory, IsUnit]
-        [InlineData("POST")]
-        [InlineData("GET")]
-        [InlineData("PUT")]
-        public async Task MapSubscriberAsync_WithMultipleWebhooksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb)
+        [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithMultipleWebhooksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
-               "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
@@ -142,30 +140,15 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 rule.Source.Replace.Should().ContainKey("selector").WhichValue.Should().Be("$.TenantCode");
                 rule.Source.Replace.Should().ContainKey("orderCode").WhichValue.Should().Be("$.OrderCode");
 
-                rule.Routes[0].AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
-                var authenticationConfig1 = rule.Routes[0].AuthenticationConfig as OidcAuthenticationConfig;
-                authenticationConfig1.Uri.Should().Be("https://blah-blah.sts.eshopworld.com");
-                authenticationConfig1.Scopes.Should().Contain(new[] { "scope1" });
-                authenticationConfig1.Type.Should().Be(AuthenticationType.OIDC);
-                authenticationConfig1.ClientId.Should().Be("captain-hook-id");
-
-                rule.Routes[1].AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
-                var authenticationConfig2 = rule.Routes[1].AuthenticationConfig as OidcAuthenticationConfig;
-                authenticationConfig2.Uri.Should().Be("https://blah-blah.sts.eshopworld.com");
-                authenticationConfig2.Scopes.Should().Contain(new[] { "scope1" });
-                authenticationConfig2.Type.Should().Be(AuthenticationType.OIDC);
-                authenticationConfig2.ClientId.Should().Be("captain-hook-id");
+                rule.Routes[0].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
+                rule.Routes[1].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
 
         [Theory, IsUnit]
-        [InlineData("POST")]
-        [InlineData("GET")]
-        [InlineData("PUT")]
-        public async Task MapSubscriberAsync_WithMultipleWebhooksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb)
+        [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithMultipleWebhooksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
-               "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
@@ -200,30 +183,16 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 rule.Source.Replace.Should().ContainKey("selector").WhichValue.Should().Be("$.TenantCode");
                 rule.Source.Replace.Should().ContainKey("orderCode").WhichValue.Should().Be("$.OrderCode");
 
-                rule.Routes[0].AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
-                var authenticationConfig1 = rule.Routes[0].AuthenticationConfig as OidcAuthenticationConfig;
-                authenticationConfig1.Uri.Should().Be("https://blah-blah.sts.eshopworld.com");
-                authenticationConfig1.Scopes.Should().Contain(new[] { "scope1" });
-                authenticationConfig1.Type.Should().Be(AuthenticationType.OIDC);
-                authenticationConfig1.ClientId.Should().Be("captain-hook-id");
+                rule.Routes[0].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
 
-                rule.Routes[1].AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
-                var authenticationConfig2 = rule.Routes[1].AuthenticationConfig as OidcAuthenticationConfig;
-                authenticationConfig2.Uri.Should().Be("https://blah-blah.sts.eshopworld.com");
-                authenticationConfig2.Scopes.Should().Contain(new[] { "scope1" });
-                authenticationConfig2.Type.Should().Be(AuthenticationType.OIDC);
-                authenticationConfig2.ClientId.Should().Be("captain-hook-id");
+                rule.Routes[1].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
 
         [Theory, IsUnit]
-        [InlineData("POST")]
-        [InlineData("GET")]
-        [InlineData("PUT")]
-        public async Task MapSubscriberAsync_WithMultipleWebhooksAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb)
+        [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithMultipleWebhooksAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
-               "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
             var subscriber = new SubscriberBuilder()
@@ -258,30 +227,15 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 rule.Source.Replace.Should().ContainKey("selector").WhichValue.Should().Be("$.TenantCode");
                 rule.Source.Replace.Should().ContainKey("orderCode").WhichValue.Should().Be("$.OrderCode");
 
-                rule.Routes[0].AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
-                var authenticationConfig1 = rule.Routes[0].AuthenticationConfig as OidcAuthenticationConfig;
-                authenticationConfig1.Uri.Should().Be("https://blah-blah.sts.eshopworld.com");
-                authenticationConfig1.Scopes.Should().Contain(new[] { "scope1" });
-                authenticationConfig1.Type.Should().Be(AuthenticationType.OIDC);
-                authenticationConfig1.ClientId.Should().Be("captain-hook-id");
-
-                rule.Routes[1].AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
-                var authenticationConfig2 = rule.Routes[1].AuthenticationConfig as OidcAuthenticationConfig;
-                authenticationConfig2.Uri.Should().Be("https://blah-blah.sts.eshopworld.com");
-                authenticationConfig2.Scopes.Should().Contain(new[] { "scope1" });
-                authenticationConfig2.Type.Should().Be(AuthenticationType.OIDC);
-                authenticationConfig2.ClientId.Should().Be("captain-hook-id");
+                rule.Routes[0].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
+                rule.Routes[1].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
 
         [Theory, IsUnit]
-        [InlineData("POST")]
-        [InlineData("GET")]
-        [InlineData("PUT")]
-        public async Task MapSubscriberAsync_WithSingleWebhookAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb)
+        [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithSingleWebhookAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
-            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
-               "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(null);
             var subscriber = new SubscriberBuilder()
                 .WithWebhookSelectionRule("aSelectionRule")
@@ -308,25 +262,19 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 rule.Destination.RuleAction.Should().Be(RuleAction.RouteAndReplace);
                 rule.Source.Replace.Should().ContainKey("selector").WhichValue.Should().Be("aSelectionRule");
 
-                rule.Routes[0].AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
-                var authenticationConfig = rule.Routes[0].AuthenticationConfig as OidcAuthenticationConfig;
-                authenticationConfig.Uri.Should().Be("https://blah-blah.sts.eshopworld.com");
-                authenticationConfig.Scopes.Should().Contain(new[] { "scope1" });
-                authenticationConfig.Type.Should().Be(AuthenticationType.OIDC);
-                authenticationConfig.ClientId.Should().Be("captain-hook-id");
+                rule.Routes[0].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
 
-        [Fact, IsUnit]
-        public async Task MapSubscriberAsync_NoSelectionRule_MapsFromFirstEndpoint()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_NoSelectionRule_MapsFromFirstEndpoint(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             // Arrange
-            var authentication = new AuthenticationEntity("captain-hook-id", "kv-secret-name",
-                "https://blah-blah.sts.eshopworld.com", "OIDC", new[] { "scope1" });
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { {"selector", "$.Test" }});
             var subscriber = new SubscriberBuilder()
                 .WithWebhookUriTransform(uriTransform)
-                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", "POST", null, authentication)
+                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .Create();
 
             // Act
@@ -344,12 +292,16 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 }
             };
 
-            result.Should().HaveCount(1)
-                .And.Subject.First().WebhookRequestRules.Should().HaveCount(1)
-                .And.Subject.First().Should().BeEquivalentTo(
-                    webhookRequestRule,
-                    opt => opt.Including(x => x.Source.Replace));
+            using (new AssertionScope())
+            {
+                result.First().AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
 
+                result.Should().HaveCount(1)
+                    .And.Subject.First().WebhookRequestRules.Should().HaveCount(1)
+                    .And.Subject.First().Should().BeEquivalentTo(
+                        webhookRequestRule,
+                        opt => opt.Including(x => x.Source.Replace));
+            }
         }
     }
 }

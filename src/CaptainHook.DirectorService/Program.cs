@@ -14,7 +14,6 @@ using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
 using CaptainHook.Storage.Cosmos;
-using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
@@ -54,8 +53,6 @@ namespace CaptainHook.DirectorService
                     .As<IConfigurationMerger>()
                     .SingleInstance();
 
-                builder.RegisterModule<CosmosDbStorageModule>();
-
                 builder.RegisterInstance(configurationSettings)
                        .SingleInstance();
 
@@ -82,7 +79,8 @@ namespace CaptainHook.DirectorService
                     .SingleInstance();
 
                 builder.RegisterModule<KeyVaultModule>();
-                builder.RegisterModule<CosmosDbModule>();
+
+                builder.RegisterModule<CosmosDbStorageModule>();
                 builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
 
                 builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);

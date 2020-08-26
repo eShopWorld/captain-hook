@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Newtonsoft.Json;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
@@ -11,7 +10,6 @@ namespace CaptainHook.Storage.Cosmos.Models
             Replace = new ReadOnlyDictionary<string, string>(replace ?? new Dictionary<string, string>());
         }
 
-        [JsonProperty("replace")]
         public IDictionary<string, string> Replace { get; }
     }
 }

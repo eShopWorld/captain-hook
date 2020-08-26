@@ -185,7 +185,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var endpoints = new List<EndpointDto>()
             {
                 new EndpointDtoBuilder()
-                    .With(x => x.Selector, null)
+                    .With(x => x.Selector, "*")
                     .With(x => x.Uri, "http://www.uri1.com/{selector}/{token1}")
                     .Create(),
                 new EndpointDtoBuilder()
