@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Application.Results;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
@@ -54,12 +55,12 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
             var result = await _handler.Handle(request, CancellationToken.None);
 
-            var expectedResult = new OperationResult<SubscriberDto>(subscriberDto);
+            var expectedResult = new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(subscriberDto, UpsertType.Created));
             result.Should().BeEquivalentTo(expectedResult);
         }
 
         [Fact, IsUnit]
-        public async Task When_Subscriber_DoesExist_Then_OperationFails()
+        public async Task When_Subscriber_DoesExist_Then_SubscriberIsUpdated()
         {
             var subscriberEntity = new SubscriberBuilder()
                 .WithEvent("event")
@@ -72,12 +73,17 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                         "OIDC",
                         new[] { "scope1" })
                 ).Create();
+
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriberEntity);
+            _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(true);
+            _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(new SubscriberEntity("subscriber"));
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
-            var expectedResult = new OperationResult<SubscriberDto>(new BusinessError("Updating subscribers not supported!"));
+            var expectedResult = new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(_testRequest.Subscriber, UpsertType.Updated));
             result.Should().BeEquivalentTo(expectedResult);
         }
 
@@ -89,7 +95,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
-            var expectedResult = new OperationResult<SubscriberDto>(new BusinessError("Updating subscribers not supported!"));
+            var expectedResult = new OperationResult<SubscriberDto>(new BusinessError("test error"));
             result.Should().BeEquivalentTo(expectedResult);
         }
 

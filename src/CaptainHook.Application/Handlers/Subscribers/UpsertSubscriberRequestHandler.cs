@@ -34,10 +34,18 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var subscriber = MapRequestToEntity(request);
             OperationResult<bool> saveResult;
             UpsertType upsertType;
-            if (existingItem.Error is EntityNotFoundError)
+
+            if (existingItem.IsError)
             {
-                saveResult = await InsertSubscriber(subscriber);
-                upsertType = UpsertType.Created;
+                if (existingItem.Error is EntityNotFoundError)
+                {
+                    saveResult = await InsertSubscriber(subscriber);
+                    upsertType = UpsertType.Created;
+                }
+                else
+                {
+                    return existingItem.Error;
+                }
             }
             else
             {
