@@ -11,5 +11,7 @@
         public string ServiceBusConnectionString { get; set; }
 
         public string ServiceBusNamespace { get; set; }
+
+        public FeatureFlagsConfiguration FeatureFlags { get; set; }
     }
 }
