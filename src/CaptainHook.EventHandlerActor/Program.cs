@@ -5,9 +5,6 @@ using Autofac;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
-using CaptainHook.EventHandlerActor.Handlers;
-using CaptainHook.EventHandlerActor.Handlers.Authentication;
-using CaptainHook.EventHandlerActor.Handlers.Requests;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 
@@ -15,6 +12,8 @@ namespace CaptainHook.EventHandlerActor
 {
     internal static class Program
     {
+        private const string CaptainHookConfigSection = "CaptainHook";
+
         /// <summary>
         ///     This is the entry point of the service host process.
         /// </summary>
@@ -24,6 +23,7 @@ namespace CaptainHook.EventHandlerActor
             {
                 var configuration = TempConfigLoader.Load ();
                 var configurationSettings = configuration.Get<ConfigurationSettings>();
+                var featureFlags = configuration.GetSection(CaptainHookConfigSection).Get<FeatureFlagsConfiguration>();
 
                 var builder = new ContainerBuilder();
 
@@ -31,6 +31,10 @@ namespace CaptainHook.EventHandlerActor
 
                 builder.RegisterInstance(configurationSettings)
                     .SingleInstance();
+
+                builder.RegisterInstance(featureFlags)
+                    .SingleInstance();
+
                 builder.RegisterActor<EventHandlerActor>();
 
                 builder.RegisterModule<HandlerModule>();

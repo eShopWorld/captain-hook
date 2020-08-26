@@ -8,7 +8,6 @@ using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
-using Eshopworld.DevOps;
 using Newtonsoft.Json;
 
 namespace CaptainHook.EventHandlerActor.Handlers
@@ -20,14 +19,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class RequestLogger : IRequestLogger
     {
         private readonly IBigBrother _bigBrother;
-        private readonly ConfigurationSettings _configurationSettings;
+        private readonly FeatureFlagsConfiguration _featureFlags;
 
         public RequestLogger(
             IBigBrother bigBrother,
-            ConfigurationSettings configurationSettings)
+            FeatureFlagsConfiguration featureFlags)
         {
             _bigBrother = bigBrother;
-            _configurationSettings = configurationSettings;
+            _featureFlags = featureFlags;
         }
 
         public async Task LogAsync(
@@ -58,7 +57,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
             else
             {
-                var canLogPayload = !(_configurationSettings.FeatureFlags.GetFlag<DisablePayloadLoggingFeatureFlag>()?.IsEnabled ?? false);
+                var canLogPayload = !(_featureFlags.GetFlag<DisablePayloadLoggingFeatureFlag>()?.IsEnabled ?? false);
                 
                 // request failed
                 _bigBrother.Publish(new FailedWebhookEvent(
