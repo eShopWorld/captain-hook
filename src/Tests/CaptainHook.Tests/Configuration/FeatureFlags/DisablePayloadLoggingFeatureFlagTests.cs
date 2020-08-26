@@ -6,18 +6,18 @@ using Xunit;
 
 namespace CaptainHook.Tests.Configuration.FeatureFlags
 {
-    public class DisablePayloadLoggingForSandTests
+    public class DisablePayloadLoggingFeatureFlagTests
     {
         [Fact, IsUnit]
         public void CreatesDefaultInstance()
         {
             // Arrange
-            var featureFlag = new DisablePayloadLoggingForSandFeatureFlag();
+            var featureFlag = new DisablePayloadLoggingFeatureFlag();
 
             // Assert
             using (new AssertionScope())
             {
-                featureFlag.Identifier.Should().Be("DisablePayloadLoggingForSAND");
+                featureFlag.Identifier.Should().Be("DisablePayloadLogging");
                 featureFlag.IsEnabled.Should().BeFalse("because by default features are off");
             }
         }
@@ -26,13 +26,13 @@ namespace CaptainHook.Tests.Configuration.FeatureFlags
         public void CanChangeEnabledProperty()
         {
             // Arrange
-            var featureFlag = new DisablePayloadLoggingForSandFeatureFlag();
+            var featureFlag = new DisablePayloadLoggingFeatureFlag();
             featureFlag.SetEnabled(true);
 
             // Assert
             using (new AssertionScope())
             {
-                featureFlag.Identifier.Should().Be("DisablePayloadLoggingForSAND");
+                featureFlag.Identifier.Should().Be("DisablePayloadLogging");
                 featureFlag.IsEnabled.Should().BeTrue("because the default value has been overriden");
             }
         }

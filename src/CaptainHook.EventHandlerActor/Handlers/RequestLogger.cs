@@ -58,7 +58,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
             else
             {
-                var canLogPayload = !IsPayloadDisabled();
+                var canLogPayload = !(_configurationSettings.FeatureFlags.GetFlag<DisablePayloadLoggingFeatureFlag>()?.IsEnabled ?? false);
+                
                 // request failed
                 _bigBrother.Publish(new FailedWebhookEvent(
                     httpClient.DefaultRequestHeaders.ToString(),
@@ -78,13 +79,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     AuthToken = response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? headers?.RequestHeaders?[Constants.Headers.Authorization] : string.Empty
                 });
             }
-        }
-
-        private bool IsPayloadDisabled()
-        {
-            return
-                EswDevOpsSdk.GetEnvironment() == DeploymentEnvironment.Sand && (_configurationSettings.FeatureFlags.GetFlag<DisablePayloadLoggingForSandFeatureFlag>()?.IsEnabled ?? false) ||
-                EswDevOpsSdk.GetEnvironment() == DeploymentEnvironment.Prod && (_configurationSettings.FeatureFlags.GetFlag<DisablePayloadLoggingForProdFeatureFlag>()?.IsEnabled ?? false);
         }
 
         private string CollectRules (WebhookConfig config)
