@@ -12,8 +12,9 @@ namespace CaptainHook.Application.Validators
 
             RuleFor(x => x.EventName).NotEmpty();
             RuleFor(x => x.SubscriberName).NotEmpty();
+            RuleFor(x => x.Selector).NotEmpty();
             RuleFor(x => x.Endpoint).NotNull()
-                .SetValidator(new EndpointDtoValidator());
+                .SetValidator(request => new UpsertEndpointDtoValidator(request.Selector));
         }
     }
 }

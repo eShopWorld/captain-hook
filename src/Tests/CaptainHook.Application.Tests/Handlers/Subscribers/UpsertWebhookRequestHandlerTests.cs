@@ -28,7 +28,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
 
         private readonly UpsertWebhookRequest _defaultUpsertRequest =
-            new UpsertWebhookRequest("event", "subscriber", new EndpointDtoBuilder().With(x => x.Selector, null).Create());
+            new UpsertWebhookRequest("event", "subscriber", "*", new EndpointDtoBuilder().Create());
 
         private static readonly SubscriberBuilder DefaultSubscriberBuilder = new SubscriberBuilder().WithEvent("event")
             .WithName("subscriber")
