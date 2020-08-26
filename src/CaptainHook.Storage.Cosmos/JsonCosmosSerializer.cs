@@ -14,7 +14,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private readonly JsonSerializer _serializer;
 
-        public JsonCosmosSerializer(JsonSerializerSettings settings)
+        public JsonCosmosSerializer(JsonSerializerSettings settings = null)
         {
             _serializer = JsonSerializer.Create(settings);
         }
