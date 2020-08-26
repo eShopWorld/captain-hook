@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using CaptainHook.Domain.Entities.Comparers;
-using CaptainHook.Domain.Errors;
-using CaptainHook.Domain.Results;
-using FluentValidation;
 
 namespace CaptainHook.Domain.Entities
 {
@@ -12,12 +9,6 @@ namespace CaptainHook.Domain.Entities
     /// </summary>
     public class WebhooksEntity
     {
-        private static readonly IValidator<WebhooksEntity> WebhooksValidator = new WebhooksEntityValidator();
-
-        private static readonly ValidationErrorBuilder ValidationErrorBuilder = new ValidationErrorBuilder();
-
-        private static readonly SelectorEndpointEntityEqualityComparer SelectorEndpointEntityEqualityComparer = new SelectorEndpointEntityEqualityComparer();
-
         private readonly IList<EndpointEntity> _endpoints;
 
         /// <summary>
@@ -51,49 +42,15 @@ namespace CaptainHook.Domain.Entities
             _endpoints = endpoints?.ToList() ?? new List<EndpointEntity>();
         }
 
-        public OperationResult<WebhooksEntity> SetEndpoint(EndpointEntity endpoint)
+        public void AddEndpoint(EndpointEntity endpointModel)
         {
-            var extendedEndpointsCollection = _endpoints
-                .Except(new [] { endpoint }, SelectorEndpointEntityEqualityComparer)
-                .Concat(new[] { endpoint });
-            var endpointsEntityForValidation = new WebhooksEntity(SelectionRule, extendedEndpointsCollection, UriTransform);
-
-            var validationResult = WebhooksValidator.Validate(endpointsEntityForValidation);
-
-            if (! validationResult.IsValid)
-            {
-                return ValidationErrorBuilder.Build(validationResult);
-            }
-
-            var toDelete = FindMatchingEndpoint(endpoint);
-            if (toDelete != null)
-            {
-                _endpoints.Remove(toDelete);
-            }
-
-            _endpoints.Add(endpoint);
-            return this;
+            _endpoints.Add(endpointModel);
         }
 
-        public OperationResult<WebhooksEntity> RemoveEndpoint(EndpointEntity endpoint)
+        public bool RemoveEndpoint(string selector)
         {
-            if (_endpoints.Count == 1)
-            {
-                return new CannotRemoveLastEndpointFromSubscriberError();
-            }
-
-            var toDelete = FindMatchingEndpoint(endpoint);
-            if (toDelete == null)
-            {
-                return new EndpointNotFoundInSubscriberError(endpoint.Selector);
-            }
-
-            _endpoints.Remove(toDelete);
-
-            return this;
+            var toDelete = _endpoints.SingleOrDefault(x => string.Equals(x.Selector, selector, StringComparison.InvariantCultureIgnoreCase));
+            return toDelete != null && _endpoints.Remove(toDelete);
         }
-
-        private EndpointEntity FindMatchingEndpoint(EndpointEntity endpoint)
-            => _endpoints.SingleOrDefault(x => SelectorEndpointEntityEqualityComparer.Equals(x, endpoint));
     }
 }
