@@ -20,8 +20,10 @@ namespace CaptainHook.Storage.Cosmos
     /// <seealso cref="ISubscriberRepository" />
     public class SubscriberRepository : ISubscriberRepository
     {
-        private static readonly Type SubscriberDocumentType = typeof(SubscriberDocument);
-        private static readonly AuthenticationSubdocumentJsonConverter AuthenticationSubdocumentJsonConverter = new AuthenticationSubdocumentJsonConverter();
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
+        {
+            Converters = { new AuthenticationSubdocumentJsonConverter() }
+        };
 
         private readonly ICosmosDbRepository _cosmosDbRepository;
         private readonly ISubscriberQueryBuilder _endpointQueryBuilder;
@@ -185,10 +187,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private static SubscriberDocument Deserialize(dynamic document)
         {
-            return (SubscriberDocument)JsonConvert.DeserializeObject(
-                document?.ToString(),
-                SubscriberDocumentType, 
-                AuthenticationSubdocumentJsonConverter);
+            return JsonConvert.DeserializeObject<SubscriberDocument>(document?.ToString(), JsonSerializerSettings);
         }
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)
