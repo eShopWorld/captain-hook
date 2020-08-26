@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using Newtonsoft.Json;
+using System.Runtime.Serialization;
 
 namespace CaptainHook.Contract
 {
@@ -6,6 +7,7 @@ namespace CaptainHook.Contract
     [KnownType(typeof(BasicAuthenticationDto))]
     public abstract class AuthenticationDto
     {
-        public string Type { get; set; }
+        [JsonProperty("type")]
+        public string AuthenticationType { get; set; }
     }
 }

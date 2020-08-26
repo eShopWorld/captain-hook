@@ -17,14 +17,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="appsettings.CI.json" />
-    <None Remove="appsettings.Development.json" />
-    <None Remove="appsettings.json" />
-    <None Remove="appsettings.PREP.json" />
-    <None Remove="appsettings.TEST.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Eshopworld.DevOps" Version="5.1.1" />
     <PackageReference Include="Eshopworld.Messaging" Version="2.1.3" />
     <PackageReference Include="EShopworld.Security.Services.Testing" Version="2.6.3" />
@@ -48,6 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\CaptainHook.Api\CaptainHook.Api.csproj" />
     <ProjectReference Include="..\..\CaptainHook.Cli\CaptainHook.Cli.csproj" />
     <ProjectReference Include="..\..\CaptainHook.Common\CaptainHook.Common.csproj" />
     <ProjectReference Include="..\..\CaptainHook.DirectorService\CaptainHook.DirectorService.csproj" />
@@ -59,16 +52,20 @@
 
   <ItemGroup>
     <Content Include="appsettings.TEST.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.PREP.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.CI.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.Development.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		<DependentUpon>appsettings.json</DependentUpon>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

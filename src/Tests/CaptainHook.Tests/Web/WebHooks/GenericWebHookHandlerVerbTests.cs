@@ -24,10 +24,12 @@ namespace CaptainHook.Tests.Web.WebHooks
     public class GenericWebHookHandlerVerbTests
     {
         private readonly CancellationToken _cancellationToken;
+        private readonly FeatureFlagsConfiguration _featureFlags;
 
         public GenericWebHookHandlerVerbTests()
         {
             _cancellationToken = new CancellationToken();
+            _featureFlags = new FeatureFlagsConfiguration();
         }
 
         [IsUnit]
@@ -48,7 +50,7 @@ namespace CaptainHook.Tests.Web.WebHooks
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
             var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
-            var requestLogger = new RequestLogger(mockBigBrother.Object);
+            var requestLogger = new RequestLogger(mockBigBrother.Object, _featureFlags);
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 httpClientBuilder,
@@ -76,7 +78,7 @@ namespace CaptainHook.Tests.Web.WebHooks
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
             var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
-            var requestLogger = new RequestLogger(mockBigBrother.Object);
+            var requestLogger = new RequestLogger(mockBigBrother.Object, _featureFlags);
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 httpClientBuilder,

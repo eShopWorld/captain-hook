@@ -4,13 +4,13 @@ using CaptainHook.Common.Telemetry.Web;
 
 namespace CaptainHook.Common.Telemetry
 {
-    public class FailedWebHookEvent : WebhookEvent
+    public class FailedWebhookEvent : WebhookEvent
     {
-        public FailedWebHookEvent()
+        public FailedWebhookEvent()
         {
         }
 
-        public FailedWebHookEvent(
+        public FailedWebhookEvent(
             string requestHeaders,
             string responseHeaders,
             string requestBody, 
@@ -37,13 +37,21 @@ namespace CaptainHook.Common.Telemetry
 
         public string ResponseHeaders { get; set; }
 
+        /// <remarks>
+        /// This is sent for all environments except for SAND and PROD
+        /// </remarks>
         public string MessagePayload { get; set; }
 
+        /// <remarks>
+        /// This is sent for all environments except for SAND and PROD
+        /// </remarks>
         public string RequestBody { get; set; }
 
         public string ResponseBody { get; set; }
 
-        //only sent for 401 responses
+        /// <remarks>
+        /// This is only sent for 401 responses
+        /// </remarks>
         public string AuthToken { get; set; }
     }
 }

@@ -20,7 +20,7 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
             var result = _validator.TestValidate(webhooksDto);
 
             result.ShouldHaveValidationErrorFor(x => x.Endpoints)
-                .WithErrorMessage("Webhooks list must contain at list one endpoint");
+                .WithErrorMessage("Webhooks list must contain at least one endpoint");
         }
 
         [Fact, IsUnit]
@@ -31,7 +31,7 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
             var result = _validator.TestValidate(webhooksDto);
 
             result.ShouldHaveValidationErrorFor(x => x.Endpoints)
-                .WithErrorMessage("Webhooks list must contain at list one endpoint");
+                .WithErrorMessage("Webhooks list must contain at least one endpoint");
         }
     }
 }
