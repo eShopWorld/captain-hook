@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
@@ -19,10 +20,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class RequestLogger : IRequestLogger
     {
         private readonly IBigBrother _bigBrother;
+        private readonly ConfigurationSettings _configurationSettings;
 
-        public RequestLogger(IBigBrother bigBrother)
+        public RequestLogger(
+            IBigBrother bigBrother,
+            ConfigurationSettings configurationSettings)
         {
             _bigBrother = bigBrother;
+            _configurationSettings = configurationSettings;
         }
 
         public async Task LogAsync(
@@ -37,7 +42,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         )
         {
             var webhookRules = CollectRules (config);
-            var canLogPayload = (EswDevOpsSdk.GetEnvironment() != DeploymentEnvironment.Prod && EswDevOpsSdk.GetEnvironment() != DeploymentEnvironment.Sand);
 
             if (response.IsSuccessStatusCode)
             {
@@ -54,6 +58,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
             else
             {
+                var canLogPayload = !IsPayloadDisabled();
                 // request failed
                 _bigBrother.Publish(new FailedWebHookEvent(
                     httpClient.DefaultRequestHeaders.ToString(),
@@ -73,6 +78,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     AuthToken = response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? headers?.RequestHeaders?[Constants.Headers.Authorization] : string.Empty
                 });
             }
+        }
+
+        private bool IsPayloadDisabled()
+        {
+            return
+                EswDevOpsSdk.GetEnvironment() == DeploymentEnvironment.Sand && (_configurationSettings.FeatureFlags.GetFlag<DisablePayloadLoggingForSandFeatureFlag>()?.IsEnabled ?? false) ||
+                EswDevOpsSdk.GetEnvironment() == DeploymentEnvironment.Prod && (_configurationSettings.FeatureFlags.GetFlag<DisablePayloadLoggingForProdFeatureFlag>()?.IsEnabled ?? false);
         }
 
         private string CollectRules (WebhookConfig config)
