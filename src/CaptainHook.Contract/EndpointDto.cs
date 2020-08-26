@@ -21,7 +21,7 @@ namespace CaptainHook.Contract
         /// <summary>
         /// Authentication type and details
         /// </summary>
-        public OidcAuthenticationDto Authentication { get; set; }
+        public AuthenticationDto Authentication { get; set; }
 
         /// <summary>
         /// Selector

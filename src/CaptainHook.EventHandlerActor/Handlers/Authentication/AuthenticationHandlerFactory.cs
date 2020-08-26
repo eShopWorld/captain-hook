@@ -50,14 +50,14 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                     await EnterSemaphore(() =>
                     {
                         _handlers.TryAdd(key, new BasicAuthenticationHandler(config.AuthenticationConfig));
-                    }, key, cancellationToken);
+                    }, config, cancellationToken);
                     break;
 
                 case AuthenticationType.OIDC:
                     await EnterSemaphore(() =>
                     {
                         _handlers.TryAdd(key, new OidcAuthenticationHandler(_httpClientFactory, config.AuthenticationConfig, _bigBrother));
-                    }, key, cancellationToken);
+                    }, config, cancellationToken);
                     break;
 
                 case AuthenticationType.Custom:
@@ -67,7 +67,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                     await EnterSemaphore(() =>
                     {
                         _handlers.TryAdd(key, new MmAuthenticationHandler(_httpClientFactory, config.AuthenticationConfig, _bigBrother));
-                    }, key, cancellationToken);
+                    }, config, cancellationToken);
                     break;
 
                 default:
@@ -79,15 +79,20 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             return newHandler;
         }
 
-        private async Task EnterSemaphore(Action action, string key, CancellationToken cancellationToken)
+        private async Task EnterSemaphore(Action action, WebhookConfig newConfig, CancellationToken cancellationToken)
         {
             try
             {
+                var key = newConfig.Uri;
+
                 await _semaphore.WaitAsync(cancellationToken);
 
-                if (_handlers.ContainsKey(key))
+                if (_handlers.TryGetValue(key, out var handler))
                 {
-                    return;
+                    if (handler.HasConfigChanged(newConfig.AuthenticationConfig))
+                        _handlers.TryRemove(key, out _);
+                    else
+                        return;
                 }
                 action();
             }

@@ -26,11 +26,10 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
 
-        private static AuthenticationEntity _authentication = new AuthenticationEntity(
+        private static OidcAuthenticationEntity _authentication = new OidcAuthenticationEntity(
                 "captain-hook-id",
                 "kv-secret-name",
                 "https://blah-blah.sts.eshopworld.com",
-                "OIDC",
                 new[] { "scope1" });
 
         private static readonly SubscriberBuilder _subscriberBuilder = new SubscriberBuilder()

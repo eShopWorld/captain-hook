@@ -77,6 +77,8 @@ namespace CaptainHook.Api
 
         private const string CaptainHookConfigSection = "CaptainHook";
 
+        private static readonly AuthenticationDtoJsonConverter authenticationDtoJsonConverter = new AuthenticationDtoJsonConverter();
+
         /// <summary>
         /// configure services to be used by the asp.net runtime
         /// </summary>
@@ -101,7 +103,7 @@ namespace CaptainHook.Api
 
                         options.Filters.Add(filter);
                     })
-                    .AddNewtonsoftJson()
+                    .AddNewtonsoftJson(x => x.SerializerSettings.Converters.Add(authenticationDtoJsonConverter))
                     .ConfigureApiBehaviorOptions(options =>
                         options.SuppressMapClientErrors = true);
 

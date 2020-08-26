@@ -7,7 +7,7 @@ namespace CaptainHook.Application.Validators
     {
         public DeleteWebhookRequestValidator()
         {
-            CascadeMode = CascadeMode.StopOnFirstFailure;
+            CascadeMode = CascadeMode.Stop;
 
             RuleFor(x => x.EventName).NotEmpty();
             RuleFor(x => x.SubscriberName).NotEmpty();

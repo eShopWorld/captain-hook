@@ -8,7 +8,7 @@ namespace CaptainHook.Application.Validators
     {
         public UpsertSubscriberRequestValidator()
         {
-            CascadeMode = CascadeMode.StopOnFirstFailure;
+            CascadeMode = CascadeMode.Stop;
 
             RuleFor(x => x.EventName).NotEmpty();
             RuleFor(x => x.SubscriberName).NotEmpty();
