@@ -27,11 +27,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             _cosmosDbRepositoryMock = new Mock<ICosmosDbRepository>();
             _cosmosDbRepositoryMock
-                .Setup(x => x.UseCollection(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(_cosmosDbRepositoryMock.Object);
-            _cosmosDbRepositoryMock
-                .Setup(x => x.UseCosmosClientOptions(It.IsAny<CosmosClientOptions>()))
-                .Returns(_cosmosDbRepositoryMock.Object);
+                .Setup(x => x.UseCollection(It.IsAny<string>(), It.IsAny<string>()));
 
             _queryBuilderMock = new Mock<ISubscriberQueryBuilder>();
 

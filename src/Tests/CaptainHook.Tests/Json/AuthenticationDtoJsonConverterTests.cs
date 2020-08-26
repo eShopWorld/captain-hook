@@ -1,4 +1,5 @@
-﻿using CaptainHook.Contract;
+﻿using CaptainHook.Api;
+using CaptainHook.Contract;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
