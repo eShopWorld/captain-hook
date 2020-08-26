@@ -57,7 +57,7 @@ namespace CaptainHook.Domain.Entities
         /// Removes the existing endpoint and adds the new one to the list if the item is already present.
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
-        public OperationResult<SubscriberEntity> UpsertWebhookEndpoint(EndpointEntity endpointModel)
+        public OperationResult<SubscriberEntity> SetWebhookEndpoint(EndpointEntity endpointModel)
         {
             if (Webhooks == null)
             {

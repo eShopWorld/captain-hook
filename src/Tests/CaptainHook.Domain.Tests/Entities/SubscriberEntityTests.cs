@@ -16,7 +16,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var endpointEntity = new EndpointEntity("uri", null, "PUT", "*");
 
             // Act
-            var result = subscriberEntity.UpsertWebhookEndpoint(endpointEntity);
+            var result = subscriberEntity.SetWebhookEndpoint(endpointEntity);
 
             // Assert
             result.Should().BeOfType<OperationResult<SubscriberEntity>>()
@@ -31,7 +31,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var endpointEntity = new EndpointEntity("uri", null, "PUT", "*");
 
             // Act
-            var result = subscriberEntity.UpsertWebhookEndpoint(endpointEntity);
+            var result = subscriberEntity.SetWebhookEndpoint(endpointEntity);
 
             // Assert
             result.Data.Webhooks.Endpoints.Should().BeEquivalentTo(
@@ -49,7 +49,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var endpointEntity2 = new EndpointEntity("uri2", null, "DELETE", "abc");
 
             // Act
-            var result = subscriberEntity.UpsertWebhookEndpoint(endpointEntity2);
+            var result = subscriberEntity.SetWebhookEndpoint(endpointEntity2);
 
             // Assert
             result.Data.Webhooks.Endpoints.Should().BeEquivalentTo(
@@ -64,10 +64,10 @@ namespace CaptainHook.Domain.Tests.Entities
             var subscriberEntity = new SubscriberEntity("testName");
             var endpointEntity1 = new EndpointEntity("uri", null, "PUT", "*");
             var endpointEntity2 = new EndpointEntity("uri2", null, "DELETE", "*");
-            subscriberEntity.UpsertWebhookEndpoint(endpointEntity1);
+            subscriberEntity.SetWebhookEndpoint(endpointEntity1);
 
             // Act
-            var result = subscriberEntity.UpsertWebhookEndpoint(endpointEntity2);
+            var result = subscriberEntity.SetWebhookEndpoint(endpointEntity2);
 
             // Assert
             result.Data.Webhooks.Endpoints.Should().BeEquivalentTo(
