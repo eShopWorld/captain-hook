@@ -26,9 +26,10 @@ namespace CaptainHook.Api.Client.Models
         /// Initializes a new instance of the CaptainHookContractWebhooksDto
         /// class.
         /// </summary>
-        public CaptainHookContractWebhooksDto(string selectionRule = default(string), IList<CaptainHookContractEndpointDto> endpoints = default(IList<CaptainHookContractEndpointDto>))
+        public CaptainHookContractWebhooksDto(string selectionRule = default(string), CaptainHookContractUriTransformDto uriTransform = default(CaptainHookContractUriTransformDto), IList<CaptainHookContractEndpointDto> endpoints = default(IList<CaptainHookContractEndpointDto>))
         {
             SelectionRule = selectionRule;
+            UriTransform = uriTransform;
             Endpoints = endpoints;
             CustomInit();
         }
@@ -42,6 +43,11 @@ namespace CaptainHook.Api.Client.Models
         /// </summary>
         [JsonProperty(PropertyName = "selectionRule")]
         public string SelectionRule { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "uriTransform")]
+        public CaptainHookContractUriTransformDto UriTransform { get; set; }
 
         /// <summary>
         /// </summary>
