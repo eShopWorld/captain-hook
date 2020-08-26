@@ -10,9 +10,7 @@ using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
-using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace CaptainHook.Storage.Cosmos
 {
@@ -22,6 +20,9 @@ namespace CaptainHook.Storage.Cosmos
     /// <seealso cref="ISubscriberRepository" />
     public class SubscriberRepository : ISubscriberRepository
     {
+        private static readonly Type SubscriberDocumentType = typeof(SubscriberDocument);
+        private static readonly AuthenticationSubdocumentJsonConverter AuthenticationSubdocumentJsonConverter = new AuthenticationSubdocumentJsonConverter();
+
         private readonly ICosmosDbRepository _cosmosDbRepository;
         private readonly ISubscriberQueryBuilder _endpointQueryBuilder;
 
@@ -61,9 +62,10 @@ namespace CaptainHook.Storage.Cosmos
             try
             {
                 var query = _endpointQueryBuilder.BuildSelectAllSubscribers();
-                var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
+                var subscribers = await _cosmosDbRepository.QueryAsync<dynamic>(query);
 
                 return subscribers
+                    .Select(Deserialize)
                     .Select(Map)
                     .ToList();
             }
@@ -110,8 +112,9 @@ namespace CaptainHook.Storage.Cosmos
             {
                 var subscriberDocument = Map(subscriberEntity);
 
-                var result = await _cosmosDbRepository.ReplaceAsync(subscriberDocument.Id, subscriberDocument, subscriberEntity.Etag);
-                return Map(result.Document);
+                var result = await _cosmosDbRepository.ReplaceAsync<dynamic>(subscriberDocument.Id, subscriberDocument, subscriberEntity.Etag);
+
+                return Map(Deserialize(result.Document));
             }
             catch (Exception exception)
             {
@@ -126,7 +129,7 @@ namespace CaptainHook.Storage.Cosmos
                 var subscriberDocument = Map(subscriberEntity);
 
                 var result = await _cosmosDbRepository.CreateAsync(subscriberDocument);
-                return Map(result.Document);
+                return Map(Deserialize(result.Document));
             }
             catch (Exception exception)
             {
@@ -147,7 +150,8 @@ namespace CaptainHook.Storage.Cosmos
                 }
 
                 return subscribers
-                    .Select(x => Map(x))
+                    .Select(Deserialize)
+                    .Select(Map)
                     .First();
             }
             catch (Exception exception)
@@ -169,13 +173,19 @@ namespace CaptainHook.Storage.Cosmos
                 }
 
                 return subscribers
-                    .Select(x => Map(x))
+                    .Select(Deserialize)
+                    .Select(Map)
                     .ToList();
             }
             catch (Exception exception)
             {
                 return new CannotQueryEntityError(nameof(SubscriberEntity), exception);
             }
+        }
+
+        private static SubscriberDocument Deserialize(dynamic document)
+        {
+            return JsonConvert.DeserializeObject(document?.ToString(), SubscriberDocumentType, AuthenticationSubdocumentJsonConverter);
         }
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)
