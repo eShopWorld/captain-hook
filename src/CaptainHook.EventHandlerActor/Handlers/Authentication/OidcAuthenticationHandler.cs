@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -81,6 +82,30 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             }
 
             return $"Bearer {OidcAuthenticationToken.AccessToken}";
+        }
+
+        public bool HasConfigChanged(AuthenticationConfig newConfig)
+        {
+            if (newConfig is OidcAuthenticationConfig oidcNewConfig)
+            {
+                var equals = oidcNewConfig.Uri == OidcAuthenticationConfig.Uri
+                               && oidcNewConfig.ClientId == OidcAuthenticationConfig.ClientId
+                               && oidcNewConfig.ClientSecret == OidcAuthenticationConfig.ClientSecret
+                               && oidcNewConfig.GrantType == OidcAuthenticationConfig.GrantType
+                               && oidcNewConfig.RefreshBeforeInSeconds == OidcAuthenticationConfig.RefreshBeforeInSeconds;
+                
+                if (oidcNewConfig.Scopes != null)
+                {
+                    if (OidcAuthenticationConfig.Scopes != null)
+                        equals = equals && oidcNewConfig.Scopes.SequenceEqual(OidcAuthenticationConfig.Scopes);
+                    else
+                        equals = false;
+                }
+
+                return !equals;
+            }
+
+            return true;
         }
 
         /// <summary>
