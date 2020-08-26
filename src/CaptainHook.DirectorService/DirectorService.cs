@@ -221,7 +221,15 @@ namespace CaptainHook.DirectorService
                             case UpdateReader _:
                                 {
                                     if (!existingReader.IsValid)
+                                    {
                                         return ReaderChangeResult.ReaderDoesNotExist;
+                                    }
+
+                                    var noChanges = desiredReader.IsUnchanged(existingReader);
+                                    if (noChanges)
+                                    {
+                                        return ReaderChangeResult.NoChangeNeeded;
+                                    }
 
                                     changeInfo = ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader);
                                     break;

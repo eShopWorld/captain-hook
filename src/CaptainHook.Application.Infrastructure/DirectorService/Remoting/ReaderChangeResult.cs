@@ -9,5 +9,6 @@
         DeleteFailed,
         ReaderAlreadyExist,
         ReaderDoesNotExist,
+        NoChangeNeeded
     }
 }
