@@ -60,7 +60,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 var canLogPayload = !IsPayloadDisabled();
                 // request failed
-                _bigBrother.Publish(new FailedWebHookEvent(
+                _bigBrother.Publish(new FailedWebhookEvent(
                     httpClient.DefaultRequestHeaders.ToString(),
                     response.Headers.ToString(),
                     canLogPayload ? messageData.Payload ?? string.Empty : string.Empty, // request body

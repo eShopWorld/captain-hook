@@ -4,13 +4,13 @@ using CaptainHook.Common.Telemetry.Web;
 
 namespace CaptainHook.Common.Telemetry
 {
-    public class FailedWebHookEvent : WebhookEvent
+    public class FailedWebhookEvent : WebhookEvent
     {
-        public FailedWebHookEvent()
+        public FailedWebhookEvent()
         {
         }
 
-        public FailedWebHookEvent(
+        public FailedWebhookEvent(
             string requestHeaders,
             string responseHeaders,
             string requestBody, 
