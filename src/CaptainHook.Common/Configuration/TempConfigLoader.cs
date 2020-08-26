@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using Azure.Security.KeyVault.Secrets;
 using CaptainHook.Common.Configuration.KeyVault;
+using Eshopworld.Core;
 using Eshopworld.DevOps;
+using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.Common.Configuration
@@ -67,8 +69,9 @@ namespace CaptainHook.Common.Configuration
                 var value = client.GetSecretAsync(key).ConfigureAwait(false).GetAwaiter().GetResult();
                 return value?.Value?.Value;
             }
-            catch
+            catch(Exception exception)
             {
+                BigBrother.Write(exception.ToExceptionEvent());
                 return null;
             }
         }
