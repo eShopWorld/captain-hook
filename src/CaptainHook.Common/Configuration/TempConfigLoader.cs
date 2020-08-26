@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using Azure.Security.KeyVault.Secrets;
 using CaptainHook.Common.Configuration.KeyVault;
+using Eshopworld.Core;
 using Eshopworld.DevOps;
+using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.Common.Configuration
@@ -34,7 +36,7 @@ namespace CaptainHook.Common.Configuration
                 AddEntry (client, "CaptainHook--DbConfiguration--Databases--EDA--1--CollectionName"),
                 AddEntry (client, "CaptainHook--DbConfiguration--Databases--EDA--1--PartitionKey"),
 
-                AddEntry (client, "CaptainHook--FeatureFlags--DisablePayloadLogging"),
+                AddEntry (client, "CaptainHook--FeatureFlags--1"),
             };
 
             var builder = new ConfigurationBuilder ();
@@ -62,8 +64,16 @@ namespace CaptainHook.Common.Configuration
 
         private static string GetSecretValue (SecretClient client, string key)
         {
-            var value = client.GetSecretAsync (key).ConfigureAwait (false).GetAwaiter ().GetResult ();
-            return value?.Value?.Value;
+            try
+            {
+                var value = client.GetSecretAsync(key).ConfigureAwait(false).GetAwaiter().GetResult();
+                return value?.Value?.Value;
+            }
+            catch(Exception exception)
+            {
+                BigBrother.Write(exception.ToExceptionEvent());
+                return null;
+            }
         }
     }
 }
