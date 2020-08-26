@@ -142,7 +142,7 @@ namespace CaptainHook.Storage.Cosmos
             try
             {
                 var query = _endpointQueryBuilder.BuildSelectSubscriber(subscriberId, subscriberId.EventName);
-                var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
+                var subscribers = await _cosmosDbRepository.QueryAsync<dynamic>(query);
 
                 if (!subscribers.Any())
                 {
@@ -165,7 +165,7 @@ namespace CaptainHook.Storage.Cosmos
             try
             {
                 var query = _endpointQueryBuilder.BuildSelectForEventSubscribers(eventName);
-                var subscribers = await _cosmosDbRepository.QueryAsync<SubscriberDocument>(query);
+                var subscribers = await _cosmosDbRepository.QueryAsync<dynamic>(query);
 
                 if (!subscribers.Any())
                 {
@@ -185,7 +185,10 @@ namespace CaptainHook.Storage.Cosmos
 
         private static SubscriberDocument Deserialize(dynamic document)
         {
-            return JsonConvert.DeserializeObject(document?.ToString(), SubscriberDocumentType, AuthenticationSubdocumentJsonConverter);
+            return (SubscriberDocument)JsonConvert.DeserializeObject(
+                document?.ToString(),
+                SubscriberDocumentType, 
+                AuthenticationSubdocumentJsonConverter);
         }
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)

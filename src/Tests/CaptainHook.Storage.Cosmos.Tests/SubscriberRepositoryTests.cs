@@ -9,8 +9,10 @@ using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Microsoft.Azure.Cosmos;
 using Moq;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -57,7 +59,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var result = await _repository.GetSubscribersListAsync(eventName);
 
             // Assert
-            _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()));
+            _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()));
         }
 
         [Fact, IsUnit]
@@ -91,8 +93,8 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 Etag = "version1"
             };
             _cosmosDbRepositoryMock
-                .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
-                .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
+                .Setup(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()))
+                .ReturnsAsync(new List<dynamic> { ConvertToDynamic(sampleDocument) });
 
             var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
             var expectedAuthenticationEntity = new OidcAuthenticationEntity(auth.ClientId, auth.SecretName, auth.Uri, auth.Scopes);
@@ -155,8 +157,8 @@ namespace CaptainHook.Storage.Cosmos.Tests
             };
 
             _cosmosDbRepositoryMock
-                .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
-                .ReturnsAsync(response);
+                .Setup(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()))
+                .ReturnsAsync(response.Select(ConvertToDynamic));
 
             // Act
             var result = await _repository.GetSubscribersListAsync(eventName);
@@ -223,7 +225,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var result = await _repository.GetSubscriberAsync(subscriberId);
 
             // Assert
-            _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()));
+            _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()));
         }
 
         [Fact, IsUnit]
@@ -257,8 +259,8 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 Etag = "version1"
             };
             _cosmosDbRepositoryMock
-                .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
-                .ReturnsAsync(new List<SubscriberDocument> { sampleDocument });
+                .Setup(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()))
+                .ReturnsAsync(new List<dynamic> { ConvertToDynamic(sampleDocument) });
 
             var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
             var expectedAuthenticationEntity = new OidcAuthenticationEntity(auth.ClientId, auth.SecretName, auth.Uri, auth.Scopes);
@@ -278,7 +280,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             // Arrange
             const string eventName = "eventName";
-            var response = new[]
+            var response = new []
             {
                 new SubscriberDocument
                 {
@@ -321,8 +323,8 @@ namespace CaptainHook.Storage.Cosmos.Tests
             };
 
             _cosmosDbRepositoryMock
-                .Setup(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()))
-                .ReturnsAsync(response);
+                .Setup(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()))
+                .ReturnsAsync(response.Select(ConvertToDynamic));
 
             // Act
             var result = await _repository.GetSubscriberAsync(new SubscriberId(eventName, "subscriberName"));
@@ -411,7 +413,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var result = await _repository.GetAllSubscribersAsync();
 
             // Assert
-            _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<SubscriberDocument>(It.IsAny<CosmosQuery>()));
+            _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()));
         }
 
         [Fact, IsUnit]
@@ -464,7 +466,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             await _repository.UpdateSubscriberAsync(subscriber);
 
             // Assert
-            Func<SubscriberDocument, bool> validate = value =>
+            Func<object, bool> validate = value =>
             {
                 value.Should().BeEquivalentTo(subscriberDocument);
                 return true;
@@ -472,7 +474,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
 
             _cosmosDbRepositoryMock.Verify(x => x.ReplaceAsync(
                 subscriberId,
-                It.Is<SubscriberDocument>(arg => validate(arg)),
+                It.Is<object>(arg => validate(arg)),
                 "version1"), Times.Once);
         }
 
@@ -538,6 +540,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
 
             // Assert
             result.Error.Should().BeOfType<CannotUpdateEntityError>();
+        }
+
+        private static dynamic ConvertToDynamic(SubscriberDocument document)
+        {
+            return JsonConvert.SerializeObject(document);
         }
     }
 }
