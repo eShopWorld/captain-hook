@@ -28,8 +28,9 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
         private readonly Mock<IDtoToEntityMapper> _dtoToEntityMapper = new Mock<IDtoToEntityMapper>(MockBehavior.Strict);
 
-        private readonly UpsertWebhookRequest _defaultUpsertRequest =
-            new UpsertWebhookRequest("event", "subscriber", "*", new EndpointDtoBuilder().Create());
+        private static readonly EndpointDto _defaultEndpointDto = new EndpointDtoBuilder().Create();
+        private static readonly UpsertWebhookRequest _defaultUpsertRequest =
+            new UpsertWebhookRequest("event", "subscriber", "*", _defaultEndpointDto);
 
         private static readonly SubscriberBuilder DefaultSubscriberBuilder = new SubscriberBuilder().WithEvent("event")
             .WithName("subscriber")
@@ -63,6 +64,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
                 .ReturnsAsync(true);
+            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>()))
+                .Returns(new EndpointEntity(_defaultEndpointDto.Uri,
+                    authentication: new OidcAuthenticationEntity(
+                        clientId: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientId,
+                        clientSecretKeyName: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientSecretKeyName,
+                        uri: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Uri,
+                        scopes: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Scopes.ToArray()
+                    ), _defaultEndpointDto.HttpVerb, _defaultEndpointDto.Selector));
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -70,6 +79,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.IsError.Should().BeFalse();
             _repositoryMock.VerifyAll();
             _directorServiceMock.VerifyAll();
+            _dtoToEntityMapper.VerifyAll();
         }
 
         [Fact, IsUnit]
@@ -82,6 +92,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(true);
             _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
+            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>()))
+                .Returns(new EndpointEntity(_defaultEndpointDto.Uri,
+                    authentication: new OidcAuthenticationEntity(
+                        clientId: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientId,
+                        clientSecretKeyName: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientSecretKeyName,
+                        uri: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Uri,
+                        scopes: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Scopes.ToArray()
+                    ), _defaultEndpointDto.HttpVerb, _defaultEndpointDto.Selector));
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -90,6 +108,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.Data.Should().BeEquivalentTo(_defaultUpsertRequest.Endpoint);
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Once);
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 
@@ -122,6 +141,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
                 .ReturnsAsync(new DirectorServiceIsBusyError());
+            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>()))
+                .Returns(new EndpointEntity(_defaultEndpointDto.Uri,
+                    authentication: new OidcAuthenticationEntity(
+                        clientId: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientId,
+                        clientSecretKeyName: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientSecretKeyName,
+                        uri: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Uri,
+                        scopes: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Scopes.ToArray()
+                    ), _defaultEndpointDto.HttpVerb, _defaultEndpointDto.Selector));
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -130,6 +157,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
@@ -142,6 +170,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
                 .ReturnsAsync(new ReaderCreateError(new SubscriberEntity("subscriber")));
+            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>()))
+                .Returns(new EndpointEntity(_defaultEndpointDto.Uri,
+                    authentication: new OidcAuthenticationEntity(
+                        clientId: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientId,
+                        clientSecretKeyName: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientSecretKeyName,
+                        uri: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Uri,
+                        scopes: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Scopes.ToArray()
+                    ), _defaultEndpointDto.HttpVerb, _defaultEndpointDto.Selector));
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -149,6 +185,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderCreateError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
@@ -162,6 +199,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(new BusinessError("test error"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
                 .ReturnsAsync(true);
+            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>()))
+                .Returns(new EndpointEntity(_defaultEndpointDto.Uri,
+                    authentication: new OidcAuthenticationEntity(
+                        clientId: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientId,
+                        clientSecretKeyName: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientSecretKeyName,
+                        uri: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Uri,
+                        scopes: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Scopes.ToArray()
+                    ), _defaultEndpointDto.HttpVerb, _defaultEndpointDto.Selector));
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -169,6 +214,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.IsError.Should().BeTrue();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 
@@ -181,6 +227,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(true);
             _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()));
+            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>()))
+                .Returns(new EndpointEntity(_defaultEndpointDto.Uri,
+                    authentication: new OidcAuthenticationEntity(
+                        clientId: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientId,
+                        clientSecretKeyName: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientSecretKeyName,
+                        uri: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Uri,
+                        scopes: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Scopes.ToArray()
+                    ), _defaultEndpointDto.HttpVerb, _defaultEndpointDto.Selector));
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -188,6 +242,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.Should().BeEquivalentTo(expectedResult);
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(3));
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(3));
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Exactly(3));
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(3));
         }
 
@@ -201,6 +256,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.SetupSequence(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()))
                 .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
+            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>()))
+                .Returns(new EndpointEntity(_defaultEndpointDto.Uri,
+                    authentication: new OidcAuthenticationEntity(
+                        clientId: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientId,
+                        clientSecretKeyName: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientSecretKeyName,
+                        uri: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Uri,
+                        scopes: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Scopes.ToArray()
+                    ), _defaultEndpointDto.HttpVerb, _defaultEndpointDto.Selector));
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -208,6 +271,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.Should().BeEquivalentTo(expectedResult);
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(2));
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(2));
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Exactly(2));
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(2));
         }
 
@@ -226,6 +290,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(true);
             _repositoryMock.Setup(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
+            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>()))
+                .Returns(new EndpointEntity(_defaultEndpointDto.Uri,
+                    authentication: new OidcAuthenticationEntity(
+                        clientId: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientId,
+                        clientSecretKeyName: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientSecretKeyName,
+                        uri: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Uri,
+                        scopes: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).Scopes.ToArray()
+                    ), _defaultEndpointDto.HttpVerb, _defaultEndpointDto.Selector));
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -235,6 +307,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Exactly(2));
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 
