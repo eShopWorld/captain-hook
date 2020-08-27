@@ -26,15 +26,18 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
+        private readonly IEntityToDtoMapper _entityToDtoMapper;
         private readonly TimeSpan[] _retrySleepDurations;
 
         public DeleteWebhookRequestHandler(
             ISubscriberRepository subscriberRepository,
             IDirectorServiceProxy directorService,
+            IEntityToDtoMapper entityToDtoMapper,
             TimeSpan[] sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
+            _entityToDtoMapper = entityToDtoMapper ?? throw new ArgumentNullException(nameof(entityToDtoMapper));
             _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 
@@ -76,6 +79,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 return saveResult.Error;
             }
 
+            //_entityToDtoMapper
             return MapToDto(saveResult);
         }
 

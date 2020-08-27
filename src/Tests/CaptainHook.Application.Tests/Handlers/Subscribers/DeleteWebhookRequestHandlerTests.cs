@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
@@ -25,6 +26,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
     {
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
+        private readonly Mock<IEntityToDtoMapper> _entityToDtoMapper = new Mock<IEntityToDtoMapper>();
 
         private static OidcAuthenticationEntity _authentication = new OidcAuthenticationEntity(
                 "captain-hook-id",
@@ -57,6 +59,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private DeleteWebhookRequestHandler Handler => new DeleteWebhookRequestHandler(
             _repositoryMock.Object,
             _directorServiceMock.Object,
+            _entityToDtoMapper.Object,
             new[]
             {
                 TimeSpan.FromMilliseconds(10.0),
