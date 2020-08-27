@@ -72,7 +72,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         [InlineData(null)]
         [InlineData("")]
         [IsUnit]
-        public void WhenAuthenticationIsInvalid_ThenItIsDeserializedAsNull(string authType)
+        public void WhenAuthenticationTypeIsInvalid_ThenItIsDeserializedAsNull(string authType)
         {
             string data = $@"{{
                 ""type"": ""{authType}"",
@@ -80,9 +80,28 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 ""password"": ""norris""
             }}";
 
-            Action act = () => JsonConvert.DeserializeObject<AuthenticationSubdocument>(data, new AuthenticationSubdocumentJsonConverter());
+            var result = JsonConvert.DeserializeObject<AuthenticationSubdocument>(data, new AuthenticationSubdocumentJsonConverter());
 
-            act.Should().Throw<InvalidOperationException>();
+            result.Should().BeNull();
+        }
+
+        [Theory]
+        [InlineData("{ authentication: 0 }")]
+        [InlineData("{ authentication: \"invalid\" }")]
+        [InlineData("{ authentication: \"\" }")]
+        [InlineData("{ authentication: {} }")]
+        [InlineData("{ authentication: null }")]
+        [IsUnit]
+        public void WhenAuthenticationIsInvalid_ThenItIsDeserializedAsNull(string data)
+        {
+            var result = JsonConvert.DeserializeObject<AuthenticationWrapper>(data, new AuthenticationSubdocumentJsonConverter());
+
+            result.Authentication.Should().BeNull();
+        }
+
+        internal class AuthenticationWrapper
+        {
+            public AuthenticationSubdocument Authentication { get; set; }
         }
     }
 }

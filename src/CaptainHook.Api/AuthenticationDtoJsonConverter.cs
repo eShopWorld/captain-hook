@@ -22,23 +22,23 @@ namespace CaptainHook.Api
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            JObject jObject = JObject.Load(reader);
+            // First, just read the JSON as a JToken
+            JToken jToken = JToken.ReadFrom(reader);
 
-            var typeDesc = jObject["type"]?.Value<string>();
-
-            AuthenticationDto item = typeDesc switch
+            if (jToken.Type != JTokenType.Object)
             {
-                OidcAuthenticationDto.Type => new OidcAuthenticationDto(),
-                BasicAuthenticationDto.Type => new BasicAuthenticationDto(),
-                _ => null
-            };
-
-            if (item != null)
-            {
-                serializer.Populate(jObject.CreateReader(), item);
+                return null;
             }
 
-            return item;
+            // Then look at the type property:
+            var typeDesc = jToken["type"]?.Value<string>();
+
+            return typeDesc switch
+            {
+                OidcAuthenticationDto.Type => jToken.ToObject<OidcAuthenticationDto>(serializer),
+                BasicAuthenticationDto.Type => jToken.ToObject<BasicAuthenticationDto>(serializer),
+                _ => null
+            };
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
