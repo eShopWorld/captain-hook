@@ -116,6 +116,7 @@ namespace CaptainHook.Api.Controllers
         /// <returns></returns>
         [HttpPut("{eventName}/subscriber/{subscriberName}")]
         [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status202Accepted)]
         [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
@@ -141,6 +142,7 @@ namespace CaptainHook.Api.Controllers
                     {
                         UpsertType.Created => Created($"/{eventName}/subscriber/{subscriberName}", upsertResult.Dto),
                         UpsertType.Updated => Accepted($"/{eventName}/subscriber/{subscriberName}", upsertResult.Dto),
+                        _ => StatusCode(StatusCodes.Status500InternalServerError, "Operation unknown")
                     }
              );
         }
