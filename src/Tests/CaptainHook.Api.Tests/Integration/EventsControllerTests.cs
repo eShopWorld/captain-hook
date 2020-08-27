@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using CaptainHook.Api.Client.Models;
 using CaptainHook.Api.Tests.Config;
-using EShopworld.Security.Services.Testing.Settings;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -41,6 +40,7 @@ namespace CaptainHook.Api.Tests.Integration
             var result = await AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);
 
             // Assert
+
             result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
         }
 
@@ -52,7 +52,7 @@ namespace CaptainHook.Api.Tests.Integration
             await AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);
 
             // Act - Change in DTO and PUT again
-            dto.Webhooks.Endpoints[0].HttpVerb = "POST"; 
+            dto.Webhooks.Endpoints[0].HttpVerb = "POST";
             var result = await AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);
 
             // Assert
@@ -63,7 +63,7 @@ namespace CaptainHook.Api.Tests.Integration
         public async Task PutWebhook_WhenUnauthenticated_Returns401Unauthorized()
         {
             // Act
-            var result = await UnauthenticatedClient.PutWebhookWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName);
+            var result = await UnauthenticatedClient.PutWebhookWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, "*");
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
         }
@@ -75,7 +75,7 @@ namespace CaptainHook.Api.Tests.Integration
             var dto = GetTestEndpointDto();
 
             // Act
-            var result = await AuthenticatedClient.PutWebhookWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);
+            var result = await AuthenticatedClient.PutWebhookWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, "*", dto);
 
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
@@ -87,7 +87,7 @@ namespace CaptainHook.Api.Tests.Integration
             {
                 new CaptainHookContractEndpointDto()
                 {
-                    Uri = "http://blah.blah", HttpVerb = "PUT", Authentication = GetTestAuthenticationDto()
+                    Uri = "http://blah.blah", HttpVerb = "PUT", Authentication = GetTestAuthenticationDto(), Selector = "*"
                 }
             })
             {
@@ -96,15 +96,12 @@ namespace CaptainHook.Api.Tests.Integration
             return new CaptainHookContractSubscriberDto(webhookDto);
         }
 
-        private CaptainHookContractAuthenticationDto GetTestAuthenticationDto()
+        private static CaptainHookContractAuthenticationDto GetTestAuthenticationDto()
         {
-            return new CaptainHookContractAuthenticationDto(
-                                "OIDC", "tooling.eda.client", EnvironmentSettings.StsSettings.Issuer,
-                                new CaptainHookContractClientSecretDto(EnvironmentSettings.Configuration["KEYVAULT_URL"], "CaptainHook--ApiSecret"),
-                                new string[] { "eda.peterpan.delivery.api.all" });
+            return new CaptainHookContractBasicAuthenticationDto("Basic", "user1", "pass1");
         }
 
-        private CaptainHookContractEndpointDto GetTestEndpointDto()
+        private static CaptainHookContractEndpointDto GetTestEndpointDto()
         {
             return new CaptainHookContractEndpointDto("http://blah.blah", "PUT", GetTestAuthenticationDto());
         }
