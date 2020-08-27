@@ -33,12 +33,19 @@ namespace CaptainHook.Api
             // Then look at the type property:
             var typeDesc = jToken["type"]?.Value<string>();
 
-            return typeDesc switch
+            AuthenticationDto item = typeDesc switch
             {
-                OidcAuthenticationDto.Type => jToken.ToObject<OidcAuthenticationDto>(serializer),
-                BasicAuthenticationDto.Type => jToken.ToObject<BasicAuthenticationDto>(serializer),
+                OidcAuthenticationDto.Type => new OidcAuthenticationDto(),
+                BasicAuthenticationDto.Type => new BasicAuthenticationDto(),
                 _ => null
             };
+
+            if (item != null)
+            {
+                serializer.Populate(jToken.CreateReader(), item);
+            }
+
+            return item;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
