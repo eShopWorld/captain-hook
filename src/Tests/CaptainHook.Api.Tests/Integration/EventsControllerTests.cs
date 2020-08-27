@@ -35,13 +35,28 @@ namespace CaptainHook.Api.Tests.Integration
         public async Task PutSubscriber_WhenAuthenticated_Returns201Created()
         {
             // Arrange
-            CaptainHookContractSubscriberDto dto = GetTestSubscriberDto();
+            var dto = GetTestSubscriberDto();
 
             // Act
             var result = await AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);
 
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
+        }
+
+        [Fact, IsIntegration]
+        public async Task UpdateSubscriber_WhenAuthenticated_Returns202Accepted()
+        {
+            // Arrange
+            var dto = GetTestSubscriberDto();
+            await AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);
+
+            // Act - Change in DTO and PUT again
+            dto.Webhooks.Endpoints[0].HttpVerb = "POST"; 
+            var result = await AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);
+
+            // Assert
+            result.Response.StatusCode.Should().Be(StatusCodes.Status202Accepted);
         }
 
         [Fact, IsIntegration]
@@ -57,7 +72,7 @@ namespace CaptainHook.Api.Tests.Integration
         public async Task PutWebhook_WhenAuthenticated_Returns201Created()
         {
             // Arrange
-            CaptainHookContractEndpointDto dto = GetTestEndpointDto();
+            var dto = GetTestEndpointDto();
 
             // Act
             var result = await AuthenticatedClient.PutWebhookWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);

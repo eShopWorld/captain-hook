@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Application.Results;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
@@ -63,7 +64,7 @@ namespace CaptainHook.Api.Controllers
                      DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
                      ReaderCreateError readerCreationError => UnprocessableEntity(readerCreationError),
                      CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
-                     _ => StatusCode(StatusCodes.Status500InternalServerError, error) 
+                     _ => StatusCode(StatusCodes.Status500InternalServerError, error)
                  },
                  endpointDto => Created($"/{eventName}/subscriber/{subscriberName}/webhooks/endpoint/{selector}", endpointDto)
              );
@@ -82,6 +83,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteWebhook([FromRoute] string eventName, [FromRoute] string subscriberName, [FromRoute] string selector)
         {
@@ -119,6 +121,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> PutSuscriber([FromRoute] string eventName, [FromRoute] string subscriberName, [FromBody] SubscriberDto dto)
         {
@@ -126,18 +129,22 @@ namespace CaptainHook.Api.Controllers
             var result = await _mediator.Send(request);
 
             return result.Match<IActionResult>(
-                 error => error switch
-                 {
-                     ValidationError validationError => BadRequest(validationError),
-                     DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
-                     ReaderCreateError readerCreationError => UnprocessableEntity(readerCreationError),
-                     CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
-                     _ => StatusCode(StatusCodes.Status500InternalServerError, error)
-                 },
-                 subscriberDto => Created($"/{eventName}/subscriber/{subscriberName}", subscriberDto)
+                    error => error switch
+                    {
+                        ValidationError validationError => BadRequest(validationError),
+                        DirectorServiceIsBusyError directorServiceIsBusyError => Conflict(directorServiceIsBusyError),
+                        ReaderCreateError readerCreationError => UnprocessableEntity(readerCreationError),
+                        CannotSaveEntityError cannotSaveEntityError => UnprocessableEntity(cannotSaveEntityError),
+                        _ => StatusCode(StatusCodes.Status500InternalServerError, error)
+                    },
+                    upsertResult => upsertResult.UpsertType switch
+                    {
+                        UpsertType.Created => Created($"/{eventName}/subscriber/{subscriberName}", upsertResult.Dto),
+                        UpsertType.Updated => Accepted($"/{eventName}/subscriber/{subscriberName}", upsertResult.Dto),
+                    }
              );
         }
 
-        
+
     }
 }

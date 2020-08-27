@@ -6,19 +6,19 @@ using Xunit;
 
 namespace CaptainHook.Tests.Configuration.FeatureFlags
 {
-    public class CosmosDbFeatureFlagTests
+    public class DisablePayloadLoggingFeatureFlagTests
     {
         [Fact, IsUnit]
         public void CreatesDefaultInstance()
         {
             // Arrange
-            var cosmosDbFeatureFlag = new CosmosDbFeatureFlag();
+            var featureFlag = new DisablePayloadLoggingFeatureFlag();
 
             // Assert
             using (new AssertionScope())
             {
-                cosmosDbFeatureFlag.Identifier.Should().Be("CosmosDb");
-                cosmosDbFeatureFlag.IsEnabled.Should().BeFalse("because by default features are off");
+                featureFlag.Identifier.Should().Be("DisablePayloadLogging");
+                featureFlag.IsEnabled.Should().BeFalse("because by default features are off");
             }
         }
 
@@ -26,14 +26,14 @@ namespace CaptainHook.Tests.Configuration.FeatureFlags
         public void CanChangeEnabledProperty()
         {
             // Arrange
-            var cosmosDbFeatureFlag = new CosmosDbFeatureFlag();
-            cosmosDbFeatureFlag.SetEnabled(true);
+            var featureFlag = new DisablePayloadLoggingFeatureFlag();
+            featureFlag.SetEnabled(true);
 
             // Assert
             using (new AssertionScope())
             {
-                cosmosDbFeatureFlag.Identifier.Should().Be("CosmosDb");
-                cosmosDbFeatureFlag.IsEnabled.Should().BeTrue("because the default value has been overriden");
+                featureFlag.Identifier.Should().Be("DisablePayloadLogging");
+                featureFlag.IsEnabled.Should().BeTrue("because the default value has been overriden");
             }
         }
     }
