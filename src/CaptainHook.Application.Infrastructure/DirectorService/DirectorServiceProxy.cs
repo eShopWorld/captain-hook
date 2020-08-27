@@ -42,6 +42,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             return createReaderResult switch
             {
                 ReaderChangeResult.Success => true,
+                ReaderChangeResult.NoChangeNeeded => true,
                 ReaderChangeResult.CreateFailed => new ReaderCreateError(subscriber),
                 ReaderChangeResult.DeleteFailed => new ReaderDeleteError(subscriber),
                 ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),

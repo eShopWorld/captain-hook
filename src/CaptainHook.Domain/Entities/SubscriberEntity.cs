@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using CaptainHook.Domain.Entities.Comparers;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
@@ -51,17 +53,20 @@ namespace CaptainHook.Domain.Entities
         }
 
         /// <summary>
-        /// Adds an endpoint to the list of webhook endpoints
+        /// Adds an endpoint to the list of webhook endpoints if it is not on the list already.
+        /// Removes the existing endpoint and adds the new one to the list if the item is already present.
         /// </summary>
-        /// <param name="endpointModel"></param>
-        public OperationResult<SubscriberEntity> AddWebhookEndpoint(EndpointEntity endpointModel)
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> SetWebhookEndpoint(EndpointEntity endpointModel)
         {
             if (Webhooks == null)
             {
                 Webhooks = new WebhooksEntity();
             }
 
-            var extendedEndpointsCollection = Webhooks.Endpoints.Concat(new[] { endpointModel });
+            var extendedEndpointsCollection = Webhooks.Endpoints
+                .Except(new [] { endpointModel }, new SelectorEndpointEntityEqualityComparer())
+                .Concat(new[] { endpointModel });
             var endpointsEntityForValidation = new WebhooksEntity(Webhooks.SelectionRule, extendedEndpointsCollection, Webhooks.UriTransform);
 
             var validationResult = WebhooksValidator.Validate(endpointsEntityForValidation);
@@ -69,6 +74,8 @@ namespace CaptainHook.Domain.Entities
             if (validationResult.IsValid)
             {
                 endpointModel.SetParentSubscriber(this);
+                
+                Webhooks.RemoveEndpoint(endpointModel.Selector);
                 Webhooks.AddEndpoint(endpointModel);
 
                 return this;
