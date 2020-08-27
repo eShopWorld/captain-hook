@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
@@ -79,57 +78,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 return saveResult.Error;
             }
 
-            //_entityToDtoMapper
-            return MapToDto(saveResult);
-        }
-
-        private SubscriberDto MapToDto(SubscriberEntity subscriber)
-        {
-            return new SubscriberDto
-            {
-                Webhooks = new WebhooksDto
-                {
-                    SelectionRule = subscriber.Webhooks.SelectionRule,
-                    UriTransform = MapUriTransform(subscriber.Webhooks.UriTransform),
-                    Endpoints = subscriber.Webhooks.Endpoints.Select(MapEndpointDto).ToList()
-                }
-            };
-        }
-
-        private EndpointDto MapEndpointDto(EndpointEntity endpointEntity)
-        {
-            return new EndpointDto
-            {
-                Selector = endpointEntity.Selector,
-                Uri = endpointEntity.Uri,
-                HttpVerb = endpointEntity.HttpVerb,
-                Authentication = MapAuthenticationDto(endpointEntity.Authentication)
-            };
-        }
-
-        private AuthenticationDto MapAuthenticationDto(AuthenticationEntity authenticationEntity)
-        {
-            return authenticationEntity switch
-            {
-                BasicAuthenticationEntity ent => new BasicAuthenticationDto
-                {
-                    Username = ent.Username,
-                    Password = ent.Password
-                },
-                OidcAuthenticationEntity ent => new OidcAuthenticationDto
-                {
-                    Uri = ent.Uri,
-                    ClientId = ent.ClientId,
-                    Scopes = ent.Scopes?.ToList(),
-                    ClientSecretKeyName = ent.ClientSecretKeyName
-                },
-                _ => null
-            };
-        }
-
-        private UriTransformDto MapUriTransform(UriTransformEntity uriTransform)
-        {
-            return uriTransform == null ? null : new UriTransformDto { Replace = uriTransform.Replace };
+            return _entityToDtoMapper.MapSubscriber(saveResult);
         }
     }
 }

@@ -20,6 +20,7 @@ namespace CaptainHook.Application
             builder.RegisterType<DirectorServiceProxy>().As<IDirectorServiceProxy>();
             builder.RegisterType<SubscriberEntityToConfigurationMapper>().As<ISubscriberEntityToConfigurationMapper>();
             builder.RegisterType<DtoToEntityMapper>().As<IDtoToEntityMapper>();
+            builder.RegisterType<EntityToDtoMapper>().As<IEntityToDtoMapper>();
 
             builder.RegisterMediatorInfrastructure(ThisAssembly, ThisAssembly);
         }
