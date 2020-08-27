@@ -64,7 +64,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 return existingItem.Error;
             }
 
-            var removeResult = existingItem.Data.RemoveWebhookEndpoint(request.Selector);
+            var removeResult = existingItem.Data.RemoveWebhookEndpoint(EndpointEntity.FromSelector(request.Selector));
             if (removeResult.IsError)
             {
                 return removeResult.Error;
