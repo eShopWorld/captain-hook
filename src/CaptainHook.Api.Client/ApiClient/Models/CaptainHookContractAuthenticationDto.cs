@@ -9,6 +9,7 @@ namespace CaptainHook.Api.Client.Models
     using Newtonsoft.Json;
     using System.Linq;
 
+    [Newtonsoft.Json.JsonObject("CaptainHook.Contract.AuthenticationDto")]
     public partial class CaptainHookContractAuthenticationDto
     {
         /// <summary>
@@ -24,9 +25,9 @@ namespace CaptainHook.Api.Client.Models
         /// Initializes a new instance of the
         /// CaptainHookContractAuthenticationDto class.
         /// </summary>
-        public CaptainHookContractAuthenticationDto(string authenticationType = default(string))
+        public CaptainHookContractAuthenticationDto(string type = default(string))
         {
-            AuthenticationType = authenticationType;
+            Type = type;
             CustomInit();
         }
 
@@ -37,8 +38,8 @@ namespace CaptainHook.Api.Client.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "authenticationType")]
-        public string AuthenticationType { get; set; }
+        [JsonProperty(PropertyName = "type")]
+        public string Type { get; set; }
 
     }
 }

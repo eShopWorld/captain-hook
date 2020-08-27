@@ -306,6 +306,8 @@ namespace CaptainHook.Api.Client
                         new Iso8601TimeSpanConverter()
                     }
             };
+            SerializationSettings.Converters.Add(new PolymorphicSerializeJsonConverter<CaptainHookContractAuthenticationDto>("$type"));
+            DeserializationSettings.Converters.Add(new  PolymorphicDeserializeJsonConverter<CaptainHookContractAuthenticationDto>("$type"));
             CustomInitialize();
         }
         /// <summary>
