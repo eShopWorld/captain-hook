@@ -35,6 +35,9 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         public UpsertSubscriberRequestHandlerTests()
         {
             _handler = new UpsertSubscriberRequestHandler(_repositoryMock.Object, _directorServiceMock.Object, _dtoToEntityMapper.Object);
+
+            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>()))
+                .Returns(new WebhooksEntity());
         }
 
         [Fact, IsUnit]
@@ -54,8 +57,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(true);
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>()))
-                .Returns(new WebhooksEntity());
 
             var result = await _handler.Handle(request, CancellationToken.None);
 
@@ -83,8 +84,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(true);
             _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
-            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>()))
-                .Returns(new WebhooksEntity());
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
             var expectedResult = new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(_testRequest.Subscriber, UpsertType.Updated));
@@ -96,8 +95,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new BusinessError("test error"));
-            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>()))
-                .Returns(new WebhooksEntity());
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
@@ -112,8 +109,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new DirectorServiceIsBusyError());
-            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>()))
-                .Returns(new WebhooksEntity());
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
@@ -128,8 +123,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new ReaderCreateError(new SubscriberEntity("subscriber")));
-            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>()))
-                .Returns(new WebhooksEntity());
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
@@ -146,8 +139,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(true);
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new BusinessError("test error"));
-            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>()))
-                .Returns(new WebhooksEntity());
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
