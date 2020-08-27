@@ -1,16 +1,16 @@
 ﻿using CaptainHook.Domain.Entities;
-using Eshopworld.Data.CosmosDb;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
-using CaptainHook.Storage.Cosmos.QueryBuilders;
 using CaptainHook.Storage.Cosmos.Models;
+using CaptainHook.Storage.Cosmos.QueryBuilders;
+using Eshopworld.Data.CosmosDb;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CaptainHook.Storage.Cosmos
 {
@@ -20,10 +20,7 @@ namespace CaptainHook.Storage.Cosmos
     /// <seealso cref="ISubscriberRepository" />
     public class SubscriberRepository : ISubscriberRepository
     {
-        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
-        {
-            Converters = { new AuthenticationSubdocumentJsonConverter() }
-        };
+        private static readonly AuthenticationSubdocumentJsonConverter AuthenticationSubdocumentJsonConverter = new AuthenticationSubdocumentJsonConverter();
 
         private readonly ICosmosDbRepository _cosmosDbRepository;
         private readonly ISubscriberQueryBuilder _endpointQueryBuilder;
@@ -187,7 +184,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private static SubscriberDocument Deserialize(dynamic document)
         {
-            return JsonConvert.DeserializeObject<SubscriberDocument>(document?.ToString(), JsonSerializerSettings);
+            return JsonConvert.DeserializeObject<SubscriberDocument>(document?.ToString(), AuthenticationSubdocumentJsonConverter);
         }
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)
@@ -203,7 +200,7 @@ namespace CaptainHook.Storage.Cosmos
 
         private WebhookSubdocument Map(WebhooksEntity webhooksEntity)
         {
-            var endpoints = 
+            var endpoints =
                 webhooksEntity.Endpoints?.Select(webhookEndpoint => Map(webhookEndpoint))
                 ?? Enumerable.Empty<EndpointSubdocument>();
 

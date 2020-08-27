@@ -20,17 +20,22 @@ namespace CaptainHook.Storage.Cosmos
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            // First, just read the JSON as a JObject
-            var jObject = JObject.Load(reader);
+            // First, just read the JSON as a JToken
+            JToken jToken = JToken.ReadFrom(reader);
+
+            if(jToken.Type != JTokenType.Object)
+            {
+                return null;
+            }
 
             // Then look at the type property:
-            var typeDesc = jObject["type"]?.Value<string>();
+            var typeDesc = jToken["type"]?.Value<string>();
             
             return typeDesc switch
             {
-                BasicAuthenticationSubdocument.Type => jObject.ToObject<BasicAuthenticationSubdocument>(serializer),
-                OidcAuthenticationSubdocument.Type => jObject.ToObject<OidcAuthenticationSubdocument>(serializer),
-                _ => throw new InvalidOperationException($"Unknown authentication document type '{typeDesc}'."),
+                BasicAuthenticationSubdocument.Type => jToken.ToObject<BasicAuthenticationSubdocument>(serializer),
+                OidcAuthenticationSubdocument.Type => jToken.ToObject<OidcAuthenticationSubdocument>(serializer),
+                _ => null,
             };
         }
 
