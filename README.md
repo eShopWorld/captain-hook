@@ -1,6 +1,7 @@
 # captain-hook
 
 [![Build Status](https://eshopworld.visualstudio.com/Github%20build/_apis/build/status/captain-hook?branchName=master)](https://eshopworld.visualstudio.com/Github%20build/_build/latest?definitionId=382?branchName=master)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=esw.captain-hook&metric=alert_status&token=ba785db91027e0ee18c9e54c7b7c1984d2160322)](https://sonarcloud.io/dashboard?id=esw.captain-hook)
 
 Generic message dispatcher for webhooks using the Actor framework in Service Fabric
 
