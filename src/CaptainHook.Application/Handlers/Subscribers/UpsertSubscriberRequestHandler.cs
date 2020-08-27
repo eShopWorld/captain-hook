@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Results;
 using CaptainHook.Contract;
@@ -19,11 +19,16 @@ namespace CaptainHook.Application.Handlers.Subscribers
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
+        private readonly IDtoToEntityMapper _dtoToEntityMapper;
 
-        public UpsertSubscriberRequestHandler(ISubscriberRepository subscriberRepository, IDirectorServiceProxy directorService)
+        public UpsertSubscriberRequestHandler(
+            ISubscriberRepository subscriberRepository,
+            IDirectorServiceProxy directorService,
+            IDtoToEntityMapper dtoToEntityMapper)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
+            _dtoToEntityMapper = dtoToEntityMapper ?? throw new ArgumentNullException(nameof(dtoToEntityMapper));
         }
 
         public async Task<OperationResult<UpsertResult<SubscriberDto>>> Handle(UpsertSubscriberRequest request, CancellationToken cancellationToken)
@@ -85,46 +90,12 @@ namespace CaptainHook.Application.Handlers.Subscribers
             return saveResult.Error;
         }
 
-        private static SubscriberEntity MapRequestToEntity(UpsertSubscriberRequest request)
+        private SubscriberEntity MapRequestToEntity(UpsertSubscriberRequest request)
         {
-            var webhooks = new WebhooksEntity(
-                request.Subscriber.Webhooks.SelectionRule,
-                request.Subscriber.Webhooks.Endpoints?.Select(MapEndpointEntity) ?? Enumerable.Empty<EndpointEntity>(),
-                MapUriTransformEntity(request.Subscriber.Webhooks.UriTransform));
-            var subscriber = new SubscriberEntity(
-                    request.SubscriberName,
-                    new EventEntity(request.EventName))
+            var webhooks = _dtoToEntityMapper.MapWebooks(request.Subscriber.Webhooks);
+            
+            return new SubscriberEntity(request.SubscriberName, new EventEntity(request.EventName))
                 .AddWebhooks(webhooks);
-
-            return subscriber;
-        }
-
-        private static UriTransformEntity MapUriTransformEntity(UriTransformDto uriTransformDto)
-        {
-            if (uriTransformDto?.Replace == null)
-            {
-                return null;
-            }
-
-            return new UriTransformEntity(uriTransformDto.Replace);
-        }
-
-        private static EndpointEntity MapEndpointEntity(EndpointDto endpointDto)
-        {
-            var authenticationEntity = MapAuthentication(endpointDto.Authentication);
-            var endpoint = new EndpointEntity(endpointDto.Uri, authenticationEntity, endpointDto.HttpVerb, endpointDto.Selector);
-
-            return endpoint;
-        }
-
-        private static AuthenticationEntity MapAuthentication(AuthenticationDto authenticationDto)
-        {
-            return authenticationDto switch
-            {
-                BasicAuthenticationDto dto => new BasicAuthenticationEntity(dto.Username, dto.Password),
-                OidcAuthenticationDto dto => new OidcAuthenticationEntity(dto.ClientId, dto.ClientSecretKeyName, dto.Uri, dto.Scopes?.ToArray()),
-                _ => null,
-            };
         }
     }
 }

@@ -57,7 +57,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private DeleteWebhookRequestHandler Handler => new DeleteWebhookRequestHandler(
             _repositoryMock.Object,
             _directorServiceMock.Object,
-            Mock.Of<IBigBrother>(),
             new[]
             {
                 TimeSpan.FromMilliseconds(10.0),

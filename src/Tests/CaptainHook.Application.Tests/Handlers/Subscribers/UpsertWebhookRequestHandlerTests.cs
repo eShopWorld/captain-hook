@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
@@ -24,8 +25,8 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
     public class UpsertWebhookRequestHandlerTests
     {
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
-
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
+        private readonly Mock<IDtoToEntityMapper> _dtoToEntityMapper = new Mock<IDtoToEntityMapper>(MockBehavior.Strict);
 
         private readonly UpsertWebhookRequest _defaultUpsertRequest =
             new UpsertWebhookRequest("event", "subscriber", "*", new EndpointDtoBuilder().Create());
@@ -45,8 +46,8 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
         private UpsertWebhookRequestHandler Handler => new UpsertWebhookRequestHandler(
             _repositoryMock.Object,
-            _directorServiceMock.Object, 
-            Mock.Of<IBigBrother>(),
+            _directorServiceMock.Object,
+            _dtoToEntityMapper.Object,
             new[]
             {
                 TimeSpan.FromMilliseconds(10.0),

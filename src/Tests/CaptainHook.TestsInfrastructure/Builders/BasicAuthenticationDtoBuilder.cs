@@ -6,7 +6,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
     {
         public BasicAuthenticationDtoBuilder()
         {
-            With(x => x.AuthenticationType, "Basic");
             With(x => x.Username, "Batman");
             With(x => x.Password, "Batcave");
         }
