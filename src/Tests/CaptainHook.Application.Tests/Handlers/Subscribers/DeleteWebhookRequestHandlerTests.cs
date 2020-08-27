@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,6 +43,38 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: _authentication)
                .WithWebhook("https://blah.blah.eshopworld.com/other-webhook/", "POST", "non-deletable", authentication: _authentication);
 
+        private static readonly OidcAuthenticationDto _authenticationDto = new OidcAuthenticationDto
+        {
+            ClientId = "captain-hook-id",
+            ClientSecretKeyName = "kv-secret-name",
+            Uri = "https://blah-blah.sts.eshopworld.com",
+            Scopes = new List<string> { "scope1" }
+        };
+
+        private static readonly EndpointDto _firstEndpoint = new EndpointDto
+        {
+            Selector = null,
+            Uri = "https://blah.blah.eshopworld.com/default/",
+            HttpVerb = "POST",
+            Authentication = _authenticationDto
+        };
+        
+        private static readonly EndpointDto _secondEndpoint = new EndpointDto
+        {
+            Selector = "selector",
+            Uri = "https://blah.blah.eshopworld.com/webhook/",
+            HttpVerb = "POST",
+            Authentication = _authenticationDto
+        };
+
+        private static readonly EndpointDto _thirdEndpoint = new EndpointDto
+        {
+            Selector = "non-deletable",
+            Uri = "https://blah.blah.eshopworld.com/other-webhook/",
+            HttpVerb = "POST",
+            Authentication = _authenticationDto
+        };
+
         private readonly DeleteWebhookRequest _defaultRequest = new DeleteWebhookRequest("event", "subscriber", "selector");
 
         public DeleteWebhookRequestHandlerTests()
@@ -53,7 +86,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(true);
             _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.Is<SubscriberEntity>(x => x.Id.Equals(new SubscriberId("event", "subscriber")))))
-                .ReturnsAsync(subscriber);
+                .ReturnsAsync(subscriber);            
         }
 
         private DeleteWebhookRequestHandler Handler => new DeleteWebhookRequestHandler(
@@ -69,6 +102,16 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         [Fact, IsUnit]
         public async Task When_EndpointCanBeDeleted_Then_ChangesWillBeAppliedByDirectorServiceAndStoredInRepository()
         {
+            _entityToDtoMapper.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>()))
+                .Returns(new SubscriberDto
+                {
+                    Webhooks = new WebhooksDto
+                    {
+                        SelectionRule = "$.Test",
+                        Endpoints = new List<EndpointDto> { _firstEndpoint, _thirdEndpoint }
+                    }
+                });
+
             var result = await Handler.Handle(new DeleteWebhookRequest("event", "subscriber", "selector"), CancellationToken.None);
 
             using var scope = new AssertionScope();
@@ -83,6 +126,16 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         [Fact, IsUnit]
         public async Task When_DefaultEndpointCanBeDeleted_Then_ChangesWillBeAppliedByDirectorServiceAndStoredInRepository()
         {
+            _entityToDtoMapper.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>()))
+                .Returns(new SubscriberDto
+                {
+                    Webhooks = new WebhooksDto
+                    {
+                        SelectionRule = "$.Test",
+                        Endpoints = new List<EndpointDto> { _secondEndpoint, _thirdEndpoint }
+                    }
+                });
+
             var result = await Handler.Handle(new DeleteWebhookRequest("event", "subscriber", null), CancellationToken.None);
 
             using var scope = new AssertionScope();
@@ -97,6 +150,16 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         [Fact, IsUnit]
         public async Task When_EndpointDoesNotExist_Then_EndpointNotFoundInSubscriberErrorReturned()
         {
+            _entityToDtoMapper.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>()))
+                .Returns(new SubscriberDto
+                {
+                    Webhooks = new WebhooksDto
+                    {
+                        SelectionRule = "$.Test",
+                        Endpoints = new List<EndpointDto> { _firstEndpoint, _secondEndpoint, _thirdEndpoint }
+                    }
+                });
+
             var result = await Handler.Handle(new DeleteWebhookRequest("event", "subscriber", "unknown-selector"), CancellationToken.None);
 
             using var scope = new AssertionScope();
@@ -137,6 +200,16 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(subscriberEntity);
             _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(true);
+
+            _entityToDtoMapper.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>()))
+                .Returns(new SubscriberDto
+                {
+                    Webhooks = new WebhooksDto
+                    {
+                        SelectionRule = "$.Test",
+                        Endpoints = new List<EndpointDto> { _thirdEndpoint }
+                    }
+                });
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
