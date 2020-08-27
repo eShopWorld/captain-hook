@@ -40,17 +40,17 @@ namespace CaptainHook.Api.Client.Models
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "code")]
-        public string Code { get; private set; }
+        public string Code { get; set; }
 
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "message")]
-        public string Message { get; private set; }
+        public string Message { get; set; }
 
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "property")]
-        public string Property { get; private set; }
+        public string Property { get; set; }
 
     }
 }
