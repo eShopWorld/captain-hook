@@ -106,6 +106,29 @@ namespace CaptainHook.Application.Tests.Infrastructure
             }
         }
 
+        [Fact, IsUnit]
+        public void MapEndpoint_When_ValidEndpointDtoIsUsedWithSelectorProvided_Then_IsMappedToEndpointEntity()
+        {
+            var sut = new DtoToEntityMapper();
+
+            var dto = new EndpointDtoBuilder()
+                .With(x => x.Selector, "Select")
+                .With(x => x.HttpVerb, "PUT")
+                .With(x => x.Uri, "http://www.test.url")
+                .With(x => x.Authentication, null)
+                .Create();
+
+            var entity = sut.MapEndpoint(dto, "abc");
+
+            var expectedEntity = new EndpointDto
+            {
+                Selector = "abc",
+                Uri = "http://www.test.url",
+                HttpVerb = "PUT"
+            };
+            entity.Should().BeEquivalentTo(expectedEntity);
+        }
+
         [Theory]
         [InlineData("POST")]
         [InlineData("PUT")]
