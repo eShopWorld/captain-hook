@@ -15,7 +15,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
     {
         [Fact]
         [IsUnit]
-        public void MapAuthentication_WhenBasicAuthenticationDtoIsUsed_ThenIsMappedToBasicAuthenticationEntity()
+        public void MapAuthentication_When_BasicAuthenticationDtoIsUsed_Then_IsMappedToBasicAuthenticationEntity()
         {
             var sut = new DtoToEntityMapper();
 
@@ -37,7 +37,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         [Fact]
         [IsUnit]
-        public void MapAuthentication_WhenOidcAuthenticationDtoIsUsed_ThenIsMappedToOidcAuthenticationEntity()
+        public void MapAuthentication_When_OidcAuthenticationDtoIsUsed_Then_IsMappedToOidcAuthenticationEntity()
         {
             var sut = new DtoToEntityMapper();
 
@@ -63,7 +63,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         [Fact]
         [IsUnit]
-        public void MapUriTransform_WhenValidUriTransformIsUsed_ThenIsMappedToUriTransformEntity()
+        public void MapUriTransform_When_ValidUriTransformDtoIsUsed_Then_IsMappedToUriTransformEntity()
         {
             var sut = new DtoToEntityMapper();
 
@@ -86,7 +86,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [InlineData("PUT")]
         [InlineData("GET")]
         [IsUnit]
-        public void MapEndpoint_WhenValidEndpointIsUsed_ThenIsMappedToEndpointEntity(string httpVerb)
+        public void MapEndpoint_When_ValidEndpointDtoIsUsed_Then_IsMappedToEndpointEntity(string httpVerb)
         {
             var sut = new DtoToEntityMapper();
 
@@ -112,7 +112,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [InlineData("PUT")]
         [InlineData("GET")]
         [IsUnit]
-        public void MapAEndpoint_WhenValidEndpointIsUsed_ThenIsMappedToEndpointEntity(string httpVerb)
+        public void MapWebooks_When_ValidEndpointIsUsed_Then_IsMappedToEndpointEntity(string httpVerb)
         {
             var sut = new DtoToEntityMapper();
 
