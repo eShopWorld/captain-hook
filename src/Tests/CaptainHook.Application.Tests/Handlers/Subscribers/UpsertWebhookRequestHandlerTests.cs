@@ -56,7 +56,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
         public UpsertWebhookRequestHandlerTests()
         {
-            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>()))
+            _dtoToEntityMapper.Setup(r => r.MapEndpoint(It.IsAny<EndpointDto>(), _defaultUpsertRequest.Selector))
                 .Returns(new EndpointEntity(_defaultEndpointDto.Uri,
                     authentication: new OidcAuthenticationEntity(
                         clientId: ((OidcAuthenticationDto)_defaultEndpointDto.Authentication).ClientId,
@@ -103,7 +103,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.Data.Should().BeEquivalentTo(_defaultUpsertRequest.Endpoint);
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Once);
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>(), "*"), Times.Once);
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 
@@ -144,7 +144,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Once);
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>(), "*"), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
@@ -164,7 +164,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderCreateError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Once);
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>(), "*"), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
@@ -185,7 +185,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.IsError.Should().BeTrue();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Once);
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>(), "*"), Times.Once);
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 
@@ -205,7 +205,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.Should().BeEquivalentTo(expectedResult);
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(3));
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(3));
-            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Exactly(3));
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>(), "*"), Times.Exactly(3));
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(3));
         }
 
@@ -226,7 +226,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.Should().BeEquivalentTo(expectedResult);
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(2));
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(2));
-            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Exactly(2));
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>(), "*"), Times.Exactly(2));
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(2));
         }
 
@@ -254,7 +254,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _directorServiceMock.Verify(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _repositoryMock.Verify(x => x.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _directorServiceMock.Verify(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()), Times.Once);
-            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>()), Times.Exactly(2));
+            _dtoToEntityMapper.Verify(x => x.MapEndpoint(It.IsAny<EndpointDto>(), "*"), Times.Exactly(2));
             _repositoryMock.Verify(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 

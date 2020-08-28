@@ -16,8 +16,9 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         /// Maps an Endpoint DTO to an Endpoint entity
         /// </summary>
         /// <param name="endpointDto">An Endpoint DTO</param>
+        /// <param name="selector"></param>
         /// <returns>An Endpoint entity</returns>
-        EndpointEntity MapEndpoint(EndpointDto endpointDto);
+        EndpointEntity MapEndpoint(EndpointDto endpointDto, string selector);
 
         /// <summary>
         /// Maps a URITransfrom DTO to a URITransform entity

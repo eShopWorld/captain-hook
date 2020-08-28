@@ -96,8 +96,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .With(x => x.Uri, "http://www.test.url")
                 .Create();
 
-
-            var entity = sut.MapEndpoint(dto);
+            var entity = sut.MapEndpoint(dto, null);
 
             using (new AssertionScope())
             {

@@ -124,7 +124,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private EndpointEntity MapRequestToEndpointEntity(UpsertWebhookRequest request, SubscriberEntity parent)
         {
             return _dtoToEntityMapper
-                        .MapEndpoint(request.Endpoint)
+                        .MapEndpoint(request.Endpoint, request.Selector)
                         .SetParentSubscriber(parent);
         }
 
