@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
@@ -10,7 +11,6 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
-using Eshopworld.Core;
 using Kusto.Cloud.Platform.Utils;
 using MediatR;
 using Polly;
@@ -25,22 +25,16 @@ namespace CaptainHook.Application.Handlers.Subscribers
         };
 
         private readonly ISubscriberRepository _subscriberRepository;
-
         private readonly IDirectorServiceProxy _directorService;
-
-        private readonly IBigBrother _bigBrother;
-
         private readonly TimeSpan[] _retrySleepDurations;
 
         public DeleteWebhookRequestHandler(
             ISubscriberRepository subscriberRepository,
             IDirectorServiceProxy directorService,
-            IBigBrother bigBrother,
             TimeSpan[] sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
-            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
             _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 

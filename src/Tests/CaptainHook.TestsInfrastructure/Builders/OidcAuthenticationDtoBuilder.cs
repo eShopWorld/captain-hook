@@ -7,7 +7,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
     {
         public OidcAuthenticationDtoBuilder()
         {
-            With(x => x.AuthenticationType, "OIDC");
             With(x => x.ClientId, "clientId");
             With(x => x.Uri, "https://security-api.com/token");
             With(x => x.Scopes, new List<string> { "test.scope.api" });

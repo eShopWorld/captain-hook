@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
@@ -9,7 +10,6 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
-using Eshopworld.Core;
 using Kusto.Cloud.Platform.Utils;
 using MediatR;
 using Polly;
@@ -24,22 +24,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
         };
 
         private readonly ISubscriberRepository _subscriberRepository;
-
         private readonly IDirectorServiceProxy _directorService;
-
-        private readonly IBigBrother _bigBrother;
-
+        private readonly IDtoToEntityMapper _dtoToEntityMapper;
         private readonly TimeSpan[] _retrySleepDurations;
 
         public UpsertWebhookRequestHandler(
             ISubscriberRepository subscriberRepository,
             IDirectorServiceProxy directorService,
-            IBigBrother bigBrother,
+            IDtoToEntityMapper dtoToEntityMapper,
             TimeSpan[] sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
-            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
+            _dtoToEntityMapper = dtoToEntityMapper ?? throw new ArgumentNullException(nameof(dtoToEntityMapper));
             _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 
@@ -54,7 +51,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
                 if (existingItem.Error is EntityNotFoundError)
                 {
-                    return await AddAsync(request, cancellationToken);
+                    return await AddAsync(request);
                 }
 
                 if (!existingItem.IsError)
@@ -73,11 +70,9 @@ namespace CaptainHook.Application.Handlers.Subscribers
             return executionResult;
         }
 
-        private async Task<OperationResult<EndpointDto>> AddAsync(
-            UpsertWebhookRequest request,
-            CancellationToken cancellationToken)
+        private async Task<OperationResult<EndpointDto>> AddAsync(UpsertWebhookRequest request)
         {
-            var subscriberResult = MapRequestToSubscriber(request);
+            var subscriberResult = MapRequestToSubscriberEntity(request);
             if (subscriberResult.IsError)
             {
                 return subscriberResult.Error;
@@ -103,7 +98,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             UpsertWebhookRequest request,
             SubscriberEntity existingItem)
         {
-            var endpoint = MapRequestToEndpoint(request, existingItem);
+            var endpoint = MapRequestToEndpointEntity(request, existingItem);
             var addWebhookResult = existingItem.SetWebhookEndpoint(endpoint);
 
             if (addWebhookResult.IsError)
@@ -126,31 +121,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
             return request.Endpoint;
         }
 
-        private static EndpointEntity MapRequestToEndpoint(UpsertWebhookRequest request, SubscriberEntity parent)
+        private EndpointEntity MapRequestToEndpointEntity(UpsertWebhookRequest request, SubscriberEntity parent)
         {
-            var authenticationEntity = MapAuthentication(request.Endpoint.Authentication);
-            var endpoint = new EndpointEntity(request.Endpoint.Uri, authenticationEntity, request.Endpoint.HttpVerb, request.Endpoint.Selector, parent);
-
-            return endpoint;
+            return _dtoToEntityMapper
+                        .MapEndpoint(request.Endpoint)
+                        .SetParentSubscriber(parent);
         }
 
-        private static OperationResult<SubscriberEntity> MapRequestToSubscriber(UpsertWebhookRequest request)
+        private OperationResult<SubscriberEntity> MapRequestToSubscriberEntity(UpsertWebhookRequest request)
         {
             var subscriber = new SubscriberEntity(request.SubscriberName, new EventEntity(request.EventName));
-            var endpoint = MapRequestToEndpoint(request, subscriber);
-            var addWebhookResult = subscriber.SetWebhookEndpoint(endpoint);
+            var endpointEntity = MapRequestToEndpointEntity(request, subscriber);
 
-            return addWebhookResult?.Error ?? addWebhookResult;
-        }
-
-        private static AuthenticationEntity MapAuthentication(AuthenticationDto authenticationDto)
-        {
-            return authenticationDto switch
-            {
-                BasicAuthenticationDto dto => new BasicAuthenticationEntity(dto.Username, dto.Password),
-                OidcAuthenticationDto dto => new OidcAuthenticationEntity(dto.ClientId, dto.ClientSecretKeyName, dto.Uri, dto.Scopes?.ToArray()),
-                _ => null,
-            };
+            return subscriber.SetWebhookEndpoint(endpointEntity);
         }
     }
 }
