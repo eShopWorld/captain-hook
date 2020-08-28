@@ -3,10 +3,15 @@ using CaptainHook.Domain.Results;
 
 namespace CaptainHook.Domain.Errors
 {
-    public class CannotRemoveLastEndpointFromSubscriberError : ErrorBase
+    public class CannotRemoveLastEndpointFromSubscriberError: ErrorBase
     {
-        public CannotRemoveLastEndpointFromSubscriberError(SubscriberEntity entity) :
-            base($"Cannot remove last endpoint from Subscriber: {entity.Id}")
+        public CannotRemoveLastEndpointFromSubscriberError()
+            : base("Cannot remove last endpoint from collection")
+        {
+        }
+
+        public CannotRemoveLastEndpointFromSubscriberError(SubscriberEntity entity)
+            : base($"Cannot remove last endpoint from Subscriber: {entity.Id}")
         {
         }
     }

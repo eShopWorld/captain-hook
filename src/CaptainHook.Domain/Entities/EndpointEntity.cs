@@ -32,8 +32,7 @@
         /// </summary>
         public string Selector { get; }
 
-        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector, 
-            SubscriberEntity subscriber = null)
+        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector, SubscriberEntity subscriber = null)
         {
             Uri = uri;
             Authentication = authentication;
@@ -43,9 +42,12 @@
             SetParentSubscriber(subscriber);
         }
 
-        public void SetParentSubscriber(SubscriberEntity subscriber)
+        public static EndpointEntity FromSelector(string selector) => new EndpointEntity(null, null, null, selector);
+
+        public EndpointEntity SetParentSubscriber(SubscriberEntity subscriber)
         {
             ParentSubscriber = subscriber;
+            return this;
         }
     }
 }
