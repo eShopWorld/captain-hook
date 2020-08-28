@@ -10,14 +10,14 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         {
             return new WebhooksEntity(
                 webhooksDto.SelectionRule,
-                webhooksDto.Endpoints?.Select(MapEndpoint) ?? Enumerable.Empty<EndpointEntity>(),
+                webhooksDto.Endpoints?.Select(endpointDto => MapEndpoint(endpointDto)) ?? Enumerable.Empty<EndpointEntity>(),
                 MapUriTransform(webhooksDto.UriTransform));
         }
 
-        public EndpointEntity MapEndpoint(EndpointDto endpointDto)
+        public EndpointEntity MapEndpoint(EndpointDto endpointDto, string selector = null)
         {
             var authenticationEntity = MapAuthentication(endpointDto.Authentication);
-            var endpoint = new EndpointEntity(endpointDto.Uri, authenticationEntity, endpointDto.HttpVerb, endpointDto.Selector);
+            var endpoint = new EndpointEntity(endpointDto.Uri, authenticationEntity, endpointDto.HttpVerb, selector ?? endpointDto.Selector);
 
             return endpoint;
         }
