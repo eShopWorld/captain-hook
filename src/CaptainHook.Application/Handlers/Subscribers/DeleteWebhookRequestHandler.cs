@@ -1,8 +1,8 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
@@ -10,7 +10,6 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
-using Eshopworld.Core;
 using Kusto.Cloud.Platform.Utils;
 using MediatR;
 using Polly;
@@ -25,22 +24,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
         };
 
         private readonly ISubscriberRepository _subscriberRepository;
-
         private readonly IDirectorServiceProxy _directorService;
-
-        private readonly IBigBrother _bigBrother;
-
+        private readonly IEntityToDtoMapper _entityToDtoMapper;
         private readonly TimeSpan[] _retrySleepDurations;
 
         public DeleteWebhookRequestHandler(
             ISubscriberRepository subscriberRepository,
             IDirectorServiceProxy directorService,
-            IBigBrother bigBrother,
+            IEntityToDtoMapper entityToDtoMapper,
             TimeSpan[] sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
-            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
+            _entityToDtoMapper = entityToDtoMapper ?? throw new ArgumentNullException(nameof(entityToDtoMapper));
             _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 
@@ -64,7 +60,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 return existingItem.Error;
             }
 
-            var removeResult = existingItem.Data.RemoveWebhookEndpoint(request.Selector);
+            var removeResult = existingItem.Data.RemoveWebhookEndpoint(EndpointEntity.FromSelector(request.Selector));
             if (removeResult.IsError)
             {
                 return removeResult.Error;
@@ -82,56 +78,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 return saveResult.Error;
             }
 
-            return MapToDto(saveResult);
-        }
-
-        private SubscriberDto MapToDto(SubscriberEntity subscriber)
-        {
-            return new SubscriberDto
-            {
-                Webhooks = new WebhooksDto
-                {
-                    SelectionRule = subscriber.Webhooks.SelectionRule,
-                    UriTransform = MapUriTransform(subscriber.Webhooks.UriTransform),
-                    Endpoints = subscriber.Webhooks.Endpoints.Select(MapEndpointDto).ToList()
-                }
-            };
-        }
-
-        private EndpointDto MapEndpointDto(EndpointEntity endpointEntity)
-        {
-            return new EndpointDto
-            {
-                Selector = endpointEntity.Selector,
-                Uri = endpointEntity.Uri,
-                HttpVerb = endpointEntity.HttpVerb,
-                Authentication = MapAuthenticationDto(endpointEntity.Authentication)
-            };
-        }
-
-        private AuthenticationDto MapAuthenticationDto(AuthenticationEntity authenticationEntity)
-        {
-            return authenticationEntity switch
-            {
-                BasicAuthenticationEntity ent => new BasicAuthenticationDto
-                {
-                    Username = ent.Username,
-                    Password = ent.Password
-                },
-                OidcAuthenticationEntity ent => new OidcAuthenticationDto
-                {
-                    Uri = ent.Uri,
-                    ClientId = ent.ClientId,
-                    Scopes = ent.Scopes?.ToList(),
-                    ClientSecretKeyName = ent.ClientSecretKeyName
-                },
-                _ => null
-            };
-        }
-
-        private UriTransformDto MapUriTransform(UriTransformEntity uriTransform)
-        {
-            return uriTransform == null ? null : new UriTransformDto { Replace = uriTransform.Replace };
+            return _entityToDtoMapper.MapSubscriber(saveResult);
         }
     }
 }

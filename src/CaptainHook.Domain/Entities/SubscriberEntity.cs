@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CaptainHook.Domain.Entities.Comparers;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
-using FluentValidation;
 
 namespace CaptainHook.Domain.Entities
 {
@@ -14,10 +10,6 @@ namespace CaptainHook.Domain.Entities
     /// </summary>
     public class SubscriberEntity
     {
-        private static readonly IValidator<WebhooksEntity> WebhooksValidator = new WebhooksEntityValidator();
-
-        private static readonly ValidationErrorBuilder ValidationErrorBuilder = new ValidationErrorBuilder();
-
         public SubscriberId Id => new SubscriberId(ParentEvent?.Name, Name);
 
         /// <summary>
@@ -57,40 +49,34 @@ namespace CaptainHook.Domain.Entities
         /// Removes the existing endpoint and adds the new one to the list if the item is already present.
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
-        public OperationResult<SubscriberEntity> SetWebhookEndpoint(EndpointEntity endpointModel)
+        public OperationResult<SubscriberEntity> SetWebhookEndpoint(EndpointEntity entity)
+            => OperationOnWebhooks(webhooks => webhooks.SetEndpoint(entity.SetParentSubscriber(this)));
+
+        /// <summary>
+        /// Removes the existing endpoint from the list if the item is present.
+        /// </summary>
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> RemoveWebhookEndpoint(EndpointEntity entity)
+            => OperationOnWebhooks(webhooks => webhooks.RemoveEndpoint(entity));
+
+        private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<WebhooksEntity, OperationResult<WebhooksEntity>> funcToRun)
         {
             if (Webhooks == null)
             {
                 Webhooks = new WebhooksEntity();
             }
 
-            var extendedEndpointsCollection = Webhooks.Endpoints
-                .Except(new [] { endpointModel }, new SelectorEndpointEntityEqualityComparer())
-                .Concat(new[] { endpointModel });
-            var endpointsEntityForValidation = new WebhooksEntity(Webhooks.SelectionRule, extendedEndpointsCollection, Webhooks.UriTransform);
+            var webhooksResult = funcToRun(Webhooks);
 
-            var validationResult = WebhooksValidator.Validate(endpointsEntityForValidation);
-
-            if (validationResult.IsValid)
+            if (webhooksResult.IsError)
             {
-                endpointModel.SetParentSubscriber(this);
-                
-                Webhooks.RemoveEndpoint(endpointModel.Selector);
-                Webhooks.AddEndpoint(endpointModel);
-
-                return this;
+                return webhooksResult.Error switch
+                {
+                    EndpointNotFoundInSubscriberError notFound => new EndpointNotFoundInSubscriberError(notFound.Selector, this),
+                    CannotRemoveLastEndpointFromSubscriberError _ => new CannotRemoveLastEndpointFromSubscriberError(this),
+                    _ => webhooksResult.Error
+                };
             }
-
-            return ValidationErrorBuilder.Build(validationResult);
-        }
-
-        public OperationResult<SubscriberEntity> RemoveWebhookEndpoint(string selector)
-        {
-            if (Webhooks.Endpoints.Count() == 1)
-                return new CannotRemoveLastEndpointFromSubscriberError(this);
-
-            if (!Webhooks.RemoveEndpoint(selector))
-                return new EndpointNotFoundInSubscriberError(selector, this);
 
             return this;
         }
