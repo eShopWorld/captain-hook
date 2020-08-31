@@ -4,6 +4,7 @@ using FluentValidation;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
+using CaptainHook.Domain.Entities;
 using UriTransformValidator = CaptainHook.Application.Validators.Common.UriTransformValidator;
 
 namespace CaptainHook.Application.Validators.Dtos
@@ -36,17 +37,21 @@ namespace CaptainHook.Application.Validators.Dtos
             RuleFor(x => x.UriTransform)
                 .SetValidator((webhooksDto, uriTransform) => new UriTransformValidator(webhooksDto.Endpoints))
                     .When(x => x.UriTransform?.Replace != null, ApplyConditionTo.CurrentValidator);
-
         }
 
-        private bool ThereIsAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
+        private static bool ThereIsAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
         {
-            return webhooks.Endpoints?.Any(e => e.Selector != null) ?? false;
+            return webhooks.Endpoints?.Any(x => !IsDefaultSelector(x.Selector)) ?? false;
         }
 
-        private bool ContainAtMostOneEndpointWithDefaultSelector(List<EndpointDto> endpoints)
+        private static bool ContainAtMostOneEndpointWithDefaultSelector(List<EndpointDto> endpoints)
         {
-            return endpoints?.Count(x => x.Selector != null) <= 1;
+            return endpoints?.Count(x => IsDefaultSelector(x.Selector)) <= 1;
+        }
+
+        private static bool IsDefaultSelector(string selector)
+        {
+            return selector == null || selector.Equals(EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase);
         }
 
         private bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)

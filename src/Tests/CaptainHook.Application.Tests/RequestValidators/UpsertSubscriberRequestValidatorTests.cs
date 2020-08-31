@@ -221,7 +221,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
             var result = _validator.TestValidate(request);
 
-            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.Endpoints);
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.SelectionRule);
         }
 
         [Fact, IsUnit]
@@ -242,7 +242,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-         [Fact, IsUnit]
+        [Fact, IsUnit]
         public void WhenOneEndpointHasDefaultSelectorAndOtherEndpointsHaveCustomSelectorsAndNoSelectionRuleIsDefined_Then_ValidationFails()
         {
             var endpoints = new List<EndpointDto>
@@ -257,7 +257,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
             var result = _validator.TestValidate(request);
 
-            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.Endpoints);
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.SelectionRule);
         }
 
         [Fact, IsUnit]
