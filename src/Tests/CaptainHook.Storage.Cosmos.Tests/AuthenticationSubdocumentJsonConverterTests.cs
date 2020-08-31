@@ -58,7 +58,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 
                 var basicAuth = result as BasicAuthenticationSubdocument;
                 basicAuth.Username.Should().Be("chuck");
-                basicAuth.Password.Should().Be("norris");
+                basicAuth.PasswordKeyName.Should().Be("norris");
             }
         }
 

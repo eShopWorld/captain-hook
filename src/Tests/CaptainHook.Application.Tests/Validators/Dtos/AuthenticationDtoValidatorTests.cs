@@ -130,12 +130,12 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
         public void When_PasswordIsEmptyForBasic_Then_ValidationFails(string invalidString)
         {
             var dto = new BasicAuthenticationDtoBuilder()
-                .With(x => x.Password, invalidString)
+                .With(x => x.PasswordKeyName, invalidString)
                 .Create();
 
             var result = _basicValidator.TestValidate(dto);
 
-            result.ShouldHaveValidationErrorFor(x => x.Password);
+            result.ShouldHaveValidationErrorFor(x => x.PasswordKeyName);
         }
     }
 }

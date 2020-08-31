@@ -21,7 +21,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
             var dto = new BasicAuthenticationDtoBuilder()
                 .With(x => x.Username, "Username")
-                .With(x => x.Password, "Password")
+                .With(x => x.PasswordKeyName, "Password")
                 .Create();
 
             var entity = sut.MapAuthentication(dto);
@@ -31,7 +31,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 entity.Should().BeOfType(typeof(BasicAuthenticationEntity));
                 BasicAuthenticationEntity basicEntity = (BasicAuthenticationEntity)entity;
                 basicEntity.Username.Should().Be("Username");
-                basicEntity.Password.Should().Be("Password");
+                basicEntity.PasswordKeyName.Should().Be("Password");
             }
         }
 

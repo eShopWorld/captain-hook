@@ -105,7 +105,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             return authenticationEntity switch
             {
                 OidcAuthenticationEntity ent => await MapOidcAuthenticationAsync(ent),
-                BasicAuthenticationEntity ent => MapBasicAuthentication(ent),
+                BasicAuthenticationEntity ent => await MapBasicAuthenticationAsync(ent),
                 _ => null
             };
         }
@@ -126,12 +126,17 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             };
         }
 
-        private BasicAuthenticationConfig MapBasicAuthentication(BasicAuthenticationEntity authenticationEntity)
+        private async Task<BasicAuthenticationConfig> MapBasicAuthenticationAsync(BasicAuthenticationEntity authenticationEntity)
         {
+            if (authenticationEntity?.PasswordKeyName == null)
+                return null;
+
+            var secretValue = await _secretProvider.GetSecretValueAsync(authenticationEntity.PasswordKeyName);
+
             return new BasicAuthenticationConfig
             {
                 Username = authenticationEntity.Username,
-                Password = authenticationEntity.Password
+                Password = secretValue
             };
         }
 
