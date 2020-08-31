@@ -46,7 +46,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             string data = @"{
                 ""type"": ""Basic"",
                 ""username"": ""chuck"",
-                ""password"": ""norris""
+                ""passwordKeyName"": ""norris""
             }";
 
             var result = JsonConvert.DeserializeObject<AuthenticationSubdocument>(data, new AuthenticationSubdocumentJsonConverter());

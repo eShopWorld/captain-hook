@@ -46,7 +46,7 @@ namespace CaptainHook.Tests.Json
             string data = @"{
                 ""type"": ""Basic"",
                 ""username"": ""chuck"",
-                ""password"": ""norris""
+                ""passwordKeyName"": ""norris""
             }";
 
             var result = JsonConvert.DeserializeObject<AuthenticationDto>(data, new AuthenticationDtoJsonConverter());
