@@ -7,7 +7,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public EndpointDtoBuilder()
         {
             With(e => e.Uri, "https://blah.blah.eshopworld.com/webhook/");
-            //With(e => e.Selector, null);
             With(e => e.HttpVerb, "POST");
             With(e => e.Authentication, new OidcAuthenticationDtoBuilder().Create());
         }

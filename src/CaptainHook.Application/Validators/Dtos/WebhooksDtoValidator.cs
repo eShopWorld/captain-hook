@@ -32,7 +32,7 @@ namespace CaptainHook.Application.Validators.Dtos
                 .WithMessage("There cannot be multiple endpoints with the same selector");
 
             RuleForEach(x => x.Endpoints)
-                .SetValidator(new UpsertSubscriberEndpointDtoValidator());
+                .SetValidator(new EndpointDtoValidator());
 
             RuleFor(x => x.UriTransform)
                 .SetValidator((webhooksDto, uriTransform) => new UriTransformValidator(webhooksDto.Endpoints))
@@ -48,11 +48,6 @@ namespace CaptainHook.Application.Validators.Dtos
         {
             return endpoints?.Count(x => EndpointEntity.IsDefaultSelector(x.Selector)) <= 1;
         }
-
-        //private static bool IsDefaultSelector(string selector)
-        //{
-        //    return selector == null || selector.Equals(EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase);
-        //}
 
         private bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)
         {
