@@ -30,17 +30,24 @@ namespace CaptainHook.Domain.Repositories
         Task<OperationResult<IEnumerable<SubscriberEntity>>> GetAllSubscribersAsync();
 
         /// <summary>
-        /// Saves Subscriber
+        /// Create a new subscriber
         /// </summary>
-        /// <param name="subscriberEntity">Subscriber entity to Save</param>
+        /// <param name="subscriberEntity">Subscriber entity to create</param>
         /// <returns></returns>
         Task<OperationResult<SubscriberEntity>> AddSubscriberAsync(SubscriberEntity subscriberEntity);
 
         /// <summary>
-        /// Updates subscriber
+        /// Update a subscriber
         /// </summary>
         /// <param name="subscriberEntity">Subscriber to update</param>
         /// <returns>Subscriber which has been updated</returns>
         Task<OperationResult<SubscriberEntity>> UpdateSubscriberAsync(SubscriberEntity subscriberEntity);
+
+        /// <summary>
+        /// Remove a subscriber
+        /// </summary>
+        /// <param name="subscriberEntity">Subscriber to remove</param>
+        /// <returns>Subscriber which has been removed</returns>
+        Task<OperationResult<SubscriberEntity>> RemoveSubscriberAsync(SubscriberEntity subscriberEntity);
     }
 }

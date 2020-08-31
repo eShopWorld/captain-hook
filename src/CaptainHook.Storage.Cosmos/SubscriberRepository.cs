@@ -104,6 +104,26 @@ namespace CaptainHook.Storage.Cosmos
             return UpdateSubscriberInternalAsync(subscriberEntity);
         }
 
+        public Task<OperationResult<SubscriberEntity>> RemoveSubscriberAsync(SubscriberEntity subscriberEntity)
+        {
+            if (subscriberEntity == null)
+            {
+                throw new ArgumentNullException(nameof(subscriberEntity));
+            }
+
+            if (subscriberEntity.ParentEvent == null)
+            {
+                throw new ArgumentNullException(nameof(subscriberEntity.ParentEvent));
+            }
+
+            if (string.IsNullOrWhiteSpace(subscriberEntity.ParentEvent.Name))
+            {
+                throw new ArgumentNullException(nameof(subscriberEntity.ParentEvent.Name));
+            }
+
+            return RemoveSubscriberInternalAsync(subscriberEntity);
+        }
+
         #region Private methods
         private async Task<OperationResult<SubscriberEntity>> UpdateSubscriberInternalAsync(SubscriberEntity subscriberEntity)
         {
@@ -179,6 +199,29 @@ namespace CaptainHook.Storage.Cosmos
             catch (Exception exception)
             {
                 return new CannotQueryEntityError(nameof(SubscriberEntity), exception);
+            }
+        }
+
+        private async Task<OperationResult<SubscriberEntity>> RemoveSubscriberInternalAsync(SubscriberEntity subscriberEntity)
+        {
+            try
+            {
+                var pk = SubscriberDocument.GetPartitionKey(subscriberEntity.ParentEvent.Name);
+                
+                var result = await _cosmosDbRepository.DeleteAsync<SubscriberDocument>(subscriberEntity.Id, pk);
+                
+                if(result)
+                {
+                    return subscriberEntity;
+                }
+                else
+                {
+                    return new CannotDeleteEntityError(nameof(SubscriberEntity));
+                }
+            }
+            catch (Exception exception)
+            {
+                return new CannotDeleteEntityError(nameof(SubscriberEntity), exception);
             }
         }
 
