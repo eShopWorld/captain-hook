@@ -99,17 +99,55 @@ namespace CaptainHook.Application.Tests.RequestValidators
             result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.SelectionRule);
         }
 
-        [Fact, IsUnit]
-        public void When_TwoEndpointsHaveDefaultSelector_Then_ValidationFails()
+        [Theory, IsUnit]
+        [InlineData(null)]
+        [InlineData("*")]
+        public void When_SingleEndpointWithNullOrDefaultSelectorAndNoSelectionRule_ValidationSucceeds(string selector)
         {
-            var endpoints = new List<EndpointDto>()
+            var endpoints = new List<EndpointDto>
             {
-                new EndpointDtoBuilder().With(x => x.Selector, "*").Create(),
-                new EndpointDtoBuilder().With(x => x.Selector, "*").Create()
+                new EndpointDtoBuilder().With(x => x.Selector, selector).Create()
             };
-            var webhooksDto = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).Create();
-            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
-            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+            var webhooks = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).With(x => x.SelectionRule, null).Create();
+            var subscriber = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooks).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", subscriber);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Theory, IsUnit]
+        [InlineData(null)]
+        [InlineData("*")]
+        public void When_SingleEndpointWithNullOrDefaultSelectorAndSelectionRuleDefined_ValidationSucceeds(string selector)
+        {
+            var endpoints = new List<EndpointDto>
+            {
+                new EndpointDtoBuilder().With(x => x.Selector, selector).Create()
+            };
+            var webhooks = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).With(x => x.SelectionRule, "$.TenantCode").Create();
+            var subscriber = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooks).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", subscriber);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Theory, IsUnit]
+        [InlineData(null)]
+        [InlineData("*")]
+        public void When_ManyEndpointsHaveNullOrDefaultSelector_Then_ValidationFails(string selector)
+        {
+            var endpoints = new List<EndpointDto>
+            {
+                new EndpointDtoBuilder().With(x => x.Selector, selector).Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, selector).Create()
+            };
+            var webhooks = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).Create();
+            var subscriber = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooks).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", subscriber);
 
             var result = _validator.TestValidate(request);
 
@@ -118,17 +156,35 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_TwoEndpointsHaveTheSameSelector_Then_ValidationFails()
+        public void When_OneEndpointHaveDefaultSelectorAndAnotherEndpointHaveNullSelector_Then_ValidationFails()
         {
-            var endpoints = new List<EndpointDto>()
+            var endpoints = new List<EndpointDto>
+            {
+                new EndpointDtoBuilder().With(x => x.Selector, "*").Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, null).Create()
+            };
+            var webhooks = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).Create();
+            var subscriber = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooks).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", subscriber);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.Endpoints)
+                .WithErrorMessage("There can be only one endpoint with the default selector");
+        }
+
+        [Fact, IsUnit]
+        public void When_ManyEndpointsHaveTheSameCustomSelector_Then_ValidationFails()
+        {
+            var endpoints = new List<EndpointDto>
             {
                 new EndpointDtoBuilder().With(x => x.Selector, "*").Create(),
                 new EndpointDtoBuilder().With(x => x.Selector, "selectorA").Create(),
                 new EndpointDtoBuilder().With(x => x.Selector, "selectorA").Create()
             };
-            var webhooksDto = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).Create();
-            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
-            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+            var webhooks = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).Create();
+            var subscriber = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooks).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", subscriber);
 
             var result = _validator.TestValidate(request);
 
@@ -137,17 +193,15 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_OnlyOneEndpointHasDefaultSelector_Then_ValidationSucceeds()
+        public void When_SingleEndpointWithCustomSelectorAndSelectionRuleIsDefined_Then_ValidationSucceeds()
         {
-            var endpoints = new List<EndpointDto>()
+            var endpoints = new List<EndpointDto>
             {
-                new EndpointDtoBuilder().With(x => x.Selector, "*").Create(),
-                new EndpointDtoBuilder().With(x => x.Selector, "selector1").Create(),
-                new EndpointDtoBuilder().With(x => x.Selector, "selector2").Create()
+                new EndpointDtoBuilder().With(x => x.Selector, "selector1").Create()
             };
-            var webhooksDto = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).Create();
-            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
-            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+            var webhooks = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).With(x => x.SelectionRule, "$.TenantCode").Create();
+            var subscriber = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooks).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", subscriber);
 
             var result = _validator.TestValidate(request);
 
@@ -155,21 +209,55 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_ThereIsNoSelectionRuleAndOneEndpointOnlyWithDefaultSelector_Then_ValidationSucceeds()
+        public void When_SingleEndpointWithCustomSelectorAndNoSelectionRule_Then_ValidationFails()
         {
-            var endpoints = new List<EndpointDto>()
+            var endpoints = new List<EndpointDto>
+            {
+                new EndpointDtoBuilder().With(x => x.Selector, "selector1").Create()
+            };
+            var webhooks = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).With(x => x.SelectionRule, null).Create();
+            var subscriber = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooks).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", subscriber);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.Endpoints);
+        }
+
+        [Fact, IsUnit]
+        public void WhenOneEndpointHasDefaultSelectorAndOtherEndpointsHaveCustomSelectorsAndSelectionRuleIsDefined_Then_ValidationSucceeds()
+        {
+            var endpoints = new List<EndpointDto>
             {
                 new EndpointDtoBuilder().With(x => x.Selector, "*").Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, "selector1").Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, "selector2").Create()
             };
-            var webhooksDto = new WebhooksDtoBuilder()
-                .With(x => x.SelectionRule, null)
-                .With(x => x.Endpoints, endpoints).Create();
-            var dto = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooksDto).Create();
-            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+            var webhooks = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).With(x => x.SelectionRule, "$.TenantCode").Create();
+            var subscriber = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooks).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", subscriber);
 
             var result = _validator.TestValidate(request);
 
             result.ShouldNotHaveAnyValidationErrors();
+        }
+
+         [Fact, IsUnit]
+        public void WhenOneEndpointHasDefaultSelectorAndOtherEndpointsHaveCustomSelectorsAndNoSelectionRuleIsDefined_Then_ValidationFails()
+        {
+            var endpoints = new List<EndpointDto>
+            {
+                new EndpointDtoBuilder().With(x => x.Selector, "*").Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, "selector1").Create(),
+                new EndpointDtoBuilder().With(x => x.Selector, "selector2").Create()
+            };
+            var webhooks = new WebhooksDtoBuilder().With(x => x.Endpoints, endpoints).With(x => x.SelectionRule, null).Create();
+            var subscriber = new SubscriberDtoBuilder().With(x => x.Webhooks, webhooks).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", subscriber);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.Endpoints);
         }
 
         [Fact, IsUnit]
@@ -182,7 +270,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
                     { "token1", "Value1" }
                 }
             };
-            var endpoints = new List<EndpointDto>()
+            var endpoints = new List<EndpointDto>
             {
                 new EndpointDtoBuilder()
                     .With(x => x.Selector, "*")
@@ -217,7 +305,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
                     { "token3", "Value3" }
                 }
             };
-            var endpoints = new List<EndpointDto>()
+            var endpoints = new List<EndpointDto>
             {
                 new EndpointDtoBuilder()
                     .With(x => x.Selector, "*")
