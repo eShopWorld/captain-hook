@@ -243,7 +243,9 @@ namespace CaptainHook.DirectorService
                         }
 
                         var refreshResult = await _readerServicesManager.RefreshReadersAsync(new[] { changeInfo }, _cancellationToken);
-                        return BuildResult(refreshResult, readerChange);
+                        var singleResult = refreshResult.SingleOrDefault();
+                        UpdateSubscriberConfigurationsInMemory(singleResult.Value, readerChange);
+                        return MapResult(singleResult.Value);
                     }
                 }
                 finally
@@ -257,17 +259,25 @@ namespace CaptainHook.DirectorService
             return ReaderChangeResult.DirectorIsBusy;
         }
 
-        private ReaderChangeResult BuildResult(Dictionary<string, RefreshReaderResult> refreshResult, ReaderChangeBase readerChange)
+        private void UpdateSubscriberConfigurationsInMemory(RefreshReaderResult refreshResult, ReaderChangeBase readerChange)
         {
-            var singleResult = refreshResult.SingleOrDefault();
-            switch (singleResult.Value)
+            if (refreshResult == RefreshReaderResult.Success)
+            {
+                var key = SubscriberConfiguration.Key(readerChange.Subscriber.EventType, readerChange.Subscriber.SubscriberName);
+
+                if (readerChange is CreateReader || readerChange is UpdateReader)
+                    _subscriberConfigurations[key] = readerChange.Subscriber;
+                else if (readerChange is DeleteReader)
+                    _subscriberConfigurations.Remove(key);
+            }
+        }
+
+        private ReaderChangeResult MapResult(RefreshReaderResult refreshResult)
+        {
+            switch (refreshResult)
             {
                 case RefreshReaderResult.Success:
-                    {
-                        var key = SubscriberConfiguration.Key(readerChange.Subscriber.EventType, readerChange.Subscriber.SubscriberName);
-                        _subscriberConfigurations[key] = readerChange.Subscriber;
-                        return ReaderChangeResult.Success;
-                    }
+                    return ReaderChangeResult.Success;
                 case RefreshReaderResult.CreateFailed:
                     return ReaderChangeResult.CreateFailed;
                 case RefreshReaderResult.DeleteFailed:
