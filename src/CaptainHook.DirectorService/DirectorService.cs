@@ -207,7 +207,7 @@ namespace CaptainHook.DirectorService
                         var desiredReader = new DesiredReaderDefinition(readerChange.Subscriber);
                         var existingReader = existingReaders.SingleOrDefault(r => desiredReader.IsTheSameService(r));
 
-                        ReaderChangeInfo changeInfo = default;
+                        ReaderChangeInfo changeInfo;
                         switch (readerChange)
                         {
                             case CreateReader _:
@@ -234,6 +234,8 @@ namespace CaptainHook.DirectorService
                                     changeInfo = ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader);
                                     break;
                                 }
+                            default:
+                                throw new NotSupportedException("This reader change is not supported by the DirectorService");
                         }
 
                         var refreshResult = await _readerServicesManager.RefreshReadersAsync(new[] { changeInfo }, _cancellationToken);
