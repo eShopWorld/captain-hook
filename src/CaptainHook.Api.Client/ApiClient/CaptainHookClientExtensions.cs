@@ -108,12 +108,15 @@ namespace CaptainHook.Api.Client
             /// <param name='subscriberName'>
             /// Subscriber name
             /// </param>
+            /// <param name='selector'>
+            /// Endpoint selector, use * (asterisk) for the default endpoint
+            /// </param>
             /// <param name='body'>
             /// Webhook configuration
             /// </param>
-            public static object PutWebhook(this ICaptainHookClient operations, string eventName, string subscriberName, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto))
+            public static object PutWebhook(this ICaptainHookClient operations, string eventName, string subscriberName, string selector, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto))
             {
-                return operations.PutWebhookAsync(eventName, subscriberName, body).GetAwaiter().GetResult();
+                return operations.PutWebhookAsync(eventName, subscriberName, selector, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -128,15 +131,18 @@ namespace CaptainHook.Api.Client
             /// <param name='subscriberName'>
             /// Subscriber name
             /// </param>
+            /// <param name='selector'>
+            /// Endpoint selector, use * (asterisk) for the default endpoint
+            /// </param>
             /// <param name='body'>
             /// Webhook configuration
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<object> PutWebhookAsync(this ICaptainHookClient operations, string eventName, string subscriberName, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<object> PutWebhookAsync(this ICaptainHookClient operations, string eventName, string subscriberName, string selector, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.PutWebhookWithHttpMessagesAsync(eventName, subscriberName, body, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.PutWebhookWithHttpMessagesAsync(eventName, subscriberName, selector, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -154,15 +160,87 @@ namespace CaptainHook.Api.Client
             /// <param name='subscriberName'>
             /// Subscriber name
             /// </param>
+            /// <param name='selector'>
+            /// Endpoint selector, use * (asterisk) for the default endpoint
+            /// </param>
             /// <param name='body'>
             /// Webhook configuration
             /// </param>
             /// <param name='customHeaders'>
             /// Headers that will be added to request.
             /// </param>
-            public static HttpOperationResponse<object> PutWebhookWithHttpMessages(this ICaptainHookClient operations, string eventName, string subscriberName, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto), Dictionary<string, List<string>> customHeaders = null)
+            public static HttpOperationResponse<object> PutWebhookWithHttpMessages(this ICaptainHookClient operations, string eventName, string subscriberName, string selector, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto), Dictionary<string, List<string>> customHeaders = null)
             {
-                return operations.PutWebhookWithHttpMessagesAsync(eventName, subscriberName, body, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+                return operations.PutWebhookWithHttpMessagesAsync(eventName, subscriberName, selector, body, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Delete a webhook for the provided event, subscriber and selector
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='selector'>
+            /// Endpoint selector, use * (asterisk) for the default endpoint
+            /// </param>
+            public static object DeleteWebhook(this ICaptainHookClient operations, string eventName, string subscriberName, string selector)
+            {
+                return operations.DeleteWebhookAsync(eventName, subscriberName, selector).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Delete a webhook for the provided event, subscriber and selector
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='selector'>
+            /// Endpoint selector, use * (asterisk) for the default endpoint
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<object> DeleteWebhookAsync(this ICaptainHookClient operations, string eventName, string subscriberName, string selector, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.DeleteWebhookWithHttpMessagesAsync(eventName, subscriberName, selector, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Delete a webhook for the provided event, subscriber and selector
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='selector'>
+            /// Endpoint selector, use * (asterisk) for the default endpoint
+            /// </param>
+            /// <param name='customHeaders'>
+            /// Headers that will be added to request.
+            /// </param>
+            public static HttpOperationResponse<object> DeleteWebhookWithHttpMessages(this ICaptainHookClient operations, string eventName, string subscriberName, string selector, Dictionary<string, List<string>> customHeaders = null)
+            {
+                return operations.DeleteWebhookWithHttpMessagesAsync(eventName, subscriberName, selector, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
             }
 
             /// <summary>

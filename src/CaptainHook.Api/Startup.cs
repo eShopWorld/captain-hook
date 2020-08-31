@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Autofac;
 using CaptainHook.Api.Core;
@@ -7,12 +8,11 @@ using CaptainHook.Api.Helpers;
 using CaptainHook.Application;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
-using CaptainHook.Domain;
+using CaptainHook.Contract;
 using CaptainHook.Storage.Cosmos;
 using Eshopworld.Core;
 using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Extensions;
-using Eshopworld.DevOps;
 using Eshopworld.Telemetry;
 using Eshopworld.Telemetry.Configuration;
 using Eshopworld.Telemetry.Processors;
@@ -26,7 +26,6 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.Api
 {
@@ -44,7 +43,7 @@ namespace CaptainHook.Api
         /// Constructor
         /// </summary>
         public Startup()
-        {            
+        {
             _configuration = TempConfigLoader.Load();
             _instrumentationKey = _configuration["InstrumentationKey"];
             _bb = BigBrother.CreateDefault(_instrumentationKey, _instrumentationKey);
@@ -98,7 +97,7 @@ namespace CaptainHook.Api
                             ScopePolicy.Create(serviceConfiguration.RequiredScopes?.ToArray() ?? new string[0]);
 
                         var filter = EnvironmentHelper.IsInFabric
-                            ? (IFilterMetadata) new AuthorizeFilter(policy)
+                            ? (IFilterMetadata)new AuthorizeFilter(policy)
                             : new AllowAnonymousFilter();
 
                         options.Filters.Add(filter);
@@ -120,6 +119,7 @@ namespace CaptainHook.Api
                 }
                 else
                 {
+                    services.AddSwaggerGenNewtonsoftSupport();
                     services.AddSwaggerGen(c =>
                     {
                         c.IncludeXmlComments(path);
@@ -146,6 +146,19 @@ namespace CaptainHook.Api
                             }
                         });
 
+                        c.GeneratePolymorphicSchemas(
+                            type =>
+                            {
+                                if (type == typeof(AuthenticationDto))
+                                {
+                                    return new[] {
+                                        typeof(OidcAuthenticationDto),
+                                        typeof(BasicAuthenticationDto)
+                                    };
+                                }
+                                return Enumerable.Empty<Type>();
+                            });
+
                         c.OperationFilter<OperationIdFilter>();
                     });
                 }
@@ -164,8 +177,8 @@ namespace CaptainHook.Api
                 {
                     options.AddPolicy(Constants.AuthorisationPolicies.ReadSubscribers,
                         policy => policy.RequireScope(Constants.AuthorisationScopes.ApiReadSubscribers));
-                     options.AddPolicy(Constants.AuthorisationPolicies.DefineSubscribers,
-                        policy => policy.RequireScope(Constants.AuthorisationScopes.ApiDefineSubscribers));
+                    options.AddPolicy(Constants.AuthorisationPolicies.DefineSubscribers,
+                       policy => policy.RequireScope(Constants.AuthorisationScopes.ApiDefineSubscribers));
                     options.AddPolicy(Constants.AuthorisationPolicies.DeleteSubscribers,
                        policy => policy.RequireScope(Constants.AuthorisationScopes.ApiDeleteSubscribers));
                 });

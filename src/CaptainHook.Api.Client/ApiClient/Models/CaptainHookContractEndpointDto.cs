@@ -24,12 +24,11 @@ namespace CaptainHook.Api.Client.Models
         /// Initializes a new instance of the CaptainHookContractEndpointDto
         /// class.
         /// </summary>
-        public CaptainHookContractEndpointDto(string uri = default(string), string httpVerb = default(string), CaptainHookContractAuthenticationDto authentication = default(CaptainHookContractAuthenticationDto), CaptainHookContractUriTransformDto uriTransform = default(CaptainHookContractUriTransformDto), string selector = default(string))
+        public CaptainHookContractEndpointDto(string uri = default(string), string httpVerb = default(string), object authentication = default(object), string selector = default(string))
         {
             Uri = uri;
             HttpVerb = httpVerb;
             Authentication = authentication;
-            UriTransform = uriTransform;
             Selector = selector;
             CustomInit();
         }
@@ -52,12 +51,7 @@ namespace CaptainHook.Api.Client.Models
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "authentication")]
-        public CaptainHookContractAuthenticationDto Authentication { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "uriTransform")]
-        public CaptainHookContractUriTransformDto UriTransform { get; set; }
+        public object Authentication { get; set; }
 
         /// <summary>
         /// </summary>

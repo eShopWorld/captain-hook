@@ -9,25 +9,27 @@ namespace CaptainHook.Api.Client.Models
     using Newtonsoft.Json;
     using System.Linq;
 
-    public partial class CaptainHookContractClientSecretDto
+    [Newtonsoft.Json.JsonObject("CaptainHook.Contract.BasicAuthenticationDto")]
+    public partial class CaptainHookContractBasicAuthenticationDto : CaptainHookContractAuthenticationDto
     {
         /// <summary>
         /// Initializes a new instance of the
-        /// CaptainHookContractClientSecretDto class.
+        /// CaptainHookContractBasicAuthenticationDto class.
         /// </summary>
-        public CaptainHookContractClientSecretDto()
+        public CaptainHookContractBasicAuthenticationDto()
         {
             CustomInit();
         }
 
         /// <summary>
         /// Initializes a new instance of the
-        /// CaptainHookContractClientSecretDto class.
+        /// CaptainHookContractBasicAuthenticationDto class.
         /// </summary>
-        public CaptainHookContractClientSecretDto(string vault = default(string), string name = default(string))
+        public CaptainHookContractBasicAuthenticationDto(string type = default(string), string username = default(string), string password = default(string))
+            : base(type)
         {
-            Vault = vault;
-            Name = name;
+            Username = username;
+            Password = password;
             CustomInit();
         }
 
@@ -38,13 +40,13 @@ namespace CaptainHook.Api.Client.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "vault")]
-        public string Vault { get; set; }
+        [JsonProperty(PropertyName = "username")]
+        public string Username { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "name")]
-        public string Name { get; set; }
+        [JsonProperty(PropertyName = "password")]
+        public string Password { get; set; }
 
     }
 }
