@@ -10,7 +10,6 @@ namespace CaptainHook.Application.Validators.Dtos
             CascadeMode = CascadeMode.StopOnFirstFailure;
 
             Include(new EndpointDtoValidator());
-            RuleFor(x => x.Selector).NotEmpty();
         }
     }
 }

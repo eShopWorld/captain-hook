@@ -4,14 +4,13 @@ using FluentValidation;
 using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using CaptainHook.Domain.Entities;
 using UriTransformValidator = CaptainHook.Application.Validators.Common.UriTransformValidator;
 
 namespace CaptainHook.Application.Validators.Dtos
 {
     public class WebhooksDtoValidator : AbstractValidator<WebhooksDto>
     {
-        private static JObject _jObject = new JObject();
+        private static readonly JObject _jObject = new JObject();
 
         public WebhooksDtoValidator()
         {
@@ -42,12 +41,12 @@ namespace CaptainHook.Application.Validators.Dtos
 
         private bool ThereIsAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
         {
-            return webhooks.Endpoints?.Any(e => !string.Equals(e.Selector, EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase)) ?? false;
+            return webhooks.Endpoints?.Any(e => e.Selector != null) ?? false;
         }
 
         private bool ContainAtMostOneEndpointWithDefaultSelector(List<EndpointDto> endpoints)
         {
-            return endpoints?.Count(x => string.Equals(x.Selector, EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase)) <= 1;
+            return endpoints?.Count(x => x.Selector != null) <= 1;
         }
 
         private bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)
