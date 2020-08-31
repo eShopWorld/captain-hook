@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Domain.Entities;
+using CaptainHook.Domain.Errors;
+using CaptainHook.Domain.Results;
 
 namespace CaptainHook.Application.Infrastructure.Mappers
 {
@@ -18,17 +21,35 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             _secretProvider = secretProvider;
         }
 
-        public async Task<IEnumerable<SubscriberConfiguration>> MapSubscriberAsync(SubscriberEntity entity)
+        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapSubscriberAsync(SubscriberEntity entity)
         {
-            return new []
+            var webhooksResult = await MapWebhooksAsync(entity);
+
+            if (webhooksResult.IsError)
             {
-                await MapWebhooksAsync(entity)
-                // await MapCallbacksAsync(entity)
-                // await MapDlqsAsync(entity)
-            };
+                return webhooksResult.Error;
+            }
+
+            /*
+            var callbacksResult = await MapCallbacksAsync(entity);
+
+            if (callbacksResult.IsError)
+            {
+                return callbacksResult.Error;
+            }
+
+            var dlqResult = await MapDlqAsync(entity);
+
+            if (dlqResult.IsError)
+            {
+                return dlqResult.Error;
+            }
+            */
+
+            return new[] { webhooksResult.Data, /* callbacksResult, dlqResult */ };
         }
 
-        private async Task<SubscriberConfiguration> MapWebhooksAsync(SubscriberEntity entity)
+        private async Task<OperationResult<SubscriberConfiguration>> MapWebhooksAsync(SubscriberEntity entity)
         {
             if (string.IsNullOrEmpty(entity.Webhooks?.SelectionRule) &&
                 entity.Webhooks?.Endpoints?.Count() == 1 &&
@@ -42,8 +63,15 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             }
         }
 
-        private async Task<SubscriberConfiguration> MapSingleWebhookWithNoUriTransformAsync(SubscriberEntity entity)
+        private async Task<OperationResult<SubscriberConfiguration>> MapSingleWebhookWithNoUriTransformAsync(SubscriberEntity entity)
         {
+            var authenticationResult = await MapAuthenticationAsync(entity.Webhooks?.Endpoints?.FirstOrDefault()?.Authentication);
+
+            if(authenticationResult.IsError)
+            {
+                return authenticationResult.Error;
+            }
+
             return new SubscriberConfiguration
             {
                 Name = entity.Id,
@@ -51,11 +79,11 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 EventType = entity.ParentEvent.Name,
                 Uri = entity.Webhooks?.Endpoints?.FirstOrDefault()?.Uri,
                 HttpVerb = entity.Webhooks?.Endpoints?.FirstOrDefault()?.HttpVerb,
-                AuthenticationConfig = await MapAuthenticationAsync(entity.Webhooks?.Endpoints?.FirstOrDefault()?.Authentication),
+                AuthenticationConfig = authenticationResult.Data,
             };
         }
 
-        private async Task<SubscriberConfiguration> MapForUriTransformAsync(SubscriberEntity entity)
+        private async Task<OperationResult<SubscriberConfiguration>> MapForUriTransformAsync(SubscriberEntity entity)
         {
             var replacements = entity.Webhooks.UriTransform?.Replace ?? new Dictionary<string, string>();
 
@@ -64,7 +92,12 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 replacements["selector"] = entity.Webhooks.SelectionRule;
             }
 
-            var routes = await MapWebhooksToRoutesAsync(entity.Webhooks);
+            var routesResult = await MapWebhooksToRoutesAsync(entity.Webhooks);
+
+            if(routesResult.IsError)
+            {
+                return routesResult.Error;
+            }
 
             return new SubscriberConfiguration
             {
@@ -77,67 +110,103 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                     {
                         Source = new SourceParserLocation { Replace = replacements },
                         Destination = new ParserLocation { RuleAction = RuleAction.RouteAndReplace },
-                        Routes = routes.ToList()
+                        Routes = routesResult.Data.ToList()
                     }
                 }
             };
         }
 
-        private async Task<IEnumerable<WebhookConfigRoute>> MapWebhooksToRoutesAsync(WebhooksEntity webhooks)
+        private async Task<OperationResult<IEnumerable<WebhookConfigRoute>>> MapWebhooksToRoutesAsync(WebhooksEntity webhooks)
         {
             var tasks = webhooks.Endpoints.Select(MapEndpointToRouteAsync);
-            return await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks);
+
+            var errors = tasks.Select(x => x.Result).Where(x => x.IsError);
+
+            if (errors.Any())
+            {
+                var failures = errors.Select(x => new Failure("Mapping", x.Error.Message)).ToArray();
+                return new MappingError("Cannot translate webhook to routes", failures);
+            }
+
+            return tasks.Select(x => x.Result.Data).ToList();
         }
 
-        private async Task<WebhookConfigRoute> MapEndpointToRouteAsync(EndpointEntity endpoint)
+        private async Task<OperationResult<WebhookConfigRoute>> MapEndpointToRouteAsync(EndpointEntity endpoint)
         {
+            var authenticationResult = await MapAuthenticationAsync(endpoint.Authentication);
+
+            if(authenticationResult.IsError)
+            {
+                return authenticationResult.Error;
+            }
+
             return new WebhookConfigRoute
             {
                 Uri = endpoint.Uri,
                 HttpVerb = endpoint.HttpVerb,
                 Selector = endpoint.Selector ?? "*",
-                AuthenticationConfig = await MapAuthenticationAsync(endpoint.Authentication),
+                AuthenticationConfig = authenticationResult.Data
             };
         }
 
-        private async Task<AuthenticationConfig> MapAuthenticationAsync(AuthenticationEntity authenticationEntity)
+        private async Task<OperationResult<AuthenticationConfig>> MapAuthenticationAsync(AuthenticationEntity authenticationEntity)
         {
             return authenticationEntity switch
             {
-                OidcAuthenticationEntity ent => await MapOidcAuthenticationAsync(ent),
-                BasicAuthenticationEntity ent => await MapBasicAuthenticationAsync(ent),
-                _ => null
+                OidcAuthenticationEntity ent => (AuthenticationConfig) await MapOidcAuthenticationAsync(ent),
+                BasicAuthenticationEntity ent => (AuthenticationConfig) await MapBasicAuthenticationAsync(ent),
+                _ => new MappingError("Could not find a suitable authentication mechanism.")
             };
         }
 
-        private async Task<OidcAuthenticationConfig> MapOidcAuthenticationAsync(OidcAuthenticationEntity authenticationEntity)
+        private async Task<OperationResult<OidcAuthenticationConfig>> MapOidcAuthenticationAsync(OidcAuthenticationEntity authenticationEntity)
         {
-            if (authenticationEntity?.ClientSecretKeyName == null)
-                return null;
-
-            var secretValue = await _secretProvider.GetSecretValueAsync(authenticationEntity.ClientSecretKeyName);
-
-            return new OidcAuthenticationConfig
+            if (string.IsNullOrWhiteSpace(authenticationEntity?.ClientSecretKeyName))
             {
-                ClientId = authenticationEntity.ClientId,
-                ClientSecret = secretValue,
-                Uri = authenticationEntity.Uri,
-                Scopes = authenticationEntity.Scopes,
-            };
+                return new MappingError("Cannot retrieve Client Secret from an invalid Key Name.");
+            }
+
+            try
+            {
+                var secretValue = await _secretProvider.GetSecretValueAsync(authenticationEntity.ClientSecretKeyName);
+
+                return new OidcAuthenticationConfig
+                {
+                    ClientId = authenticationEntity.ClientId,
+                    ClientSecret = secretValue,
+                    Uri = authenticationEntity.Uri,
+                    Scopes = authenticationEntity.Scopes,
+                };
+            }
+            catch
+            {
+                return new MappingError($"Cannot retrieve Client Secret from Key Name '{authenticationEntity.ClientSecretKeyName}'.");
+            }
+
         }
 
-        private async Task<BasicAuthenticationConfig> MapBasicAuthenticationAsync(BasicAuthenticationEntity authenticationEntity)
+        private async Task<OperationResult<BasicAuthenticationConfig>> MapBasicAuthenticationAsync(BasicAuthenticationEntity authenticationEntity)
         {
-            if (authenticationEntity?.PasswordKeyName == null)
-                return null;
-
-            var secretValue = await _secretProvider.GetSecretValueAsync(authenticationEntity.PasswordKeyName);
-
-            return new BasicAuthenticationConfig
+            if (string.IsNullOrWhiteSpace(authenticationEntity?.PasswordKeyName))
             {
-                Username = authenticationEntity.Username,
-                Password = secretValue
-            };
+                return new MappingError("Cannot retrieve Password from an invalid Key Name.");
+            }
+
+            try
+            { 
+                var secretValue = await _secretProvider.GetSecretValueAsync(authenticationEntity.PasswordKeyName);
+
+                return new BasicAuthenticationConfig
+                {
+                    Username = authenticationEntity.Username,
+                    Password = secretValue
+                };
+            }
+            catch
+            {
+                return new MappingError($"Cannot retrieve Password from a Key Name '{authenticationEntity.PasswordKeyName}'.");
+            }
         }
 
         //private WebhookConfig MapCallback(SubscriberModel cosmosModel)

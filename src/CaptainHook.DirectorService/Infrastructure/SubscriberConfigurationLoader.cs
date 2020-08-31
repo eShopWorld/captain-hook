@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Domain.Repositories;
+using CaptainHook.Domain.Results;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
@@ -19,14 +21,20 @@ namespace CaptainHook.DirectorService.Infrastructure
             _configurationMerger = configurationMerger ?? throw new ArgumentNullException(nameof(configurationMerger));
         }
 
-        public async Task<IEnumerable<SubscriberConfiguration>> LoadAsync(string keyVaultUri)
+        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> LoadAsync(string keyVaultUri)
         {
             var configuration = Configuration.Load(keyVaultUri);
             var subscribersFromKV = configuration.SubscriberConfigurations;
             var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
-            var merged = await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos.Data);
 
-            return merged;
+            var mergeResult = await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos.Data);
+
+            if(mergeResult.IsError)
+            {
+                return mergeResult.Error;
+            }
+
+            return mergeResult.Data;
         }
     }
 }
