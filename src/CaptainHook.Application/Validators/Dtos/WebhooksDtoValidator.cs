@@ -41,18 +41,18 @@ namespace CaptainHook.Application.Validators.Dtos
 
         private static bool ThereIsAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
         {
-            return webhooks.Endpoints?.Any(x => !IsDefaultSelector(x.Selector)) ?? false;
+            return webhooks.Endpoints?.Any(x => !EndpointEntity.IsDefaultSelector(x.Selector)) ?? false;
         }
 
         private static bool ContainAtMostOneEndpointWithDefaultSelector(List<EndpointDto> endpoints)
         {
-            return endpoints?.Count(x => IsDefaultSelector(x.Selector)) <= 1;
+            return endpoints?.Count(x => EndpointEntity.IsDefaultSelector(x.Selector)) <= 1;
         }
 
-        private static bool IsDefaultSelector(string selector)
-        {
-            return selector == null || selector.Equals(EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase);
-        }
+        //private static bool IsDefaultSelector(string selector)
+        //{
+        //    return selector == null || selector.Equals(EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase);
+        //}
 
         private bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)
         {
