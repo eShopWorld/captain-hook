@@ -218,6 +218,16 @@ namespace CaptainHook.DirectorService
                                     changeInfo = ReaderChangeInfo.ToBeCreated(desiredReader);
                                     break;
                                 }
+                            case DeleteReader _:
+                                {
+                                    if (!existingReader.IsValid)
+                                    {
+                                        return ReaderChangeResult.ReaderDoesNotExist;
+                                    }
+
+                                    changeInfo = ReaderChangeInfo.ToBeRemoved(existingReader);
+                                    break;
+                                }
                             case UpdateReader _:
                                 {
                                     if (!existingReader.IsValid)
