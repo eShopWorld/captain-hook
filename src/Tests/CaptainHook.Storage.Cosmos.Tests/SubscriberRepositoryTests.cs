@@ -382,14 +382,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
             subscriber.AddWebhooks(new WebhooksEntity("rule"));
             _cosmosDbRepositoryMock
-                .Setup(x => x.CreateAsync(It.IsAny<SubscriberDocument>()))
-                .ReturnsAsync(new DocumentContainer<SubscriberDocument>(subscriberDocument,"etag"));
+                .Setup(x => x.CreateAsync<dynamic>(It.IsAny<SubscriberDocument>()))
+                .ReturnsAsync(new DocumentContainer<dynamic>(subscriberDocument, "etag"));
 
             // Act
             var result = await _repository.AddSubscriberAsync(subscriber);
 
             // Assert
-            _cosmosDbRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<SubscriberDocument>()));
+            _cosmosDbRepositoryMock.Verify(x => x.CreateAsync<dynamic>(It.IsAny<SubscriberDocument>()));
         }
 
         [Fact, IsUnit]

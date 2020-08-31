@@ -127,7 +127,7 @@ namespace CaptainHook.Storage.Cosmos
             {
                 var subscriberDocument = Map(subscriberEntity);
 
-                var result = await _cosmosDbRepository.CreateAsync(subscriberDocument);
+                var result = await _cosmosDbRepository.CreateAsync<dynamic>(subscriberDocument);
                 return Map(Deserialize(result.Document));
             }
             catch (Exception exception)

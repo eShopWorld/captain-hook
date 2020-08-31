@@ -72,6 +72,9 @@ namespace CaptainHook.Api.Client
         /// <param name='subscriberName'>
         /// Subscriber name
         /// </param>
+        /// <param name='selector'>
+        /// Endpoint selector, use * (asterisk) for the default endpoint
+        /// </param>
         /// <param name='body'>
         /// Webhook configuration
         /// </param>
@@ -81,7 +84,27 @@ namespace CaptainHook.Api.Client
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<object>> PutWebhookWithHttpMessagesAsync(string eventName, string subscriberName, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<object>> PutWebhookWithHttpMessagesAsync(string eventName, string subscriberName, string selector, CaptainHookContractEndpointDto body = default(CaptainHookContractEndpointDto), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Delete a webhook for the provided event, subscriber and selector
+        /// </summary>
+        /// <param name='eventName'>
+        /// Event name
+        /// </param>
+        /// <param name='subscriberName'>
+        /// Subscriber name
+        /// </param>
+        /// <param name='selector'>
+        /// Endpoint selector, use * (asterisk) for the default endpoint
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<object>> DeleteWebhookWithHttpMessagesAsync(string eventName, string subscriberName, string selector, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Insert or update a subscriber
