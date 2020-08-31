@@ -43,11 +43,13 @@ namespace CaptainHook.Tests.Director
         [Fact, IsUnit]
         public async Task OnlyCosmosSubscribers_AllInResult()
         {
+            var authentication = new BasicAuthenticationEntity("username", "secret-name");
+
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector").Create(),
-                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST", "selector").Create(),
-                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector").Create(),
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector", authentication).Create(),
+                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST", "selector", authentication).Create(),
+                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector", authentication).Create(),
             };
 
             var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));
@@ -72,11 +74,13 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
+            var authentication = new BasicAuthenticationEntity("username", "secret-name");
+
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector").Create(),
-                new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST", "selector").Create(),
-                new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector").Create(),
+                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector", authentication).Create(),
+                new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST", "selector", authentication).Create(),
+                new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector", authentication).Create(),
             };
 
             var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));
@@ -137,7 +141,7 @@ namespace CaptainHook.Tests.Director
                 }
             };
 
-            result.Should().BeEquivalentTo(new[] { expectedConfiguration }, options => options.RespectingRuntimeTypes());
+            result.Data.Should().BeEquivalentTo(new[] { expectedConfiguration }, options => options.RespectingRuntimeTypes());
         }
 
         [Fact(Skip = "Callback handling not needed as for now"), IsUnit]
