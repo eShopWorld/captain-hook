@@ -47,7 +47,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
 
             // Assert
             await Assert.ThrowsAsync<ArgumentNullException>(act);
-        }        
+        }
 
         [Fact, IsUnit]
         public async Task GetSubscribersListAsync_WithValidEventName_InvokesBuildSelectForEventSubscribers()
@@ -106,7 +106,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var result = await _repository.GetSubscribersListAsync(eventName);
 
             // Assert
-            result.Data.Should().BeEquivalentTo(new [] { expectedSubscriberEntity }, options => options.IgnoringCyclicReferences());
+            result.Data.Should().BeEquivalentTo(new[] { expectedSubscriberEntity }, options => options.IgnoringCyclicReferences());
         }
 
         [Fact, IsUnit]
@@ -280,7 +280,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             // Arrange
             const string eventName = "eventName";
-            var response = new []
+            var response = new[]
             {
                 new SubscriberDocument
                 {
@@ -607,6 +607,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             // Arrange
             var subscriberDocument = new SubscriberDocument
             {
+                Id = "eventName-subscriberName",
                 SubscriberName = "subscriberName",
                 EventName = "eventName",
                 Webhooks = new WebhookSubdocument
@@ -617,7 +618,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             };
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
             _cosmosDbRepositoryMock
-                .Setup(x => x.DeleteAsync<SubscriberDocument>(It.Is<SubscriberId>(x => ((string)x).Equals((string)subscriberDocument.Id)), subscriberDocument.Pk))
+                .Setup(x => x.DeleteAsync<SubscriberDocument>(subscriberDocument.Id, subscriberDocument.Pk))
                 .ReturnsAsync(true);
 
             // Act
