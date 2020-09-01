@@ -10,12 +10,12 @@
         /// <summary>
         /// Password
         /// </summary>
-        public string Password { get; }
+        public string PasswordKeyName { get; }
 
-        public BasicAuthenticationEntity(string username, string password)
+        public BasicAuthenticationEntity(string username, string passwordKeyName)
         {
             Username = username;
-            Password = password;
+            PasswordKeyName = passwordKeyName;
         }
     }
 }

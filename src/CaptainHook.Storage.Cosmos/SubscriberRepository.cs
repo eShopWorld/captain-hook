@@ -268,7 +268,7 @@ namespace CaptainHook.Storage.Cosmos
         {
             return authentication switch
             {
-                BasicAuthenticationSubdocument doc => new BasicAuthenticationEntity(doc.Username, doc.Password),
+                BasicAuthenticationSubdocument doc => new BasicAuthenticationEntity(doc.Username, doc.PasswordKeyName),
                 OidcAuthenticationSubdocument doc => new OidcAuthenticationEntity(doc.ClientId, doc.SecretName, doc.Uri, doc.Scopes),
                 _ => null
             };
@@ -281,7 +281,7 @@ namespace CaptainHook.Storage.Cosmos
                 BasicAuthenticationEntity ent => new BasicAuthenticationSubdocument
                 {
                     Username = ent.Username,
-                    Password = ent.Password
+                    PasswordKeyName = ent.PasswordKeyName
                 },
                 OidcAuthenticationEntity ent => new OidcAuthenticationSubdocument
                 {
