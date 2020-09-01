@@ -47,7 +47,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
 
             // Assert
             await Assert.ThrowsAsync<ArgumentNullException>(act);
-        }        
+        }
 
         [Fact, IsUnit]
         public async Task GetSubscribersListAsync_WithValidEventName_InvokesBuildSelectForEventSubscribers()
@@ -106,7 +106,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             var result = await _repository.GetSubscribersListAsync(eventName);
 
             // Assert
-            result.Data.Should().BeEquivalentTo(new [] { expectedSubscriberEntity }, options => options.IgnoringCyclicReferences());
+            result.Data.Should().BeEquivalentTo(new[] { expectedSubscriberEntity }, options => options.IgnoringCyclicReferences());
         }
 
         [Fact, IsUnit]
@@ -280,7 +280,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
         {
             // Arrange
             const string eventName = "eventName";
-            var response = new []
+            var response = new[]
             {
                 new SubscriberDocument
                 {
@@ -540,6 +540,69 @@ namespace CaptainHook.Storage.Cosmos.Tests
 
             // Assert
             result.Error.Should().BeOfType<CannotUpdateEntityError>();
+        }
+
+        [Fact, IsUnit]
+        public async Task RemoveSubscriberAsync_WithNullSubscriberId_ThrowsException()
+        {
+            // Act
+            Task act() => _repository.RemoveSubscriberAsync(null);
+
+            // Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(act);
+        }
+
+        [Fact, IsUnit]
+        public async Task RemoveSubscriberAsync_WithUnknownSubscriber_ReturnsCannotDeleteEntityError()
+        {
+            // Arrange
+            var subscriberDocument = new SubscriberDocument
+            {
+                SubscriberName = "subscriberName",
+                EventName = "eventName",
+                Webhooks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new EndpointSubdocument[] { }
+                }
+            };
+            var subscriberId = new SubscriberId("eventName", "subscriberName");
+            _cosmosDbRepositoryMock
+                .Setup(x => x.DeleteAsync<SubscriberDocument>(subscriberDocument.Id, subscriberDocument.Pk))
+                .ReturnsAsync(false);
+
+            // Act
+            var result = await _repository.RemoveSubscriberAsync(subscriberId);
+
+            // Assert
+            result.Error.Should().BeOfType<CannotDeleteEntityError>();
+        }
+
+        [Fact, IsUnit]
+        public async Task RemoveSubscriberAsync_WithValidSubscriber_ReturnsNoError()
+        {
+            // Arrange
+            var subscriberDocument = new SubscriberDocument
+            {
+                Id = "eventName-subscriberName",
+                SubscriberName = "subscriberName",
+                EventName = "eventName",
+                Webhooks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new EndpointSubdocument[] { }
+                }
+            };
+            var subscriberId = new SubscriberId("eventName", "subscriberName");
+            _cosmosDbRepositoryMock
+                .Setup(x => x.DeleteAsync<SubscriberDocument>(subscriberDocument.Id, subscriberDocument.Pk))
+                .ReturnsAsync(true);
+
+            // Act
+            var result = await _repository.RemoveSubscriberAsync(subscriberId);
+
+            // Assert
+            result.IsError.Should().BeFalse();
         }
 
         private static dynamic ConvertToDynamic(SubscriberDocument document)
