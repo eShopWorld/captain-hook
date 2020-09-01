@@ -1,6 +1,4 @@
-﻿using System;
-using CaptainHook.Contract;
-using CaptainHook.Domain.Results;
+﻿using CaptainHook.Domain.Results;
 using MediatR;
 
 namespace CaptainHook.Application.Requests.Subscribers
