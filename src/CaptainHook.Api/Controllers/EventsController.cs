@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
+using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Results;
+using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
@@ -11,6 +15,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace CaptainHook.Api.Controllers
 {
@@ -152,7 +157,6 @@ namespace CaptainHook.Api.Controllers
         /// </summary>
         /// <param name="eventName">Event name</param>
         /// <param name="subscriberName">Subscriber name</param>
-        /// <param name="selector">Endpoint selector, use * (asterisk) for the default endpoint</param>
         /// <returns></returns>
         [HttpDelete("{eventName}/subscriber/{subscriberName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -182,6 +186,46 @@ namespace CaptainHook.Api.Controllers
                 },
                 Ok
             );
+        }
+
+        /// <summary>
+        /// Get the specified subscriber
+        /// </summary>
+        /// <param name="eventName">Event name</param>
+        /// <param name="subscriberName">Subscriber name</param>
+        /// <returns></returns>
+        [HttpDelete("{eventName}/subscriber/{subscriberName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetSubscriber([FromRoute] string eventName, [FromRoute] string subscriberName)
+        {
+            try
+            {
+                var directorServiceUri = new Uri(ServiceNaming.DirectorServiceFullName);
+                var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
+                var subscribers = await directorServiceClient.GetAllSubscribersAsync();
+
+                if (subscribers.Count == 0)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable);
+                }
+
+                AuthenticationConfigSanitizer.Sanitize(subscribers.Values);
+
+                //var result = subscribers.Values.Where(x => x.)
+
+                return Ok(subscribers);
+            }
+            catch (Exception exception)
+            {
+                _bigBrother.Publish(exception.ToExceptionEvent());
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }
