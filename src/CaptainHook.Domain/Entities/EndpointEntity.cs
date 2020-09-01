@@ -44,7 +44,7 @@ namespace CaptainHook.Domain.Entities
             Uri = uri;
             Authentication = authentication;
             HttpVerb = httpVerb;
-            Selector = selector;
+            Selector = selector ?? DefaultEndpointSelector;
 
             SetParentSubscriber(subscriber);
         }
