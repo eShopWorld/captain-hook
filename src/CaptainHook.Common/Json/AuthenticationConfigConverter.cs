@@ -38,9 +38,9 @@ namespace CaptainHook.Common.Json
             // Then look at the type property:
             var typeDesc = jToken["Type"]?.Value<string>();
 
-            Enum.TryParse(typeof(AuthenticationType), typeDesc, true, out var oType);
+            var canParse = Enum.TryParse(typeof(AuthenticationType), typeDesc, true, out var oType);
 
-            AuthenticationConfig item = (AuthenticationType)oType switch
+            AuthenticationConfig item = (AuthenticationType?)oType switch
             {
                 AuthenticationType.Basic => new BasicAuthenticationConfig(),
                 AuthenticationType.OIDC => new OidcAuthenticationConfig(),
@@ -49,7 +49,10 @@ namespace CaptainHook.Common.Json
                 _ => new AuthenticationConfig()
             };
 
-            serializer.Populate(jToken.CreateReader(), item);
+            if (canParse)
+            {
+                serializer.Populate(jToken.CreateReader(), item);
+            }
 
             return item;
         }
