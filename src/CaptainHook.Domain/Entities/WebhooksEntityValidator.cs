@@ -25,13 +25,12 @@ namespace CaptainHook.Domain.Entities
 
         private bool ContainOnlyDefaultEndpointIfNoSelectionRule(WebhooksEntity webhooks)
         {
-            return ! string.IsNullOrEmpty(webhooks.SelectionRule) || ContainOnlySingleWebhookWithDefaultSelector(webhooks.Endpoints);
+            return !string.IsNullOrEmpty(webhooks.SelectionRule) || ContainOnlySingleWebhookWithDefaultSelector(webhooks.Endpoints);
         }
 
         private static bool ContainOnlySingleWebhookWithDefaultSelector(IEnumerable<EndpointEntity> endpoints)
         {
-            return endpoints?.Count(e => string.Equals(e.Selector, EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase)) == 1
-                && endpoints?.Count() == 1;
+            return endpoints?.Count(e => EndpointEntity.IsDefaultSelector(e.Selector)) == 1 && endpoints?.Count() == 1;
         }
     }
 }

@@ -65,7 +65,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var result = _validator.TestValidate(endpoints);
 
             result.ShouldHaveValidationErrorFor(x => x)
-                .WithErrorMessage("There can be only one endpoint with no selector");
+                .WithErrorMessage("There cannot be multiple endpoints with the same selector");
         }
 
         [Fact, IsUnit]
