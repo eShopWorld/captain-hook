@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,6 +8,8 @@ namespace CaptainHook.Common.Json
     public class AuthenticationConfigConverter : JsonConverter
     {
         private static readonly Type AuthenticationConfigType = typeof(AuthenticationConfig);
+
+        private static readonly AuthenticationConfig NoAuthentication = new AuthenticationConfig();
 
         public override bool CanWrite => false;
 
@@ -31,7 +32,7 @@ namespace CaptainHook.Common.Json
 
             if (jToken.Type != JTokenType.Object)
             {
-                return null;
+                return NoAuthentication;
             }
 
             // Then look at the type property:
@@ -48,10 +49,7 @@ namespace CaptainHook.Common.Json
                 _ => new AuthenticationConfig()
             };
 
-            if (item != null)
-            {
-                serializer.Populate(jToken.CreateReader(), item);
-            }
+            serializer.Populate(jToken.CreateReader(), item);
 
             return item;
         }
