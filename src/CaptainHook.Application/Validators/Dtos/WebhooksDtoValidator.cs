@@ -1,17 +1,16 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Linq;
 using CaptainHook.Contract;
+using CaptainHook.Domain.Entities;
 using FluentValidation;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Linq;
-using CaptainHook.Domain.Entities;
 using UriTransformValidator = CaptainHook.Application.Validators.Common.UriTransformValidator;
 
 namespace CaptainHook.Application.Validators.Dtos
 {
     public class WebhooksDtoValidator : AbstractValidator<WebhooksDto>
     {
-        private static JObject _jObject = new JObject();
+        private static readonly JObject _jObject = new JObject();
 
         public WebhooksDtoValidator()
         {
@@ -32,32 +31,31 @@ namespace CaptainHook.Application.Validators.Dtos
                 .WithMessage("There cannot be multiple endpoints with the same selector");
 
             RuleForEach(x => x.Endpoints)
-                .SetValidator(new UpsertSubscriberEndpointDtoValidator());
+                .SetValidator(new EndpointDtoValidator());
 
             RuleFor(x => x.UriTransform)
                 .SetValidator((webhooksDto, uriTransform) => new UriTransformValidator(webhooksDto.Endpoints))
                     .When(x => x.UriTransform?.Replace != null, ApplyConditionTo.CurrentValidator);
-
         }
 
-        private bool ThereIsAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
+        private static bool ThereIsAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
         {
-            return webhooks.Endpoints?.Any(e => !string.Equals(e.Selector, EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase)) ?? false;
+            return webhooks.Endpoints?.Any(x => !EndpointEntity.IsDefaultSelector(x.Selector)) ?? false;
         }
 
-        private bool ContainAtMostOneEndpointWithDefaultSelector(List<EndpointDto> endpoints)
+        private static bool ContainAtMostOneEndpointWithDefaultSelector(List<EndpointDto> endpoints)
         {
-            return endpoints?.Count(x => string.Equals(x.Selector, EndpointEntity.DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase)) <= 1;
+            return endpoints?.Count(x => EndpointEntity.IsDefaultSelector(x.Selector)) <= 1;
         }
 
-        private bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)
+        private static bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)
         {
             return !(endpoints ?? Enumerable.Empty<EndpointDto>())
                 .GroupBy(x => x.Selector)
                 .Any(x => x.Count() > 1);
         }
 
-        private bool BeValidJsonPathExpression(string selectionRule)
+        private static bool BeValidJsonPathExpression(string selectionRule)
         {
             if (!selectionRule.StartsWith('$'))
             {

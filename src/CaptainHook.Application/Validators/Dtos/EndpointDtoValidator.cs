@@ -1,7 +1,6 @@
 ﻿using CaptainHook.Application.Validators.Common;
 using CaptainHook.Contract;
 using FluentValidation;
-using System.Security.Cryptography.X509Certificates;
 
 namespace CaptainHook.Application.Validators.Dtos
 {

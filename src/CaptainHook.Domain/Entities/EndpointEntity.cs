@@ -1,11 +1,18 @@
-﻿namespace CaptainHook.Domain.Entities
+﻿using System;
+
+namespace CaptainHook.Domain.Entities
 {
     /// <summary>
     /// Endpoint model
     /// </summary>
     public class EndpointEntity
     {
-        public const string DefaultEndpointSelector = "*";
+        private const string DefaultEndpointSelector = "*";
+
+        public static bool IsDefaultSelector(string selector)
+        {
+            return selector == null || selector.Equals(DefaultEndpointSelector, StringComparison.OrdinalIgnoreCase);
+        }
 
         /// <summary>
         /// Parent subscriber model
@@ -37,7 +44,7 @@
             Uri = uri;
             Authentication = authentication;
             HttpVerb = httpVerb;
-            Selector = selector;
+            Selector = selector ?? DefaultEndpointSelector;
 
             SetParentSubscriber(subscriber);
         }
