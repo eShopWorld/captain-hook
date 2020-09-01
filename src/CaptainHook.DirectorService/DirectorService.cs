@@ -274,17 +274,13 @@ namespace CaptainHook.DirectorService
 
         private ReaderChangeResult MapResult(RefreshReaderResult refreshResult)
         {
-            switch (refreshResult)
+            return refreshResult switch
             {
-                case RefreshReaderResult.Success:
-                    return ReaderChangeResult.Success;
-                case RefreshReaderResult.CreateFailed:
-                    return ReaderChangeResult.CreateFailed;
-                case RefreshReaderResult.DeleteFailed:
-                    return ReaderChangeResult.DeleteFailed;
-                default:
-                    return ReaderChangeResult.None;
-            }
+                RefreshReaderResult.Success => ReaderChangeResult.Success,
+                RefreshReaderResult.CreateFailed => ReaderChangeResult.CreateFailed,
+                RefreshReaderResult.DeleteFailed => ReaderChangeResult.DeleteFailed,
+                _ => ReaderChangeResult.None
+            };
         }
     }
 }
