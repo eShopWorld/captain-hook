@@ -36,7 +36,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         {
             return authenticationDto switch
             {
-                BasicAuthenticationDto dto => new BasicAuthenticationEntity(dto.Username, dto.Password),
+                BasicAuthenticationDto dto => new BasicAuthenticationEntity(dto.Username, dto.PasswordKeyName),
                 OidcAuthenticationDto dto => new OidcAuthenticationEntity(dto.ClientId, dto.ClientSecretKeyName, dto.Uri, dto.Scopes?.ToArray()),
                 _ => null,
             };

@@ -42,7 +42,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 BasicAuthenticationEntity ent => new BasicAuthenticationDto
                 {
                     Username = ent.Username,
-                    Password = ent.Password
+                    PasswordKeyName = ent.PasswordKeyName
                 },
                 OidcAuthenticationEntity ent => new OidcAuthenticationDto
                 {

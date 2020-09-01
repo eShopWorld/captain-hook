@@ -23,10 +23,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
         private static readonly string Secret = "MySecret";
 
         private static readonly OidcAuthenticationEntity OidcAuthenticationEntity = new OidcAuthenticationEntity("captain-hook-id", "kv-secret-name", "https://blah-blah.sts.eshopworld.com", new[] { "scope1" });
-        private static readonly BasicAuthenticationEntity BasicAuthenticationEntity = new BasicAuthenticationEntity("mark", "lenders");
+        private static readonly BasicAuthenticationEntity BasicAuthenticationEntity = new BasicAuthenticationEntity("mark", "kv-secret-name");
 
         private static readonly OidcAuthenticationConfig OidcAuthenticationConfig = new OidcAuthenticationConfig { ClientId = "captain-hook-id", ClientSecret = Secret, Scopes = new[] { "scope1" }, Uri = "https://blah-blah.sts.eshopworld.com", Type = AuthenticationType.OIDC };
-        private static readonly BasicAuthenticationConfig BasicAuthenticationConfig = new BasicAuthenticationConfig { Username = "mark", Password = "lenders", Type = AuthenticationType.Basic };
+        private static readonly BasicAuthenticationConfig BasicAuthenticationConfig = new BasicAuthenticationConfig { Username = "mark", Password = Secret, Type = AuthenticationType.Basic };
 
         public static IEnumerable<object[]> Data =>
             new List<object[]>

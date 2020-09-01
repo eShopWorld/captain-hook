@@ -19,7 +19,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [IsUnit]
         public void MapAuthentication_When_BasicAuthenticationEntityIsUsed_Then_IsMappedToBasicAuthenticationDto()
         {
-            var entity = new BasicAuthenticationEntity("Username", "Password");
+            var entity = new BasicAuthenticationEntity("Username", "password-key-name");
 
             var dto = sut.MapAuthentication(entity);
 
@@ -28,7 +28,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 dto.Should().BeOfType(typeof(BasicAuthenticationDto));
                 BasicAuthenticationDto basicDto = (BasicAuthenticationDto)dto;
                 basicDto.Username.Should().Be("Username");
-                basicDto.Password.Should().Be("Password");
+                basicDto.PasswordKeyName.Should().Be("password-key-name");
             }
         }
 
@@ -81,7 +81,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         {
             var entity = new EndpointEntity(
                 uri: "http://www.test.url",
-                authentication: new BasicAuthenticationEntity("username", "password"),
+                authentication: new BasicAuthenticationEntity("username", "password-key-name"),
                 httpVerb: httpVerb,
                 selector: "Select");
 
@@ -95,7 +95,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 dto.Authentication.Should().BeOfType(typeof(BasicAuthenticationDto));
                 BasicAuthenticationDto authDto = (BasicAuthenticationDto)dto.Authentication;
                 authDto.Username.Should().Be("username");
-                authDto.Password.Should().Be("password");
+                authDto.PasswordKeyName.Should().Be("password-key-name");
             }
         }
 
@@ -108,7 +108,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         {
             var endpointEntity = new EndpointEntity(
                 uri: "http://www.test.url",
-                authentication: new BasicAuthenticationEntity("username", "password"),
+                authentication: new BasicAuthenticationEntity("username", "password-key-name"),
                 httpVerb: httpVerb,
                 selector: "Select");
 

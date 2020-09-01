@@ -290,7 +290,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             return
                 entity.Username == dto.Username &&
-                entity.Password == dto.Password;
+                entity.PasswordKeyName == dto.PasswordKeyName;
         }
 
         private static bool MatchUriTransforms(UriTransformDto dto, UriTransformEntity entity)
