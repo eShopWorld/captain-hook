@@ -8,60 +8,52 @@ namespace CaptainHook.Common.Json
 {
     public class AuthenticationConfigConverter : JsonConverter
     {
-        private static readonly Dictionary<AuthenticationType, Type> typesMap = new Dictionary<AuthenticationType, Type>
-        {
-            [AuthenticationType.OIDC] = typeof(OidcAuthenticationConfig),
-            [AuthenticationType.Basic] = typeof(BasicAuthenticationConfig),
-            [AuthenticationType.None] = typeof(AuthenticationConfig),
-            [AuthenticationType.Custom] = typeof(AuthenticationConfig),
-        };
+        private static readonly Type AuthenticationConfigType = typeof(AuthenticationConfig);
 
-        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
-        {
-            throw new NotSupportedException();
-        }
+        public override bool CanWrite => false;
 
-        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
-        {
-            var token = JToken.Load(reader);
-            var authType = ParseEnumType(token);
-
-            if (typesMap.TryGetValue(authType, out var actualType))
-            {
-                if (existingValue == null || existingValue.GetType() != actualType)
-                {
-                    var contract = serializer.ContractResolver.ResolveContract(actualType);
-                    existingValue = contract.DefaultCreator();
-                }
-                using (var subReader = token.CreateReader())
-                {
-                    serializer.Populate(subReader, existingValue);
-                }
-                return existingValue;
-            }
-
-            return null;
-        }
-
-        private AuthenticationType ParseEnumType(JToken token)
-        {
-            var rawType = (string)token["Type"];
-            if (rawType == null)
-                throw new InvalidOperationException("Invalid authentication type data");
-
-            if (!Enum.TryParse(typeof(AuthenticationType), rawType, true, out var oType))
-            {
-                throw new JsonSerializationException("Unknown authentication type");
-            }
-
-            return (AuthenticationType)oType;
-        }
+        public override bool CanRead => true;
 
         public override bool CanConvert(Type objectType)
         {
-            return typeof(AuthenticationConfig).IsAssignableFrom(objectType);
+            return AuthenticationConfigType.IsAssignableFrom(objectType);
         }
 
-        public override bool CanWrite => false;
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            throw new NotSupportedException("This converter handles only deserialization, not serialization.");
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            // First, just read the JSON as a JToken
+            JToken jToken = JToken.ReadFrom(reader);
+
+            if (jToken.Type != JTokenType.Object)
+            {
+                return null;
+            }
+
+            // Then look at the type property:
+            var typeDesc = jToken["Type"]?.Value<string>();
+
+            Enum.TryParse(typeof(AuthenticationType), typeDesc, true, out var oType);
+
+            AuthenticationConfig item = (AuthenticationType)oType switch
+            {
+                AuthenticationType.Basic => new BasicAuthenticationConfig(),
+                AuthenticationType.OIDC => new OidcAuthenticationConfig(),
+                AuthenticationType.Custom => new AuthenticationConfig(),
+                AuthenticationType.None => new AuthenticationConfig(),
+                _ => new AuthenticationConfig()
+            };
+
+            if (item != null)
+            {
+                serializer.Populate(jToken.CreateReader(), item);
+            }
+
+            return item;
+        }
     }
 }
