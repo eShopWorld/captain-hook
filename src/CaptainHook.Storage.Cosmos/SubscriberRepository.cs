@@ -104,6 +104,16 @@ namespace CaptainHook.Storage.Cosmos
             return UpdateSubscriberInternalAsync(subscriberEntity);
         }
 
+        public Task<OperationResult<SubscriberId>> RemoveSubscriberAsync(SubscriberId subscriberId)
+        {
+            if (subscriberId == null)
+            {
+                throw new ArgumentNullException(nameof(subscriberId));
+            }
+
+            return RemoveSubscriberInternalAsync(subscriberId);
+        }
+
         #region Private methods
         private async Task<OperationResult<SubscriberEntity>> UpdateSubscriberInternalAsync(SubscriberEntity subscriberEntity)
         {
@@ -179,6 +189,27 @@ namespace CaptainHook.Storage.Cosmos
             catch (Exception exception)
             {
                 return new CannotQueryEntityError(nameof(SubscriberEntity), exception);
+            }
+        }
+
+        private async Task<OperationResult<SubscriberId>> RemoveSubscriberInternalAsync(SubscriberId subscriberId)
+        {
+            try
+            {
+                var pk = SubscriberDocument.GetPartitionKey(subscriberId.EventName);
+
+                var result = await _cosmosDbRepository.DeleteAsync<SubscriberDocument>(subscriberId, pk);
+
+                if (result)
+                {
+                    return subscriberId;
+                }
+
+                return new CannotDeleteEntityError(nameof(SubscriberEntity));
+            }
+            catch (Exception exception)
+            {
+                return new CannotDeleteEntityError(nameof(SubscriberEntity), exception);
             }
         }
 
