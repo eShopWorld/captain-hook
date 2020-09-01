@@ -22,6 +22,6 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Password for basic authentication
         /// </summary>
-        public string Password { get; set; }
+        public string PasswordKeyName { get; set; }
     }
 }
