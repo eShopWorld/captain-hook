@@ -46,8 +46,8 @@ namespace CaptainHook.Domain.Repositories
         /// <summary>
         /// Remove a subscriber
         /// </summary>
-        /// <param name="subscriberEntity">Subscriber to remove</param>
+        /// <param name="subscriberId">Id of subscriber to remove</param>
         /// <returns>Subscriber which has been removed</returns>
-        Task<OperationResult<SubscriberEntity>> RemoveSubscriberAsync(SubscriberEntity subscriberEntity);
+        Task<OperationResult<SubscriberId>> RemoveSubscriberAsync(SubscriberId subscriberId);
     }
 }

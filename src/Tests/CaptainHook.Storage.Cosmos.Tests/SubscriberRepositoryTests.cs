@@ -543,33 +543,10 @@ namespace CaptainHook.Storage.Cosmos.Tests
         }
 
         [Fact, IsUnit]
-        public async Task RemoveSubscriberAsync_WithNullSubscriber_ThrowsException()
+        public async Task RemoveSubscriberAsync_WithNullSubscriberId_ThrowsException()
         {
             // Act
             Task act() => _repository.RemoveSubscriberAsync(null);
-
-            // Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(act);
-        }
-
-        [Fact, IsUnit]
-        public async Task RemoveSubscriberAsync_WithNullSubscriberParent_ThrowsException()
-        {
-            // Act
-            Task act() => _repository.RemoveSubscriberAsync(new SubscriberEntity(string.Empty));
-
-            // Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(act);
-        }
-
-        [Theory, IsUnit]
-        [InlineData("")]
-        [InlineData(null)]
-        [InlineData(" ")]
-        public async Task RemoveSubscriberAsync_WithInvalidSubscriberParentEventName_ThrowsException(string eventName)
-        {
-            // Act
-            Task act() => _repository.RemoveSubscriberAsync(new SubscriberEntity(string.Empty, new EventEntity(eventName)));
 
             // Assert
             await Assert.ThrowsAsync<ArgumentNullException>(act);
@@ -589,13 +566,13 @@ namespace CaptainHook.Storage.Cosmos.Tests
                     Endpoints = new EndpointSubdocument[] { }
                 }
             };
-            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
+            var subscriberId = new SubscriberId("eventName", "subscriberName");
             _cosmosDbRepositoryMock
                 .Setup(x => x.DeleteAsync<SubscriberDocument>(subscriberDocument.Id, subscriberDocument.Pk))
                 .ReturnsAsync(false);
 
             // Act
-            var result = await _repository.RemoveSubscriberAsync(subscriber);
+            var result = await _repository.RemoveSubscriberAsync(subscriberId);
 
             // Assert
             result.Error.Should().BeOfType<CannotDeleteEntityError>();
@@ -616,13 +593,13 @@ namespace CaptainHook.Storage.Cosmos.Tests
                     Endpoints = new EndpointSubdocument[] { }
                 }
             };
-            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
+            var subscriberId = new SubscriberId("eventName", "subscriberName");
             _cosmosDbRepositoryMock
                 .Setup(x => x.DeleteAsync<SubscriberDocument>(subscriberDocument.Id, subscriberDocument.Pk))
                 .ReturnsAsync(true);
 
             // Act
-            var result = await _repository.RemoveSubscriberAsync(subscriber);
+            var result = await _repository.RemoveSubscriberAsync(subscriberId);
 
             // Assert
             result.IsError.Should().BeFalse();

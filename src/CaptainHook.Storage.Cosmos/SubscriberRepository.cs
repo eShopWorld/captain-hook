@@ -104,24 +104,14 @@ namespace CaptainHook.Storage.Cosmos
             return UpdateSubscriberInternalAsync(subscriberEntity);
         }
 
-        public Task<OperationResult<SubscriberEntity>> RemoveSubscriberAsync(SubscriberEntity subscriberEntity)
+        public Task<OperationResult<SubscriberId>> RemoveSubscriberAsync(SubscriberId subscriberId)
         {
-            if (subscriberEntity == null)
+            if (subscriberId == null)
             {
-                throw new ArgumentNullException(nameof(subscriberEntity));
+                throw new ArgumentNullException(nameof(subscriberId));
             }
 
-            if (subscriberEntity.ParentEvent == null)
-            {
-                throw new ArgumentNullException(nameof(subscriberEntity.ParentEvent));
-            }
-
-            if (string.IsNullOrWhiteSpace(subscriberEntity.ParentEvent.Name))
-            {
-                throw new ArgumentNullException(nameof(subscriberEntity.ParentEvent.Name));
-            }
-
-            return RemoveSubscriberInternalAsync(subscriberEntity);
+            return RemoveSubscriberInternalAsync(subscriberId);
         }
 
         #region Private methods
@@ -202,22 +192,20 @@ namespace CaptainHook.Storage.Cosmos
             }
         }
 
-        private async Task<OperationResult<SubscriberEntity>> RemoveSubscriberInternalAsync(SubscriberEntity subscriberEntity)
+        private async Task<OperationResult<SubscriberId>> RemoveSubscriberInternalAsync(SubscriberId subscriberId)
         {
             try
             {
-                var pk = SubscriberDocument.GetPartitionKey(subscriberEntity.ParentEvent.Name);
-                
-                var result = await _cosmosDbRepository.DeleteAsync<SubscriberDocument>(subscriberEntity.Id, pk);
-                
-                if(result)
+                var pk = SubscriberDocument.GetPartitionKey(subscriberId.EventName);
+
+                var result = await _cosmosDbRepository.DeleteAsync<SubscriberDocument>(subscriberId, pk);
+
+                if (result)
                 {
-                    return subscriberEntity;
+                    return subscriberId;
                 }
-                else
-                {
-                    return new CannotDeleteEntityError(nameof(SubscriberEntity));
-                }
+
+                return new CannotDeleteEntityError(nameof(SubscriberEntity));
             }
             catch (Exception exception)
             {
