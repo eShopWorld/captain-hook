@@ -1,10 +1,9 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Linq;
 using CaptainHook.Contract;
+using CaptainHook.Domain.Entities;
 using FluentValidation;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Linq;
-using CaptainHook.Domain.Entities;
 using UriTransformValidator = CaptainHook.Application.Validators.Common.UriTransformValidator;
 
 namespace CaptainHook.Application.Validators.Dtos
@@ -49,14 +48,14 @@ namespace CaptainHook.Application.Validators.Dtos
             return endpoints?.Count(x => EndpointEntity.IsDefaultSelector(x.Selector)) <= 1;
         }
 
-        private bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)
+        private static bool NotContainMultipleEndpointsWithTheSameSelector(List<EndpointDto> endpoints)
         {
             return !(endpoints ?? Enumerable.Empty<EndpointDto>())
                 .GroupBy(x => x.Selector)
                 .Any(x => x.Count() > 1);
         }
 
-        private bool BeValidJsonPathExpression(string selectionRule)
+        private static bool BeValidJsonPathExpression(string selectionRule)
         {
             if (!selectionRule.StartsWith('$'))
             {
