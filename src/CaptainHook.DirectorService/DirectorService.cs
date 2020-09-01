@@ -97,9 +97,7 @@ namespace CaptainHook.DirectorService
                 var loadConfigurationResult = await LoadConfigurationAsync();
                 if(loadConfigurationResult.IsError)
                 {
-                    // should log through bb;
-
-                    // no config available, bail out completely
+                    _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Error));
                     return;
                 }
                 _subscriberConfigurations = loadConfigurationResult.Data;
@@ -174,6 +172,7 @@ namespace CaptainHook.DirectorService
                 var loadConfigurationResult = await LoadConfigurationAsync();
                 if(loadConfigurationResult.IsError)
                 {
+                    _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Error));
                     reloadConfigFinishedTimedEvent.IsSuccess = false;
                     return;
                 }
