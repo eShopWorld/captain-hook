@@ -25,11 +25,11 @@ namespace CaptainHook.Api.Client.Models
         /// Initializes a new instance of the
         /// CaptainHookContractBasicAuthenticationDto class.
         /// </summary>
-        public CaptainHookContractBasicAuthenticationDto(string type = default(string), string username = default(string), string password = default(string))
+        public CaptainHookContractBasicAuthenticationDto(string type = default(string), string username = default(string), string passwordKeyName = default(string))
             : base(type)
         {
             Username = username;
-            Password = password;
+            PasswordKeyName = passwordKeyName;
             CustomInit();
         }
 
@@ -45,8 +45,8 @@ namespace CaptainHook.Api.Client.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "password")]
-        public string Password { get; set; }
+        [JsonProperty(PropertyName = "passwordKeyName")]
+        public string PasswordKeyName { get; set; }
 
     }
 }
