@@ -47,46 +47,11 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private async Task<OperationResult<bool>> DeleteSubscriberAsync(DeleteSubscriberRequest request)
         {
             var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
-            var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-            if (existingItem.IsError)
-            {
-                return existingItem.Error;
-            }
-
-            var directorResult = await _directorService.DeleteReaderAsync(existingItem);
-            if (directorResult.IsError)
-            {
-                return directorResult.Error;
-            }
-
-            var deleteResult = await _subscriberRepository.RemoveSubscriberAsync(subscriberId);
-            if (deleteResult.IsError)
-            {
-                return deleteResult.Error;
-            }
-
-            return true;
-
-            //var removeResult = existingItem.Data.RemoveWebhookEndpoint(EndpointEntity.FromSelector(request.Selector));
-            //if (removeResult.IsError)
-            //{
-            //    return removeResult.Error;
-            //}
-
-            //var directorResult = await _directorService.UpdateReaderAsync(existingItem);
-            //if (directorResult.IsError)
-            //{
-            //    return directorResult.Error;
-            //}
-
-            //var saveResult = await _subscriberRepository.UpdateSubscriberAsync(existingItem);
-            //if (saveResult.IsError)
-            //{
-            //    return saveResult.Error;
-            //}
-
-            //return _entityToDtoMapper.MapSubscriber(saveResult);
+            return await _subscriberRepository.GetSubscriberAsync(subscriberId)
+                .Then(async subscriber => await _directorService.DeleteReaderAsync(subscriber))
+                .Then(async _ => await _subscriberRepository.RemoveSubscriberAsync(subscriberId))
+                .Then(_ => new OperationResult<bool>(true));
         }
     }
 }

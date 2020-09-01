@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace CaptainHook.Domain.Results
 {
@@ -23,14 +24,14 @@ namespace CaptainHook.Domain.Results
             return IsError ? leftFunc(Error) : rightFunc(Data);
         }
 
-        public OperationResult<TResult> IfValid<TResult>(Func<TData, TResult> action)
+        public OperationResult<TResult> Then<TResult>(Func<TData, OperationResult<TResult>> func)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
+            return IsError ? Error : func(Data);
+        }
 
-            return !IsError ? (OperationResult<TResult>) action(Data) : Error;
+        public async Task<OperationResult<TResult>> Then<TResult>(Func<TData, Task<OperationResult<TResult>>> func)
+        {
+            return IsError ? Error : await func(Data);
         }
 
         public static implicit operator OperationResult<TData>(ErrorBase error) => new OperationResult<TData>(error);
@@ -38,5 +39,18 @@ namespace CaptainHook.Domain.Results
         public static implicit operator OperationResult<TData>(TData data) => new OperationResult<TData>(data);
 
         public static implicit operator TData(OperationResult<TData> result) => result.Data;
+    }
+
+    public static class TaskExtensions
+    {
+        public static async Task<OperationResult<TOutput>> Then<TInput, TOutput>(this Task<OperationResult<TInput>> task, Func<TInput, OperationResult<TOutput>> func)
+        {
+            return (await task).Then(func);
+        }
+
+        public static async Task<OperationResult<TOutput>> Then<TInput, TOutput>(this Task<OperationResult<TInput>> task, Func<TInput, Task<OperationResult<TOutput>>> func)
+        {
+            return await (await task).Then(func);
+        }
     }
 }
