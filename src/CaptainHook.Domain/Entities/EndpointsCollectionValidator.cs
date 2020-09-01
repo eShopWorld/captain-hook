@@ -12,18 +12,11 @@ namespace CaptainHook.Domain.Entities
 
             RuleFor(x => x)
                 .NotEmpty().WithMessage("Webhooks list must contain at list one endpoint")
-                .Must(ContainAtMostOneEndpointWithNoSelector)
-                .WithMessage("There can be only one endpoint with no selector")
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
                 .WithMessage("There cannot be multiple endpoints with the same selector");
         }
 
-        private bool ContainAtMostOneEndpointWithNoSelector(IEnumerable<EndpointEntity> endpoints)
-        {
-            return endpoints.Count(x => x.Selector == null) <= 1;
-        }
-
-        private bool NotContainMultipleEndpointsWithTheSameSelector(IEnumerable<EndpointEntity> endpoints)
+        private static bool NotContainMultipleEndpointsWithTheSameSelector(IEnumerable<EndpointEntity> endpoints)
         {
             return !endpoints
                 .Where(x => x.Selector != null)
