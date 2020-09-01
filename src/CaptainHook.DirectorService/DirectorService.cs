@@ -207,7 +207,7 @@ namespace CaptainHook.DirectorService
                         var desiredReader = new DesiredReaderDefinition(readerChange.Subscriber);
                         var existingReader = existingReaders.SingleOrDefault(r => desiredReader.IsTheSameService(r));
 
-                        ReaderChangeInfo changeInfo = default;
+                        ReaderChangeInfo changeInfo;
                         switch (readerChange)
                         {
                             case CreateReader _:
@@ -218,42 +218,34 @@ namespace CaptainHook.DirectorService
                                     changeInfo = ReaderChangeInfo.ToBeCreated(desiredReader);
                                     break;
                                 }
+                            case DeleteReader _:
+                                {
+                                    if (!existingReader.IsValid)
+                                        return ReaderChangeResult.ReaderDoesNotExist;
+
+                                    changeInfo = ReaderChangeInfo.ToBeRemoved(existingReader);
+                                    break;
+                                }
                             case UpdateReader _:
                                 {
                                     if (!existingReader.IsValid)
-                                    {
                                         return ReaderChangeResult.ReaderDoesNotExist;
-                                    }
 
                                     var noChanges = desiredReader.IsUnchanged(existingReader);
                                     if (noChanges)
-                                    {
                                         return ReaderChangeResult.NoChangeNeeded;
-                                    }
 
                                     changeInfo = ReaderChangeInfo.ToBeUpdated(desiredReader, existingReader);
                                     break;
                                 }
+                            default:
+                                throw new NotSupportedException("This reader change is not supported by the DirectorService");
                         }
 
                         var refreshResult = await _readerServicesManager.RefreshReadersAsync(new[] { changeInfo }, _cancellationToken);
-
                         var singleResult = refreshResult.SingleOrDefault();
-                        switch (singleResult.Value)
-                        {
-                            case RefreshReaderResult.Success:
-                                {
-                                    var key = SubscriberConfiguration.Key(readerChange.Subscriber.EventType, readerChange.Subscriber.SubscriberName);
-                                    _subscriberConfigurations[key] = readerChange.Subscriber;
-                                    return ReaderChangeResult.Success;
-                                }
-                            case RefreshReaderResult.CreateFailed:
-                                return ReaderChangeResult.CreateFailed;
-                            case RefreshReaderResult.DeleteFailed:
-                                return ReaderChangeResult.DeleteFailed;
-                            default:
-                                return ReaderChangeResult.None;
-                        }
+                        UpdateSubscriberConfigurationsInMemory(singleResult.Value, readerChange);
+                        return MapResult(singleResult.Value);
                     }
                 }
                 finally
@@ -265,6 +257,30 @@ namespace CaptainHook.DirectorService
 
             _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
             return ReaderChangeResult.DirectorIsBusy;
+        }
+
+        private void UpdateSubscriberConfigurationsInMemory(RefreshReaderResult refreshResult, ReaderChangeBase readerChange)
+        {
+            if (refreshResult == RefreshReaderResult.Success)
+            {
+                var key = SubscriberConfiguration.Key(readerChange.Subscriber.EventType, readerChange.Subscriber.SubscriberName);
+
+                if (readerChange is CreateReader || readerChange is UpdateReader)
+                    _subscriberConfigurations[key] = readerChange.Subscriber;
+                else if (readerChange is DeleteReader)
+                    _subscriberConfigurations.Remove(key);
+            }
+        }
+
+        private ReaderChangeResult MapResult(RefreshReaderResult refreshResult)
+        {
+            return refreshResult switch
+            {
+                RefreshReaderResult.Success => ReaderChangeResult.Success,
+                RefreshReaderResult.CreateFailed => ReaderChangeResult.CreateFailed,
+                RefreshReaderResult.DeleteFailed => ReaderChangeResult.DeleteFailed,
+                _ => ReaderChangeResult.None
+            };
         }
     }
 }
