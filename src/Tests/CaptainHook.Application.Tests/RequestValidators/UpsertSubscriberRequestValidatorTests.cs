@@ -225,7 +225,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void WhenOneEndpointHasDefaultSelectorAndOtherEndpointsHaveCustomSelectorsAndSelectionRuleIsDefined_Then_ValidationSucceeds()
+        public void When_OneEndpointHasDefaultSelectorAndOtherEndpointsHaveCustomSelectorsAndSelectionRuleIsDefined_Then_ValidationSucceeds()
         {
             var endpoints = new List<EndpointDto>
             {
@@ -243,7 +243,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void WhenOneEndpointHasDefaultSelectorAndOtherEndpointsHaveCustomSelectorsAndNoSelectionRuleIsDefined_Then_ValidationFails()
+        public void When_OneEndpointHasDefaultSelectorAndOtherEndpointsHaveCustomSelectorsAndNoSelectionRuleIsDefined_Then_ValidationFails()
         {
             var endpoints = new List<EndpointDto>
             {
