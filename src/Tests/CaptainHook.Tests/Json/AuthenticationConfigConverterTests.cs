@@ -102,7 +102,7 @@ namespace CaptainHook.Tests.Json
 
         [Fact]
         [IsUnit]
-        public void UnknownAuthentication_ShouldThrowAnException()
+        public void UnknownAuthentication_ShouldReturnNoAuthentication()
         {
             string data = @"{
                 ""Name"": ""name"",
@@ -111,9 +111,10 @@ namespace CaptainHook.Tests.Json
                 }
             }";
 
-            Action act = () => JsonConvert.DeserializeObject<TestObject>(data, new AuthenticationConfigConverter());
+            var testObject = JsonConvert.DeserializeObject<TestObject>(data, new AuthenticationConfigConverter());
 
-            act.Should().Throw<JsonSerializationException>().WithMessage("Unknown authentication type");
+            testObject.AuthenticationConfig.Type.Should().Be(AuthenticationType.None);
+            testObject.AuthenticationConfig.Should().BeOfType<AuthenticationConfig>();
         }
     }
 }
