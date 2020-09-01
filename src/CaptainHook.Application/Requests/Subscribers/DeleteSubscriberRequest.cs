@@ -5,7 +5,7 @@ using MediatR;
 
 namespace CaptainHook.Application.Requests.Subscribers
 {
-    public class DeleteSubscriberRequest : IRequest<OperationResult<SubscriberDto>>
+    public class DeleteSubscriberRequest : IRequest<OperationResult<bool>>
     {
         public string EventName { get; }
         public string SubscriberName { get; }
