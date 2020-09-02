@@ -23,12 +23,17 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
 
         public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
         {
-            return await CallDirector(s => new CreateReader {Subscriber = s}, subscriber);
+            return await CallDirector(s => new CreateReader { Subscriber = s }, subscriber);
         }
 
         public async Task<OperationResult<bool>> UpdateReaderAsync(SubscriberEntity subscriber)
         {
-            return await CallDirector(s => new UpdateReader {Subscriber = s}, subscriber);
+            return await CallDirector(s => new UpdateReader { Subscriber = s }, subscriber);
+        }
+
+        public async Task<OperationResult<bool>> DeleteReaderAsync(SubscriberEntity subscriber)
+        {
+            return await CallDirector(s => new DeleteReader { Subscriber = s }, subscriber);
         }
 
         private async Task<OperationResult<bool>> CallDirector(Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)

@@ -1,5 +1,4 @@
-﻿using System;
-using CaptainHook.Contract;
+﻿using CaptainHook.Contract;
 using CaptainHook.Domain.Results;
 using MediatR;
 
