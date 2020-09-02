@@ -230,5 +230,48 @@ namespace CaptainHook.Api.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
+
+        /// <summary>
+        /// Get the configuration for the specified event
+        /// </summary>
+        /// <param name="eventName">Event name</param>
+        /// <returns>The configuration for the specified event</returns>
+        [Authorize(Policy = AuthorisationPolicies.ReadSubscribers)]
+        [HttpGet("{eventName}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetEventSubscribers([FromRoute] string eventName)
+        {
+            try
+            {
+                var directorServiceUri = new Uri(ServiceNaming.DirectorServiceFullName);
+                var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
+                var subscribers = await directorServiceClient.GetAllSubscribersAsync();
+
+                if (subscribers.Count == 0)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable);
+                }
+
+                var eventSubscribers = subscribers.Values.Where(x => x.Name.StartsWith(eventName, StringComparison.OrdinalIgnoreCase));
+
+                if (!eventSubscribers.Any())
+                {
+                    return NotFound();
+                }
+
+                AuthenticationConfigSanitizer.Sanitize(eventSubscribers);
+
+                return Ok(eventSubscribers);
+            }
+            catch (Exception exception)
+            {
+                _bigBrother.Publish(exception.ToExceptionEvent());
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
     }
 }
