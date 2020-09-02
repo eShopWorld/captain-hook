@@ -86,16 +86,42 @@ namespace CaptainHook.Api.Tests.Integration
         public async Task GetSubscriber_WhenUnauthenticated_Returns401Unauthorized()
         {
             // Act
-            var result = await UnauthenticatedClient.GetAllWithHttpMessagesAsync();
+            var result = await UnauthenticatedClient.GetSubscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName);
 
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
         }
 
+        [Fact, IsIntegration]
         public async Task GetSubscriber_WhenAuthenticated_Returns200AndData()
         {
             // Act
             var result = await AuthenticatedClient.GetSubscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName);
+
+            // Assert
+            using (new AssertionScope())
+            {
+                result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+                var content = await result.Response.Content.ReadAsStringAsync();
+                content.Should().NotBeNullOrEmpty();
+            }
+        }
+
+        [Fact, IsIntegration]
+        public async Task GetEventSubscribers_WhenUnauthenticated_Returns401Unauthorized()
+        {
+            // Act
+            var result = await UnauthenticatedClient.GetEventSubscribersWithHttpMessagesAsync(IntegrationTestEventName);
+
+            // Assert
+            result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+        }
+
+        [Fact, IsIntegration]
+        public async Task GetEventSubscribers_WhenAuthenticated_Returns200AndData()
+        {
+            // Act
+            var result = await AuthenticatedClient.GetEventSubscribersWithHttpMessagesAsync(IntegrationTestEventName);
 
             // Assert
             using (new AssertionScope())
