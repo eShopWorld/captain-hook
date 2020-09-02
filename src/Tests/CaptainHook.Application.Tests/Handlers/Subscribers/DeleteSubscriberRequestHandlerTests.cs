@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
@@ -22,6 +25,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
     {
         private readonly Mock<ISubscriberRepository> _repositoryMock = new Mock<ISubscriberRepository>();
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>();
+        private readonly Mock<IEntityToDtoMapper> _entityToDtoMapperMock = new Mock<IEntityToDtoMapper>();
 
         private static OidcAuthenticationEntity _authentication = new OidcAuthenticationEntity(
                 "captain-hook-id",
@@ -37,6 +41,23 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: _authentication)
                .WithWebhook("https://blah.blah.eshopworld.com/other-webhook/", "POST", "non-deletable", authentication: _authentication);
 
+        private static readonly SubscriberDto _subscriberDto = new SubscriberDto
+        {
+            Webhooks = new WebhooksDto
+            {
+                SelectionRule = "$.Test",
+                Endpoints = new List<EndpointDto>
+                {
+                    new EndpointDto
+                    {
+                        Selector = null,
+                        Uri = "https://blah.blah.eshopworld.com/default/",
+                        HttpVerb = "POST",
+                    }
+                }
+            }
+        };
+
         private readonly DeleteSubscriberRequest _defaultRequest = new DeleteSubscriberRequest("event", "subscriber");
 
         public DeleteSubscriberRequestHandlerTests()
@@ -49,11 +70,13 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(true);
             _repositoryMock.Setup(x => x.RemoveSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new SubscriberId("event", "subscriber"));
+            _entityToDtoMapperMock.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>())).Returns(_subscriberDto);
         }
 
         private DeleteSubscriberRequestHandler Handler => new DeleteSubscriberRequestHandler(
             _repositoryMock.Object,
             _directorServiceMock.Object,
+             _entityToDtoMapperMock.Object,
             new[]
             {
                 TimeSpan.FromMilliseconds(10.0),
@@ -67,7 +90,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
             using var scope = new AssertionScope();
             result.IsError.Should().BeFalse();
-            result.Data.Should().BeTrue();
+            result.Data.Should().BeEquivalentTo(_subscriberDto);
 
             var subscriberId = new SubscriberId("event", "subscriber");
 
@@ -150,7 +173,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
-            result.Should().BeEquivalentTo(new OperationResult<bool>(new CannotDeleteEntityError("dummy-type", new Exception())));
+            result.Should().BeEquivalentTo(new OperationResult<SubscriberDto>(new CannotDeleteEntityError("dummy-type", new Exception())));
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(3));
             _directorServiceMock.Verify(x => x.DeleteReaderAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(3));
             _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(3));

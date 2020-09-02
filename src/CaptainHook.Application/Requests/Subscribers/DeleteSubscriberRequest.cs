@@ -1,9 +1,10 @@
-﻿using CaptainHook.Domain.Results;
+﻿using CaptainHook.Contract;
+using CaptainHook.Domain.Results;
 using MediatR;
 
 namespace CaptainHook.Application.Requests.Subscribers
 {
-    public class DeleteSubscriberRequest : IRequest<OperationResult<bool>>
+    public class DeleteSubscriberRequest : IRequest<OperationResult<SubscriberDto>>
     {
         public string EventName { get; }
         public string SubscriberName { get; }
