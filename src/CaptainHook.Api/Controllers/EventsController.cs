@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
@@ -189,19 +190,18 @@ namespace CaptainHook.Api.Controllers
         }
 
         /// <summary>
-        /// Get the specified subscriber
+        /// Get the configuration for the specified subscriber
         /// </summary>
         /// <param name="eventName">Event name</param>
         /// <param name="subscriberName">Subscriber name</param>
-        /// <returns></returns>
-        [HttpDelete("{eventName}/subscriber/{subscriberName}")]
+        /// <returns>The configuration for the specified subscriber</returns>
+        [Authorize(Policy = AuthorisationPolicies.ReadSubscribers)]
+        [HttpGet("{eventName}/subscriber/{subscriberName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
-        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetSubscriber([FromRoute] string eventName, [FromRoute] string subscriberName)
         {
             try
@@ -215,11 +215,14 @@ namespace CaptainHook.Api.Controllers
                     return StatusCode(StatusCodes.Status503ServiceUnavailable);
                 }
 
-                AuthenticationConfigSanitizer.Sanitize(subscribers.Values);
+                if (!subscribers.TryGetValue($"{eventName};{subscriberName}", out SubscriberConfiguration subscriberConfiguration))
+                {
+                    return NotFound();
+                }
 
-                //var result = subscribers.Values.Where(x => x.)
+                AuthenticationConfigSanitizer.Sanitize(subscriberConfiguration);
 
-                return Ok(subscribers);
+                return Ok(subscriberConfiguration);
             }
             catch (Exception exception)
             {
