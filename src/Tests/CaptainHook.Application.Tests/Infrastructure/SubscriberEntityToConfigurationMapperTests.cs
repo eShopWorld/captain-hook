@@ -7,6 +7,7 @@ using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Domain.Entities;
+using CaptainHook.Domain.Errors;
 using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -311,6 +312,58 @@ namespace CaptainHook.Application.Tests.Infrastructure
                     .And.Subject.First().Should().BeEquivalentTo(
                         webhookRequestRule,
                         opt => opt.Including(x => x.Source.Replace));
+            }
+        }
+
+        [Fact]
+        [IsUnit]
+        public async Task MapSubscriberAsync_InvalidSecretKey_ReturnsError()
+        {
+            // Arrange
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
+            var authentication = new OidcAuthenticationEntity("client-id", "invalid-secret-key-name", "uri", new string[]{ });
+            var subscriber = new SubscriberBuilder()
+                .WithWebhookUriTransform(uriTransform)
+                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", "POST", null, authentication)
+                .Create();
+
+            _secretProviderMock.Setup(x => x.GetSecretValueAsync("invalid-secret-key-name"))
+                .Throws(new System.Exception());
+
+            // Act
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+
+            // Assert
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeTrue();
+                result.Error.Should().BeOfType(typeof(MappingError));
+            }
+        }
+
+        [Fact]
+        [IsUnit]
+        public async Task MapSubscriberAsync_InvalidPasswordKey_ReturnsError()
+        {
+            // Arrange
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
+            var authentication = new BasicAuthenticationEntity("username", "password-key-name");
+            var subscriber = new SubscriberBuilder()
+                .WithWebhookUriTransform(uriTransform)
+                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", "POST", null, authentication)
+                .Create();
+
+            _secretProviderMock.Setup(x => x.GetSecretValueAsync("password-key-name"))
+                .Throws(new System.Exception());
+
+            // Act
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+
+            // Assert
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeTrue();
+                result.Error.Should().BeOfType(typeof(MappingError));
             }
         }
     }
