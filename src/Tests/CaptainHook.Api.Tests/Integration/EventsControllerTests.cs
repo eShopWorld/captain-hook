@@ -4,6 +4,7 @@ using CaptainHook.Api.Client.Models;
 using CaptainHook.Api.Tests.Config;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using Microsoft.AspNetCore.Http;
 using Xunit;
 
@@ -79,6 +80,30 @@ namespace CaptainHook.Api.Tests.Integration
 
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
+        }
+
+        [Fact, IsIntegration]
+        public async Task GetSubscriber_WhenUnauthenticated_Returns401Unauthorized()
+        {
+            // Act
+            var result = await UnauthenticatedClient.GetAllWithHttpMessagesAsync();
+
+            // Assert
+            result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+        }
+
+        public async Task GetSubscriber_WhenAuthenticated_Returns200AndData()
+        {
+            // Act
+            var result = await AuthenticatedClient.GetSubscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName);
+
+            // Assert
+            using (new AssertionScope())
+            {
+                result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+                var content = await result.Response.Content.ReadAsStringAsync();
+                content.Should().NotBeNullOrEmpty();
+            }
         }
 
         private CaptainHookContractSubscriberDto GetTestSubscriberDto()
