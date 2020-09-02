@@ -33,8 +33,14 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
 
         private async Task<OperationResult<bool>> CallDirector(Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
         {
-            var subscriberConfigs = await _entityToConfigurationMapper.MapSubscriberAsync(subscriber);
-            var singleSubscriber = subscriberConfigs.Single();
+            var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberAsync(subscriber);
+
+            if(subscriberConfigsResult.IsError)
+            {
+                return subscriberConfigsResult.Error;
+            }
+
+            var singleSubscriber = subscriberConfigsResult.Data.Single();
 
             var request = requestFunc(singleSubscriber);
             var createReaderResult = await _directorService.ApplyReaderChange(request);

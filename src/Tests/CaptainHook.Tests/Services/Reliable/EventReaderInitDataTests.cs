@@ -6,12 +6,14 @@ using Eshopworld.Tests.Core;
 using FluentAssertions;
 using System.Collections.Generic;
 using Xunit;
+using FluentAssertions.Execution;
 
 namespace CaptainHook.Tests.Services.Reliable
 {
     public class EventReaderInitDataTests
     {
         private readonly SubscriberConfiguration _subscriberConfiguration;
+        private readonly SubscriberConfiguration _invalidSubscriberConfiguration;
 
         public EventReaderInitDataTests()
         {
@@ -85,6 +87,15 @@ namespace CaptainHook.Tests.Services.Reliable
                     }
                 }
             };
+
+            _invalidSubscriberConfiguration = new SubscriberConfiguration
+            {
+                SubscriberName = "subA",
+                EventType = "test.type",
+                Uri = "test-uri-1",
+                Name = "test.type",
+                AuthenticationConfig = null
+            };
         }
 
         [Fact]
@@ -98,6 +109,48 @@ namespace CaptainHook.Tests.Services.Reliable
             eventReaderInitData.SubscriberName.Should().Be(_subscriberConfiguration.SubscriberName);
             eventReaderInitData.EventType.Should().Be(_subscriberConfiguration.EventType);
             eventReaderInitData.SubscriberConfiguration.Should().BeEquivalentTo(_subscriberConfiguration);
+        }
+
+        [Fact]
+        [IsUnit]
+        public void CanPassAuthDataConfiguration()
+        {
+            var buffer = EventReaderInitData.FromSubscriberConfiguration(_subscriberConfiguration).ToByteArray();
+
+            var eventReaderInitData = EventReaderInitData.FromByteArray(buffer);
+
+            using (new AssertionScope())
+            {
+                ValidateAuthConfig(eventReaderInitData.SubscriberConfiguration.Callback.AuthenticationConfig);
+                ValidateAuthConfig(eventReaderInitData.SubscriberConfiguration.WebhookRequestRules[1].Routes[0].AuthenticationConfig);
+                ValidateAuthConfig(eventReaderInitData.SubscriberConfiguration.WebhookRequestRules[1].Routes[1].AuthenticationConfig);
+            }
+        }
+
+        [Fact]
+        [IsUnit]
+        public void InvalidAuthDataTranslatesToNoAuthentication()
+        {
+            var buffer = EventReaderInitData.FromSubscriberConfiguration(_invalidSubscriberConfiguration).ToByteArray();
+
+            var eventReaderInitData = EventReaderInitData.FromByteArray(buffer);
+
+            using (new AssertionScope())
+            {
+                eventReaderInitData.SubscriberConfiguration.AuthenticationConfig.Should().BeOfType(typeof(AuthenticationConfig));
+                eventReaderInitData.SubscriberConfiguration.AuthenticationConfig.Type.Should().Be(AuthenticationType.None);
+            }
+        }
+
+        private void ValidateAuthConfig(AuthenticationConfig authConfig)
+        {
+            authConfig.Should().BeOfType(typeof(OidcAuthenticationConfig));
+            
+            var oidcAuthConfig = (OidcAuthenticationConfig)authConfig;
+            oidcAuthConfig.Scopes.Should().Contain(new string[] { "scope1", "scope2" });
+            oidcAuthConfig.ClientSecret.Should().Be("verylongsecret");
+            oidcAuthConfig.ClientId.Should().Be("aclientid");
+            oidcAuthConfig.Uri.Should().Be("StsUri");
         }
 
         [Fact, IsUnit]
