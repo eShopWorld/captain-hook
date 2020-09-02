@@ -144,6 +144,37 @@ namespace CaptainHook.Api.Client
         Task<HttpOperationResponse<object>> DeleteSubscriberWithHttpMessagesAsync(string eventName, string subscriberName, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Get the configuration for the specified subscriber
+        /// </summary>
+        /// <param name='eventName'>
+        /// Event name
+        /// </param>
+        /// <param name='subscriberName'>
+        /// Subscriber name
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> GetSubscriberWithHttpMessagesAsync(string eventName, string subscriberName, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Get the configuration for the specified event
+        /// </summary>
+        /// <param name='eventName'>
+        /// Event name
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse> GetEventSubscribersWithHttpMessagesAsync(string eventName, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Returns a probe result
         /// </summary>
         /// <param name='customHeaders'>

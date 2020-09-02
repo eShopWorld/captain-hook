@@ -12,17 +12,22 @@ namespace CaptainHook.Common.Configuration
         {
             foreach (var subscriber in subscribers)
             {
-                SanitizeWebhookCredentials(subscriber);
-                SanitizeWebhookCredentials(subscriber.Callback);
+                Sanitize(subscriber);
+            }
+        }
 
-                var routes = subscriber.WebhookRequestRules?.SelectMany(r => r.Routes) ?? Enumerable.Empty<WebhookConfigRoute>();
-                var callbackRoutes = subscriber.Callback?.WebhookRequestRules?.SelectMany(r => r.Routes) ?? Enumerable.Empty<WebhookConfigRoute>();
-                var allRoutes = routes.Union(callbackRoutes);
+        public static void Sanitize(SubscriberConfiguration subscriber)
+        {
+            SanitizeWebhookCredentials(subscriber);
+            SanitizeWebhookCredentials(subscriber.Callback);
 
-                foreach (var route in allRoutes)
-                {
-                    SanitizeWebhookCredentials(route);
-                }
+            var routes = subscriber.WebhookRequestRules?.SelectMany(r => r.Routes) ?? Enumerable.Empty<WebhookConfigRoute>();
+            var callbackRoutes = subscriber.Callback?.WebhookRequestRules?.SelectMany(r => r.Routes) ?? Enumerable.Empty<WebhookConfigRoute>();
+            var allRoutes = routes.Union(callbackRoutes);
+
+            foreach (var route in allRoutes)
+            {
+                SanitizeWebhookCredentials(route);
             }
         }
 
