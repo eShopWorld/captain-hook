@@ -152,7 +152,6 @@ namespace CaptainHook.Api.Controllers
         /// </summary>
         /// <param name="eventName">Event name</param>
         /// <param name="subscriberName">Subscriber name</param>
-        /// <param name="selector">Endpoint selector, use * (asterisk) for the default endpoint</param>
         /// <returns></returns>
         [HttpDelete("{eventName}/subscriber/{subscriberName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]

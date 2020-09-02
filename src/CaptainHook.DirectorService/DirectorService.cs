@@ -262,10 +262,9 @@ namespace CaptainHook.DirectorService
                                 throw new NotSupportedException("This reader change is not supported by the DirectorService");
                         }
 
-                        var refreshResult = await _readerServicesManager.RefreshReadersAsync(new[] { changeInfo }, _cancellationToken);
-                        var singleResult = refreshResult.SingleOrDefault();
-                        UpdateSubscriberConfigurationsInMemory(singleResult.Value, readerChange);
-                        return MapResult(singleResult.Value);
+                        var refreshResult = await WrapManagerCall(changeInfo, readerChange);
+                        UpdateSubscriberConfigurationsInMemory(refreshResult, readerChange);
+                        return MapResult(refreshResult);
                     }
                 }
                 finally
@@ -277,6 +276,19 @@ namespace CaptainHook.DirectorService
 
             _bigBrother.Publish(new ReloadConfigRequestedWhenAnotherInProgressEvent());
             return ReaderChangeResult.DirectorIsBusy;
+        }
+
+        private async Task<RefreshReaderResult> WrapManagerCall(ReaderChangeInfo changeInfo, ReaderChangeBase readerChange)
+        {
+            var refreshResult = await _readerServicesManager.RefreshReadersAsync(new[] { changeInfo }, _cancellationToken);
+            var (_, value) = refreshResult.SingleOrDefault();
+
+            if (readerChange is DeleteReader && value == RefreshReaderResult.None)
+            {
+                return RefreshReaderResult.Success;
+            }
+
+            return value;
         }
 
         private void UpdateSubscriberConfigurationsInMemory(RefreshReaderResult refreshResult, ReaderChangeBase readerChange)
