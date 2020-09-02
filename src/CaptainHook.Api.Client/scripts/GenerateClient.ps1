@@ -77,7 +77,7 @@ function Install-Tooling
 	param([string] $ToolsPath)
 
 	Write-Output "Installing or updating Swashbuckle CLI"
-	dotnet tool update swashbuckle.aspnetcore.cli --version 5.4.1 --tool-path $ToolsPath
+	dotnet tool update swashbuckle.aspnetcore.cli --version 5.5.1 --tool-path $ToolsPath
 
 	Write-Output "Installing or updating AutoRest"
 	npm install autorest@3.0.6187 --no-audit --prefix $ToolsPath
