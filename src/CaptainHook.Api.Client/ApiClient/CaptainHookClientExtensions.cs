@@ -313,6 +313,66 @@ namespace CaptainHook.Api.Client
             }
 
             /// <summary>
+            /// Delete a subscriber  for the provided event and subscriber
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            public static object DeleteSubscriber(this ICaptainHookClient operations, string eventName, string subscriberName)
+            {
+                return operations.DeleteSubscriberAsync(eventName, subscriberName).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Delete a subscriber  for the provided event and subscriber
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<object> DeleteSubscriberAsync(this ICaptainHookClient operations, string eventName, string subscriberName, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.DeleteSubscriberWithHttpMessagesAsync(eventName, subscriberName, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Delete a subscriber  for the provided event and subscriber
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventName'>
+            /// Event name
+            /// </param>
+            /// <param name='subscriberName'>
+            /// Subscriber name
+            /// </param>
+            /// <param name='customHeaders'>
+            /// Headers that will be added to request.
+            /// </param>
+            public static HttpOperationResponse<object> DeleteSubscriberWithHttpMessages(this ICaptainHookClient operations, string eventName, string subscriberName, Dictionary<string, List<string>> customHeaders = null)
+            {
+                return operations.DeleteSubscriberWithHttpMessagesAsync(eventName, subscriberName, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
             /// Returns a probe result
             /// </summary>
             /// <param name='operations'>
