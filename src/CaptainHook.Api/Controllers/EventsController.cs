@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Linq;
-using System.Security.Cryptography.Xml;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
-using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Results;
-using CaptainHook.Common;
-using CaptainHook.Common.Configuration;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
@@ -16,7 +11,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace CaptainHook.Api.Controllers
 {
@@ -187,91 +181,6 @@ namespace CaptainHook.Api.Controllers
                 },
                 Ok
             );
-        }
-
-        /// <summary>
-        /// Get the configuration for the specified subscriber
-        /// </summary>
-        /// <param name="eventName">Event name</param>
-        /// <param name="subscriberName">Subscriber name</param>
-        /// <returns>The configuration for the specified subscriber</returns>
-        [Authorize(Policy = AuthorisationPolicies.ReadSubscribers)]
-        [HttpGet("{eventName}/subscriber/{subscriberName}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetSubscriber([FromRoute] string eventName, [FromRoute] string subscriberName)
-        {
-            try
-            {
-                var directorServiceUri = new Uri(ServiceNaming.DirectorServiceFullName);
-                var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
-                var subscribers = await directorServiceClient.GetAllSubscribersAsync();
-
-                if (subscribers.Count == 0)
-                {
-                    return StatusCode(StatusCodes.Status503ServiceUnavailable);
-                }
-
-                if (!subscribers.TryGetValue($"{eventName};{subscriberName}", out SubscriberConfiguration subscriberConfiguration))
-                {
-                    return NotFound();
-                }
-
-                AuthenticationConfigSanitizer.Sanitize(subscriberConfiguration);
-
-                return Ok(subscriberConfiguration);
-            }
-            catch (Exception exception)
-            {
-                _bigBrother.Publish(exception.ToExceptionEvent());
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
-
-        /// <summary>
-        /// Get the configuration for the specified event
-        /// </summary>
-        /// <param name="eventName">Event name</param>
-        /// <returns>The configuration for the specified event</returns>
-        [Authorize(Policy = AuthorisationPolicies.ReadSubscribers)]
-        [HttpGet("{eventName}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetEventSubscribers([FromRoute] string eventName)
-        {
-            try
-            {
-                var directorServiceUri = new Uri(ServiceNaming.DirectorServiceFullName);
-                var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
-                var subscribers = await directorServiceClient.GetAllSubscribersAsync();
-
-                if (subscribers.Count == 0)
-                {
-                    return StatusCode(StatusCodes.Status503ServiceUnavailable);
-                }
-
-                var eventSubscribers = subscribers.Values.Where(x => x.Name.StartsWith(eventName, StringComparison.OrdinalIgnoreCase));
-
-                if (!eventSubscribers.Any())
-                {
-                    return NotFound();
-                }
-
-                AuthenticationConfigSanitizer.Sanitize(eventSubscribers);
-
-                return Ok(eventSubscribers);
-            }
-            catch (Exception exception)
-            {
-                _bigBrother.Publish(exception.ToExceptionEvent());
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
         }
     }
 }
