@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using CaptainHook.Common.Configuration.KeyVault;
 using Eshopworld.Core;
@@ -52,7 +53,7 @@ namespace CaptainHook.Common.Configuration
         {
             return new SecretClient (
                 new Uri (Environment.GetEnvironmentVariable (ConfigurationSettings.KeyVaultUriEnvVariable)),
-                new AzureServiceTokenCredential (),
+                new DefaultAzureCredential (),
                 new SecretClientOptions ());
         }
 

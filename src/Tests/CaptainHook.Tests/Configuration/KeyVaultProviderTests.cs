@@ -1,11 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using Azure.Identity;
 using CaptainHook.Common.Configuration;
 using Eshopworld.Tests.Core;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Xunit;
 
 namespace CaptainHook.Tests.Configuration
@@ -18,12 +17,7 @@ namespace CaptainHook.Tests.Configuration
         {
             var kvUri = "https://esw-tooling-ci-we.vault.azure.net/";
 
-            var config = new ConfigurationBuilder().AddAzureKeyVault(
-                kvUri,
-                new KeyVaultClient(
-                    new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider()
-                        .KeyVaultTokenCallback)),
-                new DefaultKeyVaultSecretManager()).Build();
+            var config = new ConfigurationBuilder().AddAzureKeyVault(new Uri(kvUri), new DefaultAzureCredential()).Build();
 
             //autowire up configs in keyvault to webhooks
             //autowire up configs in keyvault to webhooks

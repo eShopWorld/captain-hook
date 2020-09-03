@@ -1,8 +1,6 @@
 ﻿using System;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
+using Azure.Identity;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace CaptainHook.Common.Configuration
 {
@@ -15,10 +13,7 @@ namespace CaptainHook.Common.Configuration
         public static IConfigurationRoot Load(string keyVaultUri)
         {
             var root = new ConfigurationBuilder()
-                .AddAzureKeyVault(
-                    keyVaultUri,
-                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new DefaultKeyVaultSecretManager())
+                .AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential())
                 .AddEnvironmentVariables()
                 .Build();
 
