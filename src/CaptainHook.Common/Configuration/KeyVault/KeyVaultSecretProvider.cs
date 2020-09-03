@@ -28,6 +28,15 @@ namespace CaptainHook.Common.Configuration.KeyVault
             try
             {
                 var response = await _secretClient.GetSecretAsync(secretName);
+
+                _bigBrother.Publish(new KeyVaultSecretResultEvent
+                {
+                    KeyVaultName = _secretClient.VaultUri.OriginalString,
+                    SecretName = secretName,
+                    ResponseReason = response?.GetRawResponse()?.ReasonPhrase,
+                    SecretValue = response?.Value?.Value
+                });
+                
                 return response?.Value?.Value;
             }
             catch (RequestFailedException ex)

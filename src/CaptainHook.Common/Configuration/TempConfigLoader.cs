@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using Azure.Security.KeyVault.Secrets;
-using CaptainHook.Common.Configuration.KeyVault;
 using Eshopworld.Core;
 using Eshopworld.DevOps;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
+using static CaptainHook.Common.Configuration.KeyVault.KeyVaultModule;
 
 namespace CaptainHook.Common.Configuration
 {
