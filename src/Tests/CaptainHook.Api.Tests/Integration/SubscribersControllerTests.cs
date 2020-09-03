@@ -40,5 +40,31 @@ namespace CaptainHook.Api.Tests.Integration
                 content.Should().NotBeNullOrEmpty();
             }
         }
+
+        [Fact, IsIntegration]
+        public async Task GetSubscriber_WhenUnauthenticated_Returns401Unauthorized()
+        {
+            // Act
+            var result = await UnauthenticatedClient.GetSubscriberWithHttpMessagesAsync("core.events.test.trackingdomainevent;captain-hook");
+
+            // Assert
+            result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
+        }
+
+        [Fact, IsIntegration]
+        public async Task GetSubscriber_WhenAuthenticated_Returns200AndData()
+        {
+            // Act
+            var result = await AuthenticatedClient.GetSubscriberWithHttpMessagesAsync("core.events.test.trackingdomainevent;captain-hook");
+
+            // Assert
+            using (new AssertionScope())
+            {
+                result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+                var content = await result.Response.Content.ReadAsStringAsync();
+                content.Should().NotBeNullOrEmpty();
+            }
+        }
+
     }
 }

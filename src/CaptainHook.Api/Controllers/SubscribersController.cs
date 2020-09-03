@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
@@ -63,6 +64,47 @@ namespace CaptainHook.Api.Controllers
                 AuthenticationConfigSanitizer.Sanitize(subscribers.Values);
 
                 return Ok(subscribers);
+            }
+            catch (Exception exception)
+            {
+                _bigBrother.Publish(exception.ToExceptionEvent());
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Get the configuration for the specified subscriber
+        /// </summary>
+        /// <param name="eventAndSubscriberNameKey">Event and subscriber name key</param>
+        /// <returns>The configuration for the specified subscriber</returns>
+        [Authorize(Policy = AuthorisationPolicies.ReadSubscribers)]
+        [HttpGet("{eventAndSubscriberNameKey}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetSubscriber([FromRoute] string eventAndSubscriberNameKey)
+        {
+            try
+            {
+                var directorServiceUri = new Uri(ServiceNaming.DirectorServiceFullName);
+                var directorServiceClient = ServiceProxy.Create<IDirectorServiceRemoting>(directorServiceUri);
+                var subscribers = await directorServiceClient.GetAllSubscribersAsync();
+
+                if (subscribers.Count == 0)
+                {
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable);
+                }
+
+                if (!subscribers.TryGetValue(eventAndSubscriberNameKey, out SubscriberConfiguration subscriberConfiguration))
+                {
+                    return NotFound();
+                }
+
+                AuthenticationConfigSanitizer.Sanitize(subscriberConfiguration);
+
+                return Ok(subscriberConfiguration);
             }
             catch (Exception exception)
             {
