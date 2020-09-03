@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
@@ -154,8 +152,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         {
             return authenticationEntity switch
             {
-                OidcAuthenticationEntity ent => (AuthenticationConfig) await MapOidcAuthenticationAsync(ent),
-                BasicAuthenticationEntity ent => (AuthenticationConfig) await MapBasicAuthenticationAsync(ent),
+                OidcAuthenticationEntity ent => (await MapOidcAuthenticationAsync(ent)).Then<AuthenticationConfig>(x => x),
+                BasicAuthenticationEntity ent => (await MapBasicAuthenticationAsync(ent)).Then<AuthenticationConfig>(x => x),
                 _ => new MappingError("Could not find a suitable authentication mechanism.")
             };
         }
