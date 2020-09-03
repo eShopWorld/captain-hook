@@ -25,7 +25,6 @@ namespace CaptainHook.Common.ServiceBus
         private readonly IMessageProviderFactory _factory;
         private readonly AsyncLazy<IServiceBusNamespace> _serviceBusNamespace;
         private readonly AsyncRetryPolicy<ITopic> _findTopicPolicy;
-        private readonly Func<int, TimeSpan> _exponentialBackoff;
 
         public ServiceBusManager(IMessageProviderFactory factory, ConfigurationSettings configurationSettings)
         {
@@ -33,11 +32,11 @@ namespace CaptainHook.Common.ServiceBus
             _serviceBusNamespace = new AsyncLazy<IServiceBusNamespace>(async () =>
                 await GetServiceBusNamespace(configurationSettings.AzureSubscriptionId, configurationSettings.ServiceBusNamespace));
 
-            _exponentialBackoff = x =>
-            TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, _retryCeilingSeconds));
+            TimeSpan ExponentialBackoff(int x) => TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, _retryCeilingSeconds));
+
             _findTopicPolicy = Policy
                 .HandleResult<ITopic>(b => b == null)
-                .WaitAndRetryForeverAsync(_exponentialBackoff);
+                .WaitAndRetryForeverAsync((Func<int, TimeSpan>) ExponentialBackoff);
 
         }
 
@@ -107,6 +106,7 @@ namespace CaptainHook.Common.ServiceBus
         /// Setups a ServiceBus <see cref="ITopic"/> given a subscription Id, a namespace topicName and the topicName of the entity we want to work with on the topic.
         /// </summary>
         /// <param name="topicName">The topicName of the topic entity that we are working with.</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>The <see cref="ITopic"/> contract for use of future operation if required.</returns>
         private async Task<ITopic> CreateTopicIfNotExists(string topicName, CancellationToken cancellationToken = default)
         {
