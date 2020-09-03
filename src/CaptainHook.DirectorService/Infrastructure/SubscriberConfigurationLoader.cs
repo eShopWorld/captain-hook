@@ -14,17 +14,18 @@ namespace CaptainHook.DirectorService.Infrastructure
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IConfigurationMerger _configurationMerger;
+        private readonly ISubscribersKeyVaultProvider _subscribersKeyVaultProvider;
 
-        public SubscriberConfigurationLoader(ISubscriberRepository subscriberRepository, IConfigurationMerger configurationMerger)
+        public SubscriberConfigurationLoader(ISubscriberRepository subscriberRepository, IConfigurationMerger configurationMerger, ISubscribersKeyVaultProvider subscribersKeyVaultProvider)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _configurationMerger = configurationMerger ?? throw new ArgumentNullException(nameof(configurationMerger));
+            _subscribersKeyVaultProvider = subscribersKeyVaultProvider ?? throw new ArgumentNullException(nameof(subscribersKeyVaultProvider));
         }
 
         public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> LoadAsync(string keyVaultUri)
         {
-            var configuration = Configuration.Load(keyVaultUri);
-            var subscribersFromKV = configuration.SubscriberConfigurations;
+            var subscribersFromKV = _subscribersKeyVaultProvider.Load(keyVaultUri);
             var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
 
             var mergeResult = await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos.Data);

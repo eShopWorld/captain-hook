@@ -13,6 +13,7 @@ namespace CaptainHook.Tests.Director
 {
     public class SubscriberConfigurationLoaderTests
     {
+        private readonly Mock<ISubscribersKeyVaultProvider> _subscriberKeyVaultProviderMock;
         private readonly Mock<ISubscriberRepository> _subscriberRepositoryMock;
         private readonly Mock<IConfigurationMerger> _configurationMergerMock;
         
@@ -20,10 +21,11 @@ namespace CaptainHook.Tests.Director
 
         public SubscriberConfigurationLoaderTests()
         {
+            _subscriberKeyVaultProviderMock = new Mock<ISubscribersKeyVaultProvider>();
             _subscriberRepositoryMock = new Mock<ISubscriberRepository>();
             _configurationMergerMock = new Mock<IConfigurationMerger>();
 
-            _subscriberConfigurationLoader = new SubscriberConfigurationLoader(_subscriberRepositoryMock.Object, _configurationMergerMock.Object);
+            _subscriberConfigurationLoader = new SubscriberConfigurationLoader(_subscriberRepositoryMock.Object, _configurationMergerMock.Object, _subscriberKeyVaultProviderMock.Object);
         }
 
         [Fact, IsDev]
