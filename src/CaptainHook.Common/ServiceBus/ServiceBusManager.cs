@@ -30,7 +30,7 @@ namespace CaptainHook.Common.ServiceBus
         {
             _factory = factory;
             _serviceBusNamespace = new AsyncLazy<IServiceBusNamespace>(async () =>
-                await GetServiceBusNamespace(configurationSettings.AzureSubscriptionId, configurationSettings.ServiceBusNamespace));
+                await GetServiceBusNamespaceAsync(configurationSettings.AzureSubscriptionId, configurationSettings.ServiceBusNamespace));
 
             TimeSpan ExponentialBackoff(int x) => TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, _retryCeilingSeconds));
 
@@ -40,7 +40,7 @@ namespace CaptainHook.Common.ServiceBus
 
         }
 
-        private async Task<IServiceBusNamespace> GetServiceBusNamespace(string azureSubscriptionId, string serviceBusNamespace,
+        private async Task<IServiceBusNamespace> GetServiceBusNamespaceAsync(string azureSubscriptionId, string serviceBusNamespace,
                 CancellationToken cancellationToken = default)
         {
             var tokenProvider = new AzureServiceTokenProvider();
