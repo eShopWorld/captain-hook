@@ -132,6 +132,22 @@ namespace CaptainHook.Api.Tests.Integration
             }
         }
 
+        [Fact, IsIntegration]
+        public async Task DeleteEventSubscriber_WhenAuthenticated()
+        {
+            // Arrange
+            var dto = GetTestSubscriberDto();
+            var result = await AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);
+            result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
+
+            // Act
+            result = await AuthenticatedClient.DeleteSubscriberWithHttpMessagesAsync(IntegrationTestEventName,
+                _subscriberName);
+
+            // Assert
+            result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        }
+
         private CaptainHookContractSubscriberDto GetTestSubscriberDto()
         {
             var webhookDto = new CaptainHookContractWebhooksDto(endpoints: new[]

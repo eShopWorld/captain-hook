@@ -11,7 +11,7 @@ using Microsoft.Rest;
 using Polly;
 using Polly.Retry;
 
-namespace CaptainHook.EventReaderService
+namespace CaptainHook.Common.ServiceBus
 {
     /// <summary>
     /// Contains extensions to the ServiceBus Fluent SDK: <see cref="Microsoft.Azure.Management.ServiceBus.Fluent"/>.
@@ -88,32 +88,50 @@ namespace CaptainHook.EventReaderService
         /// <returns>The <see cref="ITopic"/> contract for use of future operation if required.</returns>
         public static async Task<ITopic> SetupTopic(string azureSubscriptionId, string serviceBusNamespace, string entityName, CancellationToken cancellationToken)
         {
+            var sbNamespace = await GetServiceBusNamespace(azureSubscriptionId, serviceBusNamespace, cancellationToken);
+
+            return await sbNamespace.CreateTopicIfNotExists(entityName, cancellationToken);
+        }
+
+        private static async Task<IServiceBusNamespace> GetServiceBusNamespace(string azureSubscriptionId, string serviceBusNamespace,
+            CancellationToken cancellationToken)
+        {
             var tokenProvider = new AzureServiceTokenProvider();
-            var token = await tokenProvider.GetAccessTokenAsync("https://management.core.windows.net/", string.Empty, cancellationToken);
+            var token = await tokenProvider.GetAccessTokenAsync("https://management.core.windows.net/", string.Empty,
+                cancellationToken);
 
             var tokenCredentials = new TokenCredentials(token);
 
             var client = RestClient.Configure()
-                                   .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
-                                   .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                                   .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty, AzureEnvironment.AzureGlobalCloud))
-                                   .Build();
-            
+                .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
+                .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
+                .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty,
+                    AzureEnvironment.AzureGlobalCloud))
+                .Build();
+
             var sbNamespacesList = await Microsoft.Azure.Management.Fluent
-                                                  .Azure.Authenticate(client, string.Empty)
-                                                  .WithSubscription(azureSubscriptionId)
-                                                  .ServiceBusNamespaces
-                                                  .ListAsync(cancellationToken: cancellationToken);
+                .Azure.Authenticate(client, string.Empty)
+                .WithSubscription(azureSubscriptionId)
+                .ServiceBusNamespaces
+                .ListAsync(cancellationToken: cancellationToken);
 
             var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == serviceBusNamespace);
 
             if (sbNamespace == null)
             {
-                throw new InvalidOperationException($"Couldn't find the service bus namespace {serviceBusNamespace} in the subscription with ID {azureSubscriptionId}");
+                throw new InvalidOperationException(
+                    $"Couldn't find the service bus namespace {serviceBusNamespace} in the subscription with ID {azureSubscriptionId}");
             }
 
-            return await sbNamespace.CreateTopicIfNotExists(entityName, cancellationToken);
+            return sbNamespace;
         }
 
+        public static async Task DeleteSubscription(string azureSubscriptionId, string sbNamespace, string topicName, string subscriptionName,
+            CancellationToken cancellationToken)
+        {
+            var sbNamespaceObj = await GetServiceBusNamespace(azureSubscriptionId, sbNamespace, cancellationToken);
+            var topic = await FindTopicAsync(sbNamespaceObj, topicName, cancellationToken);
+            await topic.Subscriptions.DeleteByNameAsync(subscriptionName, cancellationToken);
+        }
     }
 }

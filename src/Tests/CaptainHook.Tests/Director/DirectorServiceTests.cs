@@ -34,7 +34,8 @@ namespace CaptainHook.Tests.Director
 
             _directorService = new DirectorService.DirectorService(context, new Mock<IBigBrother>().Object,
                 _readerServicesManagerMock.Object, new Mock<IReaderServiceChangesDetector>().Object,
-                _fabricClientMock.Object, new Mock<ISubscriberConfigurationLoader>().Object);
+                _fabricClientMock.Object, new Mock<ISubscriberConfigurationLoader>().Object,
+                Mock.Of<ConfigurationSettings>());
         }
 
         [Fact, IsUnit]

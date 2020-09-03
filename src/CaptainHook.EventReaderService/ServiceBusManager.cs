@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Common.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 

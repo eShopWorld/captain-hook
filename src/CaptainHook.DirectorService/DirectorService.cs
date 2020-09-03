@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.ServiceBus;
 using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
@@ -36,6 +37,7 @@ namespace CaptainHook.DirectorService
         private readonly IReaderServiceChangesDetector _readerServiceChangeDetector;
         private readonly ISubscriberConfigurationLoader _subscriberConfigurationLoader;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations = new Dictionary<string, SubscriberConfiguration>();
+        private readonly ConfigurationSettings _configurationSettings;
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
@@ -45,13 +47,16 @@ namespace CaptainHook.DirectorService
         /// <param name="readerServicesManager">reader service manager</param>
         /// <param name="readerServiceChangeDetector">reader service change detector</param>
         /// <param name="fabricClientWrapper">The injected <see cref="IFabricClientWrapper"/>.</param>
+        /// <param name="subscriberConfigurationLoader"></param>
+        /// <param name="configurationSettings"></param>
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
             IReaderServicesManager readerServicesManager,
             IReaderServiceChangesDetector readerServiceChangeDetector,
             IFabricClientWrapper fabricClientWrapper,
-            ISubscriberConfigurationLoader subscriberConfigurationLoader)
+            ISubscriberConfigurationLoader subscriberConfigurationLoader,
+            ConfigurationSettings configurationSettings)
             : base(context)
         {
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
@@ -59,6 +64,7 @@ namespace CaptainHook.DirectorService
             _subscriberConfigurationLoader = subscriberConfigurationLoader ?? throw new ArgumentNullException(nameof(subscriberConfigurationLoader));
             _readerServicesManager = readerServicesManager ?? throw new ArgumentNullException(nameof(readerServicesManager));
             _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException(nameof(readerServiceChangeDetector));
+            _configurationSettings = configurationSettings ?? throw new ArgumentNullException(nameof(configurationSettings));
         }
 
         private async Task<OperationResult<IDictionary<string, SubscriberConfiguration>>> LoadConfigurationAsync()
@@ -66,7 +72,7 @@ namespace CaptainHook.DirectorService
             var keyVaultUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
             var subscriberConfigResult = await _subscriberConfigurationLoader.LoadAsync(keyVaultUri);
 
-            if(subscriberConfigResult.IsError)
+            if (subscriberConfigResult.IsError)
             {
                 return subscriberConfigResult.Error;
             }
@@ -95,7 +101,7 @@ namespace CaptainHook.DirectorService
                 }
 
                 var loadConfigurationResult = await LoadConfigurationAsync();
-                if(loadConfigurationResult.IsError)
+                if (loadConfigurationResult.IsError)
                 {
                     _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Error));
                     return;
@@ -170,7 +176,7 @@ namespace CaptainHook.DirectorService
             try
             {
                 var loadConfigurationResult = await LoadConfigurationAsync();
-                if(loadConfigurationResult.IsError)
+                if (loadConfigurationResult.IsError)
                 {
                     _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Error));
                     reloadConfigFinishedTimedEvent.IsSuccess = false;
@@ -285,10 +291,18 @@ namespace CaptainHook.DirectorService
 
             if (readerChange is DeleteReader && value == RefreshReaderResult.None)
             {
+                await DeleteSubscription(readerChange, _cancellationToken);
                 return RefreshReaderResult.Success;
             }
 
             return value;
+        }
+
+        private async Task DeleteSubscription(ReaderChangeBase changeInfo, CancellationToken cancellationToken)
+        {
+            await ServiceBusNamespaceExtensions.DeleteSubscription(_configurationSettings?.AzureSubscriptionId, _configurationSettings?.ServiceBusNamespace,
+                changeInfo.Subscriber.EventType,
+                changeInfo.Subscriber.SubscriberName, cancellationToken);
         }
 
         private void UpdateSubscriberConfigurationsInMemory(RefreshReaderResult refreshResult, ReaderChangeBase readerChange)
