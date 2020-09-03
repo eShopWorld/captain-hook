@@ -373,111 +373,6 @@ namespace CaptainHook.Api.Client
             }
 
             /// <summary>
-            /// Get the configuration for the specified subscriber
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='eventName'>
-            /// Event name
-            /// </param>
-            /// <param name='subscriberName'>
-            /// Subscriber name
-            /// </param>
-            public static void GetSubscriber(this ICaptainHookClient operations, string eventName, string subscriberName)
-            {
-                operations.GetSubscriberAsync(eventName, subscriberName).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get the configuration for the specified subscriber
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='eventName'>
-            /// Event name
-            /// </param>
-            /// <param name='subscriberName'>
-            /// Subscriber name
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task GetSubscriberAsync(this ICaptainHookClient operations, string eventName, string subscriberName, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.GetSubscriberWithHttpMessagesAsync(eventName, subscriberName, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Get the configuration for the specified subscriber
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='eventName'>
-            /// Event name
-            /// </param>
-            /// <param name='subscriberName'>
-            /// Subscriber name
-            /// </param>
-            /// <param name='customHeaders'>
-            /// Headers that will be added to request.
-            /// </param>
-            public static HttpOperationResponse GetSubscriberWithHttpMessages(this ICaptainHookClient operations, string eventName, string subscriberName, Dictionary<string, List<string>> customHeaders = null)
-            {
-                return operations.GetSubscriberWithHttpMessagesAsync(eventName, subscriberName, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get the configuration for the specified event
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='eventName'>
-            /// Event name
-            /// </param>
-            public static void GetEventSubscribers(this ICaptainHookClient operations, string eventName)
-            {
-                operations.GetEventSubscribersAsync(eventName).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get the configuration for the specified event
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='eventName'>
-            /// Event name
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task GetEventSubscribersAsync(this ICaptainHookClient operations, string eventName, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.GetEventSubscribersWithHttpMessagesAsync(eventName, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Get the configuration for the specified event
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='eventName'>
-            /// Event name
-            /// </param>
-            /// <param name='customHeaders'>
-            /// Headers that will be added to request.
-            /// </param>
-            public static HttpOperationResponse GetEventSubscribersWithHttpMessages(this ICaptainHookClient operations, string eventName, Dictionary<string, List<string>> customHeaders = null)
-            {
-                return operations.GetEventSubscribersWithHttpMessagesAsync(eventName, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
             /// Returns a probe result
             /// </summary>
             /// <param name='operations'>
@@ -553,6 +448,54 @@ namespace CaptainHook.Api.Client
             public static HttpOperationResponse GetAllWithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
             {
                 return operations.GetAllWithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get the configuration for the specified subscriber
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventAndSubscriberNameKey'>
+            /// Event and subscriber name key
+            /// </param>
+            public static void GetSubscriber(this ICaptainHookClient operations, string eventAndSubscriberNameKey)
+            {
+                operations.GetSubscriberAsync(eventAndSubscriberNameKey).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get the configuration for the specified subscriber
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventAndSubscriberNameKey'>
+            /// Event and subscriber name key
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task GetSubscriberAsync(this ICaptainHookClient operations, string eventAndSubscriberNameKey, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.GetSubscriberWithHttpMessagesAsync(eventAndSubscriberNameKey, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Get the configuration for the specified subscriber
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='eventAndSubscriberNameKey'>
+            /// Event and subscriber name key
+            /// </param>
+            /// <param name='customHeaders'>
+            /// Headers that will be added to request.
+            /// </param>
+            public static HttpOperationResponse GetSubscriberWithHttpMessages(this ICaptainHookClient operations, string eventAndSubscriberNameKey, Dictionary<string, List<string>> customHeaders = null)
+            {
+                return operations.GetSubscriberWithHttpMessagesAsync(eventAndSubscriberNameKey, customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
             }
 
     }
