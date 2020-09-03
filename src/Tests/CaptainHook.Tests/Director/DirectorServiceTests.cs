@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.ServiceBus;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
 using CaptainHook.Tests.Services;
@@ -35,7 +36,7 @@ namespace CaptainHook.Tests.Director
             _directorService = new DirectorService.DirectorService(context, new Mock<IBigBrother>().Object,
                 _readerServicesManagerMock.Object, new Mock<IReaderServiceChangesDetector>().Object,
                 _fabricClientMock.Object, new Mock<ISubscriberConfigurationLoader>().Object,
-                Mock.Of<ConfigurationSettings>());
+                Mock.Of<IServiceBusManager>());
         }
 
         [Fact, IsUnit]

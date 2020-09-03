@@ -7,8 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.ServiceBus;
 using CaptainHook.Common.ServiceModels;
-using CaptainHook.EventReaderService;
 using CaptainHook.Interfaces;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
@@ -80,7 +80,7 @@ namespace CaptainHook.Tests.Services.Reliable
 
             var mockServiceBusManager = new Mock<IServiceBusManager>();
             mockServiceBusManager
-                .Setup(s => s.CreateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
+                .Setup(s => s.CreateSubscriptionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
             mockServiceBusManager
                 .Setup(s => s.CreateMessageReceiver(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns(_mockMessageProvider.Object);
