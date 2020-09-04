@@ -6,6 +6,7 @@ using Autofac;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.ServiceBus;
 using CaptainHook.Common.Telemetry;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;

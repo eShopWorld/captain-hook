@@ -37,7 +37,7 @@ namespace CaptainHook.DirectorService
         private readonly IReaderServiceChangesDetector _readerServiceChangeDetector;
         private readonly ISubscriberConfigurationLoader _subscriberConfigurationLoader;
         private IDictionary<string, SubscriberConfiguration> _subscriberConfigurations = new Dictionary<string, SubscriberConfiguration>();
-        private readonly ConfigurationSettings _configurationSettings;
+        private readonly IServiceBusManager _serviceBusManager;
 
         /// <summary>
         /// Initializes a new instance of <see cref="DirectorService"/>.
@@ -48,7 +48,7 @@ namespace CaptainHook.DirectorService
         /// <param name="readerServiceChangeDetector">reader service change detector</param>
         /// <param name="fabricClientWrapper">The injected <see cref="IFabricClientWrapper"/>.</param>
         /// <param name="subscriberConfigurationLoader"></param>
-        /// <param name="configurationSettings"></param>
+        /// <param name="serviceBusManager"></param>
         public DirectorService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
@@ -56,7 +56,7 @@ namespace CaptainHook.DirectorService
             IReaderServiceChangesDetector readerServiceChangeDetector,
             IFabricClientWrapper fabricClientWrapper,
             ISubscriberConfigurationLoader subscriberConfigurationLoader,
-            ConfigurationSettings configurationSettings)
+            IServiceBusManager serviceBusManager)
             : base(context)
         {
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
@@ -64,7 +64,7 @@ namespace CaptainHook.DirectorService
             _subscriberConfigurationLoader = subscriberConfigurationLoader ?? throw new ArgumentNullException(nameof(subscriberConfigurationLoader));
             _readerServicesManager = readerServicesManager ?? throw new ArgumentNullException(nameof(readerServicesManager));
             _readerServiceChangeDetector = readerServiceChangeDetector ?? throw new ArgumentNullException(nameof(readerServiceChangeDetector));
-            _configurationSettings = configurationSettings ?? throw new ArgumentNullException(nameof(configurationSettings));
+            _serviceBusManager = serviceBusManager ?? throw new ArgumentNullException(nameof(serviceBusManager));
         }
 
         private async Task<OperationResult<IDictionary<string, SubscriberConfiguration>>> LoadConfigurationAsync()
@@ -291,18 +291,12 @@ namespace CaptainHook.DirectorService
 
             if (readerChange is DeleteReader && value == RefreshReaderResult.None)
             {
-                await DeleteSubscription(readerChange, _cancellationToken);
-                return RefreshReaderResult.Success;
+                value = RefreshReaderResult.Success;
+                await _serviceBusManager.DeleteSubscriptionAsync(readerChange.Subscriber.EventType,
+                    readerChange.Subscriber.SubscriberName, _cancellationToken);
             }
 
             return value;
-        }
-
-        private async Task DeleteSubscription(ReaderChangeBase changeInfo, CancellationToken cancellationToken)
-        {
-            await ServiceBusNamespaceExtensions.DeleteSubscription(_configurationSettings?.AzureSubscriptionId, _configurationSettings?.ServiceBusNamespace,
-                changeInfo.Subscriber.EventType,
-                changeInfo.Subscriber.SubscriberName, cancellationToken);
         }
 
         private void UpdateSubscriberConfigurationsInMemory(RefreshReaderResult refreshResult, ReaderChangeBase readerChange)
