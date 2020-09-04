@@ -1,31 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Azure.Extensions.AspNetCore.Configuration.Secrets;
-using Azure.Security.KeyVault.Secrets;
+using CaptainHook.Common.Telemetry;
+using Eshopworld.Core;
 using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.Common.Configuration
 {
     public class SubscribersKeyVaultProvider : ISubscribersKeyVaultProvider
     {
-        private readonly SecretClient _secretClient;
+        private readonly IKeyVaultConfigurationLoader _configurationLoader;
+        private readonly IBigBrother _bigBrother;
 
-        public SubscribersKeyVaultProvider(SecretClient secretClient)
+        public SubscribersKeyVaultProvider(IKeyVaultConfigurationLoader configurationLoader, IBigBrother bigBrother)
         {
-            _secretClient = secretClient ?? throw new ArgumentNullException(nameof(secretClient));
+            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
+            _configurationLoader = configurationLoader ?? throw new ArgumentNullException(nameof(configurationLoader));
         }
 
         public IDictionary<string, SubscriberConfiguration> Load(string keyVaultUri)
         {
-            var root = new ConfigurationBuilder()
-                .AddAzureKeyVault(_secretClient, new KeyVaultSecretManager())
-                .Build();
-
-            // Load and autowire event config
-            var configurationSections = root.GetSection("event").GetChildren().ToList();
-
-            var subscribers = new Dictionary<string, SubscriberConfiguration>(configurationSections.Count);
+            var configurationSections = _configurationLoader.Load(keyVaultUri);
+            var subscribers = new Dictionary<string, SubscriberConfiguration>(configurationSections.Count());
 
             foreach (var configurationSection in configurationSections)
             {
@@ -34,22 +30,34 @@ namespace CaptainHook.Common.Configuration
 
                 foreach (var subscriber in eventHandlerConfig.AllSubscribers)
                 {
-                    subscribers.Add(
-                        SubscriberConfiguration.Key(eventHandlerConfig.Type, subscriber.SubscriberName),
-                        subscriber);
-
-                    var path = subscriber.WebHookConfigPath;
-                    ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
-                    subscriber.EventType = eventHandlerConfig.Type;
-                    subscriber.PayloadTransformation = subscriber.DLQMode != null ? PayloadContractTypeEnum.WrapperContract : PayloadContractTypeEnum.Raw;
-                    ConfigParser.AddEndpoints(subscriber, configurationSection, path);
-
-                    if (subscriber.Callback != null)
+                    string subscriberKey = null;
+                    try
                     {
-                        path = subscriber.CallbackConfigPath;
-                        ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
-                        subscriber.Callback.EventType = eventHandlerConfig.Type;
-                        ConfigParser.AddEndpoints(subscriber.Callback, configurationSection, path);
+                        subscriberKey = SubscriberConfiguration.Key(eventHandlerConfig.Type, subscriber.SubscriberName);
+                        subscribers.Add(subscriberKey, subscriber);
+
+                        var path = subscriber.WebHookConfigPath;
+                        ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
+                        subscriber.EventType = eventHandlerConfig.Type;
+                        subscriber.PayloadTransformation = subscriber.DLQMode != null ? PayloadContractTypeEnum.WrapperContract : PayloadContractTypeEnum.Raw;
+                        ConfigParser.AddEndpoints(subscriber, configurationSection, path);
+
+                        if (subscriber.Callback != null)
+                        {
+                            path = subscriber.CallbackConfigPath;
+                            ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
+                            subscriber.Callback.EventType = eventHandlerConfig.Type;
+                            ConfigParser.AddEndpoints(subscriber.Callback, configurationSection, path);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        var exceptionEvent = ex.ToExceptionEvent<FailedKeyVaultConfigurationEvent>();
+                        exceptionEvent.ConfigKey = configurationSection.Key;
+                        exceptionEvent.SubscriberKey = subscriberKey;
+
+                        _bigBrother.Publish(exceptionEvent);
+                        throw;
                     }
                 }
             }

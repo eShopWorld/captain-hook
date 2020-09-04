@@ -45,6 +45,10 @@ namespace CaptainHook.DirectorService
 
                 var builder = new ContainerBuilder();
 
+                builder.RegisterType<KeyVaultConfigurationLoader>()
+                    .As<IKeyVaultConfigurationLoader>()
+                    .SingleInstance();
+
                 builder.RegisterType<SubscribersKeyVaultProvider>()
                     .As<ISubscribersKeyVaultProvider>()
                     .SingleInstance();
