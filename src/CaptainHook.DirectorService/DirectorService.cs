@@ -289,11 +289,9 @@ namespace CaptainHook.DirectorService
             var refreshResult = await _readerServicesManager.RefreshReadersAsync(new[] { changeInfo }, _cancellationToken);
             var (_, value) = refreshResult.SingleOrDefault();
 
-            if (readerChange is DeleteReader)
+            if (readerChange is DeleteReader && value == RefreshReaderResult.None)
             {
-                if(value == RefreshReaderResult.None)
-                    value= RefreshReaderResult.Success;
-
+                value = RefreshReaderResult.Success;
                 await _serviceBusManager.DeleteSubscriptionAsync(readerChange.Subscriber.EventType,
                     readerChange.Subscriber.SubscriberName, _cancellationToken);
             }

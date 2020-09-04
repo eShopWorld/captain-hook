@@ -182,7 +182,7 @@ namespace CaptainHook.Tests.Director
                 .Setup(x => x.RefreshReadersAsync(It.IsAny<IEnumerable<ReaderChangeInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new Dictionary<string, RefreshReaderResult>
                 {
-                    [SubscriberConfiguration.Key(_defaultSubscriberConfig.EventType, _defaultSubscriberConfig.SubscriberName)] = RefreshReaderResult.Success
+                    [SubscriberConfiguration.Key(_defaultSubscriberConfig.EventType, _defaultSubscriberConfig.SubscriberName)] = RefreshReaderResult.None
                 });
 
             var deleteRequest = new DeleteReader { Subscriber = _defaultSubscriberConfig };
@@ -235,7 +235,7 @@ namespace CaptainHook.Tests.Director
                 .Setup(x => x.RefreshReadersAsync(It.IsAny<IEnumerable<ReaderChangeInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new Dictionary<string, RefreshReaderResult>
                 {
-                    [SubscriberConfiguration.Key(_defaultSubscriberConfig.EventType, _defaultSubscriberConfig.SubscriberName)] = RefreshReaderResult.Success
+                    [SubscriberConfiguration.Key(_defaultSubscriberConfig.EventType, _defaultSubscriberConfig.SubscriberName)] = RefreshReaderResult.None
                 });
 
             _serviceBusManagerMock
