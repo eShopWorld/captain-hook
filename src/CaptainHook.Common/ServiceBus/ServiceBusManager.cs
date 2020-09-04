@@ -20,7 +20,7 @@ namespace CaptainHook.Common.ServiceBus
     /// <inheritdoc/>
     public class ServiceBusManager : IServiceBusManager
     {
-        private int _retryCeilingSeconds = 30;
+        private const int RetryCeilingSeconds = 30;
         
         private readonly IMessageProviderFactory _factory;
         private readonly AsyncLazy<IServiceBusNamespace> _serviceBusNamespace;
@@ -32,11 +32,11 @@ namespace CaptainHook.Common.ServiceBus
             _serviceBusNamespace = new AsyncLazy<IServiceBusNamespace>(async () =>
                 await GetServiceBusNamespaceAsync(configurationSettings.AzureSubscriptionId, configurationSettings.ServiceBusNamespace));
 
-            TimeSpan ExponentialBackoff(int x) => TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, _retryCeilingSeconds));
+            static TimeSpan ExponentialBackoff(int x) => TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, RetryCeilingSeconds));
 
             _findTopicPolicy = Policy
                 .HandleResult<ITopic>(b => b == null)
-                .WaitAndRetryForeverAsync((Func<int, TimeSpan>) ExponentialBackoff);
+                .WaitAndRetryForeverAsync(ExponentialBackoff);
 
         }
 

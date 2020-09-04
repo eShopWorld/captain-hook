@@ -294,16 +294,11 @@ namespace CaptainHook.DirectorService
                 if(value == RefreshReaderResult.None)
                     value= RefreshReaderResult.Success;
 
-                await DeleteSubscriptionAsync(readerChange, _cancellationToken);
+                await _serviceBusManager.DeleteSubscriptionAsync(readerChange.Subscriber.EventType,
+                    readerChange.Subscriber.SubscriberName, _cancellationToken);
             }
 
             return value;
-        }
-
-        private async Task DeleteSubscriptionAsync(ReaderChangeBase changeInfo, CancellationToken cancellationToken)
-        {
-            await _serviceBusManager.DeleteSubscriptionAsync(changeInfo.Subscriber.EventType,
-                changeInfo.Subscriber.SubscriberName, cancellationToken);
         }
 
         private void UpdateSubscriberConfigurationsInMemory(RefreshReaderResult refreshResult, ReaderChangeBase readerChange)
