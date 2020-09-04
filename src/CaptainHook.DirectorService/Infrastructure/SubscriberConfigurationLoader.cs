@@ -28,14 +28,8 @@ namespace CaptainHook.DirectorService.Infrastructure
             var subscribersFromKV = _subscribersKeyVaultProvider.Load(keyVaultUri);
             var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
 
-            var mergeResult = await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos.Data);
-
-            if(mergeResult.IsError)
-            {
-                return mergeResult.Error;
-            }
-
-            return mergeResult.Data;
+            return (await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos.Data))
+                .Then<IEnumerable<SubscriberConfiguration>>(x => x);
         }
     }
 }
