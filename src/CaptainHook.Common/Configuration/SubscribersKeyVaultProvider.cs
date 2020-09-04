@@ -1,21 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace CaptainHook.Common.Configuration
 {
     public class SubscribersKeyVaultProvider : ISubscribersKeyVaultProvider
     {
+        private readonly SecretClient _secretClient;
+
+        public SubscribersKeyVaultProvider(SecretClient secretClient)
+        {
+            _secretClient = secretClient ?? throw new ArgumentNullException(nameof(secretClient));
+        }
+
         public IDictionary<string, SubscriberConfiguration> Load(string keyVaultUri)
         {
             var root = new ConfigurationBuilder()
-                .AddAzureKeyVault(
-                    keyVaultUri,
-                    new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(new AzureServiceTokenProvider().KeyVaultTokenCallback)),
-                    new DefaultKeyVaultSecretManager())
+                .AddAzureKeyVault(_secretClient, new KeyVaultSecretManager())
                 .Build();
 
             // Load and autowire event config
