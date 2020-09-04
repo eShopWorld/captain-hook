@@ -115,7 +115,7 @@ namespace CaptainHook.Api.Tests.Integration
 
         private static CaptainHookContractAuthenticationDto GetTestAuthenticationDto()
         {
-            return new CaptainHookContractBasicAuthenticationDto("Basic", "user1", "pass1");
+            return new CaptainHookContractBasicAuthenticationDto("Basic", "user1", "AzureSubscriptionId");
         }
 
         private static CaptainHookContractEndpointDto GetTestEndpointDto()
