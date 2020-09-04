@@ -9,6 +9,7 @@ using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
+using CaptainHook.Common.ServiceBus;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
@@ -81,6 +82,14 @@ namespace CaptainHook.DirectorService
                 builder.RegisterModule<KeyVaultModule>();
 
                 builder.RegisterModule<CosmosDbStorageModule>();
+
+                builder.RegisterType<MessageProviderFactory>()
+                    .As<IMessageProviderFactory>()
+                    .SingleInstance();
+
+                builder.RegisterType<ServiceBusManager>()
+                    .As<IServiceBusManager>();
+
                 builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
 
                 builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
