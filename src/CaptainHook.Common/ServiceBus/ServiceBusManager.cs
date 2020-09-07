@@ -14,6 +14,7 @@ using Microsoft.Rest;
 using Nito.AsyncEx;
 using Polly;
 using Polly.Retry;
+using ISubscription = Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription;
 
 namespace CaptainHook.Common.ServiceBus
 {
@@ -37,7 +38,6 @@ namespace CaptainHook.Common.ServiceBus
             _findTopicPolicy = Policy
                 .HandleResult<ITopic>(b => b == null)
                 .WaitAndRetryForeverAsync(ExponentialBackoff);
-
         }
 
         private async Task<IServiceBusNamespace> GetServiceBusNamespaceAsync(string azureSubscriptionId, string serviceBusNamespace,
@@ -73,9 +73,11 @@ namespace CaptainHook.Common.ServiceBus
             return sbNamespace;
         }
 
-        public async Task CreateSubscriptionAsync(string subscriptionName, string topicName, CancellationToken cancellationToken)
+        public async Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, CancellationToken cancellationToken)
         {
-            await CreateTopicIfNotExists(TypeExtensions.GetEntityName(topicName), cancellationToken);
+            var topic = await CreateTopicIfNotExists(TypeExtensions.GetEntityName(topicName), cancellationToken);
+            await CreateSubscriptionIfNotExists(topic, subscriptionName, cancellationToken);
+
         }
 
         public async Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
@@ -105,8 +107,8 @@ namespace CaptainHook.Common.ServiceBus
         /// <summary>
         /// Setups a ServiceBus <see cref="ITopic"/> given a subscription Id, a namespace topicName and the topicName of the entity we want to work with on the topic.
         /// </summary>
-        /// <param name="topicName">The topicName of the topic entity that we are working with.</param>
-        /// <param name="cancellationToken"></param>
+        /// <param subscriptionName="topicName">The topicName of the topic entity that we are working with.</param>
+        /// <param subscriptionName="cancellationToken"></param>
         /// <returns>The <see cref="ITopic"/> contract for use of future operation if required.</returns>
         private async Task<ITopic> CreateTopicIfNotExists(string topicName, CancellationToken cancellationToken = default)
         {
@@ -123,5 +125,23 @@ namespace CaptainHook.Common.ServiceBus
             return await _findTopicPolicy.ExecuteAsync(ct => FindTopicAsync(serviceBusNamespace, topicName, ct), cancellationToken);
         }
 
+        private async Task<ISubscription> CreateSubscriptionIfNotExists(ITopic topic, string subscriptionName,
+            CancellationToken cancellationToken)
+        {
+            var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
+            var subscription = subscriptionsList.SingleOrDefault(s => s.Name == subscriptionName.ToLowerInvariant());
+            if (subscription != null) return subscription;
+
+            await topic.Subscriptions
+                .Define(subscriptionName.ToLowerInvariant())
+                .WithMessageLockDurationInSeconds(60)
+                .WithExpiredMessageMovedToDeadLetterSubscription()
+                .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
+                .CreateAsync(cancellationToken);
+
+            await topic.RefreshAsync(cancellationToken);
+            subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
+            return subscriptionsList.Single(t => t.Name == subscriptionName.ToLowerInvariant());
+        }
     }
 }

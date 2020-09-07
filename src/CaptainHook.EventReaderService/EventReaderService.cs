@@ -199,7 +199,7 @@ namespace CaptainHook.EventReaderService
         {
             ServicePointManager.DefaultConnectionLimit = 100;
 
-            await _serviceBusManager.CreateSubscriptionAsync(_initData.SubscriptionName, _initData.EventType, cancellationToken);
+            await _serviceBusManager.CreateTopicAndSubscriptionAsync(_initData.SubscriptionName, _initData.EventType, cancellationToken);
             
             var messageReceiver = _serviceBusManager.CreateMessageReceiver(_settings.ServiceBusConnectionString, _initData.EventType, _initData.SubscriptionName, _initData.DlqMode != null);
 
