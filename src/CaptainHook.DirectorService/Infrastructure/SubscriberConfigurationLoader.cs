@@ -24,9 +24,15 @@ namespace CaptainHook.DirectorService.Infrastructure
         public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> LoadAsync(string keyVaultUri)
         {
             var subscribersFromKV = _subscribersKeyVaultProvider.Load(keyVaultUri);
+
+            if (subscribersFromKV.IsError)
+            {
+                return subscribersFromKV.Error;
+            }
+
             var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
 
-            return (await _configurationMerger.MergeAsync(subscribersFromKV.Values, subscribersFromCosmos.Data))
+            return (await _configurationMerger.MergeAsync(subscribersFromKV.Data.Values, subscribersFromCosmos.Data))
                 .Then<IEnumerable<SubscriberConfiguration>>(x => x);
         }
     }

@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using CaptainHook.Common.Telemetry;
+using CaptainHook.Domain.Errors;
+using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using Microsoft.Extensions.Configuration;
 
@@ -18,10 +19,12 @@ namespace CaptainHook.Common.Configuration
             _configurationLoader = configurationLoader ?? throw new ArgumentNullException(nameof(configurationLoader));
         }
 
-        public IDictionary<string, SubscriberConfiguration> Load(string keyVaultUri)
+        public OperationResult<IDictionary<string, SubscriberConfiguration>> Load(string keyVaultUri)
         {
             var configurationSections = _configurationLoader.Load(keyVaultUri);
             var subscribers = new Dictionary<string, SubscriberConfiguration>(configurationSections.Count());
+
+            var failures = new List<KeyVaultConfigurationFailure>();
 
             foreach (var configurationSection in configurationSections)
             {
@@ -30,10 +33,9 @@ namespace CaptainHook.Common.Configuration
 
                 foreach (var subscriber in eventHandlerConfig.AllSubscribers)
                 {
-                    string subscriberKey = null;
                     try
                     {
-                        subscriberKey = SubscriberConfiguration.Key(eventHandlerConfig.Type, subscriber.SubscriberName);
+                        var subscriberKey = SubscriberConfiguration.Key(eventHandlerConfig.Type, subscriber.SubscriberName);
                         subscribers.Add(subscriberKey, subscriber);
 
                         var path = subscriber.WebHookConfigPath;
@@ -44,6 +46,7 @@ namespace CaptainHook.Common.Configuration
 
                         if (subscriber.Callback != null)
                         {
+
                             path = subscriber.CallbackConfigPath;
                             ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
                             subscriber.Callback.EventType = eventHandlerConfig.Type;
@@ -52,14 +55,23 @@ namespace CaptainHook.Common.Configuration
                     }
                     catch (Exception ex)
                     {
-                        var exceptionEvent = ex.ToExceptionEvent<FailedKeyVaultConfigurationEvent>();
-                        exceptionEvent.ConfigKey = configurationSection.Key;
-                        exceptionEvent.SubscriberKey = subscriberKey;
+                        var failure = new KeyVaultConfigurationFailure(configurationSection.Path, ex);
+                        failures.Add(failure);
 
-                        _bigBrother.Publish(exceptionEvent);
-                        throw;
+                        //var exceptionEvent = ex.ToExceptionEvent<FailedKeyVaultConfigurationEvent>();
+                        //exceptionEvent.ConfigKey = configurationSection.Key;
+                        //exceptionEvent.SubscriberKey = subscriberKey;
+
+                        //_bigBrother.Publish(exceptionEvent);
+                        //throw;
                     }
                 }
+            }
+
+
+            if (failures.Any())
+            {
+                return new KeyVaultConfigurationError(failures);
             }
 
             return subscribers;

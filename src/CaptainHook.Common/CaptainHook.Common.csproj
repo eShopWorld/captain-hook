@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
     <ProjectReference Include="..\CaptainHook.Telemetry\CaptainHook.Telemetry.csproj" />
   </ItemGroup>
 </Project>

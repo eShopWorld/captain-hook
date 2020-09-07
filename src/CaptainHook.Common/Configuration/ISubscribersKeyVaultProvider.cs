@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using CaptainHook.Domain.Results;
 
 namespace CaptainHook.Common.Configuration
 {
     public interface ISubscribersKeyVaultProvider
     {
-        IDictionary<string, SubscriberConfiguration> Load(string keyVaultUri);
+        OperationResult<IDictionary<string, SubscriberConfiguration>> Load(string keyVaultUri);
     }
 }
