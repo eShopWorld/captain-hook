@@ -4,7 +4,7 @@ namespace CaptainHook.Domain.Errors
 {
     public class ValidationError : ErrorBase
     {
-        public ValidationError(string message, params Failure[] failures) : base(message, failures)
+        public ValidationError(string message, params ValidationFailure[] failures) : base(message, failures)
         {
         }
     }

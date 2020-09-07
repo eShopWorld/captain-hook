@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.ServiceFabric" Version="3.0.0" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.0.0" />
     <PackageReference Include="Azure.Identity" Version="1.2.2" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.1.0" />
     <PackageReference Include="Eshopworld.DevOps" Version="5.0.1" />
@@ -29,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
     <ProjectReference Include="..\CaptainHook.Telemetry\CaptainHook.Telemetry.csproj" />
   </ItemGroup>
 </Project>
