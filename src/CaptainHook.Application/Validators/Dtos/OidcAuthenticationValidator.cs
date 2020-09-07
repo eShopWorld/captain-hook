@@ -8,7 +8,7 @@ namespace CaptainHook.Application.Validators.Dtos
     {
         public OidcAuthenticationValidator()
         {
-            CascadeMode = CascadeMode.Stop;
+            CascadeMode = CascadeMode.Continue;
 
             RuleFor(x => x.ClientId).NotEmpty();
             RuleFor(x => x.Uri).NotEmpty().SetValidator(new UriValidator(false));

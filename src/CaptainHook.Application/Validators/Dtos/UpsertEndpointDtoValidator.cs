@@ -9,7 +9,7 @@ namespace CaptainHook.Application.Validators.Dtos
 
         public UpsertEndpointDtoValidator(string upsertSelector)
         {
-            CascadeMode = CascadeMode.StopOnFirstFailure;
+            CascadeMode = CascadeMode.Continue;
 
             Include(new EndpointDtoValidator());
             RuleFor(x => x.Selector)

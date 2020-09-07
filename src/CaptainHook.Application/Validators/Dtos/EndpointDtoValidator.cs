@@ -8,7 +8,7 @@ namespace CaptainHook.Application.Validators.Dtos
     {
         public EndpointDtoValidator()
         {
-            CascadeMode = CascadeMode.Stop;
+            CascadeMode = CascadeMode.Continue;
 
             RuleFor(x => x.HttpVerb).NotEmpty()
                 .SetValidator(new HttpVerbValidator());
