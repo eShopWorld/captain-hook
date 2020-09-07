@@ -17,10 +17,10 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     public class MmAuthenticationHandler : OidcAuthenticationHandler
     {
         public MmAuthenticationHandler(
-            IHttpClientFactory httpClientFactory,
+            IHttpSender httpSender,
             AuthenticationConfig authenticationConfig,
             IBigBrother bigBrother)
-            : base(httpClientFactory, authenticationConfig, bigBrother)
+            : base(httpSender, authenticationConfig, bigBrother)
         { }
 
         /// <inheritdoc />
@@ -39,19 +39,17 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 throw new ArgumentNullException(nameof(OidcAuthenticationConfig.ClientSecret));
             }
 
-            var httpClient = HttpClientFactory.Get(OidcAuthenticationConfig.Uri);
-
             var headers = new WebHookHeaders();
             headers.AddContentHeader(Constants.Headers.ContentType, "application/json-patch+json");
             headers.AddRequestHeader("client_id", OidcAuthenticationConfig.ClientId);
             headers.AddRequestHeader("client_secret", OidcAuthenticationConfig.ClientSecret);
 
-            var authProviderResponse = await httpClient.SendRequestReliablyAsync(
+            var authProviderResponse = await HttpSender.SendAsync(
                 HttpMethod.Post,
                 new Uri(OidcAuthenticationConfig.Uri),
                 headers,
                 string.Empty,
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             if (authProviderResponse.StatusCode != HttpStatusCode.Created || authProviderResponse.Content == null)
             {

@@ -53,11 +53,12 @@ namespace CaptainHook.Tests.Web.Authentication
             var httpClient = mockHttp.ToHttpClient();
 
             var handler = new OidcAuthenticationHandler(
-                new HttpClientFactory(
-                    new Dictionary<string, HttpClient>
-                    {
-                        {new Uri(config.Uri).Host, httpClient},
-                    }),
+                new HttpSender(
+                    new HttpClientFactory(
+                        new Dictionary<string, HttpClient>
+                        {
+                            {new Uri(config.Uri).Host, httpClient},
+                        })),
                 config,
                 _bigBrother);
 
@@ -107,11 +108,12 @@ namespace CaptainHook.Tests.Web.Authentication
                     }));
 
             var handler = new OidcAuthenticationHandler(
-                new HttpClientFactory(
-                    new Dictionary<string, HttpClient>
-                    {
-                        {new Uri(config.Uri).Host, mockHttp.ToHttpClient()},
-                    }),
+                new HttpSender(
+                    new HttpClientFactory(
+                        new Dictionary<string, HttpClient>
+                        {
+                            {new Uri(config.Uri).Host, mockHttp.ToHttpClient()},
+                        })),
                 config,
                 _bigBrother);
 

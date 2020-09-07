@@ -21,14 +21,15 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         protected OidcAuthenticationToken OidcAuthenticationToken = new OidcAuthenticationToken();
         protected readonly OidcAuthenticationConfig OidcAuthenticationConfig;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        protected readonly IHttpClientFactory HttpClientFactory;
+        protected readonly IHttpSender HttpSender
+            ;
         protected readonly IBigBrother BigBrother;
 
-        public OidcAuthenticationHandler(IHttpClientFactory httpClientFactory, AuthenticationConfig authenticationConfig, IBigBrother bigBrother)
+        public OidcAuthenticationHandler(IHttpSender httpSender, AuthenticationConfig authenticationConfig, IBigBrother bigBrother)
         {
             var oAuthAuthenticationToken = authenticationConfig as OidcAuthenticationConfig;
             OidcAuthenticationConfig = oAuthAuthenticationToken ?? throw new ArgumentException($"configuration for basic authentication is not of type {typeof(OidcAuthenticationConfig)}", nameof(authenticationConfig));
-            HttpClientFactory = httpClientFactory;
+            HttpSender = httpSender;
             BigBrother = bigBrother;
         }
 
@@ -47,8 +48,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 
                 await EnterSemaphore(cancellationToken, async () =>
                 {
-                    var httpClient = HttpClientFactory.Get(OidcAuthenticationConfig.Uri);
-                    var response = await GetTokenResponseAsync(httpClient, cancellationToken);
+                    var response = await GetTokenResponseAsync(cancellationToken);
                     ReportTokenUpdateFailure(OidcAuthenticationConfig, response);
                     UpdateToken(response);
 
@@ -66,8 +66,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 {
                     if (CheckExpired())
                     {
-                        var httpClient = HttpClientFactory.Get(OidcAuthenticationConfig.Uri);
-                        var response = await GetTokenResponseAsync(httpClient, cancellationToken);
+                        var response = await GetTokenResponseAsync(cancellationToken);
                         ReportTokenUpdateFailure(OidcAuthenticationConfig, response);
                         UpdateToken(response);
 
@@ -114,9 +113,9 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         /// <param name="client"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private async Task<TokenResponse> GetTokenResponseAsync(HttpMessageInvoker client, CancellationToken token)
+        private async Task<TokenResponse> GetTokenResponseAsync(CancellationToken token)
         {
-            var response = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+            var response = await HttpSender.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
                 Address = OidcAuthenticationConfig.Uri,
                 ClientId = OidcAuthenticationConfig.ClientId,
