@@ -43,18 +43,14 @@ namespace CaptainHook.Tests.Director
 
             var firstConfig = new SubscriberConfigurationBuilder().WithType("event").WithSubscriberName("subscriber").Create();
             var secondConfig = new SubscriberConfigurationBuilder().WithType("other-event").WithSubscriberName("subscriber").Create();
-            var dictionary = new Dictionary<string, SubscriberConfiguration>
-            {
-                [SubscriberConfiguration.Key(firstConfig.EventType, firstConfig.SubscriberName)] = firstConfig,
-                [SubscriberConfiguration.Key(secondConfig.EventType, secondConfig.SubscriberName)] = secondConfig,
-            };
-            _subscriberKeyVaultProviderMock.Setup(x => x.Load(It.IsAny<string>())).Returns(dictionary);
+            var subscriberConfigurations = new List<SubscriberConfiguration> { firstConfig, secondConfig, };
+            _subscriberKeyVaultProviderMock.Setup(x => x.Load(It.IsAny<string>())).Returns(subscriberConfigurations);
 
             var firstResultConfig = new SubscriberConfigurationBuilder().WithType("event1").WithSubscriberName("subscriber").Create();
             var secondResultConfig = new SubscriberConfigurationBuilder().WithType("other-event1").WithSubscriberName("subscriber").Create();
             var expectedResult = new OperationResult<ReadOnlyCollection<SubscriberConfiguration>>(
                 new ReadOnlyCollection<SubscriberConfiguration>(new[] { firstResultConfig, secondResultConfig }));
-            _configurationMergerMock.Setup(x => x.MergeAsync(dictionary.Values, subscriberEntities))
+            _configurationMergerMock.Setup(x => x.MergeAsync(subscriberConfigurations, subscriberEntities))
                 .ReturnsAsync(expectedResult);
 
             var result = await _subscriberConfigurationLoader.LoadAsync("key-vault");
