@@ -1,14 +1,16 @@
 ﻿namespace CaptainHook.Domain.Results
 {
-    public class Failure : IFailure
+    public class ValidationFailure : IFailure
     {
         public string Code { get; }
         public string Message { get; }
+        public string Property { get; }
 
-        public Failure(string code, string message)
+        public ValidationFailure(string code, string message, string property)
         {
             Code = code;
             Message = message;
+            Property = property;
         }
     }
 }

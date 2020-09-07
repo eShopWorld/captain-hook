@@ -3,20 +3,12 @@
     public abstract class ErrorBase
     {
         public string Message { get; set; }
-        public FailureBase[] Failures { get; set; }
+        public IFailure[] Failures { get; set; }
 
-        protected ErrorBase(string message, params FailureBase[] failures)
+        protected ErrorBase(string message, params IFailure[] failures)
         {
             Message = message;
             Failures = failures;
         }
-
-        //public override string ToString()
-        //{
-        //    return $"{Message} Failures:"
-                
-                
-        //        .Select(x => $"{x.Id}, {x}").ToList();
-        //}
     }
 }

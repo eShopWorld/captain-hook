@@ -46,7 +46,6 @@ namespace CaptainHook.Common.Configuration
 
                         if (subscriber.Callback != null)
                         {
-
                             path = subscriber.CallbackConfigPath;
                             ConfigParser.ParseAuthScheme(subscriber.Callback, configurationSection, $"{path}:authenticationconfig");
                             subscriber.Callback.EventType = eventHandlerConfig.Type;
@@ -55,19 +54,10 @@ namespace CaptainHook.Common.Configuration
                     }
                     catch (Exception ex)
                     {
-                        var failure = new KeyVaultConfigurationFailure(configurationSection.Path, ex);
-                        failures.Add(failure);
-
-                        //var exceptionEvent = ex.ToExceptionEvent<FailedKeyVaultConfigurationEvent>();
-                        //exceptionEvent.ConfigKey = configurationSection.Key;
-                        //exceptionEvent.SubscriberKey = subscriberKey;
-
-                        //_bigBrother.Publish(exceptionEvent);
-                        //throw;
+                        failures.Add(new KeyVaultConfigurationFailure(configurationSection.Path, ex));
                     }
                 }
             }
-
 
             if (failures.Any())
             {
