@@ -5,6 +5,6 @@ namespace CaptainHook.Common.Configuration
 {
     public interface ISubscribersKeyVaultProvider
     {
-        OperationResult<IDictionary<string, SubscriberConfiguration>> Load(string keyVaultUri);
+        OperationResult<IEnumerable<SubscriberConfiguration>> Load(string keyVaultUri);
     }
 }

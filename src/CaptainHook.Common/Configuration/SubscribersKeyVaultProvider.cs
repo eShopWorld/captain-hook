@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
-using Eshopworld.Core;
 using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.Common.Configuration
@@ -11,18 +10,16 @@ namespace CaptainHook.Common.Configuration
     public class SubscribersKeyVaultProvider : ISubscribersKeyVaultProvider
     {
         private readonly IKeyVaultConfigurationLoader _configurationLoader;
-        private readonly IBigBrother _bigBrother;
 
-        public SubscribersKeyVaultProvider(IKeyVaultConfigurationLoader configurationLoader, IBigBrother bigBrother)
+        public SubscribersKeyVaultProvider(IKeyVaultConfigurationLoader configurationLoader)
         {
-            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
             _configurationLoader = configurationLoader ?? throw new ArgumentNullException(nameof(configurationLoader));
         }
 
-        public OperationResult<IDictionary<string, SubscriberConfiguration>> Load(string keyVaultUri)
+        public OperationResult<IEnumerable<SubscriberConfiguration>> Load(string keyVaultUri)
         {
             var configurationSections = _configurationLoader.Load(keyVaultUri);
-            var subscribers = new Dictionary<string, SubscriberConfiguration>(configurationSections.Count());
+            var subscribers = new List<SubscriberConfiguration>(configurationSections.Count());
 
             var failures = new List<KeyVaultConfigurationFailure>();
 
@@ -35,8 +32,7 @@ namespace CaptainHook.Common.Configuration
                 {
                     try
                     {
-                        var subscriberKey = SubscriberConfiguration.Key(eventHandlerConfig.Type, subscriber.SubscriberName);
-                        subscribers.Add(subscriberKey, subscriber);
+                        subscribers.Add(subscriber);
 
                         var path = subscriber.WebHookConfigPath;
                         ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
