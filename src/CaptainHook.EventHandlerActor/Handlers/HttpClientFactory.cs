@@ -39,7 +39,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 return httpClient;
             }
 
-            httpClient = new HttpClient() { Timeout = timeout };
+            httpClient = new HttpClient();
+
+            if (timeout != default)
+            {
+                httpClient.Timeout = timeout;
+            }
 
             var result = _httpClients.TryAdd(uri.Host.ToLowerInvariant(), httpClient);
 
