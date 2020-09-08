@@ -18,7 +18,8 @@ namespace CaptainHook.Application.Validators.Common
             CascadeMode = CascadeMode.Continue;
 
             // selector in Replace dictionary is required only temporary
-            RuleFor(x => x.Replace).NotEmpty()
+            RuleFor(x => x.Replace).Cascade(CascadeMode.Stop)
+                .NotEmpty()
                 .Must(ContainAllReplacementsForUris).WithMessage("URI Transform dictionary must contain all the placeholders defined in each URI");
         }
 

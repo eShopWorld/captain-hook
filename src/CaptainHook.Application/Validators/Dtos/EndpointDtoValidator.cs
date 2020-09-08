@@ -8,13 +8,11 @@ namespace CaptainHook.Application.Validators.Dtos
     {
         public EndpointDtoValidator()
         {
-            CascadeMode = CascadeMode.Continue;
-
-            RuleFor(x => x.HttpVerb).NotEmpty()
+            RuleFor(x => x.HttpVerb).Cascade(CascadeMode.Stop).NotEmpty()
                 .SetValidator(new HttpVerbValidator());
-            RuleFor(x => x.Uri).NotEmpty()
+            RuleFor(x => x.Uri).Cascade(CascadeMode.Stop).NotEmpty()
                 .SetValidator(new UriValidator());
-            RuleFor(x => x.Authentication).NotNull()
+            RuleFor(x => x.Authentication).Cascade(CascadeMode.Stop).NotNull()
                 .WithMessage($"Authentication type must be one of these values: {BasicAuthenticationDto.Type}, {OidcAuthenticationDto.Type}.")
                 .SetValidator(new PolymorphicValidator<EndpointDto, AuthenticationDto>()
                     .Add(new BasicAuthenticationValidator())
