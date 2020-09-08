@@ -49,7 +49,7 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
         private static AsyncRetryPolicy<HttpOperationResponse> RetryUntilStatus(params HttpStatusCode[] acceptableHttpStatusCodes)
         {
             return Policy /* poll until desired status */
-                .HandleResult<HttpOperationResponse>(msg => acceptableHttpStatusCodes.Contains(msg.Response.StatusCode))
+                .HandleResult<HttpOperationResponse>(msg => !acceptableHttpStatusCodes.Contains(msg.Response.StatusCode))
                 .WaitAndRetryAsync(10, i => TimeSpan.FromSeconds(5));
         }
     }
