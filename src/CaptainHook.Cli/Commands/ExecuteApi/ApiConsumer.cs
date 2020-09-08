@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using CaptainHook.Cli.Commands.ExecuteApi.Models;
 using CaptainHook.Domain.Results;
 
 namespace CaptainHook.Cli.Commands.ExecuteApi

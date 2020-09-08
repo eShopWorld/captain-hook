@@ -11,6 +11,25 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
         private const string HeaderFileName = "header.ps1";
         private static readonly Regex Regex = new Regex(@"event-(\d+)-");
 
+        public class Result
+        {
+            public bool Success { get; private set; }
+            public string Message { get; private set; }
+
+            private Result()
+            {
+                Success = true;
+            }
+
+            public Result(string message)
+            {
+                Success = false;
+                Message = message;
+            }
+
+            public static Result Valid = new Result();
+        }
+
         private IFileSystem fileSystem;
 
         public ConfigDirectoryProcessor(IFileSystem fileSystem)
@@ -36,7 +55,7 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
             }
 
             var powershellCommands = new EventHandlerConfigToPowerShellConverter().Convert(allConfigs);
-
+            
             var headerFileContents = GetHeaderFileIfExists(sourceFolderPath);
             if (headerFileContents != null)
             {
@@ -67,24 +86,5 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
 
             return null;
         }
-    }
-
-    public class Result
-    {
-        public bool Success { get; private set; }
-        public string Message { get; private set; }
-
-        private Result()
-        {
-            Success = true;
-        }
-
-        public Result(string message)
-        {
-            Success = false;
-            Message = message;
-        }
-
-        public static Result Valid = new Result();
     }
 }

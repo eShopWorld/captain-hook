@@ -2,7 +2,6 @@
 using System.IO.Abstractions;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
-using CaptainHook.Cli.Commands.GeneratePowerShell;
 using CaptainHook.Cli.Extensions;
 using McMaster.Extensions.CommandLineUtils;
 
@@ -45,12 +44,16 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
 
         public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
-            var processor = new SubscribersDirectoryProcessor(_fileSystem, _captainHookClient);
-            var result = await processor.ProcessDirectory(InputFolderPath, EnvironmentName);
+            var processor = new SubscribersDirectoryProcessor(_fileSystem);
+            var result = processor.ProcessDirectory(InputFolderPath, EnvironmentName);
 
-            if (result != Result.Valid)
+            if (result.IsError)
             {
-                console.EmitWarning(GetType(), app.Options, result.Message);
+                console.EmitWarning(GetType(), app.Options, result.Error.Message);
+            }
+            else
+            {
+                console.WriteLine("Operation succeeded!");
             }
 
             return 0;
