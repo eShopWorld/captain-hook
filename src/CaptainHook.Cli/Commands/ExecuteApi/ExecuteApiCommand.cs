@@ -53,6 +53,8 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
             }
             else
             {
+                var api = new ApiConsumer();
+                result = api.CallApi(result.Data);
                 console.WriteLine("Operation succeeded!");
             }
 
