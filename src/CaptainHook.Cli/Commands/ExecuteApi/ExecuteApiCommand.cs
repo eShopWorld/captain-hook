@@ -1,27 +1,59 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
+using System.IO.Abstractions;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
+using CaptainHook.Cli.Commands.GeneratePowerShell;
+using CaptainHook.Cli.Extensions;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace CaptainHook.Cli.Commands.ExecuteApi
 {
-    [Command("execution", Description = "Calls CaptainHook API to create/update subscribers"), HelpOption]
+    [Command("execute-api", Description = "Calls CaptainHook API to create/update subscribers"), HelpOption]
     public class ExecuteApiCommand
     {
+        private readonly IFileSystem _fileSystem;
         private readonly ICaptainHookClient _captainHookClient;
-        public ExecuteApiCommand(ICaptainHookClient captainHookClient)
+
+        public ExecuteApiCommand(IFileSystem fileSystem, ICaptainHookClient captainHookClient)
         {
+            _fileSystem = fileSystem;
             _captainHookClient = captainHookClient;
         }
 
+        /// <summary>
+        /// The path to the input folder containing JSON files. Can be absolute or relative.
+        /// </summary>
+        [Option(
+            Description = "The path to the folder containing JSON files to process. Can be absolute or relative.",
+            ShortName = "i",
+            LongName = "input",
+            ShowInHelpText = true)]
+        [Required]
+        public string InputFolderPath { get; set; }
+
+
+        /// <summary>
+        /// The environment name.
+        /// </summary>
+        [Option(
+            Description = "The environment name.",
+            ShortName = "env",
+            LongName = "environment",
+            ShowInHelpText = true)]
+        [Required]
+        public string EnvironmentName { get; set; }
+
         public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
-            // example
-            var status = await _captainHookClient.GetConfigurationStatusWithHttpMessagesAsync();
+            var processor = new SubscribersDirectoryProcessor(_fileSystem, _captainHookClient);
+            var result = await processor.ProcessDirectory(InputFolderPath, EnvironmentName);
 
-            return (int)status.Response.StatusCode;
+            if (result != Result.Valid)
+            {
+                console.EmitWarning(GetType(), app.Options, result.Message);
+            }
+
+            return 0;
         }
     }
 }

@@ -47,8 +47,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\CaptainHook.Api.Client\CaptainHook.Api.Client.csproj" />
     <ProjectReference Include="..\CaptainHook.Common\CaptainHook.Common.csproj" />
 	<ProjectReference Include="..\CaptainHook.Api.Client\CaptainHook.Api.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="sample\captainhook.sampleevent.subscriber.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

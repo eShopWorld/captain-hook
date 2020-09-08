@@ -17,6 +17,7 @@ namespace CaptainHook.Cli
     [Command(Name = "ch", Description = "CaptainHook CLI")]
     [Subcommand(typeof(GenerateJsonCommand))]
     [Subcommand(typeof(GeneratePowerShellCommand))]
+    [Subcommand(typeof(ExecuteApiCommand))]
     [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
     public class Program
     {

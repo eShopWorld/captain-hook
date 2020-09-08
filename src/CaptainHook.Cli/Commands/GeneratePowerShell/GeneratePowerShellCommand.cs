@@ -48,7 +48,7 @@ namespace CaptainHook.Cli.Commands.GeneratePowerShell
             var directoryProcessor = new ConfigDirectoryProcessor(this.fileSystem);
             var result = directoryProcessor.ProcessDirectory(InputFolderPath, OutputFilePath);
 
-            if (result != ConfigDirectoryProcessor.Result.Valid)
+            if (result != Result.Valid)
             {
                 console.EmitWarning(GetType(), app.Options, result.Message);
                 return Task.FromResult(1);
