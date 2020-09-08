@@ -22,7 +22,7 @@ namespace CaptainHook.Tests.Web.WebHooks
 
             var httpClientBuilder = new HttpClientFactory(httpClients);
 
-            var httpClient = httpClientBuilder.Get(config);
+            var httpClient = httpClientBuilder.Get(new Uri(config.Uri));
 
             Assert.NotNull(httpClient);
         }

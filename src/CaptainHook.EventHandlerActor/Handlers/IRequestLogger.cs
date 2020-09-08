@@ -9,7 +9,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public interface IRequestLogger
     {
         Task LogAsync(
-            HttpClient httpClient,
             HttpResponseMessage response,
             MessageData messageData,
             string actualPayload,
