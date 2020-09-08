@@ -9,10 +9,8 @@ namespace CaptainHook.Application.Validators.Dtos
 
         public UpsertEndpointDtoValidator(string upsertSelector)
         {
-            CascadeMode = CascadeMode.Continue;
-
             Include(new EndpointDtoValidator());
-            RuleFor(x => x.Selector)
+            RuleFor(x => x.Selector).Cascade(CascadeMode.Stop)
                 .Empty().When(x => string.IsNullOrWhiteSpace(x.Selector))
                 .WithMessage(SelectorValidationMessage)
                 .Equal(upsertSelector).When(x => !string.IsNullOrWhiteSpace(x.Selector))
