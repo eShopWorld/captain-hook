@@ -50,17 +50,18 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
             if (readDirectoryResult.IsError)
             {
                 console.EmitWarning(GetType(), app.Options, readDirectoryResult.Error.Message);
-            }
-            else
-            {
-                var api = new ApiConsumer(_captainHookClient);
-                var apiResult = await api.CallApiAsync(readDirectoryResult.Data);
-                if (apiResult.IsError)
-                    console.EmitWarning(GetType(), app.Options, apiResult.Error.Message);
-                else
-                    console.WriteLine("Operation succeeded!");
+                return 1;
             }
 
+            var api = new ApiConsumer(_captainHookClient);
+            var apiResult = await api.CallApiAsync(readDirectoryResult.Data);
+            if (apiResult.IsError)
+            {
+                console.EmitWarning(GetType(), app.Options, apiResult.Error.Message);
+                return 2;
+            }
+
+            console.WriteLine("Operation succeeded!");
             return 0;
         }
     }
