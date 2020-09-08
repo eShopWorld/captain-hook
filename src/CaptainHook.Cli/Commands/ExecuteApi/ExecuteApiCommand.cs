@@ -45,18 +45,18 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
         public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
             var processor = new SubscribersDirectoryProcessor(_fileSystem);
-            var result = processor.ProcessDirectory(InputFolderPath, EnvironmentName);
+            var readDirectoryResult = processor.ProcessDirectory(InputFolderPath, EnvironmentName);
 
-            if (result.IsError)
+            if (readDirectoryResult.IsError)
             {
-                console.EmitWarning(GetType(), app.Options, result.Error.Message);
+                console.EmitWarning(GetType(), app.Options, readDirectoryResult.Error.Message);
             }
             else
             {
                 var api = new ApiConsumer(_captainHookClient);
-                var result1 = await api.CallApiAsync(result.Data);
-                if (result1.IsError)
-                    console.EmitWarning(GetType(), app.Options, result1.Error.Message);
+                var apiResult = await api.CallApiAsync(readDirectoryResult.Data);
+                if (apiResult.IsError)
+                    console.EmitWarning(GetType(), app.Options, apiResult.Error.Message);
                 else
                     console.WriteLine("Operation succeeded!");
             }
