@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
 using CaptainHook.Cli.Commands.ExecuteApi.Models;
+using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using Microsoft.Rest;
 using Polly;
@@ -25,13 +26,18 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
         public async Task<OperationResult<IEnumerable<HttpOperationResponse>>> CallApiAsync(IEnumerable<PutSubscriberRequest> requests)
         {
             var responses = new List<HttpOperationResponse>();
-            foreach (PutSubscriberRequest putSubscriberRequest in requests)
+            foreach (var putSubscriberRequest in requests)
             {
                 var response = await _putRequestRetryPolicy.ExecuteAsync(async () =>
                     await _captainHookClient.PutSuscriberWithHttpMessagesAsync(
                     putSubscriberRequest.EventName,
                     putSubscriberRequest.SubscriberName,
                     putSubscriberRequest.Subscriber));
+
+                if (response.Response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return new OperationResult<IEnumerable<HttpOperationResponse>>(error: new DirectorServiceIsBusyError());
+                }
 
                 responses.Add(response);
             }
