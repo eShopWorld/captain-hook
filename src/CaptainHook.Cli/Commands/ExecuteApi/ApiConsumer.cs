@@ -36,8 +36,7 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
 
                 if (response.Response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    return new OperationResult<IEnumerable<HttpOperationResponse>>(error:
-                        new CliError(await response.Response.Content.ReadAsStringAsync()));
+                    return new OperationResult<IEnumerable<HttpOperationResponse>>(new CliError(response.Response.ToString()));
                 }
 
                 responses.Add(response);
