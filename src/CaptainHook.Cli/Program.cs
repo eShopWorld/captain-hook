@@ -7,6 +7,7 @@ using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Reflection;
+using CaptainHook.Cli.Commands.ExecuteApi;
 
 namespace CaptainHook.Cli
 {
@@ -78,7 +79,7 @@ namespace CaptainHook.Cli
 
             var builder = new ContainerBuilder();
             builder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
-
+            builder.RegisterInstance(new ApiClientFixture().GetApiClient());
             return serviceProviderFactory.CreateServiceProvider(builder);
         }
     }
