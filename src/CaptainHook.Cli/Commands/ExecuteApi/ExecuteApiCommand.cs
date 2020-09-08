@@ -53,9 +53,12 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
             }
             else
             {
-                var api = new ApiConsumer();
-                result = api.CallApi(result.Data);
-                console.WriteLine("Operation succeeded!");
+                var api = new ApiConsumer(_captainHookClient);
+                var result1 = await api.CallApiAsync(result.Data);
+                if (result1.IsError)
+                    console.EmitWarning(GetType(), app.Options, result1.Error.Message);
+                else
+                    console.WriteLine("Operation succeeded!");
             }
 
             return 0;

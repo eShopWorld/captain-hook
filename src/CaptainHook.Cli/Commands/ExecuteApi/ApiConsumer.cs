@@ -21,7 +21,7 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
         public ApiConsumer(ICaptainHookClient captainHookClient)
         {
             _captainHookClient = captainHookClient;
-            _putRequestRetryPolicy = RetryUntilStatus(HttpStatusCode.Created, HttpStatusCode.Accepted, HttpStatusCode.OK);
+            _putRequestRetryPolicy = RetryUntilStatus(HttpStatusCode.Created, HttpStatusCode.Accepted, HttpStatusCode.Unauthorized);
         }
         public async Task<OperationResult<IEnumerable<HttpOperationResponse>>> CallApiAsync(IEnumerable<PutSubscriberRequest> requests)
         {
@@ -36,7 +36,8 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
 
                 if (response.Response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    return new OperationResult<IEnumerable<HttpOperationResponse>>(error: new DirectorServiceIsBusyError());
+                    return new OperationResult<IEnumerable<HttpOperationResponse>>(error:
+                        new CliError(await response.Response.Content.ReadAsStringAsync()));
                 }
 
                 responses.Add(response);
