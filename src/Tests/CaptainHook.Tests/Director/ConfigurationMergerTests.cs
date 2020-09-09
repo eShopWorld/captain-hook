@@ -23,9 +23,9 @@ namespace CaptainHook.Tests.Director
         {
             var kvSubscribers = new[]
             {
-                new SubscriberConfigurationBuilder().WithType("testevent").WithCallback().Create(),
-                new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("subscriber1").Create(),
-                new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
+                new SubscriberConfigurationBuilder().WithName("testevent").WithCallback().Create(),
+                new SubscriberConfigurationBuilder().WithName("testevent").WithSubscriberName("subscriber1").Create(),
+                new SubscriberConfigurationBuilder().WithName("testevent.completed").Create(),
             };
 
             var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));

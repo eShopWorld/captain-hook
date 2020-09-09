@@ -18,7 +18,9 @@ namespace CaptainHook.Common.Configuration
 
         public OperationResult<IEnumerable<SubscriberConfiguration>> Load(string keyVaultUri)
         {
-            var configurationSections = _configurationLoader.Load(keyVaultUri);
+            var root = _configurationLoader.Load(keyVaultUri);
+            var configurationSections = root.GetSection("event").GetChildren().ToList();
+
             var subscribers = new List<SubscriberConfiguration>(configurationSections.Count());
 
             var failures = new List<KeyVaultConfigurationFailure>();
