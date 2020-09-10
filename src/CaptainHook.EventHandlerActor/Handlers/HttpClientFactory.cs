@@ -27,7 +27,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
         }
 
-        public HttpClient Get(Uri uri)
+        public HttpClient Get(Uri uri, TimeSpan timeout = default)
         {
             if (uri == null)
             {
@@ -40,6 +40,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             httpClient = new HttpClient();
+
+            if (timeout != default)
+            {
+                httpClient.Timeout = timeout;
+            }
 
             var result = _httpClients.TryAdd(uri.Host.ToLowerInvariant(), httpClient);
 

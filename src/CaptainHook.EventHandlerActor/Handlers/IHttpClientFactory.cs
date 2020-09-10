@@ -8,8 +8,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <summary>
         /// Gets a http client for a particular uri. If one is not found it creates one, stores and reuses later
         /// </summary>
-        /// <param name="endpoint"></param>
+        /// <param name="uri">Destination URI</param>
+        /// <param name="timeout">Client timeout</param>
         /// <returns></returns>
-        HttpClient Get(Uri uri);
+        HttpClient Get(Uri uri, TimeSpan timeout = default);
     }
 }

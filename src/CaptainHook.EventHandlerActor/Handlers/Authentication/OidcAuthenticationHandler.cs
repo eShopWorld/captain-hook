@@ -21,8 +21,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
         protected OidcAuthenticationToken OidcAuthenticationToken = new OidcAuthenticationToken();
         protected readonly OidcAuthenticationConfig OidcAuthenticationConfig;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
-        protected readonly IHttpSender HttpSender
-            ;
+        protected readonly IHttpSender HttpSender;
         protected readonly IBigBrother BigBrother;
 
         public OidcAuthenticationHandler(IHttpSender httpSender, AuthenticationConfig authenticationConfig, IBigBrother bigBrother)

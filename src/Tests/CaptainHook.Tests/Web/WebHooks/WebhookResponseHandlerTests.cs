@@ -253,11 +253,13 @@ namespace CaptainHook.Tests.Web.WebHooks
         {
             var messageData = CreateMessageDataPayload();
             messageData.SubscriberConfig = EventHandlerConfigWithGoodMultiRoute;
+            var expectedMultiWebhookUri =
+                "https://blah.blah.multiroute.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E";
 
             var mockHttpSender = new Mock<IHttpSender>();
 
             mockHttpSender
-                .Setup(x => x.SendAsync(HttpMethod.Post, new Uri(ExpectedWebHookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.SendAsync(HttpMethod.Post, new Uri(expectedMultiWebhookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(ResponseContentMsgHelloWorld, System.Text.Encoding.UTF8, "application/json")
@@ -278,9 +280,8 @@ namespace CaptainHook.Tests.Web.WebHooks
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.AtMostOnce);
-            mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(ExpectedWebHookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
-            mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post,
-                new Uri(ExpectedCallbackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
+            mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(expectedMultiWebhookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
+            mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(ExpectedCallbackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         /// <summary>

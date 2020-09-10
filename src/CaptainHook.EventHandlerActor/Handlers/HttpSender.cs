@@ -1,4 +1,4 @@
-﻿using CaptainHook.Common;
+using CaptainHook.Common;
 using IdentityModel.Client;
 using Microsoft.Azure.Management.Graph.RBAC.Fluent.Models;
 using Polly;
@@ -38,12 +38,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
         public async Task<HttpResponseMessage> SendAsync(HttpMethod httpMethod, Uri uri, WebHookHeaders headers, string payload, TimeSpan timeout = default, CancellationToken cancellationToken = default)
         {
-            var httpClient = _httpClientFactory.Get(uri);
-
-            if(timeout != default)
-            {
-                httpClient.Timeout = timeout;
-            }
+            var httpClient = _httpClientFactory.Get(uri, timeout);
 
             return await RetryRequest(() =>
             {
