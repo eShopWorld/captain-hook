@@ -27,8 +27,8 @@ namespace CaptainHook.Tests.Web.Authentication
             new List<object[]>
             {
                 new object[] { NewWebhookConfig("basic", "http://localhost/api/v1/basic", new BasicAuthenticationConfig()) , new BasicAuthenticationHandler(new BasicAuthenticationConfig()) },
-                new object[] { NewWebhookConfig("oidc", "http://localhost/api/v2/oidc", new OidcAuthenticationConfig()), new OidcAuthenticationHandler(new Mock<IHttpClientFactory>().Object, new OidcAuthenticationConfig(), new Mock<IBigBrother>().Object) },
-                new object[] { NewWebhookConfig("custom", "http://localhost/api/v3/custom", new OidcAuthenticationConfig { Type = AuthenticationType.Custom}), new MmAuthenticationHandler(new Mock<IHttpClientFactory>().Object, new OidcAuthenticationConfig(), new Mock<IBigBrother>().Object)  },
+                new object[] { NewWebhookConfig("oidc", "http://localhost/api/v2/oidc", new OidcAuthenticationConfig()), new OidcAuthenticationHandler(new Mock<IHttpSender>().Object, new OidcAuthenticationConfig(), new Mock<IBigBrother>().Object) },
+                new object[] { NewWebhookConfig("custom", "http://localhost/api/v3/custom", new OidcAuthenticationConfig { Type = AuthenticationType.Custom}), new MmAuthenticationHandler(new Mock<IHttpSender>().Object, new OidcAuthenticationConfig(), new Mock<IBigBrother>().Object)  },
 
             };
 
@@ -68,7 +68,7 @@ namespace CaptainHook.Tests.Web.Authentication
         [MemberData(nameof(AuthenticationTestData))]
         public async Task AuthenticationHandlerFactory_WhenInvoked_ReturnsCorrectType(WebhookConfig config, IAuthenticationHandler expectedHandler)
         {
-            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), _bigBrother);
+            var factory = new AuthenticationHandlerFactory(new HttpSender(new HttpClientFactory()), _bigBrother);
 
             var handler = await factory.GetAsync(config, CancellationToken.None);
 
@@ -83,7 +83,7 @@ namespace CaptainHook.Tests.Web.Authentication
         [MemberData(nameof(NoneAuthenticationTestData))]
         public async Task When_AuthConfigIsNull_ExpectNullAuthenticationHandler(WebhookConfig config)
         {
-            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), _bigBrother);
+            var factory = new AuthenticationHandlerFactory(new HttpSender(new HttpClientFactory()), _bigBrother);
 
             var handler = await factory.GetAsync(config, CancellationToken.None);
 
@@ -105,7 +105,7 @@ namespace CaptainHook.Tests.Web.Authentication
                 NewWebhookConfig("basic", "http://host2/api/v1/basic", "usergreen", "differenturl")
             };
 
-            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), _bigBrother);
+            var factory = new AuthenticationHandlerFactory(new HttpSender(new HttpClientFactory()), _bigBrother);
             var handlers = new List<IAuthenticationHandler>();
 
             // Act
@@ -126,7 +126,7 @@ namespace CaptainHook.Tests.Web.Authentication
         public async Task When_AuthParamsUnchanged_ExpectSameHandler(WebhookConfig[] webhookConfigs)
         {
             // Arrange
-            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), _bigBrother);
+            var factory = new AuthenticationHandlerFactory(new HttpSender(new HttpClientFactory()), _bigBrother);
             var handlers = new List<IAuthenticationHandler>();
             
             // Act
@@ -151,7 +151,7 @@ namespace CaptainHook.Tests.Web.Authentication
             var cancellationToken = new CancellationToken();
 
             var tokenWebhookConfigMap = GetOidcAuthChangeTestData(uri);
-            var factory = new AuthenticationHandlerFactory(new HttpClientFactory(), _bigBrother);
+            var factory = new AuthenticationHandlerFactory(new HttpSender(new HttpClientFactory()), _bigBrother);
 
             // Act
             var handlers = new List<IAuthenticationHandler>();

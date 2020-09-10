@@ -3,9 +3,9 @@
     public abstract class ErrorBase
     {
         public string Message { get; set; }
-        public Failure[] Failures { get; set; }
+        public IFailure[] Failures { get; set; }
 
-        protected ErrorBase(string message, params Failure[] failures)
+        protected ErrorBase(string message, params IFailure[] failures)
         {
             Message = message;
             Failures = failures;

@@ -21,14 +21,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class GenericWebhookHandler : IHandler
     {
         protected readonly IBigBrother BigBrother;
-        protected readonly IHttpClientFactory HttpClientFactory;
+        protected readonly IHttpSender HttpSender;
         protected readonly IRequestBuilder RequestBuilder;
         protected readonly WebhookConfig WebhookConfig;
         private readonly IRequestLogger _requestLogger;
         private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
 
         public GenericWebhookHandler(
-            IHttpClientFactory httpClientFactory,
+            IHttpSender httpSender,
             IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestBuilder requestBuilder,
             IRequestLogger requestLogger,
@@ -40,7 +40,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             _requestLogger = requestLogger;
             WebhookConfig = webhookConfig;
             _authenticationHandlerFactory = authenticationHandlerFactory;
-            HttpClientFactory = httpClientFactory;
+            HttpSender = httpSender;
         }
 
         /// <summary>
@@ -76,13 +76,11 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var headers = RequestBuilder.GetHttpHeaders(WebhookConfig, messageData);
                 var authenticationConfig = RequestBuilder.GetAuthenticationConfig(WebhookConfig, messageData.Payload);
 
-                var httpClient = HttpClientFactory.Get(config);
-
                 await AddAuthenticationHeaderAsync(cancellationToken, authenticationConfig, headers);
 
-                var response = await httpClient.SendRequestReliablyAsync(httpMethod, uri, headers, payload, cancellationToken);
+                var response = await HttpSender.SendAsync(httpMethod, uri, headers, payload, config.Timeout, cancellationToken);
 
-                await _requestLogger.LogAsync(httpClient, response, messageData, payload, uri, httpMethod, headers, config);
+                await _requestLogger.LogAsync(response, messageData, payload, uri, httpMethod, headers, config);
 
                 return !response.IsDeliveryFailure();
             }

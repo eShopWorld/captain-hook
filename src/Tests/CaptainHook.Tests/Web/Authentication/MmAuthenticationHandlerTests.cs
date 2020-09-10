@@ -53,9 +53,9 @@ namespace CaptainHook.Tests.Web.Authentication
                 .Respond(HttpStatusCode.Created, "application/json-patch+json", expectedResponse);
 
             var httpClientFactory = new HttpClientFactory(new Dictionary<string, HttpClient> { { new Uri(config.Uri).Host, mockHttp.ToHttpClient() } });
+            var httpSender = new HttpSender(httpClientFactory);
 
-
-            var handler = new MmAuthenticationHandler(httpClientFactory, config, _bigBrother);
+            var handler = new MmAuthenticationHandler(httpSender, config, _bigBrother);
             var httpClient = mockHttp.ToHttpClient();
             var token = await handler.GetTokenAsync(_cancellationToken);
 
