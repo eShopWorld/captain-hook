@@ -16,7 +16,7 @@ namespace CaptainHook.Common.ServiceBus
     public class ServiceBusManager : IServiceBusManager
     {
         private const int RetryCeilingSeconds = 30;
-        
+
         private readonly IMessageProviderFactory _factory;
         private readonly AsyncLazy<IServiceBusNamespace> _serviceBusNamespace;
         private readonly AsyncRetryPolicy<ITopic> _findTopicPolicy;
@@ -33,18 +33,26 @@ namespace CaptainHook.Common.ServiceBus
                 .WaitAndRetryForeverAsync(ExponentialBackoff);
         }
 
-        public async Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, CancellationToken cancellationToken)
+        public async Task CreateSubscriptionAsync(string subscriptionName, string topicName, bool createTopicIfNotExists, CancellationToken cancellationToken)
         {
-            var topic = await CreateTopicIfNotExistsAsync(TypeExtensions.GetEntityName(topicName), cancellationToken);
-            await CreateSubscriptionIfNotExistsAsync(topic, subscriptionName, cancellationToken);
+            ITopic topic;
+            var serviceBusNamespace = await _serviceBusNamespace;
+            if (createTopicIfNotExists)
+                topic = await CreateTopicIfNotExistsAsync(TypeExtensions.GetEntityName(topicName), cancellationToken);
+            else
+                topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
 
+            await CreateSubscriptionIfNotExistsAsync(topic, subscriptionName, cancellationToken);
         }
 
         public async Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
         {
             var serviceBusNamespace = await _serviceBusNamespace;
             var topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
-            await topic.Subscriptions.DeleteByNameAsync(subscriptionName, cancellationToken);
+            if (topic != null)
+            {
+                await topic.Subscriptions.DeleteByNameAsync(subscriptionName + "3", cancellationToken);
+            }
         }
 
         public IMessageReceiver CreateMessageReceiver(string serviceBusConnectionString, string topicName, string subscriptionName, bool dlqMode)
@@ -69,6 +77,8 @@ namespace CaptainHook.Common.ServiceBus
         /// </summary>
         /// <param subscriptionName="topicName">The topicName of the topic entity that we are working with.</param>
         /// <param subscriptionName="cancellationToken"></param>
+        /// <param name="topicName"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns>The <see cref="ITopic"/> contract for use of future operation if required.</returns>
         private async Task<ITopic> CreateTopicIfNotExistsAsync(string topicName, CancellationToken cancellationToken = default)
         {
