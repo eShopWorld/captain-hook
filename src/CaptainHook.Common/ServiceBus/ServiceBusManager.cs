@@ -55,6 +55,40 @@ namespace CaptainHook.Common.ServiceBus
             }
         }
 
+        private async Task<ISubscription> CreateSubscriptionIfNotExistsAsync(ITopic topic, string subscriptionName,
+            CancellationToken cancellationToken)
+        {
+            var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
+            var subscription = subscriptionsList.SingleOrDefault(s => s.Name == subscriptionName.ToLowerInvariant());
+            if (subscription != null) return subscription;
+
+            await topic.Subscriptions
+                .Define(subscriptionName.ToLowerInvariant())
+                .WithMessageLockDurationInSeconds(60)
+                .WithExpiredMessageMovedToDeadLetterSubscription()
+                .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
+                .CreateAsync(cancellationToken);
+
+            await topic.RefreshAsync(cancellationToken);
+            subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
+            return subscriptionsList.Single(t => t.Name == subscriptionName.ToLowerInvariant());
+        }
+
+        private async Task<ITopic> CreateTopicIfNotExistsAsync(string topicName, CancellationToken cancellationToken = default)
+        {
+            var serviceBusNamespace = await _serviceBusNamespace;
+            var topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
+
+            if (topic != null) return topic;
+
+            await serviceBusNamespace.Topics
+                .Define(topicName.ToLowerInvariant())
+                .WithDuplicateMessageDetection(TimeSpan.FromMinutes(10))
+                .CreateAsync(cancellationToken);
+
+            return await _findTopicPolicy.ExecuteAsync(ct => FindTopicAsync(serviceBusNamespace, topicName, ct), cancellationToken);
+        }
+
         public IMessageReceiver CreateMessageReceiver(string serviceBusConnectionString, string topicName, string subscriptionName, bool dlqMode)
         {
             return _factory.Create(serviceBusConnectionString, TypeExtensions.GetEntityName(topicName), subscriptionName.ToLowerInvariant(), dlqMode);
@@ -80,38 +114,5 @@ namespace CaptainHook.Common.ServiceBus
         /// <param name="topicName"></param>
         /// <param name="cancellationToken"></param>
         /// <returns>The <see cref="ITopic"/> contract for use of future operation if required.</returns>
-        private async Task<ITopic> CreateTopicIfNotExistsAsync(string topicName, CancellationToken cancellationToken = default)
-        {
-            var serviceBusNamespace = await _serviceBusNamespace;
-            var topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
-
-            if (topic != null) return topic;
-
-            await serviceBusNamespace.Topics
-                .Define(topicName.ToLowerInvariant())
-                .WithDuplicateMessageDetection(TimeSpan.FromMinutes(10))
-                .CreateAsync(cancellationToken);
-
-            return await _findTopicPolicy.ExecuteAsync(ct => FindTopicAsync(serviceBusNamespace, topicName, ct), cancellationToken);
-        }
-
-        private async Task<ISubscription> CreateSubscriptionIfNotExistsAsync(ITopic topic, string subscriptionName,
-            CancellationToken cancellationToken)
-        {
-            var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
-            var subscription = subscriptionsList.SingleOrDefault(s => s.Name == subscriptionName.ToLowerInvariant());
-            if (subscription != null) return subscription;
-
-            await topic.Subscriptions
-                .Define(subscriptionName.ToLowerInvariant())
-                .WithMessageLockDurationInSeconds(60)
-                .WithExpiredMessageMovedToDeadLetterSubscription()
-                .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
-                .CreateAsync(cancellationToken);
-
-            await topic.RefreshAsync(cancellationToken);
-            subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
-            return subscriptionsList.Single(t => t.Name == subscriptionName.ToLowerInvariant());
-        }
     }
 }
