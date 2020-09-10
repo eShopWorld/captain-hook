@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ using ISubscription = Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription
 namespace CaptainHook.Common.ServiceBus
 {
     /// <inheritdoc/>
+    [ExcludeFromCodeCoverage]
     public class ServiceBusManager : IServiceBusManager
     {
         private const int RetryCeilingSeconds = 30;
