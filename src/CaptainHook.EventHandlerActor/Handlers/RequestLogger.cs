@@ -30,7 +30,6 @@ namespace CaptainHook.EventHandlerActor.Handlers
         }
 
         public async Task LogAsync(
-            HttpClient httpClient,
             HttpResponseMessage response,
             MessageData messageData,
             string actualPayload,
@@ -61,7 +60,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 
                 // request failed
                 _bigBrother.Publish(new FailedWebhookEvent(
-                    httpClient.DefaultRequestHeaders.ToString(),
+                    headers.RequestHeaders.ToString(),
                     response.Headers.ToString(),
                     canLogPayload ? messageData.Payload ?? string.Empty : string.Empty, // request body
                     await GetResponsePayloadAsync(response), // response body

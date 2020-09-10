@@ -52,15 +52,15 @@ namespace CaptainHook.Tests.Web.WebHooks
             Mock<IBigBrother> mockBigBrother,
             Mock<IAuthenticationHandlerFactory> mockAuthHandlerFactory)
         {
-            var httpClientBuilder = new HttpClientFactory(httpClients);
+            var httpSender = new HttpSender(new HttpClientFactory(httpClients));
             var requestBuilder = new DefaultRequestBuilder(mockBigBrother.Object);
             var requestLogger = new RequestLogger(mockBigBrother.Object, new FeatureFlagsConfiguration());
-            var handlerFactory = new EventHandlerFactory(mockBigBrother.Object, 
-                httpClientBuilder, mockAuthHandlerFactory.Object, requestLogger, requestBuilder);
+            var handlerFactory = new EventHandlerFactory(mockBigBrother.Object, httpSender,
+                mockAuthHandlerFactory.Object, requestLogger, requestBuilder);
 
             var webhookResponseHandler = new WebhookResponseHandler(
                 handlerFactory,
-                httpClientBuilder,
+                httpSender,
                 requestBuilder,
                 mockAuthHandlerFactory.Object,
                 requestLogger,

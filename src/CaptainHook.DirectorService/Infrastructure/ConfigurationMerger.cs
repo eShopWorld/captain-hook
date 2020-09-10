@@ -9,7 +9,6 @@ using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
-using Kusto.Cloud.Platform.Utils;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {

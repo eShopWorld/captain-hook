@@ -14,17 +14,17 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
     /// </summary>
     public class AuthenticationHandlerFactory : IAuthenticationHandlerFactory
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpSender _httpSender;
         private readonly ConcurrentDictionary<string, IAuthenticationHandler> _handlers;
         private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
         private readonly IBigBrother _bigBrother;
 
         public AuthenticationHandlerFactory(
-            IHttpClientFactory httpClientFactory,
+            IHttpSender httpSender,
             IBigBrother bigBrother)
         {
             _bigBrother = bigBrother;
-            _httpClientFactory = httpClientFactory;
+            _httpSender = httpSender;
 
             _handlers = new ConcurrentDictionary<string, IAuthenticationHandler>();
         }
@@ -56,7 +56,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 case AuthenticationType.OIDC:
                     await EnterSemaphore(() =>
                     {
-                        _handlers.TryAdd(key, new OidcAuthenticationHandler(_httpClientFactory, config.AuthenticationConfig, _bigBrother));
+                        _handlers.TryAdd(key, new OidcAuthenticationHandler(_httpSender, config.AuthenticationConfig, _bigBrother));
                     }, config, cancellationToken);
                     break;
 
@@ -66,7 +66,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                     //todo if this is custom it should be another webhook which calls out to another place, this place gets a token on CH's behalf and then adds this into subsequent webhook requests.
                     await EnterSemaphore(() =>
                     {
-                        _handlers.TryAdd(key, new MmAuthenticationHandler(_httpClientFactory, config.AuthenticationConfig, _bigBrother));
+                        _handlers.TryAdd(key, new MmAuthenticationHandler(_httpSender, config.AuthenticationConfig, _bigBrother));
                     }, config, cancellationToken);
                     break;
 
