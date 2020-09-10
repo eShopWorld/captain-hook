@@ -51,7 +51,7 @@ namespace CaptainHook.Common.ServiceBus
             var topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
             if (topic != null)
             {
-                await topic.Subscriptions.DeleteByNameAsync(subscriptionName + "3", cancellationToken);
+                await topic.Subscriptions.DeleteByNameAsync(subscriptionName, cancellationToken);
             }
         }
 
