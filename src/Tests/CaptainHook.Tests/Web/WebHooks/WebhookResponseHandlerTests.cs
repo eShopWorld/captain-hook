@@ -254,10 +254,6 @@ namespace CaptainHook.Tests.Web.WebHooks
             var messageData = CreateMessageDataPayload();
             messageData.SubscriberConfig = EventHandlerConfigWithGoodMultiRoute;
 
-            var expectedWebHookUri = "https://blah.blah.multiroute.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E";
-            var expectedContent = "{\"TransportModel\":{\"Name\":\"Hello World\"}}";
-            var expectedCallBackUri = "https://callback.eshopworld.com/BB39357A-90E1-4B6A-9C94-14BD1A62465E";
-
             var mockHttpSender = new Mock<IHttpSender>();
 
             mockHttpSender
@@ -268,13 +264,8 @@ namespace CaptainHook.Tests.Web.WebHooks
                 });
 
             mockHttpSender
-                .Setup(x => x.SendAsync(
-                    messageData.SubscriberConfig.Callback.HttpMethod,
-                    new Uri(expectedCallBackUri),
-                    It.IsAny<WebHookHeaders>(),
-                    It.IsAny<string>(),
-                    It.IsAny<TimeSpan>(),
-                    It.IsAny<CancellationToken>()))
+                .Setup(x => x.SendAsync(messageData.SubscriberConfig.Callback.HttpMethod, new Uri(expectedCallbackUri), It.IsAny<WebHookHeaders>(),
+                    It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.OK)
                 {
                     Content = new StringContent(ResponseContentMsgHelloWorld, System.Text.Encoding.UTF8, "application/json")
@@ -289,7 +280,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.AtMostOnce);
             mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(expectedWebHookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
             mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post,
-                new Uri(expectedCallBackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
+                new Uri(expectedCallbackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         /// <summary>
