@@ -27,50 +27,16 @@ namespace CaptainHook.Common.ServiceBus
         private readonly AsyncLazy<IServiceBusNamespace> _serviceBusNamespace;
         private readonly AsyncRetryPolicy<ITopic> _findTopicPolicy;
 
-        public ServiceBusManager(IMessageProviderFactory factory, ConfigurationSettings configurationSettings)
+        public ServiceBusManager(IMessageProviderFactory factory, AsyncLazy<IServiceBusNamespace> serviceBusNamespace)
         {
             _factory = factory;
-            _serviceBusNamespace = new AsyncLazy<IServiceBusNamespace>(async () =>
-                await GetServiceBusNamespaceAsync(configurationSettings.AzureSubscriptionId, configurationSettings.ServiceBusNamespace));
+            _serviceBusNamespace = serviceBusNamespace;
 
             static TimeSpan ExponentialBackoff(int x) => TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, RetryCeilingSeconds));
 
             _findTopicPolicy = Policy
                 .HandleResult<ITopic>(b => b == null)
                 .WaitAndRetryForeverAsync(ExponentialBackoff);
-        }
-
-        private async Task<IServiceBusNamespace> GetServiceBusNamespaceAsync(string azureSubscriptionId, string serviceBusNamespace,
-                CancellationToken cancellationToken = default)
-        {
-            var tokenProvider = new AzureServiceTokenProvider();
-            var token = await tokenProvider.GetAccessTokenAsync("https://management.core.windows.net/", string.Empty,
-                cancellationToken);
-
-            var tokenCredentials = new TokenCredentials(token);
-
-            var client = RestClient.Configure()
-                .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
-                .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty,
-                    AzureEnvironment.AzureGlobalCloud))
-                .Build();
-
-            var sbNamespacesList = await Microsoft.Azure.Management.Fluent
-                .Azure.Authenticate(client, string.Empty)
-                .WithSubscription(azureSubscriptionId)
-                .ServiceBusNamespaces
-                .ListAsync(cancellationToken: cancellationToken);
-
-            var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == serviceBusNamespace);
-
-            if (sbNamespace == null)
-            {
-                throw new InvalidOperationException(
-                    $"Couldn't find the service bus namespace {serviceBusNamespace} in the subscription with ID {azureSubscriptionId}");
-            }
-
-            return sbNamespace;
         }
 
         public async Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, CancellationToken cancellationToken)
