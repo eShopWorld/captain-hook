@@ -8,8 +8,6 @@ namespace CaptainHook.Domain.Entities
     {
         public EndpointsCollectionValidator()
         {
-            CascadeMode = CascadeMode.Continue;
-
             RuleFor(x => x)
                 .NotEmpty().WithMessage("Webhooks list must contain at list one endpoint")
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)

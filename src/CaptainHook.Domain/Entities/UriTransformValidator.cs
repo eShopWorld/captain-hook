@@ -14,8 +14,6 @@ namespace CaptainHook.Domain.Entities
         {
             _uris = endpoints.Select(x => x.Uri).ToArray();
 
-            CascadeMode = CascadeMode.Continue;
-
             RuleFor(x => x.Replace).NotEmpty()
                 .Must(ContainAllReplacementsForUris).WithMessage("URI Transform dictionary must contain all the placeholders defined in each URI");
         }

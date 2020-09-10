@@ -9,8 +9,6 @@ namespace CaptainHook.Domain.Entities
     {
         public WebhooksEntityValidator()
         {
-            CascadeMode = CascadeMode.Continue;
-
             RuleFor(x => x.Endpoints)
                 .SetValidator(new EndpointsCollectionValidator());
 
