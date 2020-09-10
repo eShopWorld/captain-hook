@@ -74,6 +74,14 @@ namespace CaptainHook.Common.ServiceBus
             return subscriptionsList.Single(t => t.Name == subscriptionName.ToLowerInvariant());
         }
 
+        /// <summary>
+        /// Setups a ServiceBus <see cref="ITopic"/> given a subscription Id, a namespace topicName and the topicName of the entity we want to work with on the topic.
+        /// </summary>
+        /// <param subscriptionName="topicName">The topicName of the topic entity that we are working with.</param>
+        /// <param subscriptionName="cancellationToken"></param>
+        /// <param name="topicName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>The <see cref="ITopic"/> contract for use of future operation if required.</returns>
         private async Task<ITopic> CreateTopicIfNotExistsAsync(string topicName, CancellationToken cancellationToken = default)
         {
             var serviceBusNamespace = await _serviceBusNamespace;
@@ -105,14 +113,5 @@ namespace CaptainHook.Common.ServiceBus
             var topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
             return topicsList.SingleOrDefault(t => t.Name == name.ToLowerInvariant());
         }
-
-        /// <summary>
-        /// Setups a ServiceBus <see cref="ITopic"/> given a subscription Id, a namespace topicName and the topicName of the entity we want to work with on the topic.
-        /// </summary>
-        /// <param subscriptionName="topicName">The topicName of the topic entity that we are working with.</param>
-        /// <param subscriptionName="cancellationToken"></param>
-        /// <param name="topicName"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns>The <see cref="ITopic"/> contract for use of future operation if required.</returns>
     }
 }
