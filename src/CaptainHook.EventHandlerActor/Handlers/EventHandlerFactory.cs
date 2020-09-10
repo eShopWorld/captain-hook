@@ -9,20 +9,20 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class EventHandlerFactory : IEventHandlerFactory
     {
         private readonly IBigBrother _bigBrother;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IHttpSender _httpSender;
         private readonly IAuthenticationHandlerFactory _authenticationHandlerFactory;
         private readonly IRequestLogger _requestLogger;
         private readonly IRequestBuilder _requestBuilder;
 
         public EventHandlerFactory(
             IBigBrother bigBrother,
-            IHttpClientFactory httpClientFactory,
+            IHttpSender httpSender,
             IAuthenticationHandlerFactory authenticationHandlerFactory,
             IRequestLogger requestLogger,
             IRequestBuilder requestBuilder)
         {
             _bigBrother = bigBrother;
-            _httpClientFactory = httpClientFactory;
+            _httpSender = httpSender;
             _requestLogger = requestLogger;
             _requestBuilder = requestBuilder;
             _authenticationHandlerFactory = authenticationHandlerFactory;
@@ -47,7 +47,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 return new WebhookResponseHandler(
                     this,
-                    _httpClientFactory,
+                    _httpSender,
                     _requestBuilder,
                     _authenticationHandlerFactory,
                     _requestLogger,
@@ -72,7 +72,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
 
             return new GenericWebhookHandler(
-                _httpClientFactory,
+                _httpSender,
                 _authenticationHandlerFactory,
                 _requestBuilder,
                 _requestLogger,
