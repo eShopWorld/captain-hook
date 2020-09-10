@@ -110,7 +110,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var webhookResponseHandler = BuildWebhookResponseHandler(messageData, _mockAuthHandlerFactory);
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            _mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
+            _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.Once);
             _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(ExpectedWebHookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
@@ -131,7 +131,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var webhookResponseHandler = BuildWebhookResponseHandler(messageData, _mockAuthHandlerFactory);
             var messageDelivery = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            _mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
+            _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.Once);
             _mockHttpSender.Verify(x => x.SendAsync(messageData.SubscriberConfig.HttpMethod, It.Is<Uri>(uri => uri.AbsoluteUri.StartsWith(messageData.SubscriberConfig.Uri)), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
             _mockHttpSender.Verify(x => x.SendAsync(messageData.SubscriberConfig.Callback.HttpMethod, It.Is<Uri>(uri => uri.AbsoluteUri.StartsWith(messageData.SubscriberConfig.Callback.Uri)), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
             Assert.True(messageDelivery);
@@ -151,12 +151,11 @@ namespace CaptainHook.Tests.Web.WebHooks
             SetupMockHttpSender(HttpMethod.Post, ExpectedWebHookUri, HttpStatusCode.OK, _responseStringContent).Verifiable();
             SetupMockHttpSender(HttpMethod.Put, ExpectedCallbackUri, HttpStatusCode.ServiceUnavailable, _responseStringContent).Verifiable();
 
-            var mockAuthHandlerFactory = _mockAuthHandlerFactory;
-            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, mockAuthHandlerFactory);
+            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, _mockAuthHandlerFactory);
 
             var messageDelivery = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
+            _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.Once);
 
             _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Put, new Uri(ExpectedCallbackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
             Assert.False(messageDelivery);
@@ -176,12 +175,11 @@ namespace CaptainHook.Tests.Web.WebHooks
             SetupMockHttpSender(HttpMethod.Post, ExpectedWebHookUri, HttpStatusCode.ServiceUnavailable);
             SetupMockHttpSender(HttpMethod.Put, ExpectedCallbackUri, HttpStatusCode.OK);
 
-            var mockAuthHandlerFactory = _mockAuthHandlerFactory;
-            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, mockAuthHandlerFactory);
+            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, _mockAuthHandlerFactory);
 
             var messageDelivery = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.Once);
+            _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.Once);
 
             _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(ExpectedWebHookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
             _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Put, new Uri(ExpectedCallbackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -205,12 +203,10 @@ namespace CaptainHook.Tests.Web.WebHooks
             SetupMockHttpSender(HttpMethod.Post, expectedMultiWebhookUri, HttpStatusCode.OK, _responseStringContent);
             SetupMockHttpSender(messageData.SubscriberConfig.Callback.HttpMethod, ExpectedCallbackUri, HttpStatusCode.OK, _responseStringContent);
 
-            var mockAuthHandlerFactory = _mockAuthHandlerFactory;
-            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, mockAuthHandlerFactory);
-
+            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, _mockAuthHandlerFactory);
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
-            mockAuthHandlerFactory.Verify(e => e.GetAsync(It.IsAny<WebhookConfig>(), _cancellationToken), Times.AtMostOnce);
+            _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.AtMostOnce);
             _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(expectedMultiWebhookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
             _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(ExpectedCallbackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
         }
@@ -226,14 +222,13 @@ namespace CaptainHook.Tests.Web.WebHooks
             var messageData = CreateMessageDataPayload();
             messageData.SubscriberConfig = EventHandlerConfigWithBadMultiRoute;
 
-            var mockAuthHandlerFactory = _mockAuthHandlerFactory;
 
             _mockBigBrother.Setup(b => b.Publish(It.Is<UnroutableMessageEvent>(e => e.Message == "route mapping/selector not found between config and the properties on the domain object"), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()));
 
             SetupMockHttpSender(HttpMethod.Post, messageData.SubscriberConfig.Uri, HttpStatusCode.OK);
             SetupMockHttpSender(HttpMethod.Post, messageData.SubscriberConfig.Callback.Uri, HttpStatusCode.OK);
 
-            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, mockAuthHandlerFactory);
+            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, _mockAuthHandlerFactory);
 
             var result = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
@@ -257,13 +252,6 @@ namespace CaptainHook.Tests.Web.WebHooks
                 .WithContentType("application/json; charset=utf-8", ExpectedContent)
                 .Respond(HttpStatusCode.OK, "application/json", ResponseContentMsgHelloWorld);
 
-            var httpClients = new Dictionary<string, HttpClient>
-            {
-                {new Uri(messageData.SubscriberConfig.Uri).Host, mockHttpHandler.ToHttpClient()},
-                {new Uri(messageData.SubscriberConfig.Callback.Uri).Host, mockHttpHandler.ToHttpClient()}
-            };
-
-            var mockAuthHandlerFactory = _mockAuthHandlerFactory;
 
             _mockBigBrother.Setup(b => b.Publish(It.Is<UnroutableMessageEvent>(e => e.Message == "routing path value in message payload is null or empty"),
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()));
@@ -271,7 +259,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             SetupMockHttpSender(HttpMethod.Post, messageData.SubscriberConfig.Uri, HttpStatusCode.OK);
             SetupMockHttpSender(HttpMethod.Post, messageData.SubscriberConfig.Callback.Uri, HttpStatusCode.OK);
 
-            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, mockAuthHandlerFactory);
+            var webhookResponseHandler = BuildWebhookResponseHandler(messageData, _mockAuthHandlerFactory);
 
             var result = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
