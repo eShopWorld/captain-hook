@@ -104,7 +104,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var messageData = CreateMessageDataPayload();
             messageData.SubscriberConfig = SubscriberConfigurationWithSingleRoute;
 
-            SetupMockHttpSender(HttpMethod.Put, ExpectedCallbackUri, HttpStatusCode.OK, _responseStringContent);
+            SetupMockHttpSender(HttpMethod.Post, ExpectedWebHookUri, HttpStatusCode.OK, _responseStringContent);
             SetupMockHttpSender(HttpMethod.Put, ExpectedCallbackUri, HttpStatusCode.OK);
 
             var webhookResponseHandler = BuildWebhookResponseHandler(messageData, _mockAuthHandlerFactory);
