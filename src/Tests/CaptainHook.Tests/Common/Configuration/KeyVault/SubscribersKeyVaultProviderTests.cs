@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Domain.Errors;
 using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -15,7 +16,7 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
         [Fact, IsUnit]
         public void Load_WhenEverythingIsOk_ReturnValidSubscriberConfiguration()
         {
-            var appSettings = @"{""event"":{
+            var configurationData = @"{""event"":{
                 ""1:type"": ""event1"",
                 ""1:name"": ""event1"",
                 ""1:webhookconfig:uri"": ""https://blah.blah.eshopworld.com"",
@@ -40,15 +41,7 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
                 ""1:callbackconfig:webhookrequestrules:1:routes:1:httpverb"": ""POST"",
             }}";
 
-            var builder = new ConfigurationBuilder();
-            builder.AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(appSettings)));
-            var configuration = builder.Build();
-
-            var loader = new Mock<IKeyVaultConfigurationLoader>();
-            loader.Setup(x => x.Load(It.IsAny<string>())).Returns(configuration);
-
-            var provider = new SubscribersKeyVaultProvider(loader.Object);
-
+            var provider = new SubscribersKeyVaultProvider(CreateLoaderMock(configurationData));
             var result = provider.Load("keyvault");
 
             var expectedResult = new SubscriberConfigurationBuilder()
@@ -74,6 +67,35 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
 
             result.IsError.Should().BeFalse();
             result.Data.Should().BeEquivalentTo(expectedResult);
+        }
+
+        [Fact, IsUnit]
+        public void Load_WhenOidcDetailsAreMissing_ReturnError()
+        {
+            var configurationData = @"{""event"":{
+                ""1:type"": ""event1"",
+                ""1:name"": ""event1"",
+                ""1:webhookconfig:uri"": ""https://blah.blah.eshopworld.com"",
+                ""1:webhookconfig:httpverb"": ""POST"",
+                ""1:webhookconfig:authenticationconfig:type"": ""OIDC""
+            }}";
+
+            var provider = new SubscribersKeyVaultProvider(CreateLoaderMock(configurationData));
+            var result = provider.Load("keyvault");
+
+            result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<KeyVaultConfigurationError>().Which.Failures.Should().HaveCount(1);
+        }
+
+        private static IKeyVaultConfigurationLoader CreateLoaderMock(string configurationData)
+        {
+            var builder = new ConfigurationBuilder();
+            builder.AddJsonStream(new MemoryStream(Encoding.UTF8.GetBytes(configurationData)));
+            var configuration = builder.Build();
+
+            var loader = new Mock<IKeyVaultConfigurationLoader>();
+            loader.Setup(x => x.Load(It.IsAny<string>())).Returns(configuration);
+            return loader.Object;
         }
     }
 }
