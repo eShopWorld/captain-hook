@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Text;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Errors;
@@ -194,7 +196,9 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
             var result = provider.Load("keyvault");
 
             result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<KeyVaultConfigurationError>().Which.Failures.Should().HaveCount(1);
+            result.Error.Should().BeOfType<KeyVaultConfigurationError>()
+                .Which.Failures.Single().As<KeyVaultConfigurationFailure>().Exception.Should().BeOfType<NullReferenceException>()
+                .Which.Message.Should().NotBeEmpty();
         }
 
         [Fact, IsUnit]
@@ -212,7 +216,9 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
             var result = provider.Load("keyvault");
 
             result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<KeyVaultConfigurationError>().Which.Failures.Should().HaveCount(1);
+            result.Error.Should().BeOfType<KeyVaultConfigurationError>()
+                .Which.Failures.Single().As<KeyVaultConfigurationFailure>().Exception.Should().BeOfType<NullReferenceException>()
+                .Which.Message.Should().NotBeEmpty();
         }
 
         private static IKeyVaultConfigurationLoader CreateLoaderMock(string configurationData)
