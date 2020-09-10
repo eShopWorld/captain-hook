@@ -59,7 +59,7 @@ namespace CaptainHook.Common.ServiceBus
             CancellationToken cancellationToken)
         {
             var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
-            var subscription = subscriptionsList.SingleOrDefault(s => s.Name == subscriptionName.ToLowerInvariant());
+            var subscription = subscriptionsList.SingleOrDefault(s => s.Name.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
             if (subscription != null) return subscription;
 
             await topic.Subscriptions
@@ -71,7 +71,7 @@ namespace CaptainHook.Common.ServiceBus
 
             await topic.RefreshAsync(cancellationToken);
             subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
-            return subscriptionsList.Single(t => t.Name == subscriptionName.ToLowerInvariant());
+            return subscriptionsList.Single(t => t.Name.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -104,14 +104,14 @@ namespace CaptainHook.Common.ServiceBus
 
         public string GetLockToken(Message message)
         {
-            return message.SystemProperties.LockToken;
+            return message?.SystemProperties?.LockToken;
         }
 
         private static async Task<ITopic> FindTopicAsync(IServiceBusNamespace sbNamespace, string name, CancellationToken cancellationToken = default)
         {
             await sbNamespace.RefreshAsync(cancellationToken);
             var topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
-            return topicsList.SingleOrDefault(t => t.Name == name.ToLowerInvariant());
+            return topicsList.SingleOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
