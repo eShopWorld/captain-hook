@@ -38,11 +38,11 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
                 .WithType("event1")
                 .WithName("webhook")
                 .WithOidcAuthentication()
-                .AsMainConfiguration()
                 .Create();
 
             result.IsError.Should().BeFalse();
-            result.Data.Should().BeEquivalentTo(expectedResult);
+             result.Data.Single().Should().BeEquivalentTo(expectedResult, options => 
+                options.Excluding(sc => sc.IsMainConfiguration).Excluding(sc => sc.WebHookConfigPath).Excluding(sc => sc.CallbackConfigPath));
         }
 
         [Fact, IsUnit]
@@ -97,11 +97,11 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
                         .WithSelector("testsel")
                         .WithHttpVerb("POST")
                         .WithOidcAuthentication()))
-                .AsMainConfiguration()
                 .Create();
 
             result.IsError.Should().BeFalse();
-            result.Data.Should().BeEquivalentTo(expectedResult);
+             result.Data.Single().Should().BeEquivalentTo(expectedResult, options => 
+                options.Excluding(sc => sc.IsMainConfiguration).Excluding(sc => sc.WebHookConfigPath).Excluding(sc => sc.CallbackConfigPath));
         }
 
         [Fact, IsUnit]
@@ -151,11 +151,11 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
                             .WithHttpVerb("POST")
                             .WithOidcAuthentication()
                 )))
-                .AsMainConfiguration()
                 .Create();
 
             result.IsError.Should().BeFalse();
-            result.Data.Should().BeEquivalentTo(expectedResult);
+            result.Data.Single().Should().BeEquivalentTo(expectedResult, options => 
+                options.Excluding(sc => sc.IsMainConfiguration).Excluding(sc => sc.WebHookConfigPath).Excluding(sc => sc.CallbackConfigPath));
         }
 
         [Fact, IsUnit]

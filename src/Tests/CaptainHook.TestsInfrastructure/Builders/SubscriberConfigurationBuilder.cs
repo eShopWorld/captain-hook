@@ -54,12 +54,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        public SubscriberConfigurationBuilder AsMainConfiguration()
-        {
-            _isMainConfiguration = true;
-            return this;
-        }
-
         public SubscriberConfigurationBuilder WithoutAuthentication()
         {
             _authenticationConfig = new AuthenticationConfig { Type = AuthenticationType.None, };
@@ -143,7 +137,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
                 AuthenticationConfig = _authenticationConfig,
                 Callback = _callback,
                 WebhookRequestRules = _webhookRequestRules,
-                IsMainConfiguration = _isMainConfiguration,
                 DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode : (SubscriberDlqMode?)null
             };
 

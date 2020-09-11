@@ -154,7 +154,7 @@ namespace CaptainHook.Common.Configuration
         /// <remarks>
         /// It's for backward compatiblity only.
         /// </remarks>
-        public bool IsMainConfiguration { get; set; }
+        public bool IsMainConfiguration { get; private set; }
 
         /// <summary>
         /// Provide this value as TimeSpan format to send HeartBeat telemetry event from Event Reader
