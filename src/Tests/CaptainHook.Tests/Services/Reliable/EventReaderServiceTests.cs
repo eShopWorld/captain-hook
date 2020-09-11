@@ -80,7 +80,7 @@ namespace CaptainHook.Tests.Services.Reliable
 
             var mockServiceBusManager = new Mock<IServiceBusManager>();
             mockServiceBusManager
-                .Setup(s => s.CreateTopicAndSubscriptionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()));
+                .Setup(s => s.CreateTopicAndSubscriptionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
             mockServiceBusManager
                 .Setup(s => s.CreateMessageReceiver(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns(_mockMessageProvider.Object);
