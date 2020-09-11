@@ -1,4 +1,4 @@
-﻿using CaptainHook.Common;
+using CaptainHook.Common;
 using IdentityModel.Client;
 using Microsoft.Azure.Management.Graph.RBAC.Fluent.Models;
 using Polly;
