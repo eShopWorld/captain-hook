@@ -18,7 +18,7 @@ namespace CaptainHook.Common.ServiceBus
         /// <param name="cancellationToken"></param>
         /// <param name="createTopicIfNotExists"></param>
         /// <returns></returns>
-        Task CreateSubscriptionAsync(string subscriptionName, string topicName, bool createTopicIfNotExists, CancellationToken cancellationToken);
+        Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates a message receiver to the service bus namespace

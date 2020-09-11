@@ -35,15 +35,9 @@ namespace CaptainHook.Common.ServiceBus
                 .WaitAndRetryForeverAsync(ExponentialBackoff);
         }
 
-        public async Task CreateSubscriptionAsync(string subscriptionName, string topicName, bool createTopicIfNotExists, CancellationToken cancellationToken)
+        public async Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, CancellationToken cancellationToken)
         {
-            ITopic topic;
-            var serviceBusNamespace = await _serviceBusNamespace;
-            if (createTopicIfNotExists)
-                topic = await CreateTopicIfNotExistsAsync(TypeExtensions.GetEntityName(topicName), cancellationToken);
-            else
-                topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
-
+            var topic = await CreateTopicIfNotExistsAsync(TypeExtensions.GetEntityName(topicName), cancellationToken);
             await CreateSubscriptionIfNotExistsAsync(topic, subscriptionName, cancellationToken);
         }
 
@@ -61,7 +55,7 @@ namespace CaptainHook.Common.ServiceBus
             CancellationToken cancellationToken)
         {
             var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
-            var subscription = subscriptionsList.SingleOrDefault(s => s.Name.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            var subscription = subscriptionsList.SingleOrDefault(s => string.Equals(s.Name, subscriptionName, StringComparison.OrdinalIgnoreCase));
             if (subscription != null) return subscription;
 
             await topic.Subscriptions
@@ -73,7 +67,7 @@ namespace CaptainHook.Common.ServiceBus
 
             await topic.RefreshAsync(cancellationToken);
             subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
-            return subscriptionsList.Single(t => t.Name.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            return subscriptionsList.Single(t => string.Equals(t.Name, subscriptionName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -113,7 +107,7 @@ namespace CaptainHook.Common.ServiceBus
         {
             await sbNamespace.RefreshAsync(cancellationToken);
             var topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
-            return topicsList.SingleOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            return topicsList.SingleOrDefault(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
