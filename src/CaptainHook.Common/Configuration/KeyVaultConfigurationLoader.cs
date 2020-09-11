@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Configuration;
@@ -20,15 +18,13 @@ namespace CaptainHook.Common.Configuration
         /// Loads events configuration from KeyVault
         /// </summary>
         /// <returns>Only events configuration</returns>
-        public IEnumerable<IConfigurationSection> Load(string keyVaultUri)
+        public IConfigurationRoot Load(string keyVaultUri)
         {
             var root = new ConfigurationBuilder()
                 .AddAzureKeyVault(_secretClient, new KeyVaultSecretManager())
                 .Build();
 
-            var configurationSections = root.GetSection("event").GetChildren().ToList();
-
-            return configurationSections;
+            return root;
         }
     }
 }

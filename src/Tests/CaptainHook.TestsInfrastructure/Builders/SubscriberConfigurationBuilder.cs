@@ -9,6 +9,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
     public class SubscriberConfigurationBuilder
     {
         private string _type = "event1";
+        private string _name = "event1";
         private string _subscriberName = "captain-hook";
         private string _uri = "https://blah.blah.eshopworld.com";
         private HttpMethod _httpMethod = HttpMethod.Post;
@@ -18,13 +19,20 @@ namespace CaptainHook.TestsInfrastructure.Builders
             Username = "user",
             Password = "password",
         };
-        private List<WebhookRequestRule> _webhookRequestRules;
+        private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
         private WebhookConfig _callback;
         private bool _asDlq;
+        private bool _isMainConfiguration;
 
         public SubscriberConfigurationBuilder WithType(string type)
         {
             _type = type;
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithName(string name)
+        {
+            _name = name;
             return this;
         }
 
@@ -40,9 +48,15 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        public SubscriberConfigurationBuilder AsDLQ (bool asDlq = true)
+        public SubscriberConfigurationBuilder AsDLQ(bool asDlq = true)
         {
             _asDlq = asDlq;
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithoutAuthentication()
+        {
+            _authenticationConfig = new AuthenticationConfig { Type = AuthenticationType.None, };
             return this;
         }
 
@@ -115,7 +129,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         {
             var subscriber = new SubscriberConfiguration
             {
-                Name = _type,
+                Name = _name,
                 EventType = _type,
                 SubscriberName = _subscriberName,
                 HttpMethod = _httpMethod,
@@ -123,11 +137,10 @@ namespace CaptainHook.TestsInfrastructure.Builders
                 AuthenticationConfig = _authenticationConfig,
                 Callback = _callback,
                 WebhookRequestRules = _webhookRequestRules,
-                DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode: (SubscriberDlqMode?) null
+                DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode : (SubscriberDlqMode?)null
             };
 
             return subscriber;
         }
-
     }
 }
