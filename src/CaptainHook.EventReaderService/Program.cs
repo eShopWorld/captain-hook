@@ -6,6 +6,7 @@ using Autofac;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.ServiceBus;
 using CaptainHook.Common.Telemetry;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +29,7 @@ namespace CaptainHook.EventReaderService
                 var builder = new ContainerBuilder();
                 builder.RegisterInstance(configurationSettings).SingleInstance();
                 builder.RegisterType<MessageProviderFactory>().As<IMessageProviderFactory>().SingleInstance();
+                builder.ConfigureServiceBusManager(configurationSettings);
                 builder.RegisterType<ServiceBusManager>().As<IServiceBusManager>();
 
                 //SF Deps

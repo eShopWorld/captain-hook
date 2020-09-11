@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.ServiceBus;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
 using CaptainHook.Tests.Services;
@@ -28,13 +29,16 @@ namespace CaptainHook.Tests.Director
 
         private readonly DirectorService.DirectorService _directorService;
 
+        private readonly Mock<IServiceBusManager> _serviceBusManagerMock = new Mock<IServiceBusManager>();
+
         public DirectorServiceTests()
         {
             var context = CustomMockStatefulServiceContextFactory.Create(ServiceNaming.DirectorServiceType, ServiceNaming.DirectorServiceFullName, null);
 
             _directorService = new DirectorService.DirectorService(context, new Mock<IBigBrother>().Object,
                 _readerServicesManagerMock.Object, new Mock<IReaderServiceChangesDetector>().Object,
-                _fabricClientMock.Object, new Mock<ISubscriberConfigurationLoader>().Object);
+                _fabricClientMock.Object, new Mock<ISubscriberConfigurationLoader>().Object,
+                _serviceBusManagerMock.Object);
         }
 
         [Fact, IsUnit]
@@ -178,7 +182,7 @@ namespace CaptainHook.Tests.Director
                 .Setup(x => x.RefreshReadersAsync(It.IsAny<IEnumerable<ReaderChangeInfo>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new Dictionary<string, RefreshReaderResult>
                 {
-                    [SubscriberConfiguration.Key(_defaultSubscriberConfig.EventType, _defaultSubscriberConfig.SubscriberName)] = RefreshReaderResult.Success
+                    [SubscriberConfiguration.Key(_defaultSubscriberConfig.EventType, _defaultSubscriberConfig.SubscriberName)] = RefreshReaderResult.None
                 });
 
             var deleteRequest = new DeleteReader { Subscriber = _defaultSubscriberConfig };
@@ -220,6 +224,31 @@ namespace CaptainHook.Tests.Director
             var result = await _directorService.ApplyReaderChange(deleteRequest);
 
             result.Should().Be(ReaderChangeResult.DeleteFailed);
+        }
+
+        [Fact, IsUnit]
+        public async Task DeleteReader_When_ReaderExists_Then_DeleteSubscriptionIsCalled()
+        {
+            _fabricClientMock.Setup(x => x.GetServiceUriListAsync())
+                .ReturnsAsync(new List<string> { ServiceNaming.EventReaderServiceFullUri("testevent", "reader") });
+            _readerServicesManagerMock
+                .Setup(x => x.RefreshReadersAsync(It.IsAny<IEnumerable<ReaderChangeInfo>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Dictionary<string, RefreshReaderResult>
+                {
+                    [SubscriberConfiguration.Key(_defaultSubscriberConfig.EventType, _defaultSubscriberConfig.SubscriberName)] = RefreshReaderResult.None
+                });
+
+            _serviceBusManagerMock
+                .Setup(x => x.DeleteSubscriptionAsync(It.IsAny<string>(), It.IsAny<string>(),
+                    It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var deleteRequest = new DeleteReader { Subscriber = _defaultSubscriberConfig };
+            var result = await _directorService.ApplyReaderChange(deleteRequest);
+
+            result.Should().Be(ReaderChangeResult.Success);
+            _serviceBusManagerMock.Verify(x =>
+                x.DeleteSubscriptionAsync("testevent", "reader", CancellationToken.None));
         }
     }
 }

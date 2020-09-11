@@ -160,6 +160,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(typeof(EntityNotFoundError), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteSubscriber([FromRoute] string eventName, [FromRoute] string subscriberName)
         {
