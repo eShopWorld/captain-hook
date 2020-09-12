@@ -25,6 +25,37 @@ namespace CaptainHook.Storage.Cosmos.Tests
 
         private readonly SubscriberRepository _repository;
 
+        private static readonly OidcAuthenticationSubdocument OidcAuthenticationSubdocument = new OidcAuthenticationSubdocument
+        {
+            Scopes = new string[] { "scope1", "scope2" },
+            SecretName = "secret-key-name",
+            ClientId = "client_id",
+            Uri = "http://www.sts.uri.com/token"
+        };
+
+        private static readonly BasicAuthenticationSubdocument BasicAuthenticationSubdocument = new BasicAuthenticationSubdocument
+        {
+            Username = "username",
+            PasswordKeyName = "password-key-name"
+        };
+
+        private static readonly OidcAuthenticationEntity OidcAuthenticationEntity =
+            new OidcAuthenticationEntity("client_id", "secret-key-name", "http://www.sts.uri.com/token", new string[] { "scope1", "scope2" });
+
+        private static readonly BasicAuthenticationEntity BasicAuthenticationEntity =
+            new BasicAuthenticationEntity("username", "password-key-name");
+
+        public static IEnumerable<object[]> Data =>
+            new List<object[]>
+            {
+                new object[] { "POST", OidcAuthenticationEntity, OidcAuthenticationSubdocument },
+                new object[] { "POST", BasicAuthenticationEntity, BasicAuthenticationSubdocument },
+                new object[] { "PUT", OidcAuthenticationEntity, OidcAuthenticationSubdocument },
+                new object[] { "PUT", BasicAuthenticationEntity, BasicAuthenticationSubdocument },
+                new object[] { "GET", OidcAuthenticationEntity, OidcAuthenticationSubdocument },
+                new object[] { "GET", BasicAuthenticationEntity, BasicAuthenticationSubdocument }
+            };
+
         public SubscriberRepositoryTests()
         {
             _cosmosDbRepositoryMock = new Mock<ICosmosDbRepository>();
@@ -130,26 +161,14 @@ namespace CaptainHook.Storage.Cosmos.Tests
                                 HttpVerb = "POST",
                                 Uri = "http://test",
                                 Selector = "selector",
-                                Authentication = new OidcAuthenticationSubdocument
-                                {
-                                    ClientId = "clientid",
-                                    Scopes = new[] { "scope" },
-                                    SecretName = "secret",
-                                    Uri = "uri"
-                                }
+                                Authentication = OidcAuthenticationSubdocument
                             },
                             new EndpointSubdocument
                             {
                                 HttpVerb = "GET",
                                 Uri = "http://test2",
                                 Selector = "selector2",
-                                Authentication = new OidcAuthenticationSubdocument
-                                {
-                                    ClientId = "clientid",
-                                    Scopes = new[] { "scope" },
-                                    SecretName = "secret",
-                                    Uri = "uri"
-                                }
+                                Authentication = OidcAuthenticationSubdocument
                             }
                         }
                     }
@@ -171,19 +190,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
                     {
                         new EndpointEntity(
                             "http://test",
-                            new OidcAuthenticationEntity(
-                                "clientid",
-                                "secret",
-                                "uri",
-                                new[] { "scope" }),
+                            OidcAuthenticationEntity,
                             "POST",
                             "selector"),
                         new EndpointEntity("http://test2",
-                            new OidcAuthenticationEntity(
-                                "clientid",
-                                "secret",
-                                "uri",
-                                new[] { "scope" }),
+                            OidcAuthenticationEntity,
                             "GET",
                             "selector2")
                     }))
@@ -442,8 +453,9 @@ namespace CaptainHook.Storage.Cosmos.Tests
             result.Error.Should().BeOfType<CannotSaveEntityError>();
         }
 
-        [Fact, IsUnit]
-        public async Task UpdateSubscriberAsync_WithValidSubscriberAndCallbacks_CallsRepoWithCorrectDocument()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task AddSubscriberAsync_WithFullSubscriber_CallsRepoWithCorrectDocument(string verb, AuthenticationEntity authenticationEntity, object authenticationSubdocument)
         {
             // Arrange            
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"), "version1");
@@ -456,19 +468,61 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 Webhooks = new WebhookSubdocument
                 {
                     SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
+                    Endpoints = new EndpointSubdocument[]
+                    {
+                        new EndpointSubdocument
+                        {
+                            Selector = "selector1",
+                            HttpVerb = verb,
+                            Authentication = (AuthenticationSubdocument)authenticationSubdocument,
+                            Uri = "htttp://www.uri1.com"
+                        },
+                        new EndpointSubdocument
+                        {
+                            Selector = "selector2",
+                            HttpVerb = verb,
+                            Authentication = (AuthenticationSubdocument)authenticationSubdocument,
+                            Uri = "htttp://www.uri2.com"
+                        }
+                    }
                 },
                 Callbacks = new WebhookSubdocument
                 {
                     SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
+                    Endpoints = new EndpointSubdocument[]
+                    {
+                        new EndpointSubdocument
+                        {
+                            Selector = "selector1",
+                            HttpVerb = verb,
+                            Authentication = (AuthenticationSubdocument)authenticationSubdocument,
+                            Uri = "htttp://www.uri1.com"
+                        },
+                        new EndpointSubdocument
+                        {
+                            Selector = "selector2",
+                            HttpVerb = verb,
+                            Authentication = (AuthenticationSubdocument)authenticationSubdocument,
+                            Uri = "htttp://www.uri2.com"
+                        }
+                    }
                 }
             };
 
-            subscriber.AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()));
+            subscriber.AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()
+            {
+                new EndpointEntity("htttp://www.uri1.com", authenticationEntity, verb, "selector1"),
+                new EndpointEntity("htttp://www.uri2.com", authenticationEntity, verb, "selector2")
+            }));
+
+            subscriber.AddCallbacks(new WebhooksEntity("rule", new List<EndpointEntity>()
+            {
+                new EndpointEntity("htttp://www.uri1.com", authenticationEntity, verb, "selector1"),
+                new EndpointEntity("htttp://www.uri2.com", authenticationEntity, verb, "selector2")
+            }));
 
             // Act
-            await _repository.UpdateSubscriberAsync(subscriber);
+            await _repository.AddSubscriberAsync(subscriber);
 
             // Assert
             Func<object, bool> validate = value =>
@@ -477,14 +531,11 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 return true;
             };
 
-            _cosmosDbRepositoryMock.Verify(x => x.ReplaceAsync(
-                subscriberId,
-                It.Is<object>(arg => validate(arg)),
-                "version1"), Times.Once);
+            _cosmosDbRepositoryMock.Verify(x => x.CreateAsync(It.Is<object>(arg => validate(arg))), Times.Once);
         }
 
         [Fact, IsUnit]
-        public async Task UpdateSubscriberAsync_WithValidSubscriberAndNoCallbacks_CallsRepoWithCorrectDocument()
+        public async Task UpdateSubscriberAsync_WithValidSubscriber_CallsRepoWithCorrectDocument()
         {
             // Arrange            
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"), "version1");
