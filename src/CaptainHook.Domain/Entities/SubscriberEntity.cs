@@ -32,6 +32,11 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         public WebhooksEntity Webhooks { get; private set; }
 
+        /// <summary>
+        /// Collection of callback enpoints
+        /// </summary>
+        public WebhooksEntity Callbacks { get; private set; }
+
         public SubscriberEntity(string name, EventEntity parentEvent = null, string etag = null)
         {
             Name = name;
@@ -59,6 +64,21 @@ namespace CaptainHook.Domain.Entities
         public OperationResult<SubscriberEntity> RemoveWebhookEndpoint(EndpointEntity entity)
             => OperationOnWebhooks(webhooks => webhooks.RemoveEndpoint(entity));
 
+        /// <summary>
+        /// Adds an endpoint to the list of callback endpoints if it is not on the list already.
+        /// Removes the existing endpoint and adds the new one to the list if the item is already present.
+        /// </summary>
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> SetCallbackEndpoint(EndpointEntity entity)
+            => OperationOnCallbacks(callbacks => callbacks.SetEndpoint(entity.SetParentSubscriber(this)));
+
+        /// <summary>
+        /// Removes the existing endpoint from the list if the item is present.
+        /// </summary>
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> RemoveCallbackEndpoint(EndpointEntity entity)
+            => OperationOnCallbacks(callbacks => callbacks.RemoveEndpoint(entity));
+
         private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<WebhooksEntity, OperationResult<WebhooksEntity>> funcToRun)
         {
             if (Webhooks == null)
@@ -66,15 +86,37 @@ namespace CaptainHook.Domain.Entities
                 Webhooks = new WebhooksEntity();
             }
 
-            var webhooksResult = funcToRun(Webhooks);
+            var result = funcToRun(Webhooks);
 
-            if (webhooksResult.IsError)
+            if (result.IsError)
             {
-                return webhooksResult.Error switch
+                return result.Error switch
                 {
                     EndpointNotFoundInSubscriberError notFound => new EndpointNotFoundInSubscriberError(notFound.Selector, this),
                     CannotRemoveLastEndpointFromSubscriberError _ => new CannotRemoveLastEndpointFromSubscriberError(this),
-                    _ => webhooksResult.Error
+                    _ => result.Error
+                };
+            }
+
+            return this;
+        }
+
+        private OperationResult<SubscriberEntity> OperationOnCallbacks(Func<WebhooksEntity, OperationResult<WebhooksEntity>> funcToRun)
+        {
+            if (Callbacks == null)
+            {
+                Callbacks = new WebhooksEntity();
+            }
+
+            var result = funcToRun(Callbacks);
+
+            if (result.IsError)
+            {
+                return result.Error switch
+                {
+                    EndpointNotFoundInSubscriberError notFound => new EndpointNotFoundInSubscriberError(notFound.Selector, this),
+                    CannotRemoveLastEndpointFromSubscriberError _ => new CannotRemoveLastEndpointFromSubscriberError(this),
+                    _ => result.Error
                 };
             }
 
@@ -89,6 +131,18 @@ namespace CaptainHook.Domain.Entities
             }
 
             Webhooks = new WebhooksEntity(webhooks.SelectionRule, webhooks.Endpoints, webhooks.UriTransform);
+
+            return this;
+        }
+
+        public SubscriberEntity AddCallbacks(WebhooksEntity callbacks)
+        {
+            foreach (var callbacksEndpoint in callbacks.Endpoints)
+            {
+                callbacksEndpoint.SetParentSubscriber(this);
+            }
+
+            Callbacks = new WebhooksEntity(callbacks.SelectionRule, callbacks.Endpoints, callbacks.UriTransform);
 
             return this;
         }
