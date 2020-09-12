@@ -443,7 +443,48 @@ namespace CaptainHook.Storage.Cosmos.Tests
         }
 
         [Fact, IsUnit]
-        public async Task UpdateSubscriberAsync_WithValidSubscriber_CallsRepoWithCorrectDocument()
+        public async Task UpdateSubscriberAsync_WithValidSubscriberAndCallbacks_CallsRepoWithCorrectDocument()
+        {
+            // Arrange            
+            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"), "version1");
+            var subscriberId = subscriber.Id.ToString();
+            var subscriberDocument = new SubscriberDocument
+            {
+                Id = subscriberId,
+                SubscriberName = "subscriberName",
+                EventName = "eventName",
+                Webhooks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new EndpointSubdocument[] { }
+                },
+                Callbacks = new WebhookSubdocument
+                {
+                    SelectionRule = "rule",
+                    Endpoints = new EndpointSubdocument[] { }
+                }
+            };
+
+            subscriber.AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()));
+
+            // Act
+            await _repository.UpdateSubscriberAsync(subscriber);
+
+            // Assert
+            Func<object, bool> validate = value =>
+            {
+                value.Should().BeEquivalentTo(subscriberDocument);
+                return true;
+            };
+
+            _cosmosDbRepositoryMock.Verify(x => x.ReplaceAsync(
+                subscriberId,
+                It.Is<object>(arg => validate(arg)),
+                "version1"), Times.Once);
+        }
+
+        [Fact, IsUnit]
+        public async Task UpdateSubscriberAsync_WithValidSubscriberAndNoCallbacks_CallsRepoWithCorrectDocument()
         {
             // Arrange            
             var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"), "version1");

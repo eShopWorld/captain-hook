@@ -220,12 +220,20 @@ namespace CaptainHook.Storage.Cosmos
 
         private SubscriberDocument Map(SubscriberEntity subscriberEntity)
         {
+            var webhooks = Map(subscriberEntity.Webhooks);
+            WebhookSubdocument callbacks = null;
+            if(null != subscriberEntity.Callbacks)
+            {
+                callbacks = Map(subscriberEntity.Callbacks);
+            }
+
             return new SubscriberDocument
             {
                 Id = subscriberEntity.Id,
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
-                Webhooks = Map(subscriberEntity.Webhooks)
+                Webhooks = webhooks,
+                Callbacks = callbacks
             };
         }
 
@@ -268,6 +276,11 @@ namespace CaptainHook.Storage.Cosmos
                 subscriberDocument.Etag);
 
             subscriberEntity.AddWebhooks(Map(subscriberDocument.Webhooks, subscriberEntity));
+
+            if (null != subscriberDocument.Callbacks)
+            {
+                subscriberEntity.AddCallbacks(Map(subscriberDocument.Callbacks, subscriberEntity));
+            }
 
             return subscriberEntity;
         }
