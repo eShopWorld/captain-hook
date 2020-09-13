@@ -93,9 +93,17 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private SubscriberEntity MapRequestToEntity(UpsertSubscriberRequest request)
         {
             var webhooks = _dtoToEntityMapper.MapWebooks(request.Subscriber.Webhooks);
-            
-            return new SubscriberEntity(request.SubscriberName, new EventEntity(request.EventName))
+
+            var subscriberEntity = new SubscriberEntity(request.SubscriberName, new EventEntity(request.EventName))
                 .AddWebhooks(webhooks);
+
+            if(null != request.Subscriber.Callbacks)
+            {
+                var callbacks = _dtoToEntityMapper.MapWebooks(request.Subscriber.Callbacks);
+                subscriberEntity.AddCallbacks(callbacks);
+            }
+
+            return subscriberEntity;
         }
     }
 }
