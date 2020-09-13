@@ -55,14 +55,28 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> SetWebhookEndpoint(EndpointEntity entity)
-            => OperationOnWebhooks(() => Webhooks.SetEndpoint(entity.SetParentSubscriber(this)));
+            => OperationOnWebhooks(() =>
+            {
+                if(Webhooks == null)
+                {
+                    Webhooks = new WebhooksEntity();
+                }
+                return Webhooks.SetEndpoint(entity.SetParentSubscriber(this));
+            });
 
         /// <summary>
         /// Removes the existing endpoint from the list if the item is present.
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveWebhookEndpoint(EndpointEntity entity)
-            => OperationOnWebhooks(() => Webhooks.RemoveEndpoint(entity));
+            => OperationOnWebhooks(() =>
+            {
+                if (Webhooks == null)
+                {
+                    Webhooks = new WebhooksEntity();
+                }
+                return Webhooks.RemoveEndpoint(entity);
+            });
 
         /// <summary>
         /// Adds an endpoint to the list of callback endpoints if it is not on the list already.
@@ -70,14 +84,28 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> SetCallbackEndpoint(EndpointEntity entity)
-            => OperationOnWebhooks(() => Callbacks.SetEndpoint(entity.SetParentSubscriber(this)));
+            => OperationOnWebhooks(() =>
+            {
+                if (Callbacks == null)
+                {
+                    Callbacks = new WebhooksEntity();
+                }
+                return Callbacks.SetEndpoint(entity.SetParentSubscriber(this));
+            });
 
         /// <summary>
         /// Removes the existing endpoint from the list if the item is present.
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveCallbackEndpoint(EndpointEntity entity)
-            => OperationOnWebhooks(() => Callbacks.RemoveEndpoint(entity));
+            => OperationOnWebhooks(() =>
+            {
+                if (Callbacks == null)
+                {
+                    Callbacks = new WebhooksEntity();
+                }
+                return Callbacks.RemoveEndpoint(entity);
+            });
 
         private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<OperationResult<WebhooksEntity>> funcToRun)
         {
