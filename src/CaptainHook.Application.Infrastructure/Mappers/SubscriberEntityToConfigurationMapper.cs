@@ -19,7 +19,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             _secretProvider = secretProvider;
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapSubscriberAsync(SubscriberEntity entity)
+        public async Task<OperationResult<SubscriberConfiguration>> MapSubscriberAsync(SubscriberEntity entity)
         {
             var webhooksResult = await MapWebhooksAsync(entity);
 
@@ -28,23 +28,87 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 return webhooksResult.Error;
             }
 
-            /*
-            var callbacksResult = await MapCallbacksAsync(entity);
+            var subscriberConfig = webhooksResult.Data;
 
-            if (callbacksResult.IsError)
+            var callbackResult = await MapCallbacksAsync(entity);
+                
+            if (callbackResult.IsError)
             {
-                return callbacksResult.Error;
+                return callbackResult.Error;
+            }
+            subscriberConfig.Callback = callbackResult.Data;
+
+            return subscriberConfig;
+        }
+
+        private async Task<OperationResult<WebhookConfig>> MapCallbacksAsync(SubscriberEntity entity)
+        {
+            if(entity.Callbacks == null)
+            {
+                return null;
             }
 
-            var dlqResult = await MapDlqAsync(entity);
-
-            if (dlqResult.IsError)
+            if (string.IsNullOrEmpty(entity.Callbacks?.SelectionRule) &&
+                entity.Webhooks?.Endpoints?.Count() == 1 &&
+                entity.Webhooks?.UriTransform == null)
             {
-                return dlqResult.Error;
+                return await MapSingleCallbackWithNoUriTransformAsync(entity);
             }
-            */
+            else
+            {
+                return await MapCallbacksForUriTransformAsync(entity);
+            }
+        }
 
-            return new[] { webhooksResult.Data, /* callbacksResult, dlqResult */ };
+        private async Task<OperationResult<WebhookConfig>> MapSingleCallbackWithNoUriTransformAsync(SubscriberEntity entity)
+        {
+            var authenticationResult = await MapAuthenticationAsync(entity.Callbacks?.Endpoints?.FirstOrDefault()?.Authentication);
+
+            if (authenticationResult.IsError)
+            {
+                return authenticationResult.Error;
+            }
+
+            return new WebhookConfig
+            {
+                Name = entity.Id,
+                EventType = entity.ParentEvent.Name,
+                Uri = entity.Callbacks?.Endpoints?.FirstOrDefault()?.Uri,
+                HttpVerb = entity.Callbacks?.Endpoints?.FirstOrDefault()?.HttpVerb,
+                AuthenticationConfig = authenticationResult.Data,
+            };
+        }
+
+        private async Task<OperationResult<WebhookConfig>> MapCallbacksForUriTransformAsync(SubscriberEntity entity)
+        {
+            var replacements = entity.Callbacks.UriTransform?.Replace ?? new Dictionary<string, string>();
+
+            if (!string.IsNullOrEmpty(entity.Callbacks.SelectionRule))
+            {
+                replacements["selector"] = entity.Callbacks.SelectionRule;
+            }
+
+            var routesResult = await MapWebhooksToRoutesAsync(entity.Callbacks);
+
+            if (routesResult.IsError)
+            {
+                return routesResult.Error;
+            }
+
+            return new WebhookConfig
+            {
+                Name = entity.Id,
+                EventType = entity.ParentEvent.Name,
+                WebhookRequestRules = new List<WebhookRequestRule>
+                {
+                    new WebhookRequestRule
+                    {
+                        Source = new SourceParserLocation { Replace = replacements },
+                        Destination = new ParserLocation { RuleAction = RuleAction.RouteAndReplace },
+                        Routes = routesResult.Data.ToList()
+                    }
+                }
+            };
         }
 
         private async Task<OperationResult<SubscriberConfiguration>> MapWebhooksAsync(SubscriberEntity entity)
@@ -57,7 +121,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             }
             else
             {
-                return await MapForUriTransformAsync(entity);
+                return await MapWebhooksForUriTransformAsync(entity);
             }
         }
 
@@ -81,7 +145,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             };
         }
 
-        private async Task<OperationResult<SubscriberConfiguration>> MapForUriTransformAsync(SubscriberEntity entity)
+        private async Task<OperationResult<SubscriberConfiguration>> MapWebhooksForUriTransformAsync(SubscriberEntity entity)
         {
             var replacements = entity.Webhooks.UriTransform?.Replace ?? new Dictionary<string, string>();
 

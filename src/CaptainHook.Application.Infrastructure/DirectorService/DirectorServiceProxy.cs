@@ -45,9 +45,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                 return subscriberConfigsResult.Error;
             }
 
-            var singleSubscriber = subscriberConfigsResult.Data.Single();
-
-            var request = requestFunc(singleSubscriber);
+            var request = requestFunc(subscriberConfigsResult.Data);
             var createReaderResult = await _directorService.ApplyReaderChange(request);
 
             return createReaderResult switch

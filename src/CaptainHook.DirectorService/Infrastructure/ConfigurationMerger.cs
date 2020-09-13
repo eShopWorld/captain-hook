@@ -49,7 +49,7 @@ namespace CaptainHook.DirectorService.Infrastructure
                     return new MappingError("Cannot map Cosmos DB entries", failures);
                 }
 
-                return tasks.SelectMany(t => t.Result.Data).ToList();
+                return tasks.Select(t => t.Result.Data).ToList();
             }
 
             var fromCosmosResult = await MapCosmosEntries();
