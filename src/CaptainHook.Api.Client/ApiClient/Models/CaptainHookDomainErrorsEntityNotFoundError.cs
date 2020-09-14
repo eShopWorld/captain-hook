@@ -7,28 +7,29 @@
 namespace CaptainHook.Api.Client.Models
 {
     using Newtonsoft.Json;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
 
-    public partial class CaptainHookDomainResultsFailure
+    public partial class CaptainHookDomainErrorsEntityNotFoundError
     {
         /// <summary>
-        /// Initializes a new instance of the CaptainHookDomainResultsFailure
-        /// class.
+        /// Initializes a new instance of the
+        /// CaptainHookDomainErrorsEntityNotFoundError class.
         /// </summary>
-        public CaptainHookDomainResultsFailure()
+        public CaptainHookDomainErrorsEntityNotFoundError()
         {
             CustomInit();
         }
 
         /// <summary>
-        /// Initializes a new instance of the CaptainHookDomainResultsFailure
-        /// class.
+        /// Initializes a new instance of the
+        /// CaptainHookDomainErrorsEntityNotFoundError class.
         /// </summary>
-        public CaptainHookDomainResultsFailure(string code = default(string), string message = default(string), string property = default(string))
+        public CaptainHookDomainErrorsEntityNotFoundError(string message = default(string), IList<object> failures = default(IList<object>))
         {
-            Code = code;
             Message = message;
-            Property = property;
+            Failures = failures;
             CustomInit();
         }
 
@@ -39,18 +40,13 @@ namespace CaptainHook.Api.Client.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "code")]
-        public string Code { get; set; }
-
-        /// <summary>
-        /// </summary>
         [JsonProperty(PropertyName = "message")]
         public string Message { get; set; }
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "property")]
-        public string Property { get; set; }
+        [JsonProperty(PropertyName = "failures")]
+        public IList<object> Failures { get; set; }
 
     }
 }

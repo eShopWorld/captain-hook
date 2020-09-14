@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 
-namespace CaptainHook.EventReaderService
+namespace CaptainHook.Common.ServiceBus
 {
     /// <summary>
     /// A wrapper for ServiceBus Functions
@@ -13,13 +13,12 @@ namespace CaptainHook.EventReaderService
         /// <summary>
         /// Creates a topic based on the specified type and subscription to that topic with the specify type
         /// </summary>
-        /// <param name="azureSubscriptionId"></param>
-        /// <param name="serviceBusNamespace"></param>
         /// <param name="subscriptionName"></param>
         /// <param name="topicName"></param>
         /// <param name="cancellationToken"></param>
+        /// <param name="createTopicIfNotExists"></param>
         /// <returns></returns>
-        Task CreateAsync(string azureSubscriptionId, string serviceBusNamespace, string subscriptionName, string topicName, CancellationToken cancellationToken);
+        Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates a message receiver to the service bus namespace
@@ -38,5 +37,14 @@ namespace CaptainHook.EventReaderService
         /// <param name="message"></param>
         /// <returns></returns>
         string GetLockToken(Message message);
+        
+        /// <summary>
+        /// Deletes the subscription from the topic on the current ServiceBus
+        /// </summary>
+        /// <param name="topicName">The topic where subscription exists</param>
+        /// <param name="subscriptionName">Subscription name</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken);
     }
 }
