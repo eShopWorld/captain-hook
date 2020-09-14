@@ -7,9 +7,8 @@ namespace CaptainHook.Application.Validators.Dtos
     {
         public SubscriberDtoValidator()
         {
-            CascadeMode = CascadeMode.Stop;
-
-            RuleFor(x => x.Webhooks).NotEmpty()
+            RuleFor(x => x.Webhooks).Cascade(CascadeMode.Stop)
+                .NotEmpty()
                 .SetValidator(new WebhooksDtoValidator("Webhooks"));
 
             RuleFor(x => x.Callbacks)
