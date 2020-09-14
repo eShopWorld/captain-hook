@@ -222,7 +222,7 @@ namespace CaptainHook.Storage.Cosmos
         {
             var webhooks = Map(subscriberEntity.Webhooks);
             WebhookSubdocument callbacks = null;
-            if(null != subscriberEntity.Callbacks)
+            if(subscriberEntity.Callbacks != null)
             {
                 callbacks = Map(subscriberEntity.Callbacks);
             }
@@ -277,7 +277,7 @@ namespace CaptainHook.Storage.Cosmos
 
             subscriberEntity.AddWebhooks(Map(subscriberDocument.Webhooks, subscriberEntity));
 
-            if (null != subscriberDocument.Callbacks)
+            if (subscriberDocument.Callbacks != null)
             {
                 subscriberEntity.AddCallbacks(Map(subscriberDocument.Callbacks, subscriberEntity));
             }
