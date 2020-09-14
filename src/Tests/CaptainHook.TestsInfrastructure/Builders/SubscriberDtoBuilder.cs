@@ -8,6 +8,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         {
             With(e => e.Webhooks, new WebhooksDtoBuilder().Create());
             With(e => e.Callbacks, new WebhooksDtoBuilder().Create());
+            With(e => e.Dlq, new WebhooksDtoBuilder().Create());
         }
     }
 }
