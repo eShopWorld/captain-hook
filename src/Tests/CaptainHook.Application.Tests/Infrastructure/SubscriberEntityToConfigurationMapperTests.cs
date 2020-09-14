@@ -301,7 +301,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 result.IsError.Should().BeFalse();
                 result.Data.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
                 result.Data.WebhookRequestRules.Should().HaveCount(1);
-                result.Data.Should().BeEquivalentTo(webhookRequestRule, opt => opt.Including(x => x.Source.Replace));
+                result.Data.WebhookRequestRules.First().Should().BeEquivalentTo(webhookRequestRule, opt => opt.Including(x => x.Source.Replace));
             }
         }
 

@@ -30,24 +30,22 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
             var subscriberConfig = webhooksResult.Data;
 
-            var callbackResult = await MapCallbacksAsync(entity);
-                
-            if (callbackResult.IsError)
+            if (entity.Callbacks != null)
             {
-                return callbackResult.Error;
+                var callbackResult = await MapCallbacksAsync(entity);
+
+                if (callbackResult.IsError)
+                {
+                    return callbackResult.Error;
+                }
+                subscriberConfig.Callback = callbackResult.Data;
             }
-            subscriberConfig.Callback = callbackResult.Data;
 
             return subscriberConfig;
         }
 
         private async Task<OperationResult<WebhookConfig>> MapCallbacksAsync(SubscriberEntity entity)
         {
-            if(entity.Callbacks == null)
-            {
-                return null;
-            }
-
             if (string.IsNullOrEmpty(entity.Callbacks?.SelectionRule) &&
                 entity.Webhooks?.Endpoints?.Count() == 1 &&
                 entity.Webhooks?.UriTransform == null)
