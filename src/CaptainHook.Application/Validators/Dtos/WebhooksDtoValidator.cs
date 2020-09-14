@@ -12,7 +12,7 @@ namespace CaptainHook.Application.Validators.Dtos
     {
         private static readonly JObject _jObject = new JObject();
 
-        public WebhooksDtoValidator()
+        public WebhooksDtoValidator(string subject)
         {
             CascadeMode = CascadeMode.Stop;
 
@@ -22,9 +22,9 @@ namespace CaptainHook.Application.Validators.Dtos
 
             RuleFor(x => x.Endpoints)
                 .NotNull()
-                .WithMessage("Webhooks list must contain at least one endpoint")
+                .WithMessage($"{subject} list must contain at least one endpoint")
                 .NotEmpty()
-                .WithMessage("Webhooks list must contain at least one endpoint")
+                .WithMessage($"{subject} list must contain at least one endpoint")
                 .Must(ContainAtMostOneEndpointWithDefaultSelector)
                 .WithMessage("There can be only one endpoint with the default selector")
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
