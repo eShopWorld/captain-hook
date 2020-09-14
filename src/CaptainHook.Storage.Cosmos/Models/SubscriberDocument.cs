@@ -13,7 +13,7 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Identifier
         /// </summary>
-        public string Id;
+        public string Id { get; set; }
 
         /// <summary>
         /// Type of the document.

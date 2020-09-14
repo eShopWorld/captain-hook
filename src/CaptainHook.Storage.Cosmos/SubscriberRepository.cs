@@ -233,7 +233,8 @@ namespace CaptainHook.Storage.Cosmos
                 EventName = subscriberEntity.ParentEvent.Name,
                 SubscriberName = subscriberEntity.Name,
                 Webhooks = webhooks,
-                Callbacks = callbacks
+                Callbacks = callbacks,
+                Etag = subscriberEntity.Etag
             };
         }
 
@@ -246,6 +247,7 @@ namespace CaptainHook.Storage.Cosmos
             return new WebhookSubdocument
             {
                 SelectionRule = webhooksEntity.SelectionRule,
+                UriTransform = Map(webhooksEntity.UriTransform),
                 Endpoints = endpoints.ToArray()
             };
         }
