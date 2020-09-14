@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.Azure.Management.ServiceBus.Fluent;
 
-namespace CaptainHook.EventReaderService
+namespace CaptainHook.Common.ServiceBus
 {
 
 

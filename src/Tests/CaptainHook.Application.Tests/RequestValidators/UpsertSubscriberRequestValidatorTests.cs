@@ -80,6 +80,17 @@ namespace CaptainHook.Application.Tests.RequestValidators
             result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks);
         }
 
+        [Fact, IsUnit]
+        public void When_CallbacksIsEmpty_Then_NoFailuresReturned()
+        {
+            var dto = new SubscriberDtoBuilder().With(x => x.Callbacks, null).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
         [Theory, IsUnit]
         [ClassData(typeof(InvalidJsonPaths))]
         public void When_WebhooksSelectionRuleIsNotValidJsonPath_Then_ValidationFails(string jsonPath)

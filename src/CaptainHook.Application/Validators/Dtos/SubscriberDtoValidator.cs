@@ -9,7 +9,10 @@ namespace CaptainHook.Application.Validators.Dtos
         {
             RuleFor(x => x.Webhooks).Cascade(CascadeMode.Stop)
                 .NotEmpty()
-                .SetValidator(new WebhooksDtoValidator());
+                .SetValidator(new WebhooksDtoValidator("Webhooks"));
+
+            RuleFor(x => x.Callbacks)
+                .SetValidator(new WebhooksDtoValidator("Callbacks"));
         }
     }
 }
