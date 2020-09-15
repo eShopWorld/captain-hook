@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CaptainHook.Storage.Cosmos\CaptainHook.Storage.Cosmos.csproj" />
+    <ProjectReference Include="..\CaptainHook.TestsInfrastructure\CaptainHook.TestsInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>

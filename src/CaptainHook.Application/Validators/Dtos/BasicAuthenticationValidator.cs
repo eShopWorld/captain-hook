@@ -7,8 +7,6 @@ namespace CaptainHook.Application.Validators.Dtos
     {
         public BasicAuthenticationValidator()
         {
-            CascadeMode = CascadeMode.Stop;
-
             RuleFor(x => x.Username).NotEmpty();
             RuleFor(x => x.PasswordKeyName).NotEmpty();
         }
