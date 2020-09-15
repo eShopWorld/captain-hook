@@ -18,6 +18,16 @@ namespace CaptainHook.Tests.Director
 {
     public class ConfigurationMergerTests
     {
+        private static readonly BasicAuthenticationEntity BasicAuthenticationEntity = new BasicAuthenticationEntity("username", "secret-name");
+        private static readonly OidcAuthenticationEntity OidcAuthenticationEntity = new OidcAuthenticationEntity("captain-hook-id", "kv-secret-name", "https://blah-blah.sts.eshopworld.com", new[] { "scope1" });
+        private static readonly OidcAuthenticationConfig OidcAuthenticationConfig = new OidcAuthenticationConfig
+        {
+            ClientId = "captain-hook-id",
+            ClientSecret = "my-password",
+            Uri = "https://blah-blah.sts.eshopworld.com",
+            Scopes = new[] { "scope1" }
+        };
+
         [Fact, IsUnit]
         public async Task OnlyKVSubscribers_AllInResult()
         {
@@ -43,13 +53,11 @@ namespace CaptainHook.Tests.Director
         [Fact, IsUnit]
         public async Task OnlyCosmosSubscribers_AllInResult()
         {
-            var authentication = new BasicAuthenticationEntity("username", "secret-name");
-
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector", authentication).Create(),
-                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST", "selector", authentication).Create(),
-                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector", authentication).Create(),
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST", "selector", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector", BasicAuthenticationEntity).Create(),
             };
 
             var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));
@@ -74,13 +82,11 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
-            var authentication = new BasicAuthenticationEntity("username", "secret-name");
-
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector", authentication).Create(),
-                new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST", "selector", authentication).Create(),
-                new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector", authentication).Create(),
+                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST", "selector", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector", BasicAuthenticationEntity).Create(),
             };
 
             var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(Mock.Of<ISecretProvider>()));
@@ -111,11 +117,7 @@ namespace CaptainHook.Tests.Director
                         "https://cosmos.eshopworld.com/testevent/",
                         "POST",
                         "selector",
-                        authentication: new OidcAuthenticationEntity(
-                            "captain-hook-id",
-                            "kv-secret-name",
-                            "https://blah-blah.sts.eshopworld.com",
-                            new[] { "scope1" })
+                        OidcAuthenticationEntity
                     ).Create(),
             };
 
@@ -132,25 +134,21 @@ namespace CaptainHook.Tests.Director
                 SubscriberName = "captain-hook",
                 Uri = "https://cosmos.eshopworld.com/testevent/",
                 HttpVerb = "POST",
-                AuthenticationConfig = new OidcAuthenticationConfig
-                {
-                    ClientId = "captain-hook-id",
-                    ClientSecret = "my-password",
-                    Uri = "https://blah-blah.sts.eshopworld.com",
-                    Scopes = new[] { "scope1" }
-                }
+                AuthenticationConfig = OidcAuthenticationConfig
             };
 
             result.Data.Should().BeEquivalentTo(new[] { expectedConfiguration }, options => options.RespectingRuntimeTypes());
         }
 
-        [Fact(Skip = "Callback handling not needed as for now"), IsUnit]
+        [Fact, IsUnit]
         public async Task CosmosSubscriberWithCallback_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector")
-                    .WithCallback("https://cosmos.eshopworld.com/callback/", "PUT", "selector")
+                new SubscriberBuilder()
+                    .WithEvent("testevent")
+                    .WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector", OidcAuthenticationEntity)
+                    .WithCallback("https://cosmos.eshopworld.com/callback/", "PUT", "selector", OidcAuthenticationEntity)
                     .Create(),
             };
 
@@ -166,7 +164,7 @@ namespace CaptainHook.Tests.Director
             }
         }
 
-        [Fact(Skip = "DQL handling not needed as for now"), IsUnit]
+        [Fact(Skip = "DLQ handling not needed as for now"), IsUnit]
         public async Task CosmosSubscriberWithDlq_ShouldBeMappedProperly()
         {
             var cosmosSubscribers = new[]
