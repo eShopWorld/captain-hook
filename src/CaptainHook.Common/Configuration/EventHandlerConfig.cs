@@ -187,6 +187,19 @@ namespace CaptainHook.Common.Configuration
             };
         }
 
+        public static SubscriberConfiguration FromWebhookConfig(WebhookConfig webhookConfig)
+        {
+            return new SubscriberConfiguration
+            {
+                Name = webhookConfig.Name,
+                EventType = webhookConfig.EventType,
+                Uri = webhookConfig.Uri,
+                HttpVerb = webhookConfig.HttpVerb,
+                AuthenticationConfig = webhookConfig.AuthenticationConfig,
+                WebhookRequestRules = webhookConfig.WebhookRequestRules
+            };
+        }
+
         internal int CollectionIndex { get; set; }
 
         [JsonIgnore]

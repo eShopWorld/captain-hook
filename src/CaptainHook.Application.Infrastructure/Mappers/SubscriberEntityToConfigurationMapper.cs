@@ -21,72 +21,71 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapSubscriberAsync(SubscriberEntity entity)
         {
-            var webhooksResult = await MapWebhooksAsync(entity);
-
+            var webhooksResult = await MapWebhooksAsync(entity, entity.Webhooks);
             if (webhooksResult.IsError)
             {
                 return webhooksResult.Error;
             }
 
-            var subscriberConfig = webhooksResult.Data;
+            SubscriberConfiguration subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
+            subscriberConfiguration.SubscriberName = entity.Name;
 
             if (entity.Callbacks != null)
             {
-                var callbackResult = await MapCallbacksAsync(entity);
-
+                var callbackResult = await MapWebhooksAsync(entity, entity.Callbacks);
                 if (callbackResult.IsError)
                 {
                     return callbackResult.Error;
                 }
-                subscriberConfig.Callback = callbackResult.Data;
+                subscriberConfiguration.Callback = callbackResult.Data;
             }
 
-            return new SubscriberConfiguration[] { subscriberConfig };
+            return new SubscriberConfiguration[] { subscriberConfiguration };
         }
 
-        private async Task<OperationResult<WebhookConfig>> MapCallbacksAsync(SubscriberEntity entity)
+        private async Task<OperationResult<WebhookConfig>> MapWebhooksAsync(SubscriberEntity subscriberEntity, WebhooksEntity webhooksEntity)
         {
-            if (string.IsNullOrEmpty(entity.Callbacks?.SelectionRule) &&
-                entity.Callbacks?.Endpoints?.Count() == 1 &&
-                entity.Callbacks?.UriTransform == null)
+            if (string.IsNullOrEmpty(webhooksEntity?.SelectionRule) &&
+                webhooksEntity?.Endpoints?.Count() == 1 &&
+                webhooksEntity?.UriTransform == null)
             {
-                return await MapSingleCallbackWithNoUriTransformAsync(entity);
+                return await MapSingleWebhookWithNoUriTransformAsync(subscriberEntity, webhooksEntity);
             }
             else
             {
-                return await MapCallbacksForUriTransformAsync(entity);
+                return await MapForUriTransformAsync(subscriberEntity, webhooksEntity);
             }
         }
 
-        private async Task<OperationResult<WebhookConfig>> MapSingleCallbackWithNoUriTransformAsync(SubscriberEntity entity)
+        private async Task<OperationResult<WebhookConfig>> MapSingleWebhookWithNoUriTransformAsync(SubscriberEntity subscriberEntity, WebhooksEntity webhooksEntity)
         {
-            var authenticationResult = await MapAuthenticationAsync(entity.Callbacks?.Endpoints?.FirstOrDefault()?.Authentication);
+            var authenticationResult = await MapAuthenticationAsync(webhooksEntity?.Endpoints?.FirstOrDefault()?.Authentication);
 
-            if (authenticationResult.IsError)
+            if(authenticationResult.IsError)
             {
                 return authenticationResult.Error;
             }
 
             return new WebhookConfig
             {
-                Name = entity.Id,
-                EventType = entity.ParentEvent.Name,
-                Uri = entity.Callbacks?.Endpoints?.FirstOrDefault()?.Uri,
-                HttpVerb = entity.Callbacks?.Endpoints?.FirstOrDefault()?.HttpVerb,
+                Name = subscriberEntity.Id,
+                EventType = subscriberEntity.ParentEvent.Name,
+                Uri = subscriberEntity.Webhooks?.Endpoints?.FirstOrDefault()?.Uri,
+                HttpVerb = subscriberEntity.Webhooks?.Endpoints?.FirstOrDefault()?.HttpVerb,
                 AuthenticationConfig = authenticationResult.Data,
             };
         }
 
-        private async Task<OperationResult<WebhookConfig>> MapCallbacksForUriTransformAsync(SubscriberEntity entity)
+        private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(SubscriberEntity subscriberEntity, WebhooksEntity webhooksEntity)
         {
-            var replacements = entity.Callbacks.UriTransform?.Replace ?? new Dictionary<string, string>();
+            var replacements = webhooksEntity.UriTransform?.Replace ?? new Dictionary<string, string>();
 
-            if (!string.IsNullOrEmpty(entity.Callbacks.SelectionRule))
+            if (!string.IsNullOrEmpty(webhooksEntity.SelectionRule))
             {
-                replacements["selector"] = entity.Callbacks.SelectionRule;
+                replacements["selector"] = webhooksEntity.SelectionRule;
             }
 
-            var routesResult = await MapWebhooksToRoutesAsync(entity.Callbacks);
+            var routesResult = await MapWebhooksToRoutesAsync(webhooksEntity);
 
             if (routesResult.IsError)
             {
@@ -95,75 +94,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
             return new WebhookConfig
             {
-                Name = entity.Id,
-                EventType = entity.ParentEvent.Name,
-                WebhookRequestRules = new List<WebhookRequestRule>
-                {
-                    new WebhookRequestRule
-                    {
-                        Source = new SourceParserLocation { Replace = replacements },
-                        Destination = new ParserLocation { RuleAction = RuleAction.RouteAndReplace },
-                        Routes = routesResult.Data.ToList()
-                    }
-                }
-            };
-        }
-
-        private async Task<OperationResult<SubscriberConfiguration>> MapWebhooksAsync(SubscriberEntity entity)
-        {
-            if (string.IsNullOrEmpty(entity.Webhooks?.SelectionRule) &&
-                entity.Webhooks?.Endpoints?.Count() == 1 &&
-                entity.Webhooks?.UriTransform == null)
-            {
-                return await MapSingleWebhookWithNoUriTransformAsync(entity);
-            }
-            else
-            {
-                return await MapWebhooksForUriTransformAsync(entity);
-            }
-        }
-
-        private async Task<OperationResult<SubscriberConfiguration>> MapSingleWebhookWithNoUriTransformAsync(SubscriberEntity entity)
-        {
-            var authenticationResult = await MapAuthenticationAsync(entity.Webhooks?.Endpoints?.FirstOrDefault()?.Authentication);
-
-            if(authenticationResult.IsError)
-            {
-                return authenticationResult.Error;
-            }
-
-            return new SubscriberConfiguration
-            {
-                Name = entity.Id,
-                SubscriberName = entity.Name,
-                EventType = entity.ParentEvent.Name,
-                Uri = entity.Webhooks?.Endpoints?.FirstOrDefault()?.Uri,
-                HttpVerb = entity.Webhooks?.Endpoints?.FirstOrDefault()?.HttpVerb,
-                AuthenticationConfig = authenticationResult.Data,
-            };
-        }
-
-        private async Task<OperationResult<SubscriberConfiguration>> MapWebhooksForUriTransformAsync(SubscriberEntity entity)
-        {
-            var replacements = entity.Webhooks.UriTransform?.Replace ?? new Dictionary<string, string>();
-
-            if (!string.IsNullOrEmpty(entity.Webhooks.SelectionRule))
-            {
-                replacements["selector"] = entity.Webhooks.SelectionRule;
-            }
-
-            var routesResult = await MapWebhooksToRoutesAsync(entity.Webhooks);
-
-            if(routesResult.IsError)
-            {
-                return routesResult.Error;
-            }
-
-            return new SubscriberConfiguration
-            {
-                Name = entity.Id,
-                SubscriberName = entity.Name,
-                EventType = entity.ParentEvent.Name,
+                Name = subscriberEntity.Id,
+                EventType = subscriberEntity.ParentEvent.Name,
                 WebhookRequestRules = new List<WebhookRequestRule>
                 {
                     new WebhookRequestRule
