@@ -24,7 +24,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         public DirectorServiceProxyTests()
         {
             _mapperMock.Setup(x => x.MapSubscriberAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new SubscriberConfiguration());
+                .ReturnsAsync(new List<SubscriberConfiguration> { new SubscriberConfiguration() });
         }
 
         [Fact, IsUnit]
@@ -36,7 +36,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeFalse();
-            result.Data.Should().BeTrue();
+            result.Data.Should().NotBeNullOrEmpty();
         }
 
         [Fact, IsUnit]

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Entities;
@@ -12,6 +13,6 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         /// </summary>
         /// <param name="entity">A subscriber entity</param>
         /// <returns>A subscriber configuration result or error</returns>
-        Task<OperationResult<SubscriberConfiguration>> MapSubscriberAsync(SubscriberEntity entity);
+        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapSubscriberAsync(SubscriberEntity entity);
     }
 }

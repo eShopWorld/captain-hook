@@ -58,7 +58,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                var subscriberConfiguration = result.Data;
+                result.Data.Should().HaveCount(1);
+                var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -86,8 +87,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             {
                 result.IsError.Should().BeFalse();
 
-                var subscriberConfiguration = result.Data;
-
+                result.Data.Should().HaveCount(1);
+                var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -124,7 +125,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             {
                 result.IsError.Should().BeFalse();
 
-                var subscriberConfiguration = result.Data;
+                result.Data.Should().HaveCount(1);
+                var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -167,7 +169,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             {
                 result.IsError.Should().BeFalse();
 
-                var subscriberConfiguration = result.Data;
+                result.Data.Should().HaveCount(1);
+                var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -211,7 +214,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             {
                 result.IsError.Should().BeFalse();
 
-                var subscriberConfiguration = result.Data;
+                result.Data.Should().HaveCount(1);
+                var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -252,7 +256,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             {
                 result.IsError.Should().BeFalse();
 
-                var subscriberConfiguration = result.Data;
+                result.Data.Should().HaveCount(1);
+                var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -299,9 +304,11 @@ namespace CaptainHook.Application.Tests.Infrastructure
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
-                result.Data.WebhookRequestRules.Should().HaveCount(1);
-                result.Data.WebhookRequestRules.First().Should().BeEquivalentTo(webhookRequestRule, opt => opt.Including(x => x.Source.Replace));
+                result.Data.Should().HaveCount(1);
+                var subscriberConfiguration = result.Data.Single();
+                subscriberConfiguration.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
+                subscriberConfiguration.WebhookRequestRules.Should().HaveCount(1);
+                subscriberConfiguration.WebhookRequestRules.First().Should().BeEquivalentTo(webhookRequestRule, opt => opt.Including(x => x.Source.Replace));
             }
         }
 

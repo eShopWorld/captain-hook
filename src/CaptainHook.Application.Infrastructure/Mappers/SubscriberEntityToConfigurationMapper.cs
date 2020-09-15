@@ -19,7 +19,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             _secretProvider = secretProvider;
         }
 
-        public async Task<OperationResult<SubscriberConfiguration>> MapSubscriberAsync(SubscriberEntity entity)
+        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapSubscriberAsync(SubscriberEntity entity)
         {
             var webhooksResult = await MapWebhooksAsync(entity);
 
@@ -41,7 +41,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 subscriberConfig.Callback = callbackResult.Data;
             }
 
-            return subscriberConfig;
+            return new SubscriberConfiguration[] { subscriberConfig };
         }
 
         private async Task<OperationResult<WebhookConfig>> MapCallbacksAsync(SubscriberEntity entity)
