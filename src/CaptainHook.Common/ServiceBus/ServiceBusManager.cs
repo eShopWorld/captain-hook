@@ -43,9 +43,17 @@ namespace CaptainHook.Common.ServiceBus
 
         public async Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
         {
+            var internalTopicName = TypeExtensions.GetEntityName(topicName);
             var serviceBusNamespace = await _serviceBusNamespace;
-            var topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
-            if (topic != null)
+            var topic = await FindTopicAsync(serviceBusNamespace, internalTopicName, cancellationToken);
+            if (topic == null) return;
+
+            if (topic.SubscriptionCount == 1) // SubscriptionCount is not updated immediately after Subscriptions.DeleteByNameAsync so can't check for " == 0"
+            {
+                await topic.Subscriptions.DeleteByNameAsync(subscriptionName, cancellationToken);
+                await serviceBusNamespace.Topics.DeleteByNameAsync(internalTopicName, cancellationToken);
+            }
+            else
             {
                 await topic.Subscriptions.DeleteByNameAsync(subscriptionName, cancellationToken);
             }
