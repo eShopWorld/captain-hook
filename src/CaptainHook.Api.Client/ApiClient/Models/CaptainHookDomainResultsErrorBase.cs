@@ -26,7 +26,7 @@ namespace CaptainHook.Api.Client.Models
         /// Initializes a new instance of the CaptainHookDomainResultsErrorBase
         /// class.
         /// </summary>
-        public CaptainHookDomainResultsErrorBase(string message = default(string), IList<CaptainHookDomainResultsFailure> failures = default(IList<CaptainHookDomainResultsFailure>))
+        public CaptainHookDomainResultsErrorBase(string message = default(string), IList<object> failures = default(IList<object>))
         {
             Message = message;
             Failures = failures;
@@ -46,7 +46,7 @@ namespace CaptainHook.Api.Client.Models
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "failures")]
-        public IList<CaptainHookDomainResultsFailure> Failures { get; set; }
+        public IList<object> Failures { get; set; }
 
     }
 }

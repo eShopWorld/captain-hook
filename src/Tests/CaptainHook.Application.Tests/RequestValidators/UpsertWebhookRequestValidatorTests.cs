@@ -1,5 +1,6 @@
 ﻿using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Validators;
+using CaptainHook.Contract;
 using CaptainHook.TestsInfrastructure.Builders;
 using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
@@ -121,6 +122,32 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var result = _validator.TestValidate(request);
 
             result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Fact, IsUnit]
+        public void When_RequestHasFourInvalidValues_Then_FourFailuresReturned()
+        {
+            var request = new UpsertWebhookRequest(null, null, null, null);
+
+            var result = _validator.TestValidate(request);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().HaveCount(4);
+        }
+
+        [Fact, IsUnit]
+        public void When_UriIsNull_Then_OnlyOneFailuresReturned()
+        {
+            var dto = new EndpointDtoBuilder()
+                .With(x => x.Uri, null)
+                .Create();
+            var request = new UpsertWebhookRequest("event", "subscriber", "*", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.IsValid.Should().BeFalse();
+            result.ShouldHaveValidationErrorFor(x => x.Endpoint.Uri);
+            result.Errors.Should().HaveCount(1);
         }
     }
 }

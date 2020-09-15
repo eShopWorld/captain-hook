@@ -7,8 +7,6 @@ namespace CaptainHook.Application.Validators
     {
         public DeleteSubscriberRequestValidator()
         {
-            CascadeMode = CascadeMode.Stop;
-
             RuleFor(x => x.EventName).NotEmpty();
             RuleFor(x => x.SubscriberName).NotEmpty();
         }
