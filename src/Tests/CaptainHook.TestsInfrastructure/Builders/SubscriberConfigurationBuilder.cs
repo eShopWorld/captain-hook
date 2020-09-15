@@ -12,7 +12,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _name = "event1";
         private string _subscriberName = "captain-hook";
         private string _uri = "https://blah.blah.eshopworld.com";
-        private HttpMethod _httpMethod = HttpMethod.Post;
+        private string _httpVerb = "POST";
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
         {
             Type = AuthenticationType.Basic,
@@ -86,6 +86,20 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
+        public SubscriberConfigurationBuilder WithAuthentication(AuthenticationConfig authenticationConfig)
+        {
+            _authenticationConfig = authenticationConfig;
+
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithHttpVerb(string httpVerb)
+        {
+            _httpVerb = httpVerb;
+
+            return this;
+        }
+
         // TODO: remove or use version of this method which accepts SubscriberConfigurationBuilder
         public SubscriberConfigurationBuilder WithCallback(string uri = "https://callback.eshopworld.com")
         {
@@ -132,7 +146,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
                 Name = _name,
                 EventType = _type,
                 SubscriberName = _subscriberName,
-                HttpMethod = _httpMethod,
+                HttpVerb = _httpVerb,
                 Uri = _uri,
                 AuthenticationConfig = _authenticationConfig,
                 Callback = _callback,
