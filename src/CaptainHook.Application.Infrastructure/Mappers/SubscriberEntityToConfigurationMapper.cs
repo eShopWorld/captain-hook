@@ -47,8 +47,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         private async Task<OperationResult<WebhookConfig>> MapCallbacksAsync(SubscriberEntity entity)
         {
             if (string.IsNullOrEmpty(entity.Callbacks?.SelectionRule) &&
-                entity.Webhooks?.Endpoints?.Count() == 1 &&
-                entity.Webhooks?.UriTransform == null)
+                entity.Callbacks?.Endpoints?.Count() == 1 &&
+                entity.Callbacks?.UriTransform == null)
             {
                 return await MapSingleCallbackWithNoUriTransformAsync(entity);
             }
