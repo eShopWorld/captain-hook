@@ -97,7 +97,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var subscriberEntity = new SubscriberEntity(request.SubscriberName, new EventEntity(request.EventName))
                 .AddWebhooks(webhooks);
 
-            if(null != request.Subscriber.Callbacks)
+            if(request.Subscriber.Callbacks != null)
             {
                 var callbacks = _dtoToEntityMapper.MapWebooks(request.Subscriber.Callbacks);
                 subscriberEntity.AddCallbacks(callbacks);

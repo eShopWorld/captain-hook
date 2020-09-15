@@ -37,7 +37,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private static readonly SubscriberBuilder _subscriberBuilder = new SubscriberBuilder()
                .WithEvent("event")
                .WithName("subscriber")
-               .WithWebhookSelectionRule("$.Test")
+               .WithWebhooksSelectionRule("$.Test")
                .WithWebhook("https://blah.blah.eshopworld.com/default/", "POST", null, authentication: _authentication)
                .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: _authentication)
                .WithWebhook("https://blah.blah.eshopworld.com/other-webhook/", "POST", "non-deletable", authentication: _authentication);
@@ -191,7 +191,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var subscriberEntity = new SubscriberBuilder()
                .WithEvent("event")
                .WithName("subscriber")
-               .WithWebhookSelectionRule("$.Test")
+               .WithWebhooksSelectionRule("$.Test")
                .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: _authentication)
                .Create();
             _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))

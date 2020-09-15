@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client.Models;
 using CaptainHook.Api.Tests.Config;
@@ -80,6 +81,45 @@ namespace CaptainHook.Api.Tests.Integration
 
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
+        }
+
+        [Fact, IsIntegration]
+        public async Task DeleteEventSubscriber_WhenAuthenticated_Returns200Ok()
+        {
+            // Arrange
+            var dto = GetTestSubscriberDto();
+            var result = await AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(IntegrationTestEventName, _subscriberName, dto);
+            result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
+
+            // Act
+            result = await AuthenticatedClient.DeleteSubscriberWithHttpMessagesAsync(IntegrationTestEventName,
+                _subscriberName);
+
+            // Assert
+            result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+        }
+        
+        [Fact, IsIntegration]
+        public async Task DeleteEventSubscriber_WhenSubscriberNotExists_Returns404NotFound()
+        {
+            // Act
+            var result = await AuthenticatedClient.DeleteSubscriberWithHttpMessagesAsync(IntegrationTestEventName,
+                _subscriberName);
+
+            // Assert
+            result.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        }
+
+
+        [Fact, IsIntegration]
+        public async Task DeleteEventSubscriber_WhenEventNotExists_Returns404NotFound()
+        {
+            // Act
+            var result = await AuthenticatedClient.DeleteSubscriberWithHttpMessagesAsync(Guid.NewGuid().ToString(),
+                _subscriberName);
+
+            // Assert
+            result.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
         }
 
         private CaptainHookContractSubscriberDto GetTestSubscriberDto()
