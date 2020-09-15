@@ -70,8 +70,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             {
                 Name = subscriberEntity.Id,
                 EventType = subscriberEntity.ParentEvent.Name,
-                Uri = subscriberEntity.Webhooks?.Endpoints?.FirstOrDefault()?.Uri,
-                HttpVerb = subscriberEntity.Webhooks?.Endpoints?.FirstOrDefault()?.HttpVerb,
+                Uri = webhooksEntity?.Endpoints?.FirstOrDefault()?.Uri,
+                HttpVerb = webhooksEntity?.Endpoints?.FirstOrDefault()?.HttpVerb,
                 AuthenticationConfig = authenticationResult.Data,
             };
         }
