@@ -24,12 +24,12 @@ namespace CaptainHook.Tests.Director
         private static readonly BasicAuthenticationConfig BasicAuthenticationConfig = new BasicAuthenticationConfig
         {
             Username = "username",
-            Password = ""
+            Password = "password"
         };
         private static readonly OidcAuthenticationConfig OidcAuthenticationConfig = new OidcAuthenticationConfig
         {
             ClientId = "captain-hook-id",
-            ClientSecret = "my-password",
+            ClientSecret = "secret",
             Uri = "https://blah-blah.sts.eshopworld.com",
             Scopes = new[] { "scope1" }
         };
@@ -50,9 +50,9 @@ namespace CaptainHook.Tests.Director
         {
             _secretProvider = new Mock<ISecretProvider>();
             _secretProvider.Setup(x => x.GetSecretValueAsync("secret-name"))
-                .ReturnsAsync("secret");
+                .ReturnsAsync("password");
             _secretProvider.Setup(x => x.GetSecretValueAsync("kv-secret-name"))
-                .ReturnsAsync("kv-secret");
+                .ReturnsAsync("secret");
         }
 
         [Fact, IsUnit]
