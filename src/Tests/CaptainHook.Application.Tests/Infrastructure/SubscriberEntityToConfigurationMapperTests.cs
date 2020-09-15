@@ -77,7 +77,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
-                .WithWebhookUriTransform(uriTransform)
+                .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .Create();
 
@@ -113,8 +113,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
-                .WithWebhookSelectionRule("$.TenantCode")
-                .WithWebhookUriTransform(uriTransform)
+                .WithWebhooksSelectionRule("$.TenantCode")
+                .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
                 .Create();
@@ -157,8 +157,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
-                .WithWebhookSelectionRule("$.TenantCode")
-                .WithWebhookUriTransform(uriTransform)
+                .WithWebhooksSelectionRule("$.TenantCode")
+                .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
                 .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "bSelector", authentication)
                 .Create();
@@ -202,8 +202,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
             var subscriber = new SubscriberBuilder()
-                .WithWebhookSelectionRule("$.TenantCode")
-                .WithWebhookUriTransform(uriTransform)
+                .WithWebhooksSelectionRule("$.TenantCode")
+                .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
                 .Create();
@@ -245,8 +245,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         {
             var uriTransform = new UriTransformEntity(null);
             var subscriber = new SubscriberBuilder()
-                .WithWebhookSelectionRule("aSelectionRule")
-                .WithWebhookUriTransform(uriTransform)
+                .WithWebhooksSelectionRule("aSelectionRule")
+                .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, "*", authentication)
                 .Create();
 
@@ -282,7 +282,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             // Arrange
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { {"selector", "$.Test" }});
             var subscriber = new SubscriberBuilder()
-                .WithWebhookUriTransform(uriTransform)
+                .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .Create();
 
@@ -320,7 +320,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
             var authentication = new OidcAuthenticationEntity("client-id", "invalid-secret-key-name", "uri", new string[]{ });
             var subscriber = new SubscriberBuilder()
-                .WithWebhookUriTransform(uriTransform)
+                .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", "POST", null, authentication)
                 .Create();
 
@@ -346,7 +346,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
             var authentication = new BasicAuthenticationEntity("username", "password-key-name");
             var subscriber = new SubscriberBuilder()
-                .WithWebhookUriTransform(uriTransform)
+                .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", "POST", null, authentication)
                 .Create();
 
