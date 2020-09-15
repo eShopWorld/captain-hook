@@ -183,12 +183,13 @@ namespace CaptainHook.Tests.Director
             using (new AssertionScope())
             {
                 result.Data.Should().HaveCount(1);
-                result.Data.First().Callback.Should().NotBeNull();
-                result.Data.Should().Contain(x => 
-                    x.Callback.Uri == "https://cosmos.eshopworld.com/callback/" && 
-                    x.Callback.AuthenticationConfig == authenticationConfig &&
-                    x.Callback.HttpVerb == httpVerb &&
-                    x.Callback.WebhookRequestRules.SelectMany(w => w.Routes).All(r => r.Uri == "https://cosmos.eshopworld.com/callback/"));
+
+                var callback = result.Data.First().Callback;
+                callback.Should().NotBeNull();
+                callback.Uri.Should().Be("https://cosmos.eshopworld.com/callback/");
+                callback.AuthenticationConfig.Should().BeEquivalentTo(authenticationConfig);
+                callback.HttpVerb.Should().Be(httpVerb);
+                callback.WebhookRequestRules.Should().BeEmpty();
             }
         }
 
