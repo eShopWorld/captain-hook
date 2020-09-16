@@ -3,16 +3,17 @@ using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.Storage.Cosmos.Models;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
+using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Exceptions;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using Kusto.Cloud.Platform.Utils;
 using Microsoft.Azure.Cosmos;
 using Moq;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -24,6 +25,95 @@ namespace CaptainHook.Storage.Cosmos.Tests
         private readonly Mock<ISubscriberQueryBuilder> _queryBuilderMock;
 
         private readonly SubscriberRepository _repository;
+
+        private static readonly OidcAuthenticationSubdocument OidcAuthenticationSubdocument = new OidcAuthenticationSubdocument
+        {
+            Scopes = new string[] { "scope1", "scope2" },
+            SecretName = "secret-key-name",
+            ClientId = "client_id",
+            Uri = "http://www.sts.uri.com/token"
+        };
+
+        private static readonly BasicAuthenticationSubdocument BasicAuthenticationSubdocument = new BasicAuthenticationSubdocument
+        {
+            Username = "username",
+            PasswordKeyName = "password-key-name"
+        };
+
+        private static readonly OidcAuthenticationEntity OidcAuthenticationEntity =
+            new OidcAuthenticationEntity("client_id", "secret-key-name", "http://www.sts.uri.com/token", new string[] { "scope1", "scope2" });
+
+        private static readonly BasicAuthenticationEntity BasicAuthenticationEntity =
+            new BasicAuthenticationEntity("username", "password-key-name");
+
+        public static IEnumerable<object[]> Data =>
+            new List<object[]>
+            {
+                new object[] { "POST", OidcAuthenticationEntity, OidcAuthenticationSubdocument },
+                new object[] { "POST", BasicAuthenticationEntity, BasicAuthenticationSubdocument },
+                new object[] { "PUT", OidcAuthenticationEntity, OidcAuthenticationSubdocument },
+                new object[] { "PUT", BasicAuthenticationEntity, BasicAuthenticationSubdocument },
+                new object[] { "GET", OidcAuthenticationEntity, OidcAuthenticationSubdocument },
+                new object[] { "GET", BasicAuthenticationEntity, BasicAuthenticationSubdocument }
+            };
+
+        private SubscriberEntity CreateSubscriberEntity(string httpVerb = "POST", AuthenticationEntity authenticationEntity = null, string etag = null)
+        {
+            var replacements = new Dictionary<string, string> { { "ordercode", "$.OrderCode" } };
+
+            var subscriberEntity = new SubscriberBuilder()
+                .WithName("a-test-subscriber-name")
+                .WithEvent("a-test-event-name")
+                .WithWebhooksSelectionRule("$.TestSelector")
+                .WithWebhooksUriTransform(new UriTransformEntity(replacements))
+                .WithWebhook("http://www.test.uri/path", httpVerb, "Selector1", authenticationEntity ?? OidcAuthenticationEntity)
+                .WithCallbacksSelectionRule("$.TestSelector")
+                .WithCallbacksUriTransform(new UriTransformEntity(replacements))
+                .WithCallback("http://www.test.uri/callback/path", httpVerb, "Selector1", authenticationEntity ?? OidcAuthenticationEntity)
+                .WithEtag(etag)
+                .Create();
+
+            return subscriberEntity;
+        }
+
+        private SubscriberDocument CreateSubscriberDocument(string httpVerb = "POST", object authenticationSubdocument = null, string etag = null)
+        {
+            var replacements = new Dictionary<string, string> { { "ordercode", "$.OrderCode" } };
+
+            var endpointWebhookSubdocument = new EndpointSubdocumentBuilder()
+                .With(x => x.HttpVerb, httpVerb)
+                .With(x => x.Selector, "Selector1")
+                .With(x => x.Authentication, (AuthenticationSubdocument)authenticationSubdocument ?? OidcAuthenticationSubdocument)
+                .With(x => x.Uri, "http://www.test.uri/path")
+                .Create();
+
+            var endpointCallbackSubdocument = new EndpointSubdocumentBuilder()
+                .With(x => x.HttpVerb, httpVerb)
+                .With(x => x.Selector, "Selector1")
+                .With(x => x.Authentication, (AuthenticationSubdocument)authenticationSubdocument ?? OidcAuthenticationSubdocument)
+                .With(x => x.Uri, "http://www.test.uri/callback/path")
+                .Create();
+
+            var webhooksSubdocument = new WebhooksSubdocumentBuilder()
+                .With(x => x.SelectionRule, "$.TestSelector")
+                .With(x => x.UriTransform, new UriTransformSubdocument(replacements))
+                .With(x => x.Endpoints, new EndpointSubdocument[] { endpointWebhookSubdocument })
+                .Create();
+
+            var callbacksSubdocument = new WebhooksSubdocumentBuilder()
+                .With(x => x.SelectionRule, "$.TestSelector")
+                .With(x => x.UriTransform, new UriTransformSubdocument(replacements))
+                .With(x => x.Endpoints, new EndpointSubdocument[] { endpointCallbackSubdocument })
+                .Create();
+
+            var subscriberDocument = new SubscriberDocumentBuilder()
+                .With(x => x.Webhooks, webhooksSubdocument)
+                .With(x => x.Callbacks, callbacksSubdocument)
+                .With(x => x.Etag, etag)
+                .Create();
+
+            return subscriberDocument;
+        }
 
         public SubscriberRepositoryTests()
         {
@@ -62,134 +152,23 @@ namespace CaptainHook.Storage.Cosmos.Tests
             _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()));
         }
 
-        [Fact, IsUnit]
-        public async Task GetSubscribersListAsync_WithValidEventName_ReturnsCorrectModels()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task GetSubscribersListAsync_WithValidEventName_ReturnsCorrectModels(string httpVerb, AuthenticationEntity authenticationEntity, object authenticationSubdocument)
         {
-            // Arrange
-            var eventName = "eventName";
-            var auth = new OidcAuthenticationSubdocument
-            {
-                ClientId = "clientid",
-                Scopes = new string[] { "scope" },
-                SecretName = "secret",
-                Uri = "uri"
-            };
-            var endpoint = new EndpointSubdocument
-            {
-                HttpVerb = "POST",
-                Uri = "http://test",
-                Selector = "selector",
-                Authentication = auth
-            };
-            var sampleDocument = new SubscriberDocument()
-            {
-                SubscriberName = "subscriberName",
-                EventName = eventName,
-                Webhooks = new WebhookSubdocument
-                {
-                    SelectionRule = "rule",
-                    Endpoints = new[] { endpoint }
-                },
-                Etag = "version1"
-            };
-            _cosmosDbRepositoryMock
-                .Setup(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()))
-                .ReturnsAsync(new List<dynamic> { ConvertToDynamic(sampleDocument) });
+            var subscriberDocument = CreateSubscriberDocument(httpVerb, authenticationSubdocument);
 
-            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
-            var expectedAuthenticationEntity = new OidcAuthenticationEntity(auth.ClientId, auth.SecretName, auth.Uri, auth.Scopes);
-            var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
-            var expectedWebhooksEntity = new WebhooksEntity(sampleDocument.Webhooks.SelectionRule, new List<EndpointEntity> { expectedEndpointEntity });
-            expectedSubscriberEntity.AddWebhooks(expectedWebhooksEntity);
-
-            // Act
-            var result = await _repository.GetSubscribersListAsync(eventName);
-
-            // Assert
-            result.Data.Should().BeEquivalentTo(new[] { expectedSubscriberEntity }, options => options.IgnoringCyclicReferences());
-        }
-
-        [Fact, IsUnit]
-        public async Task GetSubscribersListAsync_WithValidEventName_MapsSubscriberDocumentToSubscriberEntityCorrectly()
-        {
-            // Arrange
-            const string eventName = "eventName";
-            var response = new[]
-            {
-                new SubscriberDocument
-                {
-                    SubscriberName = "subscriberName",
-                    EventName = eventName,
-                    Webhooks = new WebhookSubdocument
-                    {
-                        SelectionRule = "rule",
-                        Endpoints = new[]
-                        {
-                            new EndpointSubdocument
-                            {
-                                HttpVerb = "POST",
-                                Uri = "http://test",
-                                Selector = "selector",
-                                Authentication = new OidcAuthenticationSubdocument
-                                {
-                                    ClientId = "clientid",
-                                    Scopes = new[] { "scope" },
-                                    SecretName = "secret",
-                                    Uri = "uri"
-                                }
-                            },
-                            new EndpointSubdocument
-                            {
-                                HttpVerb = "GET",
-                                Uri = "http://test2",
-                                Selector = "selector2",
-                                Authentication = new OidcAuthenticationSubdocument
-                                {
-                                    ClientId = "clientid",
-                                    Scopes = new[] { "scope" },
-                                    SecretName = "secret",
-                                    Uri = "uri"
-                                }
-                            }
-                        }
-                    }
-                }
-            };
+            var subscriberEntity = CreateSubscriberEntity(httpVerb, authenticationEntity);
 
             _cosmosDbRepositoryMock
                 .Setup(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()))
-                .ReturnsAsync(response.Select(ConvertToDynamic));
+                .ReturnsAsync(new List<dynamic> { ConvertToDynamic(subscriberDocument) });
 
             // Act
-            var result = await _repository.GetSubscribersListAsync(eventName);
+            var result = await _repository.GetSubscribersListAsync(subscriberDocument.EventName);
 
             // Assert
-            var expected = new[]
-            {
-                new SubscriberEntity("subscriberName", new EventEntity(eventName))
-                    .AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()
-                    {
-                        new EndpointEntity(
-                            "http://test",
-                            new OidcAuthenticationEntity(
-                                "clientid",
-                                "secret",
-                                "uri",
-                                new[] { "scope" }),
-                            "POST",
-                            "selector"),
-                        new EndpointEntity("http://test2",
-                            new OidcAuthenticationEntity(
-                                "clientid",
-                                "secret",
-                                "uri",
-                                new[] { "scope" }),
-                            "GET",
-                            "selector2")
-                    }))
-            };
-
-            result.Data.Should().BeEquivalentTo(expected, options => options.IgnoringCyclicReferences());
+            result.Data.Should().BeEquivalentTo(new[] { subscriberEntity }, options => options.IgnoringCyclicReferences());
         }
 
         [Fact, IsUnit]
@@ -228,131 +207,25 @@ namespace CaptainHook.Storage.Cosmos.Tests
             _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()));
         }
 
-        [Fact, IsUnit]
-        public async Task GetSubscriberAsync_WithValidSubscriberId_ReturnsCorrectModel()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task GetSubscriberAsync_WithValidSubscriberId_ReturnsCorrectModel(string httpVerb, AuthenticationEntity authenticationEntity, object authenticationSubdocument)
         {
             // Arrange
-            var eventName = "eventName";
-            var auth = new OidcAuthenticationSubdocument
-            {
-                ClientId = "clientid",
-                Scopes = new string[] { "scope" },
-                SecretName = "secret",
-                Uri = "uri"
-            };
-            var endpoint = new EndpointSubdocument
-            {
-                HttpVerb = "POST",
-                Uri = "http://test",
-                Selector = "selector",
-                Authentication = auth
-            };
-            var sampleDocument = new SubscriberDocument()
-            {
-                SubscriberName = "subscriberName",
-                EventName = eventName,
-                Webhooks = new WebhookSubdocument
-                {
-                    SelectionRule = "rule",
-                    Endpoints = new[] { endpoint }
-                },
-                Etag = "version1"
-            };
-            _cosmosDbRepositoryMock
-                .Setup(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()))
-                .ReturnsAsync(new List<dynamic> { ConvertToDynamic(sampleDocument) });
+            var subscriberDocument = CreateSubscriberDocument(httpVerb, authenticationSubdocument);
 
-            var expectedSubscriberEntity = new SubscriberEntity(sampleDocument.SubscriberName, new EventEntity(eventName), "version1");
-            var expectedAuthenticationEntity = new OidcAuthenticationEntity(auth.ClientId, auth.SecretName, auth.Uri, auth.Scopes);
-            var expectedEndpointEntity = new EndpointEntity(endpoint.Uri, expectedAuthenticationEntity, endpoint.HttpVerb, endpoint.Selector);
-            var expectedWebhooksEntity = new WebhooksEntity(sampleDocument.Webhooks.SelectionRule, new List<EndpointEntity> { expectedEndpointEntity });
-            expectedSubscriberEntity.AddWebhooks(expectedWebhooksEntity);
-
-            // Act
-            var result = await _repository.GetSubscriberAsync(new SubscriberId("eventName", "subscriberName"));
-
-            // Assert
-            result.Data.Should().BeEquivalentTo(expectedSubscriberEntity, options => options.IgnoringCyclicReferences());
-        }
-
-        [Fact, IsUnit]
-        public async Task GetSubscriberAsync_WithValidEventName_MapsSubscriberDocumentToSubscriberEntityCorrectly()
-        {
-            // Arrange
-            const string eventName = "eventName";
-            var response = new[]
-            {
-                new SubscriberDocument
-                {
-                    SubscriberName = "subscriberName",
-                    EventName = eventName,
-                    Webhooks = new WebhookSubdocument
-                    {
-                        SelectionRule = "rule",
-                        Endpoints = new[]
-                        {
-                            new EndpointSubdocument
-                            {
-                                HttpVerb = "POST",
-                                Uri = "http://test",
-                                Selector = "selector",
-                                Authentication = new OidcAuthenticationSubdocument
-                                {
-                                    ClientId = "clientid",
-                                    Scopes = new[] { "scope" },
-                                    SecretName = "secret",
-                                    Uri = "uri"
-                                }
-                            },
-                            new EndpointSubdocument
-                            {
-                                HttpVerb = "GET",
-                                Uri = "http://test2",
-                                Selector = "selector2",
-                                Authentication = new OidcAuthenticationSubdocument
-                                {
-                                    ClientId = "clientid",
-                                    Scopes = new[] { "scope" },
-                                    SecretName = "secret",
-                                    Uri = "uri"
-                                }
-                            }
-                        }
-                    }
-                }
-            };
+            var subscriberEntity = CreateSubscriberEntity(httpVerb, authenticationEntity);
 
             _cosmosDbRepositoryMock
                 .Setup(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()))
-                .ReturnsAsync(response.Select(ConvertToDynamic));
+                .ReturnsAsync(new List<dynamic> { ConvertToDynamic(subscriberDocument) });
 
             // Act
-            var result = await _repository.GetSubscriberAsync(new SubscriberId(eventName, "subscriberName"));
+            var subscriberId = new SubscriberId(subscriberDocument.EventName, subscriberDocument.SubscriberName);
+            var result = await _repository.GetSubscriberAsync(subscriberId);
 
             // Assert
-            var expected = new SubscriberEntity("subscriberName", new EventEntity(eventName))
-                .AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()
-                {
-                    new EndpointEntity(
-                        "http://test",
-                        new OidcAuthenticationEntity(
-                            "clientid",
-                            "secret",
-                            "uri",
-                            new[] { "scope" }),
-                        "POST",
-                        "selector"),
-                    new EndpointEntity("http://test2",
-                        new OidcAuthenticationEntity(
-                            "clientid",
-                            "secret",
-                            "uri",
-                            new[] { "scope" }),
-                        "GET",
-                        "selector2")
-                }));
-
-            result.Data.Should().BeEquivalentTo(expected, options => options.IgnoringCyclicReferences());
+            result.Data.Should().BeEquivalentTo(subscriberEntity, options => options.IgnoringCyclicReferences());
         }
 
         [Fact, IsUnit]
@@ -365,31 +238,26 @@ namespace CaptainHook.Storage.Cosmos.Tests
             await Assert.ThrowsAsync<ArgumentNullException>(act);
         }
 
-        [Fact, IsUnit]
-        public async Task AddSubscriberAsync_WithValidSubscriber_CallsCreateAsync()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task AddSubscriberAsync_WithValidSubscriber_CallsCreateAsync(string httpVerb, AuthenticationEntity authenticationEntity, object authenticationSubdocument)
         {
             // Arrange
-            var subscriberDocument = new SubscriberDocument
-            {
-                SubscriberName = "subscriberName",
-                EventName = "eventName",
-                Webhooks = new WebhookSubdocument
-                {
-                    SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
-                }
-            };
-            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
-            subscriber.AddWebhooks(new WebhooksEntity("rule"));
-            _cosmosDbRepositoryMock
-                .Setup(x => x.CreateAsync<dynamic>(It.IsAny<SubscriberDocument>()))
-                .ReturnsAsync(new DocumentContainer<dynamic>(subscriberDocument, "etag"));
+            var subscriberDocument = CreateSubscriberDocument(httpVerb, authenticationSubdocument);
+
+            var subscriberEntity = CreateSubscriberEntity(httpVerb, authenticationEntity);
 
             // Act
-            var result = await _repository.AddSubscriberAsync(subscriber);
+            await _repository.AddSubscriberAsync(subscriberEntity);
 
             // Assert
-            _cosmosDbRepositoryMock.Verify(x => x.CreateAsync<dynamic>(It.IsAny<SubscriberDocument>()));
+            Func<object, bool> validate = value =>
+            {
+                value.Should().BeEquivalentTo(subscriberDocument);
+                return true;
+            };
+
+            _cosmosDbRepositoryMock.Verify(x => x.CreateAsync(It.Is<object>(arg => validate(arg))), Times.Once);
         }
 
         [Fact, IsUnit]
@@ -416,54 +284,59 @@ namespace CaptainHook.Storage.Cosmos.Tests
             _cosmosDbRepositoryMock.Verify(x => x.QueryAsync<dynamic>(It.IsAny<CosmosQuery>()));
         }
 
-        [Fact, IsUnit]
-        public async Task AddSubscriberAsync_WithErrorWhileSaving_ReturnsCannotSaveEntityError()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task AddSubscriberAsync_WithErrorWhileSaving_ReturnsCannotSaveEntityError(string httpVerb, AuthenticationEntity authenticationEntity, object authenticationSubdocument)
         {
             // Arrange
-            var subscriberDocument = new SubscriberDocument
-            {
-                SubscriberName = "subscriberName",
-                EventName = "eventName",
-                Webhooks = new WebhookSubdocument
-                {
-                    SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
-                }
-            };
-            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
+            var subscriberDocument = CreateSubscriberDocument(httpVerb, authenticationSubdocument);
+
+            var subscriberEntity = CreateSubscriberEntity(httpVerb, authenticationEntity);
+
             _cosmosDbRepositoryMock
                 .Setup(x => x.CreateAsync(It.IsAny<SubscriberDocument>()))
                 .ThrowsAsync(new CosmosException(string.Empty, System.Net.HttpStatusCode.Conflict, 0, string.Empty, 0));
 
             // Act
-            var result = await _repository.AddSubscriberAsync(subscriber);
+            var result = await _repository.AddSubscriberAsync(subscriberEntity);
 
             // Assert
             result.Error.Should().BeOfType<CannotSaveEntityError>();
         }
 
-        [Fact, IsUnit]
-        public async Task UpdateSubscriberAsync_WithValidSubscriber_CallsRepoWithCorrectDocument()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task AddSubscriberAsync_WithFullSubscriber_CallsRepoWithCorrectDocument(string httpVerb, AuthenticationEntity authenticationEntity, object authenticationSubdocument)
         {
             // Arrange            
-            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"), "version1");
-            var subscriberId = subscriber.Id.ToString();
-            var subscriberDocument = new SubscriberDocument
-            {
-                Id = subscriberId,
-                SubscriberName = "subscriberName",
-                EventName = "eventName",
-                Webhooks = new WebhookSubdocument
-                {
-                    SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
-                }
-            };
+            var subscriberDocument = CreateSubscriberDocument(httpVerb, authenticationSubdocument);
 
-            subscriber.AddWebhooks(new WebhooksEntity("rule", new List<EndpointEntity>()));
+            var subscriberEntity = CreateSubscriberEntity(httpVerb, authenticationEntity);
 
             // Act
-            await _repository.UpdateSubscriberAsync(subscriber);
+            await _repository.AddSubscriberAsync(subscriberEntity);
+
+            // Assert
+            Func<object, bool> validate = value =>
+            {
+                value.Should().BeEquivalentTo(subscriberDocument);
+                return true;
+            };
+
+            _cosmosDbRepositoryMock.Verify(x => x.CreateAsync(It.Is<object>(arg => validate(arg))), Times.Once);
+        }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task UpdateSubscriberAsync_WithValidSubscriber_CallsRepoWithCorrectDocument(string httpVerb, AuthenticationEntity authenticationEntity, object authenticationSubdocument)
+        {
+            // Arrange            
+            var subscriberDocument = CreateSubscriberDocument(httpVerb, authenticationSubdocument, "version1");
+
+            var subscriberEntity = CreateSubscriberEntity(httpVerb, authenticationEntity, "version1");
+
+            // Act
+            await _repository.UpdateSubscriberAsync(subscriberEntity);
 
             // Assert
             Func<object, bool> validate = value =>
@@ -473,7 +346,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
             };
 
             _cosmosDbRepositoryMock.Verify(x => x.ReplaceAsync(
-                subscriberId,
+                subscriberEntity.Id,
                 It.Is<object>(arg => validate(arg)),
                 "version1"), Times.Once);
         }
@@ -492,25 +365,16 @@ namespace CaptainHook.Storage.Cosmos.Tests
         public async Task UpdateSubscriberAsync_WithUnknownSubscriber_ThrowsCannotUpdateEntityError()
         {
             // Arrange
-            var subscriberDocument = new SubscriberDocument
-            {
-                Id = "eventName-subscriberName",
-                SubscriberName = "subscriberName",
-                EventName = "eventName",
-                Webhooks = new WebhookSubdocument
-                {
-                    SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
-                }
-            };
-            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
-            subscriber.AddWebhooks(new WebhooksEntity("rule"));
+            var subscriberDocument = CreateSubscriberDocument();
+
+            var subscriberEntity = CreateSubscriberEntity();
+
             _cosmosDbRepositoryMock
                 .Setup(x => x.ReplaceAsync(subscriberDocument.Id, subscriberDocument, null))
                 .ThrowsAsync(new MissingDocumentException());
 
             // Act
-            var result = await _repository.UpdateSubscriberAsync(subscriber);
+            var result = await _repository.UpdateSubscriberAsync(subscriberEntity);
 
             // Assert
             result.Error.Should().BeOfType<CannotUpdateEntityError>();
@@ -520,23 +384,16 @@ namespace CaptainHook.Storage.Cosmos.Tests
         public async Task UpdateSubscriberAsync_WithErrorWhileSaving_ReturnsCannotUpdateEntityError()
         {
             // Arrange
-            var subscriberDocument = new SubscriberDocument
-            {
-                SubscriberName = "subscriberName",
-                EventName = "eventName",
-                Webhooks = new WebhookSubdocument
-                {
-                    SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
-                }
-            };
-            var subscriber = new SubscriberEntity("subscriberName", new EventEntity("eventName"));
+            var subscriberDocument = CreateSubscriberDocument();
+
+            var subscriberEntity = CreateSubscriberEntity();
+
             _cosmosDbRepositoryMock
                 .Setup(x => x.CreateAsync(subscriberDocument))
                 .ThrowsAsync(new CosmosException(string.Empty, System.Net.HttpStatusCode.Conflict, 0, string.Empty, 0));
 
             // Act
-            var result = await _repository.UpdateSubscriberAsync(subscriber);
+            var result = await _repository.UpdateSubscriberAsync(subscriberEntity);
 
             // Assert
             result.Error.Should().BeOfType<CannotUpdateEntityError>();
@@ -556,23 +413,16 @@ namespace CaptainHook.Storage.Cosmos.Tests
         public async Task RemoveSubscriberAsync_WithUnknownSubscriber_ReturnsCannotDeleteEntityError()
         {
             // Arrange
-            var subscriberDocument = new SubscriberDocument
-            {
-                SubscriberName = "subscriberName",
-                EventName = "eventName",
-                Webhooks = new WebhookSubdocument
-                {
-                    SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
-                }
-            };
-            var subscriberId = new SubscriberId("eventName", "subscriberName");
+            var subscriberDocument = CreateSubscriberDocument();
+
+            var subscriberEntity = CreateSubscriberEntity();
+
             _cosmosDbRepositoryMock
                 .Setup(x => x.DeleteAsync<SubscriberDocument>(subscriberDocument.Id, subscriberDocument.Pk))
                 .ReturnsAsync(false);
 
             // Act
-            var result = await _repository.RemoveSubscriberAsync(subscriberId);
+            var result = await _repository.RemoveSubscriberAsync(subscriberEntity.Id);
 
             // Assert
             result.Error.Should().BeOfType<CannotDeleteEntityError>();
@@ -582,24 +432,16 @@ namespace CaptainHook.Storage.Cosmos.Tests
         public async Task RemoveSubscriberAsync_WithValidSubscriber_ReturnsNoError()
         {
             // Arrange
-            var subscriberDocument = new SubscriberDocument
-            {
-                Id = "eventName-subscriberName",
-                SubscriberName = "subscriberName",
-                EventName = "eventName",
-                Webhooks = new WebhookSubdocument
-                {
-                    SelectionRule = "rule",
-                    Endpoints = new EndpointSubdocument[] { }
-                }
-            };
-            var subscriberId = new SubscriberId("eventName", "subscriberName");
+            var subscriberDocument = CreateSubscriberDocument();
+
+            var subscriberEntity = CreateSubscriberEntity();
+
             _cosmosDbRepositoryMock
                 .Setup(x => x.DeleteAsync<SubscriberDocument>(subscriberDocument.Id, subscriberDocument.Pk))
                 .ReturnsAsync(true);
 
             // Act
-            var result = await _repository.RemoveSubscriberAsync(subscriberId);
+            var result = await _repository.RemoveSubscriberAsync(subscriberEntity.Id);
 
             // Assert
             result.IsError.Should().BeFalse();
