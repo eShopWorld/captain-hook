@@ -32,6 +32,11 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         public WebhooksEntity Webhooks { get; private set; }
 
+        /// <summary>
+        /// Collection of callback enpoints
+        /// </summary>
+        public WebhooksEntity Callbacks { get; private set; }
+
         public SubscriberEntity(string name, EventEntity parentEvent = null, string etag = null)
         {
             Name = name;
@@ -50,31 +55,69 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> SetWebhookEndpoint(EndpointEntity entity)
-            => OperationOnWebhooks(webhooks => webhooks.SetEndpoint(entity.SetParentSubscriber(this)));
+            => OperationOnWebhooks(() =>
+            {
+                if(Webhooks == null)
+                {
+                    Webhooks = new WebhooksEntity();
+                }
+                return Webhooks.SetEndpoint(entity.SetParentSubscriber(this));
+            });
 
         /// <summary>
         /// Removes the existing endpoint from the list if the item is present.
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveWebhookEndpoint(EndpointEntity entity)
-            => OperationOnWebhooks(webhooks => webhooks.RemoveEndpoint(entity));
+            => OperationOnWebhooks(() =>
+            {
+                if (Webhooks == null)
+                {
+                    Webhooks = new WebhooksEntity();
+                }
+                return Webhooks.RemoveEndpoint(entity);
+            });
 
-        private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<WebhooksEntity, OperationResult<WebhooksEntity>> funcToRun)
+        /// <summary>
+        /// Adds an endpoint to the list of callback endpoints if it is not on the list already.
+        /// Removes the existing endpoint and adds the new one to the list if the item is already present.
+        /// </summary>
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> SetCallbackEndpoint(EndpointEntity entity)
+            => OperationOnWebhooks(() =>
+            {
+                if (Callbacks == null)
+                {
+                    Callbacks = new WebhooksEntity();
+                }
+                return Callbacks.SetEndpoint(entity.SetParentSubscriber(this));
+            });
+
+        /// <summary>
+        /// Removes the existing endpoint from the list if the item is present.
+        /// </summary>
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> RemoveCallbackEndpoint(EndpointEntity entity)
+            => OperationOnWebhooks(() =>
+            {
+                if (Callbacks == null)
+                {
+                    Callbacks = new WebhooksEntity();
+                }
+                return Callbacks.RemoveEndpoint(entity);
+            });
+
+        private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<OperationResult<WebhooksEntity>> funcToRun)
         {
-            if (Webhooks == null)
-            {
-                Webhooks = new WebhooksEntity();
-            }
+            var result = funcToRun();
 
-            var webhooksResult = funcToRun(Webhooks);
-
-            if (webhooksResult.IsError)
+            if (result.IsError)
             {
-                return webhooksResult.Error switch
+                return result.Error switch
                 {
                     EndpointNotFoundInSubscriberError notFound => new EndpointNotFoundInSubscriberError(notFound.Selector, this),
                     CannotRemoveLastEndpointFromSubscriberError _ => new CannotRemoveLastEndpointFromSubscriberError(this),
-                    _ => webhooksResult.Error
+                    _ => result.Error
                 };
             }
 
@@ -89,6 +132,18 @@ namespace CaptainHook.Domain.Entities
             }
 
             Webhooks = new WebhooksEntity(webhooks.SelectionRule, webhooks.Endpoints, webhooks.UriTransform);
+
+            return this;
+        }
+
+        public SubscriberEntity AddCallbacks(WebhooksEntity callbacks)
+        {
+            foreach (var callbacksEndpoint in callbacks.Endpoints)
+            {
+                callbacksEndpoint.SetParentSubscriber(this);
+            }
+
+            Callbacks = new WebhooksEntity(callbacks.SelectionRule, callbacks.Endpoints, callbacks.UriTransform);
 
             return this;
         }
