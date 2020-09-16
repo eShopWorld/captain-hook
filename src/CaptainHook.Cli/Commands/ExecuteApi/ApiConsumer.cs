@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
 using CaptainHook.Cli.Commands.ExecuteApi.Models;
+using CaptainHook.Cli.Common;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using Microsoft.Rest;
@@ -36,7 +37,7 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
 
                 if (response.Response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    return new OperationResult<IEnumerable<HttpOperationResponse>>(new CliError(response.Response.ToString()));
+                    return new OperationResult<IEnumerable<HttpOperationResponse>>(new CliExecutionError(response.Response.ToString()));
                 }
 
                 responses.Add(response);

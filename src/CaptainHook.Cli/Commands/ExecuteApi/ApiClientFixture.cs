@@ -2,7 +2,6 @@
 using CaptainHook.Api.Client;
 using EShopworld.Security.Services.Testing.Settings;
 using EShopworld.Security.Services.Testing.Token;
-using Microsoft.Rest;
 
 namespace CaptainHook.Cli.Commands.ExecuteApi
 {

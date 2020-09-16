@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using CaptainHook.Cli.Commands.ExecuteApi.Models;
+using CaptainHook.Cli.Common;
 using CaptainHook.Domain.Results;
 using Newtonsoft.Json;
 
@@ -17,15 +18,15 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
             _fileSystem = fileSystem;
         }
 
-        public OperationResult<IEnumerable<PutSubscriberRequest>> ProcessDirectory(string inputFolderPath, string environmentName)
+        public OperationResult<IEnumerable<PutSubscriberFile>> ProcessDirectory(string inputFolderPath, string environmentName)
         {
             var sourceFolderPath = Path.GetFullPath(inputFolderPath);
             if (!_fileSystem.Directory.Exists(sourceFolderPath))
             {
-                return new CliError($"Cannot open {inputFolderPath}");
+                return new CliExecutionError($"Cannot open {inputFolderPath}");
             }
 
-            var subscribers = new List<PutSubscriberRequest>();
+            var subscribers = new List<PutSubscriberFile>();
 
             try
             {
@@ -34,12 +35,19 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
                 {
                     var content = _fileSystem.File.ReadAllText(fileName);
                     var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
-                    subscribers.Add(request);
+
+                    var file = new PutSubscriberFile
+                    {
+                        File = new FileInfo(fileName),
+                        Request = request
+                    };
+
+                    subscribers.Add(file);
                 }
             }
             catch (Exception e)
             {
-                return new CliError(e.ToString());
+                return new CliExecutionError(e.ToString());
             }
 
             return subscribers;
