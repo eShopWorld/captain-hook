@@ -33,7 +33,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
         private static readonly SubscriberBuilder DefaultSubscriberBuilder = new SubscriberBuilder().WithEvent("event")
             .WithName("subscriber")
-            .WithWebhookSelectionRule("$.Test")
+            .WithWebhooksSelectionRule("$.Test")
             .WithWebhook(
                 "https://blah.blah.eshopworld.com/oldwebhook/",
                 "POST",

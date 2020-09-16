@@ -13,7 +13,7 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Identifier
         /// </summary>
-        public string Id;
+        public string Id { get; set; }
 
         /// <summary>
         /// Type of the document.
@@ -40,6 +40,11 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// Webhooks
         /// </summary>
         public WebhookSubdocument Webhooks { get; set; }
+
+        /// <summary>
+        /// Callbacks
+        /// </summary>
+        public WebhookSubdocument Callbacks { get; set; }
 
         /// <summary>
         /// ETag of the document from Cosmos Db
