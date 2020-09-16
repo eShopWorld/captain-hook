@@ -9,7 +9,7 @@ using McMaster.Extensions.CommandLineUtils;
 
 namespace CaptainHook.Cli.Commands.ExecuteApi
 {
-    [Command("process-subscribers", Description = "Processes configuration in the provided location and calls Captain Hook API to create/update subscribers")]
+    [Command("configure-eda", Description = "Processes configuration in the provided location and calls Captain Hook API to create/update subscribers")]
     [HelpOption]
     public class ExecuteApiCommand
     {

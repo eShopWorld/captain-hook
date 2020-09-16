@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
 using CaptainHook.Cli.Commands.ExecuteApi.Models;
-using Castle.Core.Internal;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace CaptainHook.Cli.Commands.ExecuteApi
@@ -17,8 +16,8 @@ namespace CaptainHook.Cli.Commands.ExecuteApi
 
         public void OutputSubscribers(IEnumerable<PutSubscriberFile> subscriberFiles)
         {
-            var files = subscriberFiles?.ToImmutableArray();
-            if (files.IsNullOrEmpty())
+            var files = subscriberFiles?.ToArray();
+            if (files == null || !files.Any())
             {
                 _console.WriteLine("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
                 return;
