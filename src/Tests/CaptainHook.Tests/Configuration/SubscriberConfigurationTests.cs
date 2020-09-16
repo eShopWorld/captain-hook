@@ -3,6 +3,7 @@ using CaptainHook.Common.Configuration;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -31,6 +32,8 @@ namespace CaptainHook.Tests.Configuration
             var name = "sample-name";
             var eventType = "sample-event-type";
             var uri = "http://www.uri.com/sample/path";
+            var timeout = TimeSpan.FromMinutes(2);
+            var contentType = "application/json";
             var requestRules = new List<WebhookRequestRule>()
             {
                 new WebhookRequestRule()
@@ -76,7 +79,9 @@ namespace CaptainHook.Tests.Configuration
                 Uri = uri,
                 HttpVerb = httpVerb,
                 AuthenticationConfig = authenticationConfig,
-                WebhookRequestRules = requestRules
+                WebhookRequestRules = requestRules,
+                Timeout = timeout,
+                ContentType = contentType
             };
 
             var result = SubscriberConfiguration.FromWebhookConfig(webhookConfig);
@@ -88,6 +93,8 @@ namespace CaptainHook.Tests.Configuration
             result.HttpVerb.Should().Be(httpVerb);
             result.AuthenticationConfig.Should().Be(authenticationConfig);
             result.WebhookRequestRules.Should().BeEquivalentTo(requestRules);
+            result.Timeout.Should().Be(timeout);
+            result.ContentType.Should().Be(contentType);
         }
     }
 }

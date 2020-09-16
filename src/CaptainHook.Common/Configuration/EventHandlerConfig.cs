@@ -172,10 +172,8 @@ namespace CaptainHook.Common.Configuration
         {
             var subscriberConfiguration = FromWebhookConfig(webhookConfig);
 
-            subscriberConfiguration.ContentType = webhookConfig.ContentType;
             //for the legacy config, assume the legacy name as well
             subscriberConfiguration.SubscriberName = "captain-hook";
-            subscriberConfiguration.Timeout = webhookConfig.Timeout;
             subscriberConfiguration.Callback = callback;
             subscriberConfiguration.IsMainConfiguration = true;
             subscriberConfiguration.HeartBeatInterval = heartBeatInterval;
@@ -191,6 +189,8 @@ namespace CaptainHook.Common.Configuration
                 EventType = webhookConfig.EventType,
                 Uri = webhookConfig.Uri,
                 HttpVerb = webhookConfig.HttpVerb,
+                ContentType = webhookConfig.ContentType,
+                Timeout = webhookConfig.Timeout,
                 AuthenticationConfig = webhookConfig.AuthenticationConfig,
                 WebhookRequestRules = webhookConfig.WebhookRequestRules
             };
