@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
-using CaptainHook.Cli.Commands.ExecuteApi.Models;
+using CaptainHook.Cli.Commands.ConfigureEda.Models;
 using CaptainHook.Cli.Common;
 using CaptainHook.Domain.Results;
 using Newtonsoft.Json;
 
-namespace CaptainHook.Cli.Commands.ExecuteApi
+namespace CaptainHook.Cli.Commands.ConfigureEda
 {
     public class SubscribersDirectoryProcessor
     {

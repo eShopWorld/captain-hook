@@ -1,6 +1,6 @@
 ﻿using CaptainHook.Api.Client.Models;
 
-namespace CaptainHook.Cli.Commands.ExecuteApi.Models
+namespace CaptainHook.Cli.Commands.ConfigureEda.Models
 {
     public class PutSubscriberRequest
     {

@@ -3,7 +3,7 @@ using CaptainHook.Api.Client;
 using EShopworld.Security.Services.Testing.Settings;
 using EShopworld.Security.Services.Testing.Token;
 
-namespace CaptainHook.Cli.Commands.ExecuteApi
+namespace CaptainHook.Cli.Commands.ConfigureEda
 {
     public class ApiClientFixture
     {

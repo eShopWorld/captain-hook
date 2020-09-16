@@ -7,16 +7,16 @@ using CaptainHook.Api.Client;
 using CaptainHook.Cli.Extensions;
 using McMaster.Extensions.CommandLineUtils;
 
-namespace CaptainHook.Cli.Commands.ExecuteApi
+namespace CaptainHook.Cli.Commands.ConfigureEda
 {
     [Command("configure-eda", Description = "Processes configuration in the provided location and calls Captain Hook API to create/update subscribers")]
     [HelpOption]
-    public class ExecuteApiCommand
+    public class ConfigureEdaCommand
     {
         private readonly IFileSystem _fileSystem;
         private readonly ICaptainHookClient _captainHookClient;
 
-        public ExecuteApiCommand(IFileSystem fileSystem, ICaptainHookClient captainHookClient)
+        public ConfigureEdaCommand(IFileSystem fileSystem, ICaptainHookClient captainHookClient)
         {
             _fileSystem = fileSystem;
             _captainHookClient = captainHookClient;

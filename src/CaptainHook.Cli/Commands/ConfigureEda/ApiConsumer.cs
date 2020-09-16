@@ -4,15 +4,14 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
-using CaptainHook.Cli.Commands.ExecuteApi.Models;
+using CaptainHook.Cli.Commands.ConfigureEda.Models;
 using CaptainHook.Cli.Common;
-using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using Microsoft.Rest;
 using Polly;
 using Polly.Retry;
 
-namespace CaptainHook.Cli.Commands.ExecuteApi
+namespace CaptainHook.Cli.Commands.ConfigureEda
 {
     public class ApiConsumer
     {

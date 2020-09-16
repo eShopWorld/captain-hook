@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace CaptainHook.Cli.Commands.ExecuteApi.Models
+namespace CaptainHook.Cli.Commands.ConfigureEda.Models
 {
     public class PutSubscriberFile
     {

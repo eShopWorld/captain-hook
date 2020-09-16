@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CaptainHook.Cli.Commands.ExecuteApi.Models;
+using CaptainHook.Cli.Commands.ConfigureEda.Models;
 using McMaster.Extensions.CommandLineUtils;
 
-namespace CaptainHook.Cli.Commands.ExecuteApi
+namespace CaptainHook.Cli.Commands.ConfigureEda
 {
     public class ConsoleSubscriberWriter
     {

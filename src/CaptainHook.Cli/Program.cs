@@ -7,7 +7,7 @@ using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Reflection;
-using CaptainHook.Cli.Commands.ExecuteApi;
+using CaptainHook.Cli.Commands.ConfigureEda;
 
 namespace CaptainHook.Cli
 {
@@ -17,7 +17,7 @@ namespace CaptainHook.Cli
     [Command(Name = "ch", Description = "CaptainHook CLI")]
     [Subcommand(typeof(GenerateJsonCommand))]
     [Subcommand(typeof(GeneratePowerShellCommand))]
-    [Subcommand(typeof(ExecuteApiCommand))]
+    [Subcommand(typeof(ConfigureEdaCommand))]
     [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
     public class Program
     {
