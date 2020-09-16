@@ -12,7 +12,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _name = "event1";
         private string _subscriberName = "captain-hook";
         private string _uri = "https://blah.blah.eshopworld.com";
-        private HttpMethod _httpMethod = HttpMethod.Post;
+        private string _httpVerb = "POST";
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
         {
             Type = AuthenticationType.Basic,
@@ -62,26 +62,36 @@ namespace CaptainHook.TestsInfrastructure.Builders
 
         public SubscriberConfigurationBuilder WithOidcAuthentication()
         {
-            _authenticationConfig = new OidcAuthenticationConfig
+            return WithAuthentication(new OidcAuthenticationConfig
             {
                 Type = AuthenticationType.OIDC,
                 Uri = "https://blah-blah.sts.eshopworld.com",
                 ClientId = "ClientId",
                 ClientSecret = "ClientSecret",
                 Scopes = new[] { "scope1", "scope2" }
-            };
-
-            return this;
+            });
         }
 
         public SubscriberConfigurationBuilder WithBasicAuthentication()
         {
-            _authenticationConfig = new BasicAuthenticationConfig
+            return WithAuthentication(new BasicAuthenticationConfig
             {
                 Type = AuthenticationType.Basic,
                 Username = "username",
                 Password = "password",
-            };
+            });
+        }
+
+        public SubscriberConfigurationBuilder WithAuthentication(AuthenticationConfig authenticationConfig)
+        {
+            _authenticationConfig = authenticationConfig;
+
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithHttpVerb(string httpVerb)
+        {
+            _httpVerb = httpVerb;
 
             return this;
         }
@@ -132,7 +142,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
                 Name = _name,
                 EventType = _type,
                 SubscriberName = _subscriberName,
-                HttpMethod = _httpMethod,
+                HttpVerb = _httpVerb,
                 Uri = _uri,
                 AuthenticationConfig = _authenticationConfig,
                 Callback = _callback,
