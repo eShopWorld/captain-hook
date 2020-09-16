@@ -55,7 +55,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.IsAny<SubscriberId>()))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberEntity>());
+                .ReturnsAsync(new List<SubscriberConfiguration>());
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
 
@@ -82,7 +82,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriberEntity);
             _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberEntity>());
+                .ReturnsAsync(new List<SubscriberConfiguration>());
             _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
@@ -137,7 +137,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberEntity>());
+                .ReturnsAsync(new List<SubscriberConfiguration>());
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new BusinessError("test error"));
 

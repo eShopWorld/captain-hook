@@ -21,22 +21,22 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             _directorService = directorService;
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberEntity>>> CreateReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CreateReaderAsync(SubscriberEntity subscriber)
         {
             return await CallDirector(s => new CreateReader { Subscriber = s }, subscriber);
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberEntity>>> UpdateReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> UpdateReaderAsync(SubscriberEntity subscriber)
         {
             return await CallDirector(s => new UpdateReader { Subscriber = s }, subscriber);
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberEntity>>> DeleteReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> DeleteReaderAsync(SubscriberEntity subscriber)
         {
             return await CallDirector(s => new DeleteReader { Subscriber = s }, subscriber);
         }
 
-        private async Task<OperationResult<IEnumerable<SubscriberEntity>>> CallDirector(Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
+        private async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CallDirector(Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
         {
             var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberAsync(subscriber);
 
@@ -45,17 +45,15 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                 return subscriberConfigsResult.Error;
             }
 
-            var subscriberConfigs = new List<SubscriberEntity>();
-
             foreach (var subscriberConfig in subscriberConfigsResult.Data)
             {
                 var request = requestFunc(subscriberConfig);
                 var createReaderResult = await _directorService.ApplyReaderChange(request);
 
-                OperationResult<SubscriberEntity> operationResult = createReaderResult switch
+                OperationResult<SubscriberConfiguration> operationResult = createReaderResult switch
                 {
-                    ReaderChangeResult.Success => subscriber,
-                    ReaderChangeResult.NoChangeNeeded => subscriber,
+                    ReaderChangeResult.Success => subscriberConfig,
+                    ReaderChangeResult.NoChangeNeeded => subscriberConfig,
                     ReaderChangeResult.CreateFailed => new ReaderCreateError(subscriber),
                     ReaderChangeResult.DeleteFailed => new ReaderDeleteError(subscriber),
                     ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
@@ -68,11 +66,9 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                 {
                     return operationResult.Error;
                 }
-
-                subscriberConfigs.Add(operationResult.Data);
             }
 
-            return subscriberConfigs;
+            return subscriberConfigsResult;
         }
     }
 }

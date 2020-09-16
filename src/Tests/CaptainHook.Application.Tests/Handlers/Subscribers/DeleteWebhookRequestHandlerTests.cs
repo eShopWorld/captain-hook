@@ -7,6 +7,7 @@ using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
@@ -83,7 +84,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                .ReturnsAsync(subscriber);
             _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberEntity>());
+                .ReturnsAsync(new List<SubscriberConfiguration>());
             _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.Is<SubscriberEntity>(x => x.Id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriber);            
         }
@@ -198,7 +199,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(subscriberEntity);
             _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(subscriberEntity);
-            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(new List<SubscriberEntity>());
+            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(new List<SubscriberConfiguration>());
 
             _entityToDtoMapper.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>()))
                 .Returns(new SubscriberDto

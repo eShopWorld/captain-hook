@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Results;
 
@@ -20,7 +21,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// ReaderAlreadyExistsError if reader can't be crated because it already exists
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// </returns>
-        Task<OperationResult<IEnumerable<SubscriberEntity>>> CreateReaderAsync(SubscriberEntity subscriber);
+        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CreateReaderAsync(SubscriberEntity subscriber);
 
         /// <summary>
         /// Updates reader service for the given subscriber.
@@ -34,7 +35,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// ReaderDoesNotExistError if reader can't be deleted because it doesn't exist
         /// </returns>
-        Task<OperationResult<IEnumerable<SubscriberEntity>>> UpdateReaderAsync(SubscriberEntity subscriber);
+        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> UpdateReaderAsync(SubscriberEntity subscriber);
 
         /// <summary>
         /// Deletes reader service for the given subscriber.
@@ -46,6 +47,6 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// ReaderDoesNotExistError if reader can't be deleted because it doesn't exist
         /// </returns>
-        Task<OperationResult<IEnumerable<SubscriberEntity>>> DeleteReaderAsync(SubscriberEntity subscriber);
+        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> DeleteReaderAsync(SubscriberEntity subscriber);
     }
 }
