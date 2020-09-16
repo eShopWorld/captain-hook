@@ -21,7 +21,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapSubscriberAsync(SubscriberEntity entity)
         {
-            var webhooksResult = await MapWebhooksAsync(entity, entity.Webhooks);
+            var webhooksResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.Webhooks);
             if (webhooksResult.IsError)
             {
                 return webhooksResult.Error;
@@ -32,7 +32,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
             if (entity.Callbacks != null)
             {
-                var callbackResult = await MapWebhooksAsync(entity, entity.Callbacks);
+                var callbackResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.Callbacks);
                 if (callbackResult.IsError)
                 {
                     return callbackResult.Error;
@@ -43,21 +43,21 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             return new SubscriberConfiguration[] { subscriberConfiguration };
         }
 
-        private async Task<OperationResult<WebhookConfig>> MapWebhooksAsync(SubscriberEntity subscriberEntity, WebhooksEntity webhooksEntity)
+        private async Task<OperationResult<WebhookConfig>> MapWebhooksAsync(string name, string eventType, WebhooksEntity webhooksEntity)
         {
             if (string.IsNullOrEmpty(webhooksEntity?.SelectionRule) &&
                 webhooksEntity?.Endpoints?.Count() == 1 &&
                 webhooksEntity?.UriTransform == null)
             {
-                return await MapSingleWebhookWithNoUriTransformAsync(subscriberEntity, webhooksEntity);
+                return await MapSingleWebhookWithNoUriTransformAsync(name, eventType, webhooksEntity);
             }
             else
             {
-                return await MapForUriTransformAsync(subscriberEntity, webhooksEntity);
+                return await MapForUriTransformAsync(name, eventType, webhooksEntity);
             }
         }
 
-        private async Task<OperationResult<WebhookConfig>> MapSingleWebhookWithNoUriTransformAsync(SubscriberEntity subscriberEntity, WebhooksEntity webhooksEntity)
+        private async Task<OperationResult<WebhookConfig>> MapSingleWebhookWithNoUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
         {
             var authenticationResult = await MapAuthenticationAsync(webhooksEntity?.Endpoints?.FirstOrDefault()?.Authentication);
 
@@ -68,15 +68,15 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
             return new WebhookConfig
             {
-                Name = subscriberEntity.Id,
-                EventType = subscriberEntity.ParentEvent.Name,
+                Name = name,
+                EventType = eventType,
                 Uri = webhooksEntity?.Endpoints?.FirstOrDefault()?.Uri,
                 HttpVerb = webhooksEntity?.Endpoints?.FirstOrDefault()?.HttpVerb,
                 AuthenticationConfig = authenticationResult.Data,
             };
         }
 
-        private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(SubscriberEntity subscriberEntity, WebhooksEntity webhooksEntity)
+        private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
         {
             var replacements = webhooksEntity.UriTransform?.Replace ?? new Dictionary<string, string>();
 
@@ -94,8 +94,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
             return new WebhookConfig
             {
-                Name = subscriberEntity.Id,
-                EventType = subscriberEntity.ParentEvent.Name,
+                Name = name,
+                EventType = eventType,
                 WebhookRequestRules = new List<WebhookRequestRule>
                 {
                     new WebhookRequestRule
@@ -200,37 +200,5 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 return new MappingError($"Cannot retrieve Password from a Key Name '{authenticationEntity.PasswordKeyName}'.");
             }
         }
-
-        //private WebhookConfig MapCallback(SubscriberModel cosmosModel)
-        //{
-        //    var endpoint = cosmosModel?.Callbacks?.Endpoints.FirstOrDefault();
-        //    if (endpoint == null)
-        //        return null;
-
-        //    return new WebhookConfig()
-        //    {
-        //        Name = cosmosModel.Name,
-        //        Uri = endpoint.Uri,
-        //        HttpVerb = endpoint.HttpVerb,
-        //        AuthenticationConfig = MapAuthentication(endpoint.Authentication),
-        //        EventType = cosmosModel.ParentEvent.Name,
-        //    };
-        //}
-
-        //private SubscriberConfiguration MapDlq(SubscriberModel cosmosModel)
-        //{
-        //    var endpoint = cosmosModel?.Dlq?.Endpoints.FirstOrDefault();
-        //    if (endpoint == null)
-        //        return null;
-
-        //    return new SubscriberConfiguration
-        //    {
-        //        Name = cosmosModel.Name,
-        //        Uri = endpoint.Uri,
-        //        HttpVerb = endpoint.HttpVerb,
-        //        AuthenticationConfig = MapAuthentication(endpoint.Authentication),
-        //        DLQMode = SubscriberDlqMode.WebHookMode,
-        //    };
-        //}
     }
 }
