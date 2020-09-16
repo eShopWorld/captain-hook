@@ -170,21 +170,17 @@ namespace CaptainHook.Common.Configuration
         /// <returns>The subscriber configuration consisting of the webhook configuration and its callback.</returns>
         public static SubscriberConfiguration FromWebhookConfig(WebhookConfig webhookConfig, WebhookConfig callback, string heartBeatInterval)
         {
-            return new SubscriberConfiguration
-            {
-                AuthenticationConfig = webhookConfig.AuthenticationConfig,
-                HttpMethod = webhookConfig.HttpMethod,
-                EventType = webhookConfig.EventType,
-                ContentType = webhookConfig.ContentType,
-                Name = webhookConfig.Name,
-                SubscriberName = "captain-hook", //for the legacy config, assume the legacy name as well
-                Timeout = webhookConfig.Timeout,
-                Uri = webhookConfig.Uri,
-                WebhookRequestRules = webhookConfig.WebhookRequestRules,
-                Callback = callback,
-                IsMainConfiguration = true,
-                HeartBeatInterval = heartBeatInterval
-            };
+            var subscriberConfiguration = FromWebhookConfig(webhookConfig);
+
+            subscriberConfiguration.ContentType = webhookConfig.ContentType;
+            //for the legacy config, assume the legacy name as well
+            subscriberConfiguration.SubscriberName = "captain-hook";
+            subscriberConfiguration.Timeout = webhookConfig.Timeout;
+            subscriberConfiguration.Callback = callback;
+            subscriberConfiguration.IsMainConfiguration = true;
+            subscriberConfiguration.HeartBeatInterval = heartBeatInterval;
+
+            return subscriberConfiguration;
         }
 
         public static SubscriberConfiguration FromWebhookConfig(WebhookConfig webhookConfig)
