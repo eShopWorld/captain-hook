@@ -77,6 +77,26 @@ namespace CaptainHook.Domain.Tests.Entities
                 options => options.IgnoringCyclicReferences());
         }
 
+
+        //TODO:
+        // tests for removing webhook
+        // tests for callback operations
+
+
+        //[Fact, IsUnit]
+        //public void RemoveCallbackEndpoint_WhenOnlyOneEndpointExists_ThenCannotRemoveLastEndpointFromSubscriberErrorIsReturned()
+        //{
+        //    var subscriber = new SubscriberEntity("testName");
+        //    var endpoint = new EndpointEntity("uri", null, "POST", "*");
+        //    subscriber.SetCallbackEndpoint(endpoint);
+
+        //    var result = subscriber.RemoveCallbackEndpoint(endpoint);
+        //    result.IsError.Should().BeTrue();
+        //    result.Error.Should().BeOfType<CannotRemoveLastEndpointFromSubscriberError>();
+        //}
+
+
+
         [Fact, IsUnit]
         public void SetDlqEndpoint_WhenSettingFirstEndpoint_ThenAdded()
         {
@@ -98,9 +118,9 @@ namespace CaptainHook.Domain.Tests.Entities
             subscriber.AddDlq(new WebhooksEntity("$.Test", new[] { endpoint }));
 
             var newEndpoint = new EndpointEntity("new-uri", null, "POST", "sel");
-            SubscriberEntity result = subscriber.SetDlqEndpoint(newEndpoint);
+            var result = subscriber.SetDlqEndpoint(newEndpoint);
 
-            result.Dlq.Endpoints.Should().BeEquivalentTo(
+            result.Data.Dlq.Endpoints.Should().BeEquivalentTo(
                 new[] { endpoint, newEndpoint },
                 options => options.IgnoringCyclicReferences());
         }
@@ -113,15 +133,16 @@ namespace CaptainHook.Domain.Tests.Entities
             subscriber.SetDlqEndpoint(endpoint);
 
             var newEndpoint = new EndpointEntity("uri", null, "PUT", "*");
-            SubscriberEntity result = subscriber.SetDlqEndpoint(newEndpoint);
+            var result = subscriber.SetDlqEndpoint(newEndpoint);
 
-            result.Dlq.Endpoints.Should().BeEquivalentTo(
+            result.Data.Dlq.Endpoints.Should().BeEquivalentTo(
                 new[] { newEndpoint },
                 options => options.IgnoringCyclicReferences());
         }
 
+
         [Fact, IsUnit]
-        public void RemoveDlqEndpoint_WhenEndpointExists_ThenIsRemoved()
+        public void RemoveDlqEndpoint_WhenTwoEndpointsAreDefined_ThenOneIsRemoved()
         {
             var subscriber = new SubscriberEntity("testName");
             var endpoint = new EndpointEntity("uri", null, "POST", "*");
@@ -129,23 +150,23 @@ namespace CaptainHook.Domain.Tests.Entities
             var newEndpoint = new EndpointEntity("new-uri", null, "POST", "sel");
             subscriber.SetDlqEndpoint(newEndpoint);
 
-            SubscriberEntity result = subscriber.RemoveDlqEndpoint(newEndpoint);
+            var result = subscriber.RemoveDlqEndpoint(newEndpoint);
 
-            result.Dlq.Endpoints.Should().BeEquivalentTo(
+            result.Data.Dlq.Endpoints.Should().BeEquivalentTo(
                 new[] { endpoint },
                 options => options.IgnoringCyclicReferences());
         }
 
         [Fact, IsUnit]
-        public void RemoveDlqEndpoint_WhenOnlyOneEndpointExists_ThenCannotRemoveLastEndpointFromSubscriberErrorIsReturned()
+        public void RemoveDlqEndpoint_WhenOnlyOneEndpointDefined_ThenIsRemoved()
         {
             var subscriber = new SubscriberEntity("testName");
             var endpoint = new EndpointEntity("uri", null, "POST", "*");
             subscriber.SetDlqEndpoint(endpoint);
 
             var result = subscriber.RemoveDlqEndpoint(endpoint);
-            result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<CannotRemoveLastEndpointFromSubscriberError>();
+
+            result.Data.Dlq.Endpoints.Should().BeEmpty();
         }
 
         [Fact, IsUnit]
@@ -158,6 +179,19 @@ namespace CaptainHook.Domain.Tests.Entities
             subscriber.SetDlqEndpoint(newEndpoint);
 
             var result = subscriber.RemoveDlqEndpoint(new EndpointEntity("uri", null, "POST", "custom"));
+
+            result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>();
+        }
+
+        [Fact, IsUnit]
+        public void RemoveDlqEndpoint_WhenListIsNull_ThenEndpointNotFoundInSubscriberErrorIsReturned()
+        {
+            var subscriber = new SubscriberEntity("testName");
+            var endpoint = new EndpointEntity("uri", null, "POST", "*");
+
+            var result = subscriber.RemoveDlqEndpoint(endpoint);
+
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>();
         }

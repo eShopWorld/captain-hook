@@ -66,6 +66,7 @@ namespace CaptainHook.Domain.Entities
                 {
                     Webhooks = new WebhooksEntity();
                 }
+
                 return Webhooks.SetEndpoint(entity.SetParentSubscriber(this));
             });
 
@@ -80,6 +81,7 @@ namespace CaptainHook.Domain.Entities
                 {
                     Webhooks = new WebhooksEntity();
                 }
+
                 return Webhooks.RemoveEndpoint(entity);
             });
 
@@ -119,15 +121,13 @@ namespace CaptainHook.Domain.Entities
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> SetDlqEndpoint(EndpointEntity entity)
         {
-            return OperationOnWebhooks(() =>
+            if (Dlq == null)
             {
-                if (Dlq == null)
-                {
-                    Dlq = new WebhooksEntity();
-                }
+                Dlq = new WebhooksEntity();
+            }
 
-                return Dlq.SetEndpoint(entity.SetParentSubscriber(this));
-            });
+            return Dlq.SetEndpoint(entity.SetParentSubscriber(this))
+                .Map(_ => this);
         }
 
         /// <summary>
@@ -135,15 +135,10 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveDlqEndpoint(EndpointEntity entity)
-            => OperationOnWebhooks(() =>
-            {
-                if (Dlq == null)
-                {
-                    Dlq = new WebhooksEntity();
-                }
-
-                return Dlq.RemoveEndpoint(entity);
-            });
+        {
+            return Dlq?.RemoveEndpoint(entity)
+                .Map(_ => this);
+        }
 
         private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<OperationResult<WebhooksEntity>> funcToRun)
         {
