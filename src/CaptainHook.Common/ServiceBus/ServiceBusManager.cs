@@ -12,7 +12,6 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Rest;
-using Nito.AsyncEx;
 using Polly;
 using Polly.Retry;
 using ISubscription = Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription;
