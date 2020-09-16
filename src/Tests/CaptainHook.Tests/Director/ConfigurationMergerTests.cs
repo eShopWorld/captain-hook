@@ -26,6 +26,7 @@ namespace CaptainHook.Tests.Director
             Username = "username",
             Password = "password"
         };
+
         private static readonly OidcAuthenticationConfig OidcAuthenticationConfig = new OidcAuthenticationConfig
         {
             ClientId = "captain-hook-id",

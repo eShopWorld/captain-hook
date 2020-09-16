@@ -62,28 +62,24 @@ namespace CaptainHook.TestsInfrastructure.Builders
 
         public SubscriberConfigurationBuilder WithOidcAuthentication()
         {
-            _authenticationConfig = new OidcAuthenticationConfig
+            return WithAuthentication(new OidcAuthenticationConfig
             {
                 Type = AuthenticationType.OIDC,
                 Uri = "https://blah-blah.sts.eshopworld.com",
                 ClientId = "ClientId",
                 ClientSecret = "ClientSecret",
                 Scopes = new[] { "scope1", "scope2" }
-            };
-
-            return this;
+            });
         }
 
         public SubscriberConfigurationBuilder WithBasicAuthentication()
         {
-            _authenticationConfig = new BasicAuthenticationConfig
+            return WithAuthentication(new BasicAuthenticationConfig
             {
                 Type = AuthenticationType.Basic,
                 Username = "username",
                 Password = "password",
-            };
-
-            return this;
+            });
         }
 
         public SubscriberConfigurationBuilder WithAuthentication(AuthenticationConfig authenticationConfig)
