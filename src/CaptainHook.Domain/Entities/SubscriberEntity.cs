@@ -28,14 +28,19 @@ namespace CaptainHook.Domain.Entities
         public EventEntity ParentEvent { get; private set; }
 
         /// <summary>
-        /// Collection of webhook enpoints
+        /// Collection of webhook endpoints
         /// </summary>
         public WebhooksEntity Webhooks { get; private set; }
 
         /// <summary>
-        /// Collection of callback enpoints
+        /// Collection of callback endpoints
         /// </summary>
         public WebhooksEntity Callbacks { get; private set; }
+
+        /// <summary>
+        /// Collection of DLQ endpoints
+        /// </summary>
+        public WebhooksEntity Dlq { get; private set; }
 
         public SubscriberEntity(string name, EventEntity parentEvent = null, string etag = null)
         {
@@ -57,7 +62,7 @@ namespace CaptainHook.Domain.Entities
         public OperationResult<SubscriberEntity> SetWebhookEndpoint(EndpointEntity entity)
             => OperationOnWebhooks(() =>
             {
-                if(Webhooks == null)
+                if (Webhooks == null)
                 {
                     Webhooks = new WebhooksEntity();
                 }
@@ -94,7 +99,7 @@ namespace CaptainHook.Domain.Entities
             });
 
         /// <summary>
-        /// Removes the existing endpoint from the list if the item is present.
+        /// Removes the existing callback endpoint from the list if the item is present.
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveCallbackEndpoint(EndpointEntity entity)
@@ -105,6 +110,39 @@ namespace CaptainHook.Domain.Entities
                     Callbacks = new WebhooksEntity();
                 }
                 return Callbacks.RemoveEndpoint(entity);
+            });
+
+        /// <summary>
+        /// Adds an endpoint to the list of DLQ endpoints if it is not on the list already.
+        /// Removes the existing endpoint and adds the new one to the list if the item is already present.
+        /// </summary>
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> SetDlqEndpoint(EndpointEntity entity)
+        {
+            return OperationOnWebhooks(() =>
+            {
+                if (Dlq == null)
+                {
+                    Dlq = new WebhooksEntity();
+                }
+
+                return Dlq.SetEndpoint(entity.SetParentSubscriber(this));
+            });
+        }
+
+        /// <summary>
+        /// Removes the existing DLQ endpoint from the list if the item is present.
+        /// </summary>
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> RemoveDlqEndpoint(EndpointEntity entity)
+            => OperationOnWebhooks(() =>
+            {
+                if (Dlq == null)
+                {
+                    Dlq = new WebhooksEntity();
+                }
+
+                return Dlq.RemoveEndpoint(entity);
             });
 
         private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<OperationResult<WebhooksEntity>> funcToRun)
@@ -144,6 +182,18 @@ namespace CaptainHook.Domain.Entities
             }
 
             Callbacks = new WebhooksEntity(callbacks.SelectionRule, callbacks.Endpoints, callbacks.UriTransform);
+
+            return this;
+        }
+
+        public SubscriberEntity AddDlq(WebhooksEntity dlq)
+        {
+            foreach (var callbacksEndpoint in dlq.Endpoints)
+            {
+                callbacksEndpoint.SetParentSubscriber(this);
+            }
+
+            Dlq = dlq;
 
             return this;
         }
