@@ -105,8 +105,6 @@ namespace CaptainHook.DirectorService
                     .As<IMessageProviderFactory>()
                     .SingleInstance();
 
-                builder.ConfigureServiceBusManager(configurationSettings);
-
                 builder.RegisterType<ServiceBusManager>()
                     .As<IServiceBusManager>();
 
