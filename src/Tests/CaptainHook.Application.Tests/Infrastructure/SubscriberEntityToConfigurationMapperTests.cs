@@ -86,10 +86,9 @@ namespace CaptainHook.Application.Tests.Infrastructure
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
+
                 result.Data.Should().HaveCount(1);
-
                 var subscriberConfiguration = result.Data.Single();
-
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -125,8 +124,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().HaveCount(1);
 
+                result.Data.Should().HaveCount(1);
                 var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
@@ -169,8 +168,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().HaveCount(1);
 
+                result.Data.Should().HaveCount(1);
                 var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
@@ -214,8 +213,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().HaveCount(1);
 
+                result.Data.Should().HaveCount(1);
                 var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
@@ -256,8 +255,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().HaveCount(1);
 
+                result.Data.Should().HaveCount(1);
                 var subscriberConfiguration = result.Data.Single();
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
@@ -305,13 +304,11 @@ namespace CaptainHook.Application.Tests.Infrastructure
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.First().AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
-
-                result.Data.Should().HaveCount(1)
-                    .And.Subject.First().WebhookRequestRules.Should().HaveCount(1)
-                    .And.Subject.First().Should().BeEquivalentTo(
-                        webhookRequestRule,
-                        opt => opt.Including(x => x.Source.Replace));
+                result.Data.Should().HaveCount(1);
+                var subscriberConfiguration = result.Data.Single();
+                subscriberConfiguration.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
+                subscriberConfiguration.WebhookRequestRules.Should().HaveCount(1);
+                subscriberConfiguration.WebhookRequestRules.First().Should().BeEquivalentTo(webhookRequestRule, opt => opt.Including(x => x.Source.Replace));
             }
         }
 
