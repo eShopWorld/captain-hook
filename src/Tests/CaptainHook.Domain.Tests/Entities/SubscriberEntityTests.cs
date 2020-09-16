@@ -116,13 +116,103 @@ namespace CaptainHook.Domain.Tests.Entities
             result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>().Which.Message.Should().Contain(subscriber.Id);
         }
 
+        [Fact, IsUnit]
+        public void SetCallbacksEndpoint_WhenSingleEndpointAdded_EndpointOnList()
+        {
+            var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
 
-        //TODO:
-        // tests for callback operations
+            var newEndpoint = new EndpointEntity("new-uri", null, "POST", "*");
+            SubscriberEntity result = subscriber.SetCallbackEndpoint(newEndpoint);
 
+            result.Callbacks.Endpoints.Should().BeEquivalentTo(
+                new[] { newEndpoint },
+                options => options.IgnoringCyclicReferences());
+        }
 
+        [Fact, IsUnit]
+        public void SetCallbacksEndpoint_WhenMultipleEndpointsAdded_EndpointsOnList()
+        {
+            var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
+            var endpoint = new EndpointEntity("uri", null, "POST", "*");
+            subscriber.AddCallbacks(new WebhooksEntity("$.Test", new[] { endpoint }));
 
+            var newEndpoint = new EndpointEntity("new-uri", null, "POST", "sel");
+            var result = subscriber.SetCallbackEndpoint(newEndpoint);
 
+            result.Data.Callbacks.Endpoints.Should().BeEquivalentTo(
+                new[] { endpoint, newEndpoint },
+                options => options.IgnoringCyclicReferences());
+        }
+
+        [Fact, IsUnit]
+        public void SetCallbacksEndpoint_WhenAlreadyExist_ThenUpdatedOnList()
+        {
+            var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
+            var endpoint = new EndpointEntity("uri", null, "POST", "*");
+            subscriber.SetCallbackEndpoint(endpoint);
+
+            var newEndpoint = new EndpointEntity("uri", null, "PUT", "*");
+            var result = subscriber.SetCallbackEndpoint(newEndpoint);
+
+            result.Data.Callbacks.Endpoints.Should().BeEquivalentTo(
+                new[] { newEndpoint },
+                options => options.IgnoringCyclicReferences());
+        }
+
+        [Fact, IsUnit]
+        public void RemoveCallbacksEndpoint_WhenTwoEndpointsAreDefined_ThenOneIsRemoved()
+        {
+            var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
+            var endpoint = new EndpointEntity("uri", null, "POST", "*");
+            subscriber.AddCallbacks(new WebhooksEntity("$.Test", new[] { endpoint }, null));
+            var newEndpoint = new EndpointEntity("new-uri", null, "POST", "sel");
+            subscriber.SetCallbackEndpoint(newEndpoint);
+
+            var result = subscriber.RemoveCallbackEndpoint(newEndpoint);
+
+            result.Data.Callbacks.Endpoints.Should().BeEquivalentTo(
+                new[] { endpoint },
+                options => options.IgnoringCyclicReferences());
+        }
+
+        [Fact(Skip = "not fixed yet"), IsUnit]
+        public void RemoveCallbacksEndpoint_WhenOnlyOneEndpointDefined_ThenIsRemoved()
+        {
+            var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
+            var endpoint = new EndpointEntity("uri", null, "POST", "*");
+            subscriber.SetCallbackEndpoint(endpoint);
+
+            var result = subscriber.RemoveCallbackEndpoint(endpoint);
+
+            result.Data.Callbacks.Endpoints.Should().BeEmpty();
+        }
+
+        [Fact(Skip = "not fixed yet"), IsUnit]
+        public void RemoveCallbacksEndpoint_WhenEndpointDoesNotExists_ThenEndpointNotFoundInSubscriberErrorIsReturned()
+        {
+            var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
+            var endpoint = new EndpointEntity("uri", null, "POST", "*");
+            subscriber.AddCallbacks(new WebhooksEntity("$.Test", new[] { endpoint }));
+            var newEndpoint = new EndpointEntity("new-uri", null, "POST", "sel");
+            subscriber.SetCallbackEndpoint(newEndpoint);
+
+            var result = subscriber.RemoveCallbackEndpoint(new EndpointEntity("uri", null, "POST", "custom"));
+
+            result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>();
+        }
+
+        [Fact(Skip = "not fixed yet"), IsUnit]
+        public void RemoveCallbacksEndpoint_WhenListIsNull_ThenEndpointNotFoundInSubscriberErrorIsReturned()
+        {
+            var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
+            var endpoint = new EndpointEntity("uri", null, "POST", "*");
+
+            var result = subscriber.RemoveCallbackEndpoint(endpoint);
+
+            result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>();
+        }
 
         [Fact, IsUnit]
         public void SetDlqEndpoint_WhenSingleEndpointAdded_EndpointOnList()
@@ -166,7 +256,6 @@ namespace CaptainHook.Domain.Tests.Entities
                 new[] { newEndpoint },
                 options => options.IgnoringCyclicReferences());
         }
-
 
         [Fact, IsUnit]
         public void RemoveDlqEndpoint_WhenTwoEndpointsAreDefined_ThenOneIsRemoved()
