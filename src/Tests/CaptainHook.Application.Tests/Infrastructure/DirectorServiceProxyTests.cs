@@ -36,7 +36,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
 
             result.IsError.Should().BeFalse();
-            result.Data.Should().BeTrue();
+            result.Data.Should().NotBeNullOrEmpty();
         }
 
         [Fact, IsUnit]
