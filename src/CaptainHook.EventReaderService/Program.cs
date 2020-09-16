@@ -29,7 +29,6 @@ namespace CaptainHook.EventReaderService
                 var builder = new ContainerBuilder();
                 builder.RegisterInstance(configurationSettings).SingleInstance();
                 builder.RegisterType<MessageProviderFactory>().As<IMessageProviderFactory>().SingleInstance();
-                builder.ConfigureServiceBusManager(configurationSettings);
                 builder.RegisterType<ServiceBusManager>().As<IServiceBusManager>();
 
                 //SF Deps

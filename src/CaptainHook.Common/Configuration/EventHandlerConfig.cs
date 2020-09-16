@@ -170,20 +170,29 @@ namespace CaptainHook.Common.Configuration
         /// <returns>The subscriber configuration consisting of the webhook configuration and its callback.</returns>
         public static SubscriberConfiguration FromWebhookConfig(WebhookConfig webhookConfig, WebhookConfig callback, string heartBeatInterval)
         {
+            var subscriberConfiguration = FromWebhookConfig(webhookConfig);
+
+            //for the legacy config, assume the legacy name as well
+            subscriberConfiguration.SubscriberName = "captain-hook";
+            subscriberConfiguration.Callback = callback;
+            subscriberConfiguration.IsMainConfiguration = true;
+            subscriberConfiguration.HeartBeatInterval = heartBeatInterval;
+
+            return subscriberConfiguration;
+        }
+
+        public static SubscriberConfiguration FromWebhookConfig(WebhookConfig webhookConfig)
+        {
             return new SubscriberConfiguration
             {
-                AuthenticationConfig = webhookConfig.AuthenticationConfig,
-                HttpMethod = webhookConfig.HttpMethod,
-                EventType = webhookConfig.EventType,
-                ContentType = webhookConfig.ContentType,
                 Name = webhookConfig.Name,
-                SubscriberName = "captain-hook", //for the legacy config, assume the legacy name as well
-                Timeout = webhookConfig.Timeout,
+                EventType = webhookConfig.EventType,
                 Uri = webhookConfig.Uri,
-                WebhookRequestRules = webhookConfig.WebhookRequestRules,
-                Callback = callback,
-                IsMainConfiguration = true,
-                HeartBeatInterval = heartBeatInterval
+                HttpVerb = webhookConfig.HttpVerb,
+                ContentType = webhookConfig.ContentType,
+                Timeout = webhookConfig.Timeout,
+                AuthenticationConfig = webhookConfig.AuthenticationConfig,
+                WebhookRequestRules = webhookConfig.WebhookRequestRules
             };
         }
 

@@ -565,46 +565,6 @@ namespace CaptainHook.Application.Tests.Infrastructure
             }
         }
 
-        [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_NoSelectionRuleOnCallback_MapsFromFirstEndpoint(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
-        {
-            // Arrange
-            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
-            var subscriber = new SubscriberBuilder()
-                .WithWebhooksUriTransform(uriTransform)
-                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
-                .WithCallbacksUriTransform(uriTransform)
-                .WithCallback("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
-                .Create();
-
-            // Act
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
-
-            // Assert
-            var webhookRequestRule = new WebhookRequestRule
-            {
-                Source = new SourceParserLocation
-                {
-                    Replace = new Dictionary<string, string>
-                    {
-                        { "selector", "$.Test" }
-                    }
-                }
-            };
-
-            using (new AssertionScope())
-            {
-                result.IsError.Should().BeFalse();
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
-                subscriberConfiguration.Callback.Should().NotBeNull();
-                subscriberConfiguration.Callback.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
-                subscriberConfiguration.Callback.WebhookRequestRules.Should().HaveCount(1);
-                subscriberConfiguration.Callback.WebhookRequestRules.First().Should().BeEquivalentTo(webhookRequestRule, opt => opt.Including(x => x.Source.Replace));
-            }
-        }
-
         [Fact]
         [IsUnit]
         public async Task MapSubscriberAsync_InvalidSecretKey_ReturnsError()
