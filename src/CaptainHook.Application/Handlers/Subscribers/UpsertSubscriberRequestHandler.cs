@@ -104,6 +104,12 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 subscriberEntity.SetHooks(callbacks);
             }
 
+            if (request.Subscriber.DlqHooks?.Endpoints?.Count > 0)
+            {
+                var dlqHooks = _dtoToEntityMapper.MapWebooks(request.Subscriber.DlqHooks, WebhooksEntityType.DlqHooks);
+                subscriberEntity.SetHooks(dlqHooks);
+            }
+
             return subscriberEntity;
         }
     }
