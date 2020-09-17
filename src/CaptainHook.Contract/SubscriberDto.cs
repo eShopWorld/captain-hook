@@ -6,6 +6,6 @@
 
         public WebhooksDto Callbacks { get; set; }
         
-        public WebhooksDto Dlq { get; set; }
+        public WebhooksDto DlqHooks { get; set; }
     }
 }

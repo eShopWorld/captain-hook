@@ -94,7 +94,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         [Fact, IsUnit]
         public void When_DlqIsEmpty_Then_NoFailuresReturned()
         {
-            var dto = new SubscriberDtoBuilder().With(x => x.Dlq, null).Create();
+            var dto = new SubscriberDtoBuilder().With(x => x.DlqHooks, null).Create();
             var request = new UpsertSubscriberRequest("event", "subscriber", dto);
 
             var result = _validator.TestValidate(request);

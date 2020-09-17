@@ -15,7 +15,7 @@ namespace CaptainHook.Application.Validators.Dtos
                 .SetValidator(new WebhooksDtoValidator("Callbacks"));
 
             RuleFor(x => x.Dlq)
-                .SetValidator(new WebhooksDtoValidator("DLQ"));
+                .SetValidator(new WebhooksDtoValidator("DlqHooks"));
         }
     }
 }
