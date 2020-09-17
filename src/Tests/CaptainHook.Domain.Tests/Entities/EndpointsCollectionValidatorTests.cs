@@ -36,8 +36,7 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
         public void Validate_MultipleEndpointsInCollection_CollectionIsValid(WebhooksEntityType type)
         {
             var endpoints = new[]
@@ -61,8 +60,8 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
+
         public void Validate_MultipleEndpointsInCollectionWithoutSelector_CollectionIsNotValid(WebhooksEntityType type)
         {
             var endpoints = new[]
@@ -87,8 +86,8 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
+
         public void Validate_MultipleEndpointsInCollectionWithDuplicatedSelector_CollectionIsNotValid(WebhooksEntityType type)
         {
             var endpoints = new[]

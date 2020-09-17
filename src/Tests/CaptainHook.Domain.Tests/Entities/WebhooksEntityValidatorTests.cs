@@ -40,8 +40,7 @@ namespace CaptainHook.Domain.Tests.Entities
 
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
         public void Validate_NoSelectionRuleAndWebooksCollectionWithSpecificSelector_FailsValidation(WebhooksEntityType type)
         {
             // Arrange
@@ -62,8 +61,7 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
         public void Validate_NoSelectionRuleAndWebooksCollectionWithSpecificSelectorAndNoSelector_FailsValidation(WebhooksEntityType type)
         {
             // Arrange
@@ -88,8 +86,7 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
         public void Validate_NoSelectionRuleAndWebooksCollectionWithMultipleDefaultEndpoints_FailsValidation(WebhooksEntityType type)
         {
             // Arrange
@@ -113,8 +110,7 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
         public void Validate_SelectionRuleInPlaceAndWebooksCollectionWithSpecificSelectorAndNoSelector_SucceedsValidation(WebhooksEntityType type)
         {
             // Arrange
@@ -138,8 +134,7 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
         public void Validate_SelectionRuleInPlaceAndWebooksCollectionWithSpecificSelector_SucceedsValidation(WebhooksEntityType type)
         {
             // Arrange
@@ -159,8 +154,7 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
         public void Validate_WebhookWithTokenNotInUriTransform_FailsValidation(WebhooksEntityType type)
         {
             // Arrange
@@ -185,8 +179,7 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [InlineData(WebhooksEntityType.Webhooks)]
-        [InlineData(WebhooksEntityType.Callbacks)]
+        [ClassData(typeof(WebhooksAndCallbacks))]
         public void Validate_WebhookWithAllTokensInUriTransform_SucceedsValidation(WebhooksEntityType type)
         {
             // Arrange
