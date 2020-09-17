@@ -40,7 +40,7 @@ namespace CaptainHook.Domain.Entities
         /// <summary>
         /// Collection of DLQ endpoints
         /// </summary>
-        public WebhooksEntity Dlq { get; private set; }
+        public WebhooksEntity DlqHooks { get; private set; }
 
         public SubscriberEntity(string name, EventEntity parentEvent = null, string etag = null)
         {
@@ -121,12 +121,12 @@ namespace CaptainHook.Domain.Entities
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> SetDlqEndpoint(EndpointEntity entity)
         {
-            if (Dlq == null)
+            if (DlqHooks == null)
             {
-                Dlq = new WebhooksEntity();
+                DlqHooks = new WebhooksEntity();
             }
 
-            return Dlq.SetEndpoint(entity.SetParentSubscriber(this))
+            return DlqHooks.SetEndpoint(entity.SetParentSubscriber(this))
                 .Map(_ => this);
         }
 
@@ -136,7 +136,7 @@ namespace CaptainHook.Domain.Entities
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveDlqEndpoint(EndpointEntity entity)
         {
-            return Dlq?.RemoveEndpoint(entity)
+            return DlqHooks?.RemoveEndpoint(entity)
                 .Map(_ => this);
         }
 
@@ -181,14 +181,14 @@ namespace CaptainHook.Domain.Entities
             return this;
         }
 
-        public SubscriberEntity AddDlq(WebhooksEntity dlq)
+        public SubscriberEntity AddDlqHooks(WebhooksEntity dlqHooks)
         {
-            foreach (var callbacksEndpoint in dlq.Endpoints)
+            foreach (var callbacksEndpoint in dlqHooks.Endpoints)
             {
                 callbacksEndpoint.SetParentSubscriber(this);
             }
 
-            Dlq = dlq;
+            DlqHooks = dlqHooks;
 
             return this;
         }

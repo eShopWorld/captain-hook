@@ -222,7 +222,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var newEndpoint = new EndpointEntity("new-uri", null, "POST", "*");
             SubscriberEntity result = subscriber.SetDlqEndpoint(newEndpoint);
 
-            result.Dlq.Endpoints.Should().BeEquivalentTo(
+            result.DlqHooks.Endpoints.Should().BeEquivalentTo(
                 new[] { newEndpoint },
                 options => options.IgnoringCyclicReferences());
         }
@@ -232,12 +232,12 @@ namespace CaptainHook.Domain.Tests.Entities
         {
             var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
             var endpoint = new EndpointEntity("uri", null, "POST", "*");
-            subscriber.AddDlq(new WebhooksEntity("$.Test", new[] { endpoint }));
+            subscriber.AddDlqHooks(new WebhooksEntity("$.Test", new[] { endpoint }));
 
             var newEndpoint = new EndpointEntity("new-uri", null, "POST", "sel");
             var result = subscriber.SetDlqEndpoint(newEndpoint);
 
-            result.Data.Dlq.Endpoints.Should().BeEquivalentTo(
+            result.Data.DlqHooks.Endpoints.Should().BeEquivalentTo(
                 new[] { endpoint, newEndpoint },
                 options => options.IgnoringCyclicReferences());
         }
@@ -252,7 +252,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var newEndpoint = new EndpointEntity("uri", null, "PUT", "*");
             var result = subscriber.SetDlqEndpoint(newEndpoint);
 
-            result.Data.Dlq.Endpoints.Should().BeEquivalentTo(
+            result.Data.DlqHooks.Endpoints.Should().BeEquivalentTo(
                 new[] { newEndpoint },
                 options => options.IgnoringCyclicReferences());
         }
@@ -262,13 +262,13 @@ namespace CaptainHook.Domain.Tests.Entities
         {
             var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
             var endpoint = new EndpointEntity("uri", null, "POST", "*");
-            subscriber.AddDlq(new WebhooksEntity("$.Test", new[] { endpoint }, null));
+            subscriber.AddDlqHooks(new WebhooksEntity("$.Test", new[] { endpoint }, null));
             var newEndpoint = new EndpointEntity("new-uri", null, "POST", "sel");
             subscriber.SetDlqEndpoint(newEndpoint);
 
             var result = subscriber.RemoveDlqEndpoint(newEndpoint);
 
-            result.Data.Dlq.Endpoints.Should().BeEquivalentTo(
+            result.Data.DlqHooks.Endpoints.Should().BeEquivalentTo(
                 new[] { endpoint },
                 options => options.IgnoringCyclicReferences());
         }
@@ -282,7 +282,7 @@ namespace CaptainHook.Domain.Tests.Entities
 
             var result = subscriber.RemoveDlqEndpoint(endpoint);
 
-            result.Data.Dlq.Endpoints.Should().BeEmpty();
+            result.Data.DlqHooks.Endpoints.Should().BeEmpty();
         }
 
         [Fact(Skip = "not fixed yet"), IsUnit]
@@ -290,7 +290,7 @@ namespace CaptainHook.Domain.Tests.Entities
         {
             var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
             var endpoint = new EndpointEntity("uri", null, "POST", "*");
-            subscriber.AddDlq(new WebhooksEntity("$.Test", new[] { endpoint }));
+            subscriber.AddDlqHooks(new WebhooksEntity("$.Test", new[] { endpoint }));
             var newEndpoint = new EndpointEntity("new-uri", null, "POST", "sel");
             subscriber.SetDlqEndpoint(newEndpoint);
 
