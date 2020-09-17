@@ -1,0 +1,21 @@
+{
+  "subscriberName": "subscriber",
+  "eventName": "captainhook.sampleevent",
+  "subscriber": {
+    "webhooks": {
+      "endpoints": [
+        {
+          "uri": "http://blah.blah",
+          "selector": "*",
+          "authentication": {
+            "type": "Basic",
+            "username": "user1",
+            "passwordKeyName": "AzureSubscriptionId"
+          },
+          "httpVerb": "POST"
+        }
+      ],
+      "selectionRule": "$.tenantcode"
+    }
+  }
+}
