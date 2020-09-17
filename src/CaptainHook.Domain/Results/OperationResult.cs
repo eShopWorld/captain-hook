@@ -29,14 +29,14 @@ namespace CaptainHook.Domain.Results
             return IsError ? Error : func(Data);
         }
 
-        public OperationResult<TResult> Map<TResult>(Func<TData, TResult> func)
-        {
-            return func(Data);
-        }
-
         public async Task<OperationResult<TResult>> Then<TResult>(Func<TData, Task<OperationResult<TResult>>> func)
         {
             return IsError ? Error : await func(Data);
+        }
+
+        public OperationResult<TResult> Map<TResult>(Func<TData, TResult> func)
+        {
+            return func(Data);
         }
 
         public static implicit operator OperationResult<TData>(ErrorBase error) => new OperationResult<TData>(error);

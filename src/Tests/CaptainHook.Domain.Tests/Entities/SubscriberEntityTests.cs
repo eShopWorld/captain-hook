@@ -199,7 +199,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var result = subscriber.RemoveCallbackEndpoint(new EndpointEntity("uri", null, "POST", "custom"));
 
             result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>();
+            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>().Which.Message.Should().Contain(subscriber.Id);
         }
 
         [Fact, IsUnit]
@@ -211,7 +211,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var result = subscriber.RemoveCallbackEndpoint(endpoint);
 
             result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>();
+            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>().Which.Message.Should().Contain(subscriber.Id);
         }
 
         [Fact, IsUnit]
@@ -297,7 +297,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var result = subscriber.RemoveDlqEndpoint(new EndpointEntity("uri", null, "POST", "custom"));
 
             result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>();
+            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>().Which.Message.Should().Contain(subscriber.Id);
         }
 
         [Fact, IsUnit]
@@ -309,7 +309,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var result = subscriber.RemoveDlqEndpoint(endpoint);
 
             result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>();
+            result.Error.Should().BeOfType<EndpointNotFoundInSubscriberError>().Which.Message.Should().Contain(subscriber.Id);
         }
     }
 }

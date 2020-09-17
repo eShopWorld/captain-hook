@@ -98,7 +98,7 @@ namespace CaptainHook.Domain.Entities
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> SetDlqEndpoint(EndpointEntity entity)
         {
-            return DlqHooks.SetEndpoint(entity.SetParentSubscriber(this)).Map(_ => this);
+            return DlqHooks.SetEndpoint(entity.SetParentSubscriber(this)).Then<SubscriberEntity>(_ => this);
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace CaptainHook.Domain.Entities
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveDlqEndpoint(EndpointEntity entity)
         {
-            return DlqHooks?.RemoveEndpoint(entity).Map(_ => this);
+            return OperationOnWebhooks(() => DlqHooks?.RemoveEndpoint(entity));
         }
 
         private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<OperationResult<WebhooksEntity>> funcToRun)
