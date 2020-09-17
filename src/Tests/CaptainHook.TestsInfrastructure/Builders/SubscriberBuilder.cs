@@ -98,7 +98,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         {
             var subscriber = new SubscriberEntity(_name, _event, _etag);
             var result = subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity));
-            if(result.IsError)
+            if (result.IsError)
             {
                 throw new ArgumentException(result.Error.Message);
             }
@@ -112,7 +112,11 @@ namespace CaptainHook.TestsInfrastructure.Builders
             }
             if (_dlqhooks?.Count > 0)
             {
-                subscriber.AddDlqHooks(new WebhooksEntity(_dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity));
+                result = subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.DlqHooks, _dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity));
+                if (result.IsError)
+                {
+                    throw new ArgumentException(result.Error.Message);
+                }
             }
             return subscriber;
         }

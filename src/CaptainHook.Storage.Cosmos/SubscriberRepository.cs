@@ -290,7 +290,7 @@ namespace CaptainHook.Storage.Cosmos
             
             if (subscriberDocument.DlqHooks != null)
             {
-                subscriberEntity.AddDlqHooks(Map(subscriberDocument.DlqHooks, subscriberEntity));
+                subscriberEntity.SetHooks(Map(subscriberDocument.DlqHooks, subscriberEntity, WebhooksEntityType.DlqHooks));
             }
 
             return subscriberEntity;
