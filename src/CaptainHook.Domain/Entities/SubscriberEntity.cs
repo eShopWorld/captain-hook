@@ -105,46 +105,16 @@ namespace CaptainHook.Domain.Entities
 
         public OperationResult<SubscriberEntity> SetHooks(WebhooksEntity webhooks)
         {
-            return webhooks.Type switch
+            var result = webhooks.Type switch
             {
-                WebhooksEntityType.Webhooks => SetWebhooks(webhooks),
-                WebhooksEntityType.Callbacks => SetCallbacks(webhooks),
+                WebhooksEntityType.Webhooks => Webhooks.SetHooks(webhooks, this),
+                WebhooksEntityType.Callbacks => Callbacks.SetHooks(webhooks, this),
                 _ => new ValidationError("Invalid entity")
             };
+
+            return result.Then<SubscriberEntity>(x => this);
         }
 
-        private OperationResult<SubscriberEntity> SetWebhooks(WebhooksEntity webhooks)
-        {
-            Webhooks.SetSelectionRule(webhooks.SelectionRule);
-            Webhooks.SetUriTransform(webhooks.UriTransform);
-            Webhooks.Endpoints.Clear();
-            foreach (var endpoint in webhooks.Endpoints)
-            {
-                endpoint.SetParentSubscriber(this);
-                var result = Webhooks.SetEndpoint(endpoint);
-                if(result.IsError)
-                {
-                    return result.Error;
-                }
-            }
-            return this;
-        }
-
-        private OperationResult<SubscriberEntity> SetCallbacks(WebhooksEntity callbacks)
-        {
-            Callbacks.SetSelectionRule(callbacks.SelectionRule);
-            Callbacks.SetUriTransform(callbacks.UriTransform);
-            Callbacks.Endpoints.Clear();
-            foreach (var endpoint in callbacks.Endpoints)
-            {
-                endpoint.SetParentSubscriber(this);
-                var result = Callbacks.SetEndpoint(endpoint);
-                if (result.IsError)
-                {
-                    return result.Error;
-                }
-            }
-            return this;
-        }
+        
     }
 }

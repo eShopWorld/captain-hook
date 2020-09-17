@@ -94,6 +94,23 @@ namespace CaptainHook.Domain.Entities
             return this;
         }
 
+        public OperationResult<WebhooksEntity> SetHooks(WebhooksEntity webhooks, SubscriberEntity subscriberEntity = null)
+        {
+            SetSelectionRule(webhooks.SelectionRule);
+            SetUriTransform(webhooks.UriTransform);
+            Endpoints.Clear();
+            foreach (var endpoint in webhooks.Endpoints)
+            {
+                endpoint.SetParentSubscriber(subscriberEntity);
+                var result = SetEndpoint(endpoint);
+                if (result.IsError)
+                {
+                    return result.Error;
+                }
+            }
+            return this;
+        }
+
         public OperationResult<WebhooksEntity> RemoveEndpoint(EndpointEntity endpoint)
         {
             if (Type == WebhooksEntityType.Webhooks && Endpoints.Count == 1)
