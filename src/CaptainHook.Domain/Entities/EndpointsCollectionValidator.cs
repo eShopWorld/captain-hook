@@ -6,10 +6,11 @@ namespace CaptainHook.Domain.Entities
 {
     public class EndpointsCollectionValidator : AbstractValidator<IEnumerable<EndpointEntity>>
     {
-        public EndpointsCollectionValidator()
+        public EndpointsCollectionValidator(WebhooksEntityType type)
         {
             RuleFor(x => x)
                 .NotEmpty().WithMessage("Webhooks list must contain at list one endpoint")
+                .When(_ => type == WebhooksEntityType.Webhooks)
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
                 .WithMessage("There cannot be multiple endpoints with the same selector");
         }

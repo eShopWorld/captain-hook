@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CaptainHook.Domain.Entities;
 
 namespace CaptainHook.TestsInfrastructure.Builders
@@ -82,10 +83,18 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberEntity Create()
         {
             var subscriber = new SubscriberEntity(_name, _event, _etag);
-            subscriber.AddWebhooks(new WebhooksEntity(_webhookSelectionRule, _webhooks, _webhooksUriTransformEntity));
+            var result = subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity));
+            if(result.IsError)
+            {
+                throw new ArgumentException(result.Error.Message);
+            }
             if (_callbacks?.Count > 0)
             {
-                subscriber.AddCallbacks(new WebhooksEntity(_callbackSelectionRule, _callbacks, _callbacksUriTransformEntity));
+                result = subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Callbacks, _callbackSelectionRule, _callbacks, _callbacksUriTransformEntity));
+                if (result.IsError)
+                {
+                    throw new ArgumentException(result.Error.Message);
+                }
             }
             return subscriber;
         }

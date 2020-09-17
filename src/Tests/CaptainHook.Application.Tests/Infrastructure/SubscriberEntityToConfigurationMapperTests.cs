@@ -50,7 +50,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         public async Task MapSubscriberAsync_WithSingleWebhookAndNoUriTransformDefined_MapsToSingleWebhook(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var subscriber = new SubscriberBuilder()
-                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, string.Empty, authentication: authentication)
+                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication: authentication)
                 .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
@@ -75,8 +75,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         public async Task MapSubscriberAsync_WithSingleCallbackAndNoUriTransformDefined_MapsToSingleCallback(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var subscriber = new SubscriberBuilder()
-                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, string.Empty, authentication: authentication)
-                .WithCallback("https://blah-blah.eshopworld.com/webhook/", httpVerb, string.Empty, authentication: authentication)
+                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication: authentication)
+                .WithCallback("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication: authentication)
                 .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
@@ -536,7 +536,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { {"selector", "$.Test" }});
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksUriTransform(uriTransform)
-                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .Create();
 
             // Act
@@ -574,7 +574,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var authentication = new OidcAuthenticationEntity("client-id", "invalid-secret-key-name", "uri", new string[]{ });
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksUriTransform(uriTransform)
-                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", "POST", null, authentication)
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", "POST", null, authentication)
                 .Create();
 
             _secretProviderMock.Setup(x => x.GetSecretValueAsync("invalid-secret-key-name"))
@@ -600,7 +600,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var authentication = new BasicAuthenticationEntity("username", "password-key-name");
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksUriTransform(uriTransform)
-                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", "POST", null, authentication)
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", "POST", "*", authentication)
                 .Create();
 
             _secretProviderMock.Setup(x => x.GetSecretValueAsync("password-key-name"))

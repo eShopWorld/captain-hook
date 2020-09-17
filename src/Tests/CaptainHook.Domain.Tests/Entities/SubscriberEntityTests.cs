@@ -19,6 +19,21 @@ namespace CaptainHook.Domain.Tests.Entities
             var result = subscriberEntity.SetWebhookEndpoint(endpointEntity);
 
             // Assert
+        public void RemoveWebhooksEndpoint_WhenOnlyOneEndpointDefined_ThenErrorIsReturned()
+        {
+            // Arrange
+            var subscriberEntity = new SubscriberEntity("testName", new EventEntity("eventName"));
+            var endpointEntity = new EndpointEntity("uri", null, "POST", "*");
+            subscriberEntity.SetWebhookEndpoint(endpointEntity);
+
+            // Act
+            var result = subscriberEntity.RemoveWebhookEndpoint(endpointEntity);
+
+            result.Error.Should().NotBeNull()
+                .And.Subject.Should().BeOfType<CannotRemoveLastEndpointFromSubscriberError>("because the last webhook endpoint cannot be removed");
+        }
+
+        [Fact, IsUnit]
             result.Data.Webhooks.Endpoints.Should().BeEquivalentTo(
                 new[] { endpointEntity },
                 options => options.IgnoringCyclicReferences());
@@ -30,7 +45,7 @@ namespace CaptainHook.Domain.Tests.Entities
             // Arrange
             var subscriberEntity = new SubscriberEntity("testName", new EventEntity("eventName"));
             var endpointEntity1 = new EndpointEntity("uri", null, "PUT", "*");
-            subscriberEntity.AddWebhooks(new WebhooksEntity("$.Test", new[] { endpointEntity1 }));
+            subscriberEntity.SetHooks(new WebhooksEntity(WebhooksEntityType.Webhooks, "$.Test", new[] { endpointEntity1 }));
             var endpointEntity2 = new EndpointEntity("uri2", null, "DELETE", "abc");
 
             // Act
@@ -61,18 +76,18 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Fact, IsUnit]
-        public void RemoveWebhookEndpoint_WhenTwoEndpointsAreDefined_ThenOneIsRemoved()
+        public void RemoveCallbacksEndpoint_WhenOnlyOneEndpointDefined_ThenIsRemoved()
         {
-            var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
-            var endpoint = new EndpointEntity("uri", null, "POST", "*");
-            subscriber.AddWebhooks(new WebhooksEntity("$.Test", new[] { endpoint }, null));
-            var newEndpoint = new EndpointEntity("new-uri", null, "POST", "sel");
-            subscriber.SetWebhookEndpoint(newEndpoint);
+            // Arrange
+            var subscriberEntity = new SubscriberEntity("testName", new EventEntity("eventName"));
+            var endpointEntity = new EndpointEntity("uri", null, "POST", "*");
+            subscriberEntity.SetCallbackEndpoint(endpointEntity);
 
-            var result = subscriber.RemoveWebhookEndpoint(newEndpoint);
+            // Act
+            var result = subscriberEntity.RemoveCallbackEndpoint(endpointEntity);
 
-            result.Data.Webhooks.Endpoints.Should().BeEquivalentTo(
-                new[] { endpoint },
+            result.Should().BeOfType<OperationResult<SubscriberEntity>>()
+                .Which.Data.Callbacks.Endpoints.Should().BeEmpty("because it should be possible to remove the last callbacks endpoint");
                 options => options.IgnoringCyclicReferences());
         }
 
