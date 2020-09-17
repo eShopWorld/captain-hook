@@ -30,7 +30,7 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
 
             try
             {
-                var subscriberFiles = _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json");
+                var subscriberFiles = _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
                 foreach (var fileName in subscriberFiles)
                 {
                     var content = _fileSystem.File.ReadAllText(fileName);

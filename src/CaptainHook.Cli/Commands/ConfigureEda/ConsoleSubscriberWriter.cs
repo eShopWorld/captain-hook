@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using CaptainHook.Cli.Commands.ConfigureEda.Models;
 using McMaster.Extensions.CommandLineUtils;
@@ -14,7 +15,7 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
             _console = console;
         }
 
-        public void OutputSubscribers(IEnumerable<PutSubscriberFile> subscriberFiles)
+        public void OutputSubscribers(IEnumerable<PutSubscriberFile> subscriberFiles, string inputFolderPath)
         {
             var files = subscriberFiles?.ToArray();
             if (files == null || !files.Any())
@@ -23,11 +24,13 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
                 return;
             }
 
-            // ReSharper disable once PossibleNullReferenceException as it is checked in the statement above
+            var sourceFolderPath = Path.GetFullPath(inputFolderPath);
             foreach (var file in files)
             {
-                _console.WriteLine($"File '{file.File.Name}' has been found");
+                var fileRelativePath = Path.GetRelativePath(sourceFolderPath, file.File.FullName);
+                _console.WriteLine($"File '{fileRelativePath}' has been found");
             }
         }
+
     }
 }
