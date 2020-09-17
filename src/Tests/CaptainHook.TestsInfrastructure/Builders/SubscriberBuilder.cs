@@ -97,28 +97,14 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberEntity Create()
         {
             var subscriber = new SubscriberEntity(_name, _event, _etag);
-            var result = subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity));
-            if (result.IsError)
-            {
-                throw new ArgumentException(result.Error.Message);
-            }
-            if (_callbacks?.Count > 0)
-            {
-                result = subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Callbacks, _callbackSelectionRule, _callbacks, _callbacksUriTransformEntity));
-                if (result.IsError)
-                {
-                    throw new ArgumentException(result.Error.Message);
-                }
-            }
-            if (_dlqhooks?.Count > 0)
-            {
-                result = subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.DlqHooks, _dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity));
-                if (result.IsError)
-                {
-                    throw new ArgumentException(result.Error.Message);
-                }
-            }
-            return subscriber;
+
+            return subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity))
+                .Then(_ => subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Callbacks, _callbackSelectionRule, _callbacks, _callbacksUriTransformEntity)))
+                .Then(_ => subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.DlqHooks, _dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity)))
+                .Match(
+                    error => throw new ArgumentException(error.Message), 
+                    s => s
+                );
         }
     }
 }
