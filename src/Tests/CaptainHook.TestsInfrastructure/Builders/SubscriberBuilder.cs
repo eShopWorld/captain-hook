@@ -8,14 +8,16 @@ namespace CaptainHook.TestsInfrastructure.Builders
     {
         private string _name = "captain-hook";
         private EventEntity _event = new EventEntity("event");
-        private string _webhookSelectionRule = null;
-        private string _callbackSelectionRule = null;
-        private string _etag = null;
-        private UriTransformEntity _webhooksUriTransformEntity = null;
-        private UriTransformEntity _callbacksUriTransformEntity = null;
+        private string _etag;
+        private string _webhookSelectionRule;
+        private string _callbackSelectionRule;
+        private string _dlqhooksSelectionRule;
+        private UriTransformEntity _webhooksUriTransformEntity;
+        private UriTransformEntity _callbacksUriTransformEntity;
+        private UriTransformEntity _dlqhooksTransformEntity;
         private readonly List<EndpointEntity> _webhooks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _callbacks = new List<EndpointEntity>();
-        private readonly List<EndpointEntity> _dlq = new List<EndpointEntity>();
+        private readonly List<EndpointEntity> _dlqhooks = new List<EndpointEntity>();
 
         public SubscriberBuilder WithName(string name)
         {
@@ -47,6 +49,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
+        public SubscriberBuilder WithDlqhooksUriTransform(UriTransformEntity uriTransformEntity)
+        {
+            _dlqhooksTransformEntity = uriTransformEntity;
+            return this;
+        }
+
         public SubscriberBuilder WithWebhooksSelectionRule(string selectionRule)
         {
             _webhookSelectionRule = selectionRule;
@@ -56,6 +64,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberBuilder WithCallbacksSelectionRule(string selectionRule)
         {
             _callbackSelectionRule = selectionRule;
+            return this;
+        }
+
+        public SubscriberBuilder WithDlqhooksSelectionRule(string selectionRule)
+        {
+            _dlqhooksSelectionRule = selectionRule;
             return this;
         }
 
@@ -76,7 +90,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberBuilder WithDlq(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
             var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null);
-            _dlq.Add(endpoint);
+            _dlqhooks.Add(endpoint);
             return this;
         }
 
@@ -95,6 +109,10 @@ namespace CaptainHook.TestsInfrastructure.Builders
                 {
                     throw new ArgumentException(result.Error.Message);
                 }
+            }
+            if (_dlqhooks?.Count > 0)
+            {
+                subscriber.AddDlq(new WebhooksEntity(_dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity));
             }
             return subscriber;
         }
