@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.Common.Configuration
 {
@@ -9,6 +8,6 @@ namespace CaptainHook.Common.Configuration
         /// Loads events configuration from KeyVault
         /// </summary>
         /// <returns>Only events configuration</returns>
-        IEnumerable<IConfigurationSection> Load(string keyVaultUri);
+        IConfigurationRoot Load(string keyVaultUri);
     }
 }

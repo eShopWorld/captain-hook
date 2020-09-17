@@ -7,6 +7,7 @@ using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
@@ -14,7 +15,6 @@ using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
 using CaptainHook.TestsInfrastructure.Builders;
-using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -38,7 +38,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private static readonly SubscriberBuilder _subscriberBuilder = new SubscriberBuilder()
                .WithEvent("event")
                .WithName("subscriber")
-               .WithWebhookSelectionRule("$.Test")
+               .WithWebhooksSelectionRule("$.Test")
                .WithWebhook("https://blah.blah.eshopworld.com/default/", "POST", null, authentication: _authentication)
                .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: _authentication)
                .WithWebhook("https://blah.blah.eshopworld.com/other-webhook/", "POST", "non-deletable", authentication: _authentication);
@@ -84,7 +84,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                .ReturnsAsync(subscriber);
             _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(true);
+                .ReturnsAsync(new List<SubscriberConfiguration>());
             _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.Is<SubscriberEntity>(x => x.Id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriber);            
         }
@@ -192,14 +192,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var subscriberEntity = new SubscriberBuilder()
                .WithEvent("event")
                .WithName("subscriber")
-               .WithWebhookSelectionRule("$.Test")
+               .WithWebhooksSelectionRule("$.Test")
                .WithWebhook("https://blah.blah.eshopworld.com/webhook/", "POST", "selector", authentication: _authentication)
                .Create();
             _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriberEntity);
             _repositoryMock.Setup(x => x.UpdateSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(subscriberEntity);
-            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(true);
+            _directorServiceMock.Setup(x => x.UpdateReaderAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(new List<SubscriberConfiguration>());
 
             _entityToDtoMapper.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>()))
                 .Returns(new SubscriberDto

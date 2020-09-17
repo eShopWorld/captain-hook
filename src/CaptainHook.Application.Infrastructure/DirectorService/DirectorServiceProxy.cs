@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
@@ -21,22 +21,22 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             _directorService = directorService;
         }
 
-        public async Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CreateReaderAsync(SubscriberEntity subscriber)
         {
             return await CallDirector(s => new CreateReader { Subscriber = s }, subscriber);
         }
 
-        public async Task<OperationResult<bool>> UpdateReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> UpdateReaderAsync(SubscriberEntity subscriber)
         {
             return await CallDirector(s => new UpdateReader { Subscriber = s }, subscriber);
         }
 
-        public async Task<OperationResult<bool>> DeleteReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> DeleteReaderAsync(SubscriberEntity subscriber)
         {
             return await CallDirector(s => new DeleteReader { Subscriber = s }, subscriber);
         }
 
-        private async Task<OperationResult<bool>> CallDirector(Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
+        private async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CallDirector(Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
         {
             var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberAsync(subscriber);
 
@@ -45,22 +45,30 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                 return subscriberConfigsResult.Error;
             }
 
-            var singleSubscriber = subscriberConfigsResult.Data.Single();
-
-            var request = requestFunc(singleSubscriber);
-            var createReaderResult = await _directorService.ApplyReaderChange(request);
-
-            return createReaderResult switch
+            foreach (var subscriberConfig in subscriberConfigsResult.Data)
             {
-                ReaderChangeResult.Success => true,
-                ReaderChangeResult.NoChangeNeeded => true,
-                ReaderChangeResult.CreateFailed => new ReaderCreateError(subscriber),
-                ReaderChangeResult.DeleteFailed => new ReaderDeleteError(subscriber),
-                ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
-                ReaderChangeResult.ReaderAlreadyExist => new ReaderAlreadyExistsError(subscriber),
-                ReaderChangeResult.ReaderDoesNotExist => new ReaderDoesNotExistError(subscriber),
-                _ => new BusinessError("Director Service returned unknown result.")
-            };
+                var request = requestFunc(subscriberConfig);
+                var createReaderResult = await _directorService.ApplyReaderChange(request);
+
+                OperationResult<SubscriberConfiguration> operationResult = createReaderResult switch
+                {
+                    ReaderChangeResult.Success => subscriberConfig,
+                    ReaderChangeResult.NoChangeNeeded => subscriberConfig,
+                    ReaderChangeResult.CreateFailed => new ReaderCreateError(subscriber),
+                    ReaderChangeResult.DeleteFailed => new ReaderDeleteError(subscriber),
+                    ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
+                    ReaderChangeResult.ReaderAlreadyExist => new ReaderAlreadyExistsError(subscriber),
+                    ReaderChangeResult.ReaderDoesNotExist => new ReaderDoesNotExistError(subscriber),
+                    _ => new BusinessError("Director Service returned unknown result.")
+                };
+
+                if(operationResult.IsError)
+                {
+                    return operationResult.Error;
+                }
+            }
+
+            return subscriberConfigsResult;
         }
     }
 }

@@ -9,22 +9,30 @@ namespace CaptainHook.TestsInfrastructure.Builders
     public class SubscriberConfigurationBuilder
     {
         private string _type = "event1";
+        private string _name = "event1";
         private string _subscriberName = "captain-hook";
         private string _uri = "https://blah.blah.eshopworld.com";
-        private HttpMethod _httpMethod = HttpMethod.Post;
+        private string _httpVerb = "POST";
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
         {
             Type = AuthenticationType.Basic,
             Username = "user",
             Password = "password",
         };
-        private List<WebhookRequestRule> _webhookRequestRules;
+        private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
         private WebhookConfig _callback;
         private bool _asDlq;
+        private bool _isMainConfiguration;
 
         public SubscriberConfigurationBuilder WithType(string type)
         {
             _type = type;
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithName(string name)
+        {
+            _name = name;
             return this;
         }
 
@@ -40,34 +48,50 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        public SubscriberConfigurationBuilder AsDLQ (bool asDlq = true)
+        public SubscriberConfigurationBuilder AsDLQ(bool asDlq = true)
         {
             _asDlq = asDlq;
             return this;
         }
 
+        public SubscriberConfigurationBuilder WithoutAuthentication()
+        {
+            _authenticationConfig = new AuthenticationConfig { Type = AuthenticationType.None, };
+            return this;
+        }
+
         public SubscriberConfigurationBuilder WithOidcAuthentication()
         {
-            _authenticationConfig = new OidcAuthenticationConfig
+            return WithAuthentication(new OidcAuthenticationConfig
             {
                 Type = AuthenticationType.OIDC,
                 Uri = "https://blah-blah.sts.eshopworld.com",
                 ClientId = "ClientId",
                 ClientSecret = "ClientSecret",
                 Scopes = new[] { "scope1", "scope2" }
-            };
-
-            return this;
+            });
         }
 
         public SubscriberConfigurationBuilder WithBasicAuthentication()
         {
-            _authenticationConfig = new BasicAuthenticationConfig
+            return WithAuthentication(new BasicAuthenticationConfig
             {
                 Type = AuthenticationType.Basic,
                 Username = "username",
                 Password = "password",
-            };
+            });
+        }
+
+        public SubscriberConfigurationBuilder WithAuthentication(AuthenticationConfig authenticationConfig)
+        {
+            _authenticationConfig = authenticationConfig;
+
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithHttpVerb(string httpVerb)
+        {
+            _httpVerb = httpVerb;
 
             return this;
         }
@@ -115,19 +139,18 @@ namespace CaptainHook.TestsInfrastructure.Builders
         {
             var subscriber = new SubscriberConfiguration
             {
-                Name = _type,
+                Name = _name,
                 EventType = _type,
                 SubscriberName = _subscriberName,
-                HttpMethod = _httpMethod,
+                HttpVerb = _httpVerb,
                 Uri = _uri,
                 AuthenticationConfig = _authenticationConfig,
                 Callback = _callback,
                 WebhookRequestRules = _webhookRequestRules,
-                DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode: (SubscriberDlqMode?) null
+                DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode : (SubscriberDlqMode?)null
             };
 
             return subscriber;
         }
-
     }
 }

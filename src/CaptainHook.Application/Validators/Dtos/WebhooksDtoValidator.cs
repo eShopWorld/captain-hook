@@ -12,28 +12,28 @@ namespace CaptainHook.Application.Validators.Dtos
     {
         private static readonly JObject _jObject = new JObject();
 
-        public WebhooksDtoValidator()
+        public WebhooksDtoValidator(string subject)
         {
-            CascadeMode = CascadeMode.Stop;
-
-            RuleFor(x => x.SelectionRule).NotEmpty()
-                .Must(BeValidJsonPathExpression).WithMessage("The SelectionRule must be a valid JSONPath expression")
+            RuleFor(x => x.SelectionRule).Cascade(CascadeMode.Stop)
+                .NotEmpty()
+                .Must(BeValidJsonPathExpression)
+                    .WithMessage("The SelectionRule must be a valid JSONPath expression")
                 .When(ThereIsAtLeastOneEndpointWithSelectorDefined);
 
-            RuleFor(x => x.Endpoints)
+            RuleFor(x => x.Endpoints).Cascade(CascadeMode.Stop)
                 .NotNull()
-                .WithMessage("Webhooks list must contain at least one endpoint")
+                .WithMessage($"{subject} list must contain at least one endpoint")
                 .NotEmpty()
-                .WithMessage("Webhooks list must contain at least one endpoint")
+                .WithMessage($"{subject} list must contain at least one endpoint")
                 .Must(ContainAtMostOneEndpointWithDefaultSelector)
-                .WithMessage("There can be only one endpoint with the default selector")
+                    .WithMessage("There can be only one endpoint with the default selector")
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
-                .WithMessage("There cannot be multiple endpoints with the same selector");
+                    .WithMessage("There cannot be multiple endpoints with the same selector");
 
-            RuleForEach(x => x.Endpoints)
+            RuleForEach(x => x.Endpoints).Cascade(CascadeMode.Stop)
                 .SetValidator(new EndpointDtoValidator());
 
-            RuleFor(x => x.UriTransform)
+            RuleFor(x => x.UriTransform).Cascade(CascadeMode.Stop)
                 .SetValidator((webhooksDto, uriTransform) => new UriTransformValidator(webhooksDto.Endpoints))
                     .When(x => x.UriTransform?.Replace != null, ApplyConditionTo.CurrentValidator);
         }

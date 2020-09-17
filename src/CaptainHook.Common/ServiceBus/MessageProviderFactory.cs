@@ -2,7 +2,7 @@ using System;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 
-namespace CaptainHook.EventReaderService
+namespace CaptainHook.Common.ServiceBus
 {
     public class MessageProviderFactory : IMessageProviderFactory
     {

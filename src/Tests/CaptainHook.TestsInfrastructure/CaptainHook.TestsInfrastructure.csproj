@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\CaptainHook.Application\CaptainHook.Application.csproj" />
     <ProjectReference Include="..\..\CaptainHook.Contract\CaptainHook.Contract.csproj" />
+    <ProjectReference Include="..\..\CaptainHook.Storage.Cosmos\CaptainHook.Storage.Cosmos.csproj" />
   </ItemGroup>
 
 </Project>

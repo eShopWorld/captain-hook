@@ -8,7 +8,10 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _name = "captain-hook";
         private EventEntity _event = new EventEntity("event");
         private string _webhookSelectionRule = null;
-        private UriTransformEntity _uriTransformEntity;
+        private string _callbackSelectionRule = null;
+        private string _etag = null;
+        private UriTransformEntity _webhooksUriTransformEntity = null;
+        private UriTransformEntity _callbacksUriTransformEntity = null;
         private readonly List<EndpointEntity> _webhooks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _callbacks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _dlq = new List<EndpointEntity>();
@@ -25,15 +28,33 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        public SubscriberBuilder WithWebhookUriTransform(UriTransformEntity uriTransformEntity)
+        public SubscriberBuilder WithEtag(string etag)
         {
-            _uriTransformEntity = uriTransformEntity;
+            _etag = etag;
             return this;
         }
 
-        public SubscriberBuilder WithWebhookSelectionRule(string selectionRule)
+        public SubscriberBuilder WithWebhooksUriTransform(UriTransformEntity uriTransformEntity)
+        {
+            _webhooksUriTransformEntity = uriTransformEntity;
+            return this;
+        }
+
+        public SubscriberBuilder WithCallbacksUriTransform(UriTransformEntity uriTransformEntity)
+        {
+            _callbacksUriTransformEntity = uriTransformEntity;
+            return this;
+        }
+
+        public SubscriberBuilder WithWebhooksSelectionRule(string selectionRule)
         {
             _webhookSelectionRule = selectionRule;
+            return this;
+        }
+
+        public SubscriberBuilder WithCallbacksSelectionRule(string selectionRule)
+        {
+            _callbackSelectionRule = selectionRule;
             return this;
         }
 
@@ -60,9 +81,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
 
         public SubscriberEntity Create()
         {
-            var subscriber = new SubscriberEntity(_name);
-            subscriber.SetParentEvent(_event);
-            subscriber.AddWebhooks(new WebhooksEntity(_webhookSelectionRule, _webhooks, _uriTransformEntity));
+            var subscriber = new SubscriberEntity(_name, _event, _etag);
+            subscriber.AddWebhooks(new WebhooksEntity(_webhookSelectionRule, _webhooks, _webhooksUriTransformEntity));
+            if (_callbacks?.Count > 0)
+            {
+                subscriber.AddCallbacks(new WebhooksEntity(_callbackSelectionRule, _callbacks, _callbacksUriTransformEntity));
+            }
             return subscriber;
         }
     }

@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Azure.ServiceBus.Core;
 
-namespace CaptainHook.EventReaderService
+namespace CaptainHook.Common.ServiceBus
 {
     /// <summary>
     /// Wrapper for MessageReceiver so it can be mocked for testing

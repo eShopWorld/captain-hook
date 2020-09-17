@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Results;
 
@@ -14,40 +16,37 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// </summary>
         /// <param name="subscriber">Subscriber entity defining ReaderService to be created</param>
         /// <returns>
-        /// True if creation has been invoked
-        /// False if reader already exists
+        /// A IEnumerable<SubscriberConfiguration> if creation has been invoked
         /// ReaderCreateError if reader creation failed
         /// ReaderAlreadyExistsError if reader can't be crated because it already exists
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// </returns>
-        Task<OperationResult<bool>> CreateReaderAsync(SubscriberEntity subscriber);
+        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CreateReaderAsync(SubscriberEntity subscriber);
 
         /// <summary>
         /// Updates reader service for the given subscriber.
         /// </summary>
         /// <param name="subscriber">Subscriber entity defining ReaderService to be updated</param>
         /// <returns>
-        /// True if update has been invoked
-        /// False if reader does not exist
+        /// A IEnumerable<SubscriberConfiguration> if update has been invoked
         /// ReaderCreateError if reader create failed
         /// ReaderDeleteError if reader delete failed
         /// ReaderAlreadyExistsError if reader can't be crated because it already exists
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// ReaderDoesNotExistError if reader can't be deleted because it doesn't exist
         /// </returns>
-        Task<OperationResult<bool>> UpdateReaderAsync(SubscriberEntity subscriber);
+        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> UpdateReaderAsync(SubscriberEntity subscriber);
 
         /// <summary>
         /// Deletes reader service for the given subscriber.
         /// </summary>
         /// <param name="subscriber">Subscriber entity defining ReaderService to be deleted</param>
         /// <returns>
-        /// True if deleted has been invoked
-        /// False if reader does not exist
+        /// A IEnumerable<SubscriberConfiguration> if deleted has been invoked
         /// ReaderDeleteError if reader delete failed
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// ReaderDoesNotExistError if reader can't be deleted because it doesn't exist
         /// </returns>
-        Task<OperationResult<bool>> DeleteReaderAsync(SubscriberEntity subscriber);
+        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> DeleteReaderAsync(SubscriberEntity subscriber);
     }
 }
