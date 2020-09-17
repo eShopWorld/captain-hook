@@ -7,18 +7,26 @@ namespace CaptainHook.Domain.Entities
 {
     public class WebhooksEntityValidator : AbstractValidator<WebhooksEntity>
     {
-        public WebhooksEntityValidator(WebhooksEntityType type)
+        public WebhooksEntityValidator()        
         {
             RuleFor(x => x.Endpoints)
-                .SetValidator(new EndpointsCollectionValidator(type));
+                .SetValidator(x => new EndpointsCollectionValidator(x.Type));
 
             RuleFor(x => x)
                 .Must(ContainOnlyDefaultEndpointIfNoSelectionRule)
+                .When(IsWebhooksOrNonEmptyCallbacks)
                 .WithMessage("Only a single default endpoint is allowed if no selection rule provided");
 
             RuleFor(x => x.UriTransform)
                 .SetValidator((webhooksEntity, uriTransform) => new UriTransformValidator(webhooksEntity.Endpoints))
                     .When(x => x.UriTransform?.Replace != null, ApplyConditionTo.CurrentValidator);
+        }
+
+        private bool IsWebhooksOrNonEmptyCallbacks(WebhooksEntity webhooks)
+        {
+            return
+                webhooks.Type == WebhooksEntityType.Webhooks ||
+                (webhooks.Type == WebhooksEntityType.Callbacks && !webhooks.IsEmpty);
         }
 
         private bool ContainOnlyDefaultEndpointIfNoSelectionRule(WebhooksEntity webhooks)

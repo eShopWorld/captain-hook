@@ -42,7 +42,7 @@ namespace CaptainHook.Domain.Entities
         /// <summary>
         /// Determines if it contains any callback
         /// </summary>
-        public bool HasCallbacks => Callbacks.Endpoints.Any();
+        public bool HasCallbacks => !Callbacks.IsEmpty;
 
         public SubscriberEntity(string name, EventEntity parentEvent = null, string etag = null)
         {

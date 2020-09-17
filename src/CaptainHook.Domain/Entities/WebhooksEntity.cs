@@ -17,7 +17,7 @@ namespace CaptainHook.Domain.Entities
 
         private static readonly SelectorEndpointEntityEqualityComparer SelectorEndpointEntityEqualityComparer = new SelectorEndpointEntityEqualityComparer();
 
-        private readonly IValidator<WebhooksEntity> WebhooksValidator;
+        private static readonly IValidator<WebhooksEntity> WebhooksValidator = new WebhooksEntityValidator();
 
         /// <summary>
         /// Webhook selector
@@ -35,6 +35,11 @@ namespace CaptainHook.Domain.Entities
         public WebhooksEntityType Type { get; }
 
         /// <summary>
+        /// Tells whether there's any endpoint
+        /// </summary>
+        public bool IsEmpty => Endpoints.Count == 0;
+
+        /// <summary>
         /// Webhook endpoints
         /// </summary>
         public IList<EndpointEntity> Endpoints { get; private set; } = new List<EndpointEntity>();
@@ -42,7 +47,6 @@ namespace CaptainHook.Domain.Entities
         public WebhooksEntity(WebhooksEntityType type)
         {
             Type = type;
-            WebhooksValidator = new WebhooksEntityValidator(type);
         }
 
         public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints) : this(type, selectionRule, endpoints, null) { }

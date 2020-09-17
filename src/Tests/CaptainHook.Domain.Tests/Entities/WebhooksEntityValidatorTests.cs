@@ -9,14 +9,13 @@ namespace CaptainHook.Domain.Tests.Entities
 {
     public class WebhooksEntityValidatorTests
     {
-        private WebhooksEntityValidator _validator;
+        private static readonly WebhooksEntityValidator _validator = new WebhooksEntityValidator();
 
         [Fact, IsUnit]
         public void Validate_EmptyWebooksCollectionValidationPassedOnToAnotherValidator_EmptyListOfEndpointsNotAllowed()
         {
             // Arrange
             var endpoints = new WebhooksEntity(WebhooksEntityType.Webhooks);
-            _validator = new WebhooksEntityValidator(WebhooksEntityType.Webhooks);
 
             // Act
             var result = _validator.TestValidate(endpoints);
@@ -31,7 +30,6 @@ namespace CaptainHook.Domain.Tests.Entities
         {
             // Arrange
             var endpoints = new WebhooksEntity(WebhooksEntityType.Callbacks);
-            _validator = new WebhooksEntityValidator(WebhooksEntityType.Callbacks);
 
             // Act
             var result = _validator.TestValidate(endpoints);
@@ -54,7 +52,6 @@ namespace CaptainHook.Domain.Tests.Entities
                     .WithUri("https://uri.com")
                     .Create()
             });
-            _validator = new WebhooksEntityValidator(type);
 
             // Act
             var result = _validator.TestValidate(endpoints);
@@ -81,7 +78,6 @@ namespace CaptainHook.Domain.Tests.Entities
                     .WithUri("https://uri2.com")
                     .Create()
             });
-            _validator = new WebhooksEntityValidator(type);
 
             // Act
             var result = _validator.TestValidate(endpoints);
@@ -108,7 +104,6 @@ namespace CaptainHook.Domain.Tests.Entities
                     .WithUri("https://uri2.com")
                     .Create()
             });
-            _validator = new WebhooksEntityValidator(type);
 
             // Act
             var result = _validator.TestValidate(endpoints);
@@ -134,7 +129,6 @@ namespace CaptainHook.Domain.Tests.Entities
                     .WithUri("https://uri2.com")
                     .Create()
             });
-            _validator = new WebhooksEntityValidator(type);
 
             // Act
             var result = _validator.TestValidate(endpoints);
@@ -156,7 +150,6 @@ namespace CaptainHook.Domain.Tests.Entities
                     .WithUri("https://uri.com")
                     .Create()
             });
-            _validator = new WebhooksEntityValidator(type);
 
             // Act
             var result = _validator.TestValidate(endpoints);
@@ -183,7 +176,6 @@ namespace CaptainHook.Domain.Tests.Entities
                     .WithUri("https://uri.com/{selector}/{token3}")
                     .Create()
             }, uriTransform);
-            _validator = new WebhooksEntityValidator(type);
 
             // Act
             var result = _validator.TestValidate(endpoints);
@@ -214,7 +206,6 @@ namespace CaptainHook.Domain.Tests.Entities
                     .WithUri("https://uri2.com/{selector}/{token2}")
                     .Create()
             }, uriTransform);
-            _validator = new WebhooksEntityValidator(type);
 
             // Act
             var result = _validator.TestValidate(endpoints);
