@@ -112,7 +112,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
             }
             if (_dlqhooks?.Count > 0)
             {
-                subscriber.AddDlq(new WebhooksEntity(_dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity));
+                subscriber.AddDlqHooks(new WebhooksEntity(_dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity));
             }
             return subscriber;
         }

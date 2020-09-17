@@ -234,7 +234,7 @@ namespace CaptainHook.Storage.Cosmos
                 SubscriberName = subscriberEntity.Name,
                 Webhooks = Map(subscriberEntity.Webhooks),
                 Callbacks = Map(subscriberEntity.Callbacks),
-                DlqHooks = Map(subscriberEntity.Dlq),
+                DlqHooks = Map(subscriberEntity.DlqHooks),
                 Etag = subscriberEntity.Etag
             };
         }
@@ -290,7 +290,7 @@ namespace CaptainHook.Storage.Cosmos
             
             if (subscriberDocument.DlqHooks != null)
             {
-                subscriberEntity.AddDlq(Map(subscriberDocument.DlqHooks, subscriberEntity));
+                subscriberEntity.AddDlqHooks(Map(subscriberDocument.DlqHooks, subscriberEntity));
             }
 
             return subscriberEntity;
