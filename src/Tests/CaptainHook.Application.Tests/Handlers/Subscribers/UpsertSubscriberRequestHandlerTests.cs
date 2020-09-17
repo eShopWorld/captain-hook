@@ -37,8 +37,10 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             _handler = new UpsertSubscriberRequestHandler(_repositoryMock.Object, _directorServiceMock.Object, _dtoToEntityMapper.Object);
 
-            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>()))
-                .Returns(new WebhooksEntity());
+            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>(), WebhooksEntityType.Webhooks))
+                .Returns(new WebhooksEntity(WebhooksEntityType.Webhooks));
+            _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>(), WebhooksEntityType.Callbacks))
+                .Returns(new WebhooksEntity(WebhooksEntityType.Callbacks));
         }
 
         [Fact, IsUnit]
@@ -71,7 +73,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var subscriberEntity = new SubscriberBuilder()
                 .WithEvent("event")
                 .WithName("subscriber")
-                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "selector",
+                .WithWebhook("https://blah.blah.eshopworld.com/oldwebhook/", "POST", "*",
                     authentication: new OidcAuthenticationEntity(
                         "captain-hook-id",
                         "kv-secret-name",

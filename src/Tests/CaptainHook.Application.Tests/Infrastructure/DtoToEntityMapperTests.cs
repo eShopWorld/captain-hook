@@ -159,7 +159,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .With(x => x.UriTransform, uriTransformDto)
                 .Create();
 
-            var entity = sut.MapWebooks(dto);
+            var entity = sut.MapWebooks(dto, WebhooksEntityType.Webhooks);
 
             using (new AssertionScope())
             {

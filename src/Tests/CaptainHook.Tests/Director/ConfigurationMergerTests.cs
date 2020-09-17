@@ -83,9 +83,9 @@ namespace CaptainHook.Tests.Director
         {
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector", BasicAuthenticationEntity).Create(),
-                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST", "selector", BasicAuthenticationEntity).Create(),
-                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "selector", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "*", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST", "*", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "*", BasicAuthenticationEntity).Create(),
             };
 
             var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object));
@@ -112,9 +112,9 @@ namespace CaptainHook.Tests.Director
 
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector", BasicAuthenticationEntity).Create(),
-                new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST", "selector", BasicAuthenticationEntity).Create(),
-                new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "selector", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "*", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST", "*", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "*", BasicAuthenticationEntity).Create(),
             };
 
             var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object));
@@ -145,7 +145,7 @@ namespace CaptainHook.Tests.Director
                     .WithWebhook(
                         "https://cosmos.eshopworld.com/testevent/",
                         httpVerb,
-                        "selector",
+                        "*",
                         authenticationEntity
                     ).Create(),
             };
@@ -173,8 +173,8 @@ namespace CaptainHook.Tests.Director
             {
                 new SubscriberBuilder()
                     .WithEvent("testevent")
-                    .WithWebhook("https://cosmos.eshopworld.com/testevent/", httpVerb, "selector", authenticationEntity)
-                    .WithCallback("https://cosmos.eshopworld.com/callback/", httpVerb, "selector", authenticationEntity)
+                    .WithWebhook("https://cosmos.eshopworld.com/testevent/", httpVerb, "*", authenticationEntity)
+                    .WithCallback("https://cosmos.eshopworld.com/callback/", httpVerb, "*", authenticationEntity)
                     .Create(),
             };
 

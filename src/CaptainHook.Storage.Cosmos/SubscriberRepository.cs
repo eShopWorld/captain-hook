@@ -280,21 +280,21 @@ namespace CaptainHook.Storage.Cosmos
                 eventEntity,
                 subscriberDocument.Etag);
 
-            subscriberEntity.AddWebhooks(Map(subscriberDocument.Webhooks, subscriberEntity));
+            subscriberEntity.SetHooks(Map(subscriberDocument.Webhooks, subscriberEntity, WebhooksEntityType.Webhooks));
 
             if (subscriberDocument.Callbacks != null)
             {
-                subscriberEntity.AddCallbacks(Map(subscriberDocument.Callbacks, subscriberEntity));
+                subscriberEntity.SetHooks(Map(subscriberDocument.Callbacks, subscriberEntity, WebhooksEntityType.Callbacks));
             }
 
             return subscriberEntity;
         }
 
-        private WebhooksEntity Map(WebhookSubdocument webhookSubdocument, SubscriberEntity subscriberEntity)
+        private WebhooksEntity Map(WebhookSubdocument webhookSubdocument, SubscriberEntity subscriberEntity, WebhooksEntityType type)
         {
             var uriTransformEntity = Map(webhookSubdocument.UriTransform);
             var endpoints = webhookSubdocument.Endpoints.Select(x => Map(x, subscriberEntity));
-            return new WebhooksEntity(webhookSubdocument.SelectionRule, endpoints, uriTransformEntity);
+            return new WebhooksEntity(type, webhookSubdocument.SelectionRule, endpoints, uriTransformEntity);
         }
 
         private EndpointEntity Map(EndpointSubdocument endpointSubdocument, SubscriberEntity subscriberEntity)
