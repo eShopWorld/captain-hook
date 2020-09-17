@@ -12,51 +12,66 @@ namespace CaptainHook.Domain.Entities
     /// </summary>
     public class WebhooksEntity
     {
-        private static readonly IValidator<WebhooksEntity> WebhooksValidator = new WebhooksEntityValidator();
 
         private static readonly ValidationErrorBuilder ValidationErrorBuilder = new ValidationErrorBuilder();
 
         private static readonly SelectorEndpointEntityEqualityComparer SelectorEndpointEntityEqualityComparer = new SelectorEndpointEntityEqualityComparer();
 
-        private readonly IList<EndpointEntity> _endpoints;
+        private readonly IValidator<WebhooksEntity> WebhooksValidator;
 
         /// <summary>
         /// Webhook selector
         /// </summary>
-        public string SelectionRule { get; }
+        public string SelectionRule { get; private set; }
 
         /// <summary>
         /// URI transformations
         /// </summary>
-        public UriTransformEntity UriTransform { get; }
+        public UriTransformEntity UriTransform { get; private set; }
+
+        /// <summary>
+        /// Type of entity
+        /// </summary>
+        public WebhooksEntityType Type { get; }
 
         /// <summary>
         /// Webhook endpoints
         /// </summary>
-        public IEnumerable<EndpointEntity> Endpoints => _endpoints;
+        public IList<EndpointEntity> Endpoints { get; private set; } = new List<EndpointEntity>();
 
-        public WebhooksEntity()
-            : this(null, null, null)
+        public WebhooksEntity(WebhooksEntityType type)
         {
+            Type = type;
+            WebhooksValidator = new WebhooksEntityValidator(type);
         }
 
-        public WebhooksEntity(string selectionRule) : this(selectionRule, null, null) { }
+        public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints) : this(type, selectionRule, endpoints, null) { }
 
-        public WebhooksEntity(string selectionRule, IEnumerable<EndpointEntity> endpoints) : this(selectionRule, endpoints, null) { }
-
-        public WebhooksEntity(string selectionRule, IEnumerable<EndpointEntity> endpoints, UriTransformEntity uriTransform)
+        public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints, UriTransformEntity uriTransform) : this(type)
         {
             SelectionRule = selectionRule;
+            Endpoints = endpoints?.ToList();
             UriTransform = uriTransform;
-            _endpoints = endpoints?.ToList() ?? new List<EndpointEntity>();
+        }
+
+        public WebhooksEntity SetSelectionRule(string selectionRule)
+        {
+            SelectionRule = selectionRule;
+            return this;
+        }
+
+        public WebhooksEntity SetUriTransform(UriTransformEntity uriTransform)
+        {
+            UriTransform = uriTransform;
+            return this;
         }
 
         public OperationResult<WebhooksEntity> SetEndpoint(EndpointEntity endpoint)
         {
-            var extendedEndpointsCollection = _endpoints
+            var extendedEndpointsCollection = Endpoints
                 .Except(new [] { endpoint }, SelectorEndpointEntityEqualityComparer)
                 .Concat(new[] { endpoint });
-            var endpointsEntityForValidation = new WebhooksEntity(SelectionRule, extendedEndpointsCollection, UriTransform);
+            var endpointsEntityForValidation = new WebhooksEntity(Type, SelectionRule, extendedEndpointsCollection, UriTransform);
 
             var validationResult = WebhooksValidator.Validate(endpointsEntityForValidation);
 
@@ -68,16 +83,16 @@ namespace CaptainHook.Domain.Entities
             var toDelete = FindMatchingEndpoint(endpoint);
             if (toDelete != null)
             {
-                _endpoints.Remove(toDelete);
+                Endpoints.Remove(toDelete);
             }
 
-            _endpoints.Add(endpoint);
+            Endpoints.Add(endpoint);
             return this;
         }
 
         public OperationResult<WebhooksEntity> RemoveEndpoint(EndpointEntity endpoint)
         {
-            if (_endpoints.Count == 1)
+            if (Type == WebhooksEntityType.Webhooks && Endpoints.Count == 1)
             {
                 return new CannotRemoveLastEndpointFromSubscriberError();
             }
@@ -88,12 +103,12 @@ namespace CaptainHook.Domain.Entities
                 return new EndpointNotFoundInSubscriberError(endpoint.Selector);
             }
 
-            _endpoints.Remove(toDelete);
+            Endpoints.Remove(toDelete);
 
             return this;
         }
 
         private EndpointEntity FindMatchingEndpoint(EndpointEntity endpoint)
-            => _endpoints.SingleOrDefault(x => SelectorEndpointEntityEqualityComparer.Equals(x, endpoint));
+            => Endpoints.SingleOrDefault(x => SelectorEndpointEntityEqualityComparer.Equals(x, endpoint));
     }
 }

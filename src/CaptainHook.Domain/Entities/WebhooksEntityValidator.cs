@@ -7,10 +7,10 @@ namespace CaptainHook.Domain.Entities
 {
     public class WebhooksEntityValidator : AbstractValidator<WebhooksEntity>
     {
-        public WebhooksEntityValidator()
+        public WebhooksEntityValidator(WebhooksEntityType type)
         {
             RuleFor(x => x.Endpoints)
-                .SetValidator(new EndpointsCollectionValidator());
+                .SetValidator(new EndpointsCollectionValidator(type));
 
             RuleFor(x => x)
                 .Must(ContainOnlyDefaultEndpointIfNoSelectionRule)

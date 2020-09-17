@@ -121,11 +121,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var uriTransformEntity = new UriTransformEntity(replacements);
 
             var webhooksEntity = new WebhooksEntity(
+                WebhooksEntityType.Webhooks,
                 selectionRule: "$.selector",
                 endpoints: new List<EndpointEntity> { endpointEntity },
                 uriTransform: uriTransformEntity);
 
-            var entity = new SubscriberEntity(string.Empty).AddWebhooks(webhooksEntity);
+            var entity = new SubscriberEntity(string.Empty);
+            entity.SetHooks(webhooksEntity);
 
             var dto = sut.MapSubscriber(entity);
 

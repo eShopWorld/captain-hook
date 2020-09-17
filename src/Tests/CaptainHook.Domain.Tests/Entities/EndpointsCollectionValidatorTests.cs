@@ -10,12 +10,13 @@ namespace CaptainHook.Domain.Tests.Entities
 {
     public class EndpointsCollectionValidatorTests
     {
-        private readonly IValidator<IEnumerable<EndpointEntity>> _validator = new EndpointsCollectionValidator();
+        private IValidator<IEnumerable<EndpointEntity>> _validator;
 
         [Fact, IsUnit]
-        public void Validate_EmptyCollection_CollectionIsNotValid()
+        public void Validate_EmptyWebhooksCollection_CollectionIsNotValid()
         {
             var endpoints = new EndpointEntity[] { };
+            _validator = new EndpointsCollectionValidator(WebhooksEntityType.Webhooks);
 
             var result = _validator.TestValidate(endpoints);
 
@@ -24,29 +25,45 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Fact, IsUnit]
-        public void Validate_MultipleEndpointsInCollection_CollectionIsValid()
+        public void Validate_EmptyCallbacksCollection_CollectionIsValid()
         {
-            var endpoints = new[]
-            {
-                new EndpointBuilder()
-                    .WithUri("https://uri.com/tests")
-                    .WithSelector(null)
-                    .WithHttpVerb("POST")
-                    .Create(),
-                new EndpointBuilder()
-                    .WithUri("https://uri.com/tests/2")
-                    .WithSelector("abc")
-                    .WithHttpVerb("POST")
-                    .Create()
-            };
+            var endpoints = new EndpointEntity[] { };
+            _validator = new EndpointsCollectionValidator(WebhooksEntityType.Callbacks);
 
             var result = _validator.TestValidate(endpoints);
 
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Fact, IsUnit]
-        public void Validate_MultipleEndpointsInCollectionWithoutSelector_CollectionIsNotValid()
+        [Theory, IsUnit]
+        [InlineData(WebhooksEntityType.Webhooks)]
+        [InlineData(WebhooksEntityType.Callbacks)]
+        public void Validate_MultipleEndpointsInCollection_CollectionIsValid(WebhooksEntityType type)
+        {
+            var endpoints = new[]
+            {
+                new EndpointBuilder()
+                    .WithUri("https://uri.com/tests")
+                    .WithSelector(null)
+                    .WithHttpVerb("POST")
+                    .Create(),
+                new EndpointBuilder()
+                    .WithUri("https://uri.com/tests/2")
+                    .WithSelector("abc")
+                    .WithHttpVerb("POST")
+                    .Create()
+            };
+
+            _validator = new EndpointsCollectionValidator(type);
+            var result = _validator.TestValidate(endpoints);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Theory, IsUnit]
+        [InlineData(WebhooksEntityType.Webhooks)]
+        [InlineData(WebhooksEntityType.Callbacks)]
+        public void Validate_MultipleEndpointsInCollectionWithoutSelector_CollectionIsNotValid(WebhooksEntityType type)
         {
             var endpoints = new[]
             {
@@ -62,14 +79,17 @@ namespace CaptainHook.Domain.Tests.Entities
                     .Create()
             };
 
+            _validator = new EndpointsCollectionValidator(type);
             var result = _validator.TestValidate(endpoints);
 
             result.ShouldHaveValidationErrorFor(x => x)
                 .WithErrorMessage("There cannot be multiple endpoints with the same selector");
         }
 
-        [Fact, IsUnit]
-        public void Validate_MultipleEndpointsInCollectionWithDuplicatedSelector_CollectionIsNotValid()
+        [Theory, IsUnit]
+        [InlineData(WebhooksEntityType.Webhooks)]
+        [InlineData(WebhooksEntityType.Callbacks)]
+        public void Validate_MultipleEndpointsInCollectionWithDuplicatedSelector_CollectionIsNotValid(WebhooksEntityType type)
         {
             var endpoints = new[]
             {
@@ -90,6 +110,7 @@ namespace CaptainHook.Domain.Tests.Entities
                     .Create()
             };
 
+            _validator = new EndpointsCollectionValidator(type);
             var result = _validator.TestValidate(endpoints);
 
             result.ShouldHaveValidationErrorFor(x => x)
