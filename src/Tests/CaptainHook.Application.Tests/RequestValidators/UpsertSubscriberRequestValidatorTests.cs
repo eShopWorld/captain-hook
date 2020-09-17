@@ -91,6 +91,17 @@ namespace CaptainHook.Application.Tests.RequestValidators
             result.ShouldNotHaveAnyValidationErrors();
         }
 
+        [Fact, IsUnit]
+        public void When_DlqIsEmpty_Then_NoFailuresReturned()
+        {
+            var dto = new SubscriberDtoBuilder().With(x => x.DlqHooks, null).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
         [Theory, IsUnit]
         [ClassData(typeof(InvalidJsonPaths))]
         public void When_WebhooksSelectionRuleIsNotValidJsonPath_Then_ValidationFails(string jsonPath)
