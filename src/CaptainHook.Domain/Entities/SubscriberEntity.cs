@@ -30,24 +30,24 @@ namespace CaptainHook.Domain.Entities
         public EventEntity ParentEvent { get; private set; }
 
         /// <summary>
-        /// Collection of webhook endpoints
+        /// Collection of webhook enpoints
         /// </summary>
-        public WebhooksEntity Webhooks { get; private set; } = new WebhooksEntity(WebhooksEntityType.Webhooks);
+        public WebhooksEntity Webhooks { get; } = new WebhooksEntity(WebhooksEntityType.Webhooks);
 
         /// <summary>
-        /// Collection of callback endpoints
+        /// Collection of callback enpoints
         /// </summary>
-        public WebhooksEntity Callbacks { get; private set; } = new WebhooksEntity(WebhooksEntityType.Callbacks);
+        public WebhooksEntity Callbacks { get; } = new WebhooksEntity(WebhooksEntityType.Callbacks);
+
+        /// <summary>
+        /// Collection of DLQ endpoints
+        /// </summary>
+        public WebhooksEntity DlqHooks { get; } = new WebhooksEntity(WebhooksEntityType.DlqHooks);
 
         /// <summary>
         /// Determines if it contains any callback
         /// </summary>
         public bool HasCallbacks => !Callbacks.IsEmpty;
-
-        /// <summary>
-        /// Collection of DLQ endpoints
-        /// </summary>
-        public WebhooksEntity DlqHooks { get; private set; }
 
         public SubscriberEntity(string name, EventEntity parentEvent = null, string etag = null)
         {
@@ -69,14 +69,12 @@ namespace CaptainHook.Domain.Entities
         public OperationResult<SubscriberEntity> SetWebhookEndpoint(EndpointEntity entity)
             => OperationOnWebhooks(() => Webhooks.SetEndpoint(entity.SetParentSubscriber(this)));
 
-
         /// <summary>
         /// Removes the existing endpoint from the list if the item is present.
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveWebhookEndpoint(EndpointEntity entity)
             => OperationOnWebhooks(() => Webhooks.RemoveEndpoint(entity));
-
 
         /// <summary>
         /// Adds an endpoint to the list of callback endpoints if it is not on the list already.
@@ -87,7 +85,7 @@ namespace CaptainHook.Domain.Entities
             => OperationOnWebhooks(() => Callbacks.SetEndpoint(entity.SetParentSubscriber(this)));
 
         /// <summary>
-        /// Removes the existing callback endpoint from the list if the item is present.
+        /// Removes the existing endpoint from the list if the item is present.
         /// </summary>
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveCallbackEndpoint(EndpointEntity entity)
@@ -100,13 +98,7 @@ namespace CaptainHook.Domain.Entities
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> SetDlqEndpoint(EndpointEntity entity)
         {
-            if (DlqHooks == null)
-            {
-                DlqHooks = new WebhooksEntity();
-            }
-
-            return DlqHooks.SetEndpoint(entity.SetParentSubscriber(this))
-                .Map(_ => this);
+            return DlqHooks.SetEndpoint(entity.SetParentSubscriber(this)).Map(_ => this);
         }
 
         /// <summary>
@@ -115,8 +107,7 @@ namespace CaptainHook.Domain.Entities
         /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
         public OperationResult<SubscriberEntity> RemoveDlqEndpoint(EndpointEntity entity)
         {
-            return DlqHooks?.RemoveEndpoint(entity)
-                .Map(_ => this);
+            return DlqHooks?.RemoveEndpoint(entity).Map(_ => this);
         }
 
         private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<OperationResult<WebhooksEntity>> funcToRun)
@@ -142,24 +133,11 @@ namespace CaptainHook.Domain.Entities
             {
                 WebhooksEntityType.Webhooks => Webhooks.SetHooks(webhooks, this),
                 WebhooksEntityType.Callbacks => Callbacks.SetHooks(webhooks, this),
+                WebhooksEntityType.DlqHooks => DlqHooks.SetHooks(webhooks, this),
                 _ => new ValidationError("Invalid entity")
             };
 
-            return result.Then<SubscriberEntity>(x => this);
+            return result.Map(_ => this);
         }
-
-
-            return this;
-        }
-
-        public SubscriberEntity AddDlqHooks(WebhooksEntity dlqHooks)
-        {
-            foreach (var callbacksEndpoint in dlqHooks.Endpoints)
-            {
-                callbacksEndpoint.SetParentSubscriber(this);
-            }
-
-            DlqHooks = dlqHooks;
-        
     }
 }
