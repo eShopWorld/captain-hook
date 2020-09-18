@@ -9,13 +9,13 @@ namespace CaptainHook.Domain.Tests.Entities
 {
     public class WebhooksEntityValidatorTests
     {
-        private readonly WebhooksEntityValidator _validator = new WebhooksEntityValidator();
+        private static readonly WebhooksEntityValidator _validator = new WebhooksEntityValidator();
 
         [Fact, IsUnit]
-        public void Validate_EmptyCollectionValidationPassedOnToAnotherValidator_EmptyListOfEndpointsNotAllowed()
+        public void Validate_EmptyWebooksCollectionValidationPassedOnToAnotherValidator_EmptyListOfEndpointsNotAllowed()
         {
             // Arrange
-            var endpoints = new WebhooksEntity(null, null);
+            var endpoints = new WebhooksEntity(WebhooksEntityType.Webhooks);
 
             // Act
             var result = _validator.TestValidate(endpoints);
@@ -26,10 +26,25 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Fact, IsUnit]
-        public void Validate_NoSelectionRuleAndCollectionWithSpecificSelector_FailsValidation()
+        public void Validate_EmptyCallbacksCollectionValidationPassedOnToAnotherValidator_EmptyListOfEndpointsAllowed()
         {
             // Arrange
-            var endpoints = new WebhooksEntity(null, new []
+            var endpoints = new WebhooksEntity(WebhooksEntityType.Callbacks);
+
+            // Act
+            var result = _validator.TestValidate(endpoints);
+
+            // Assert
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+
+        [Theory, IsUnit]
+        [ClassData(typeof(WebhooksAndCallbacks))]
+        public void Validate_NoSelectionRuleAndWebooksCollectionWithSpecificSelector_FailsValidation(WebhooksEntityType type)
+        {
+            // Arrange
+            var endpoints = new WebhooksEntity(type, null, new []
             {
                 new EndpointBuilder()
                     .WithSelector("abc")
@@ -45,18 +60,19 @@ namespace CaptainHook.Domain.Tests.Entities
                 .WithErrorMessage("Only a single default endpoint is allowed if no selection rule provided");
         }
 
-        [Fact, IsUnit]
-        public void Validate_NoSelectionRuleAndCollectionWithSpecificSelectorAndNoSelector_FailsValidation()
+        [Theory, IsUnit]
+        [ClassData(typeof(WebhooksAndCallbacks))]
+        public void Validate_NoSelectionRuleAndWebooksCollectionWithSpecificSelectorAndNoSelector_FailsValidation(WebhooksEntityType type)
         {
             // Arrange
-            var endpoints = new WebhooksEntity(null, new[]
+            var endpoints = new WebhooksEntity(type, null, new[]
             {
                 new EndpointBuilder()
                     .WithSelector("abc")
                     .WithUri("https://uri.com")
                     .Create(),
                 new EndpointBuilder()
-                    .WithSelector(null)
+                    .WithSelector("*")
                     .WithUri("https://uri2.com")
                     .Create()
             });
@@ -69,11 +85,12 @@ namespace CaptainHook.Domain.Tests.Entities
                 .WithErrorMessage("Only a single default endpoint is allowed if no selection rule provided");
         }
 
-        [Fact, IsUnit]
-        public void Validate_NoSelectionRuleAndCollectionWithMultipleDefaultEndpoints_FailsValidation()
+        [Theory, IsUnit]
+        [ClassData(typeof(WebhooksAndCallbacks))]
+        public void Validate_NoSelectionRuleAndWebooksCollectionWithMultipleDefaultEndpoints_FailsValidation(WebhooksEntityType type)
         {
             // Arrange
-            var endpoints = new WebhooksEntity(null, new[]
+            var endpoints = new WebhooksEntity(type, null, new[]
             {
                 new EndpointBuilder()
                     .WithSelector(null)
@@ -92,11 +109,12 @@ namespace CaptainHook.Domain.Tests.Entities
             result.ShouldHaveValidationErrorFor(x => x.Endpoints);
         }
 
-        [Fact, IsUnit]
-        public void Validate_SelectionRuleInPlaceAndCollectionWithSpecificSelectorAndNoSelector_SucceedsValidation()
+        [Theory, IsUnit]
+        [ClassData(typeof(WebhooksAndCallbacks))]
+        public void Validate_SelectionRuleInPlaceAndWebooksCollectionWithSpecificSelectorAndNoSelector_SucceedsValidation(WebhooksEntityType type)
         {
             // Arrange
-            var endpoints = new WebhooksEntity("$.Test", new[]
+            var endpoints = new WebhooksEntity(type, "$.Test", new[]
             {
                 new EndpointBuilder()
                     .WithSelector("abc")
@@ -115,11 +133,12 @@ namespace CaptainHook.Domain.Tests.Entities
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Fact, IsUnit]
-        public void Validate_SelectionRuleInPlaceAndCollectionWithSpecificSelector_SucceedsValidation()
+        [Theory, IsUnit]
+        [ClassData(typeof(WebhooksAndCallbacks))]
+        public void Validate_SelectionRuleInPlaceAndWebooksCollectionWithSpecificSelector_SucceedsValidation(WebhooksEntityType type)
         {
             // Arrange
-            var endpoints = new WebhooksEntity("$.Test", new[]
+            var endpoints = new WebhooksEntity(type, "$.Test", new[]
             {
                 new EndpointBuilder()
                     .WithSelector("abc")
@@ -134,8 +153,9 @@ namespace CaptainHook.Domain.Tests.Entities
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Fact, IsUnit]
-        public void Validate_WebhookWithTokenNotInUriTransform_FailsValidation()
+        [Theory, IsUnit]
+        [ClassData(typeof(WebhooksAndCallbacks))]
+        public void Validate_WebhookWithTokenNotInUriTransform_FailsValidation(WebhooksEntityType type)
         {
             // Arrange
             var uriTransform = new UriTransformEntity(new Dictionary<string, string>()
@@ -143,7 +163,7 @@ namespace CaptainHook.Domain.Tests.Entities
                 { "token1", "value1" },
                 { "token2", "value2" }
             });
-            var endpoints = new WebhooksEntity("$.Test", new[]
+            var endpoints = new WebhooksEntity(type, "$.Test", new[]
             {
                 new EndpointBuilder()
                     .WithSelector("abc")
@@ -158,8 +178,9 @@ namespace CaptainHook.Domain.Tests.Entities
             result.ShouldHaveValidationErrorFor(x => x.UriTransform.Replace);
         }
 
-        [Fact, IsUnit]
-        public void Validate_WebhookWithAllTokensInUriTransform_SucceedsValidation()
+        [Theory, IsUnit]
+        [ClassData(typeof(WebhooksAndCallbacks))]
+        public void Validate_WebhookWithAllTokensInUriTransform_SucceedsValidation(WebhooksEntityType type)
         {
             // Arrange
             var uriTransform = new UriTransformEntity(new Dictionary<string, string>()
@@ -167,7 +188,7 @@ namespace CaptainHook.Domain.Tests.Entities
                 { "token1", "value1" },
                 { "token2", "value2" }
             });
-            var endpoints = new WebhooksEntity("$.Test", new[]
+            var endpoints = new WebhooksEntity(type, "$.Test", new[]
             {
                 new EndpointBuilder()
                     .WithSelector("abc1")
@@ -185,5 +206,5 @@ namespace CaptainHook.Domain.Tests.Entities
             // Assert
             result.ShouldNotHaveAnyValidationErrors();
         }
-    }
+   }
 }

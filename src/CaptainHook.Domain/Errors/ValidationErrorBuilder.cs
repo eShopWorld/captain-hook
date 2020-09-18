@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using CaptainHook.Domain.Results;
 using FluentValidation.Results;
 using ValidationFailure = CaptainHook.Domain.Results.ValidationFailure;
 

@@ -9,8 +9,9 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         /// Maps a Webooks DTO to a Webooks entity
         /// </summary>
         /// <param name="webhooksDto">A Webooks DTO</param>
+        /// <param name="type">The entity type</param>
         /// <returns>A Webooks entity</returns>
-        WebhooksEntity MapWebooks(WebhooksDto webhooksDto);
+        WebhooksEntity MapWebooks(WebhooksDto webhooksDto, WebhooksEntityType type);
 
         /// <summary>
         /// Maps an Endpoint DTO to an Endpoint entity
