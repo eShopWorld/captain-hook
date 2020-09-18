@@ -6,9 +6,10 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 {
     public class DtoToEntityMapper : IDtoToEntityMapper
     {
-        public WebhooksEntity MapWebooks(WebhooksDto webhooksDto)
+        public WebhooksEntity MapWebooks(WebhooksDto webhooksDto, WebhooksEntityType type)
         {
             return new WebhooksEntity(
+                type,
                 webhooksDto.SelectionRule,
                 webhooksDto.Endpoints?.Select(endpointDto => MapEndpoint(endpointDto)) ?? Enumerable.Empty<EndpointEntity>(),
                 MapUriTransform(webhooksDto.UriTransform));

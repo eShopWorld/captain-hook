@@ -30,7 +30,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             SubscriberConfiguration subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
             subscriberConfiguration.SubscriberName = entity.Name;
 
-            if (entity.Callbacks != null)
+            if (entity.HasCallbacks)
             {
                 var callbackResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.Callbacks);
                 if (callbackResult.IsError)
