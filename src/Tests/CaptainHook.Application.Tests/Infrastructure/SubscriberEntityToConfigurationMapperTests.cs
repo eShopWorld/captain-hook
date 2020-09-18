@@ -29,6 +29,40 @@ namespace CaptainHook.Application.Tests.Infrastructure
         private static readonly OidcAuthenticationConfig OidcAuthenticationConfig = new OidcAuthenticationConfig { ClientId = "captain-hook-id", ClientSecret = Secret, Scopes = new[] { "scope1" }, Uri = "https://blah-blah.sts.eshopworld.com", Type = AuthenticationType.OIDC };
         private static readonly BasicAuthenticationConfig BasicAuthenticationConfig = new BasicAuthenticationConfig { Username = "mark", Password = Secret, Type = AuthenticationType.Basic };
 
+        private static readonly WebhookRequestRule StatusCodeRequestRule = new WebhookRequestRule
+        {
+            Source = new SourceParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.HttpStatusCode
+            },
+            Destination = new ParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.Property,
+                Path = "StatusCode"
+            }
+        };
+
+        private static readonly WebhookRequestRule ContentRequestRule = new WebhookRequestRule
+        {
+            Source = new SourceParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.HttpContent
+            },
+            Destination = new ParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.String,
+                Path = "Content"
+            }
+        };
+
         public static IEnumerable<object[]> Data =>
             new List<object[]>
             {
@@ -93,6 +127,11 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.Callback.Uri.Should().Be("https://blah-blah.eshopworld.com/webhook/");
                 subscriberConfiguration.Callback.HttpVerb.Should().Be(httpVerb);
                 subscriberConfiguration.Callback.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
+
+                subscriberConfiguration.Callback.WebhookRequestRules.Should()
+                    .ContainEquivalentOf(ContentRequestRule).And
+                    .ContainEquivalentOf(StatusCodeRequestRule).And
+                    .HaveCount(2);
             }
         }
 
@@ -156,10 +195,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
-                
                 subscriberConfiguration.Callback.Uri.Should().BeNull();
-                subscriberConfiguration.Callback.WebhookRequestRules.Count.Should().Be(1);
-                var rule = subscriberConfiguration.Callback.WebhookRequestRules.Single();
+                subscriberConfiguration.Callback.WebhookRequestRules.Should()
+                    .ContainEquivalentOf(ContentRequestRule).And
+                    .ContainEquivalentOf(StatusCodeRequestRule).And
+                    .HaveCount(3);
+                var rule = subscriberConfiguration.Callback.WebhookRequestRules.SingleOrDefault(x => x.Destination?.RuleAction == RuleAction.RouteAndReplace);
+                rule.Should().NotBeNull();
                 rule.Routes.Count.Should().Be(1);
                 rule.Routes[0].Uri.Should().Be("https://blah-{orderCode}.eshopworld.com/webhook/");
                 rule.Routes[0].HttpMethod.Should().Be(new HttpMethod(httpVerb));
@@ -243,11 +285,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
-                
-                subscriberConfiguration.Callback.Uri.Should().BeNull();
-                subscriberConfiguration.Callback.WebhookRequestRules.Count.Should().Be(1);
+                subscriberConfiguration.Callback.WebhookRequestRules.Should()
+                    .ContainEquivalentOf(ContentRequestRule).And
+                    .ContainEquivalentOf(StatusCodeRequestRule).And
+                    .HaveCount(3);
 
-                var rule = subscriberConfiguration.Callback.WebhookRequestRules.Single();
+                var rule = subscriberConfiguration.Callback.WebhookRequestRules.SingleOrDefault(x => x.Destination?.RuleAction == RuleAction.RouteAndReplace);
+                rule.Should().NotBeNull();
                 rule.Routes.Count.Should().Be(2);
                 rule.Routes[0].Uri.Should().Be("https://order-{selector}.eshopworld.com/webhook/");
                 rule.Routes[0].HttpMethod.Should().Be(new HttpMethod(httpVerb));
@@ -290,7 +334,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.EventType.Should().Be("event");
                 subscriberConfiguration.Uri.Should().BeNull();
                 subscriberConfiguration.WebhookRequestRules.Count.Should().Be(1);
-
+                
                 var rule = subscriberConfiguration.WebhookRequestRules.Single();
                 rule.Routes.Count.Should().Be(2);
                 rule.Routes[0].Uri.Should().Be("https://order-{selector}.eshopworld.com/webhook/");
@@ -337,11 +381,14 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
-                
+                subscriberConfiguration.Callback.WebhookRequestRules.Should()
+                    .ContainEquivalentOf(ContentRequestRule).And
+                    .ContainEquivalentOf(StatusCodeRequestRule).And
+                    .HaveCount(3);
                 subscriberConfiguration.Callback.Uri.Should().BeNull();
-                subscriberConfiguration.Callback.WebhookRequestRules.Count.Should().Be(1);
-
-                var rule = subscriberConfiguration.Callback.WebhookRequestRules.Single();
+                
+                var rule = subscriberConfiguration.Callback.WebhookRequestRules.SingleOrDefault(x => x.Destination?.RuleAction == RuleAction.RouteAndReplace);
+                rule.Should().NotBeNull();
                 rule.Routes.Count.Should().Be(2);
                 rule.Routes[0].Uri.Should().Be("https://order-{selector}.eshopworld.com/webhook/");
                 rule.Routes[0].HttpMethod.Should().Be(new HttpMethod(httpVerb));
@@ -431,11 +478,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
-                
-                subscriberConfiguration.Callback.Uri.Should().BeNull();
-                subscriberConfiguration.Callback.WebhookRequestRules.Count.Should().Be(1);
+                subscriberConfiguration.Callback.WebhookRequestRules.Should()
+                    .ContainEquivalentOf(ContentRequestRule).And
+                    .ContainEquivalentOf(StatusCodeRequestRule).And
+                    .HaveCount(3);
 
-                var rule = subscriberConfiguration.Callback.WebhookRequestRules.Single();
+                var rule = subscriberConfiguration.Callback.WebhookRequestRules.SingleOrDefault(x => x.Destination?.RuleAction == RuleAction.RouteAndReplace);
+                rule.Should().NotBeNull();
                 rule.Routes.Count.Should().Be(2);
                 rule.Routes[0].Uri.Should().Be("https://order-{selector}.eshopworld.com/webhook/");
                 rule.Routes[0].HttpMethod.Should().Be(new HttpMethod(httpVerb));
@@ -513,10 +562,14 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
-                
                 subscriberConfiguration.Callback.Uri.Should().BeNull();
-                subscriberConfiguration.Callback.WebhookRequestRules.Count.Should().Be(1);
-                var rule = subscriberConfiguration.Callback.WebhookRequestRules.Single();
+                subscriberConfiguration.Callback.WebhookRequestRules.Should()
+                    .ContainEquivalentOf(ContentRequestRule).And
+                    .ContainEquivalentOf(StatusCodeRequestRule).And
+                    .HaveCount(3);
+
+                var rule = subscriberConfiguration.Callback.WebhookRequestRules.SingleOrDefault(x => x.Destination?.RuleAction == RuleAction.RouteAndReplace);
+                rule.Should().NotBeNull();
                 rule.Routes.Count.Should().Be(1);
                 rule.Routes[0].Uri.Should().Be("https://blah-{orderCode}.eshopworld.com/webhook/");
                 rule.Routes[0].HttpMethod.Should().Be(new HttpMethod(httpVerb));

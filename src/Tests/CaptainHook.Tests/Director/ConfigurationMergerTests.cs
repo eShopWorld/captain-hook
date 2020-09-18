@@ -47,6 +47,40 @@ namespace CaptainHook.Tests.Director
                 new object[] { "PUT", BasicAuthenticationEntity, BasicAuthenticationConfig }
             };
 
+        private static readonly WebhookRequestRule StatusCodeRequestRule = new WebhookRequestRule
+        {
+            Source = new SourceParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.HttpStatusCode
+            },
+            Destination = new ParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.Property,
+                Path = "StatusCode"
+            }
+        };
+
+        private static readonly WebhookRequestRule ContentRequestRule = new WebhookRequestRule
+        {
+            Source = new SourceParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.HttpContent
+            },
+            Destination = new ParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.String,
+                Path = "Content"
+            }
+        };
+
         public ConfigurationMergerTests()
         {
             _secretProvider = new Mock<ISecretProvider>();
@@ -190,7 +224,10 @@ namespace CaptainHook.Tests.Director
                 callback.Uri.Should().Be("https://cosmos.eshopworld.com/callback/");
                 callback.AuthenticationConfig.Should().BeEquivalentTo(authenticationConfig);
                 callback.HttpVerb.Should().Be(httpVerb);
-                callback.WebhookRequestRules.Should().BeEmpty();
+                callback.WebhookRequestRules.Should()
+                    .ContainEquivalentOf(ContentRequestRule).And
+                    .ContainEquivalentOf(StatusCodeRequestRule).And
+                    .HaveCount(2);
             }
         }
 
