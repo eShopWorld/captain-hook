@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
+using CaptainHook.Cli.Commands.ConfigureEda.Models;
 using CaptainHook.Cli.Extensions;
+using CaptainHook.Domain.Results;
 using McMaster.Extensions.CommandLineUtils;
+using Microsoft.Rest;
 
 namespace CaptainHook.Cli.Commands.ConfigureEda
 {
@@ -48,14 +53,17 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
         /// Gets or sets a flag specifying the Dry-Run mode.
         /// </summary>
         [Option(
-            Description = "Executed the dry-run mode where no data is passed to Captain Hook API",
-            LongName = "dry-run",
+            Description =
+                "By default the CLI is executed in the dry-run mode where no data is passed to Captain Hook API. You can disable dry-run and allow the configuration to be applied to Captain Hook API",
+            LongName = "no-dry-run",
             ShowInHelpText = true)]
-        public bool DryRun { get; set; }
+        public bool NoDryRun { get; set; }
 
         public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
-            console.WriteLine($"Reading files from folder: '{InputFolderPath}'");
+            WriteInGreen("=============================================");
+            WriteInGreen($"Reading files from folder: '{InputFolderPath}'");
+            WriteInGreen("=============================================");
 
             var processor = new SubscribersDirectoryProcessor(_fileSystem);
             var writer = new ConsoleSubscriberWriter(console);
@@ -68,23 +76,62 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
             }
 
             var subscriberFiles = readDirectoryResult.Data;
-            writer.OutputSubscribers(subscriberFiles);
+            writer.OutputSubscribers(subscriberFiles, InputFolderPath);
 
-            if (false)
+            if (NoDryRun)
             {
-                var api = new ApiConsumer(_captainHookClient);
-                var apiResult = await api.CallApiAsync(subscriberFiles.Select(f => f.Request));
-                if (apiResult.IsError)
+                WriteInGreen("=============================================");
+                WriteInGreen("Starting to run configuration against Captain Hook API");
+                WriteInGreen("=============================================");
+
+                var apiResults = await ConfigureEdaWithCaptainHook(app, console, subscriberFiles);
+                if (apiResults.Any(r => r.IsError))
                 {
-                    console.EmitWarning(GetType(), app.Options, apiResult.Error.Message);
                     return 2;
                 }
             }
+            else
+            {
+                WriteInGreen("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
+            }
 
-            console.ForegroundColor = ConsoleColor.DarkGreen;
-            console.WriteLine("Processing finished");
-            console.ResetColor();
+            WriteInGreen("Processing finished");
             return 0;
+
+            void WriteInGreen(string writeLine)
+            {
+                console.ForegroundColor = ConsoleColor.DarkGreen;
+                console.WriteLine(writeLine);
+                console.ResetColor();
+            }
+        }
+
+        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(
+            CommandLineApplication app,
+            IConsole console,
+            IEnumerable<PutSubscriberFile> subscriberFiles)
+        {
+            var api = new ApiConsumer(_captainHookClient);
+            var apiResults = new List<OperationResult<HttpOperationResponse>>();
+
+            var sourceFolderPath = Path.GetFullPath(InputFolderPath);
+            await foreach (var apiResult in api.CallApiAsync(subscriberFiles))
+            {
+                var apiResultResponse = apiResult.Response;
+                apiResults.Add(apiResultResponse);
+
+                if (apiResultResponse.IsError)
+                {
+                    console.EmitWarning(GetType(), app.Options, apiResultResponse.Error.Message);
+                }
+                else
+                {
+                    var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
+                    console.WriteLine($"File '{fileRelativePath}' has been processed successfully");
+                }
+            }
+
+            return apiResults;
         }
     }
 }
