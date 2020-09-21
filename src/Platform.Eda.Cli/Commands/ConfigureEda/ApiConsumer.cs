@@ -19,11 +19,16 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
         private readonly ICaptainHookClient _captainHookClient;
 
+        private readonly TimeSpan[] _sleepDurations;
+
         private readonly AsyncRetryPolicy<HttpOperationResponse> _putRequestRetryPolicy;
 
-        public ApiConsumer(ICaptainHookClient captainHookClient)
+        private static readonly TimeSpan[] DefaultSleepDurations = { TimeSpan.FromSeconds(3.0), TimeSpan.FromSeconds(6.0) };
+
+        public ApiConsumer(ICaptainHookClient captainHookClient, TimeSpan[] sleepDurations)
         {
             _captainHookClient = captainHookClient;
+            _sleepDurations = sleepDurations?.Any() == true ? sleepDurations : DefaultSleepDurations;
             _putRequestRetryPolicy = RetryUntilStatus(ValidResponseCodes);
         }
 
@@ -47,35 +52,39 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                         Response = response
                     };
                 }
-
-                yield return new ApiOperationResult
+                else
                 {
-                    File = file.File,
-                    Response = await BuildExecutionError(response.Response)
-                };
+                    yield return new ApiOperationResult
+                    {
+                        File = file.File,
+                        Response = await BuildExecutionError(response.Response)
+                    };
+                }
             }
         }
 
         private static async Task<CliExecutionError> BuildExecutionError(HttpResponseMessage response)
         {
-            var message = new string[]
+            var responseString = "(none)";
+            if (response.Content != null)
+            {
+                responseString = await response.Content.ReadAsStringAsync();
+            }
+
+            var message = new[]
             {
                 $"Status code: {response.StatusCode:D}",
                 $"Reason: {response.ReasonPhrase}",
-                $"Response: {await response.Content.ReadAsStringAsync()}"
+                $"Response: {responseString}"
             };
             return new CliExecutionError(string.Join(Environment.NewLine, message));
         }
 
-        private static AsyncRetryPolicy<HttpOperationResponse> RetryUntilStatus(params HttpStatusCode[] acceptableHttpStatusCodes)
+        private AsyncRetryPolicy<HttpOperationResponse> RetryUntilStatus(params HttpStatusCode[] acceptableHttpStatusCodes)
         {
             return Policy /* poll until desired status */
                 .HandleResult<HttpOperationResponse>(msg => !acceptableHttpStatusCodes.Contains(msg.Response.StatusCode))
-                .WaitAndRetryAsync(new[]
-                {
-                    TimeSpan.FromSeconds(3.0),
-                    TimeSpan.FromSeconds(6.0)
-                });
+                .WaitAndRetryAsync(_sleepDurations);
         }
     }
 }
