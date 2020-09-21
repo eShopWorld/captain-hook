@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
@@ -137,7 +135,7 @@ namespace CaptainHook.Domain.Entities
                 _ => new ValidationError("Invalid entity")
             };
 
-            return result.Map(_ => this);
+            return result.Then<SubscriberEntity>(_ => this);
         }
     }
 }
