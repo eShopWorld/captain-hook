@@ -12,6 +12,46 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 {
     public class SubscriberEntityToConfigurationMapper : ISubscriberEntityToConfigurationMapper
     {
+        private static readonly WebhookRequestRule StatusCodeRequestRule = new WebhookRequestRule
+        {
+            Source = new SourceParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.HttpStatusCode
+            },
+            Destination = new ParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.Property,
+                Path = "StatusCode"
+            }
+        };
+
+        private static readonly WebhookRequestRule ContentRequestRule = new WebhookRequestRule
+        {
+            Source = new SourceParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.HttpContent
+            },
+            Destination = new ParserLocation
+            {
+                Location = Location.Body,
+                RuleAction = RuleAction.Add,
+                Type = DataType.String,
+                Path = "Content"
+            }
+        };
+
+        private static readonly List<WebhookRequestRule> CallbackRequestRules = new List<WebhookRequestRule>
+        {
+            StatusCodeRequestRule,
+            ContentRequestRule
+        };
+
         private readonly ISecretProvider _secretProvider;
 
         public SubscriberEntityToConfigurationMapper(ISecretProvider secretProvider)
@@ -38,6 +78,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                     return callbackResult.Error;
                 }
                 subscriberConfiguration.Callback = callbackResult.Data;
+                AddCallbackRules(subscriberConfiguration.Callback);
             }
 
             if (entity.HasDlqHooks)
@@ -68,6 +109,16 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             subscriberConfiguration.DLQMode = SubscriberDlqMode.WebHookMode;
 
             return subscriberConfiguration;
+        }
+
+        private void AddCallbackRules(WebhookConfig callback)
+        {
+            if(callback.WebhookRequestRules == null)
+            {
+                callback.WebhookRequestRules = new List<WebhookRequestRule>();
+            }
+
+            callback.WebhookRequestRules.AddRange(CallbackRequestRules);
         }
 
         private async Task<OperationResult<WebhookConfig>> MapWebhooksAsync(string name, string eventType, WebhooksEntity webhooksEntity)
