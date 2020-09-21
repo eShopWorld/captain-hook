@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.ValueObjects;
@@ -8,13 +11,9 @@ using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Exceptions;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using Kusto.Cloud.Platform.Utils;
 using Microsoft.Azure.Cosmos;
 using Moq;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace CaptainHook.Storage.Cosmos.Tests
@@ -70,6 +69,9 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .WithCallbacksSelectionRule("$.TestSelector")
                 .WithCallbacksUriTransform(new UriTransformEntity(replacements))
                 .WithCallback("http://www.test.uri/callback/path", httpVerb, "Selector1", authenticationEntity ?? OidcAuthenticationEntity)
+                .WithDlqhooksSelectionRule("$.DlqSelector")
+                .WithDlqhooksUriTransform(new UriTransformEntity(replacements))
+                .WithDlq("http://www.test.uri/dlq/path", httpVerb, "DlqSelector", authenticationEntity ?? OidcAuthenticationEntity)
                 .WithEtag(etag)
                 .Create();
 
@@ -94,6 +96,13 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .With(x => x.Uri, "http://www.test.uri/callback/path")
                 .Create();
 
+            var endpointDlqhooksSubdocument = new EndpointSubdocumentBuilder()
+                .With(x => x.HttpVerb, httpVerb)
+                .With(x => x.Selector, "DlqSelector")
+                .With(x => x.Authentication, (AuthenticationSubdocument)authenticationSubdocument ?? OidcAuthenticationSubdocument)
+                .With(x => x.Uri, "http://www.test.uri/dlq/path")
+                .Create();
+
             var webhooksSubdocument = new WebhooksSubdocumentBuilder()
                 .With(x => x.SelectionRule, "$.TestSelector")
                 .With(x => x.UriTransform, new UriTransformSubdocument(replacements))
@@ -106,9 +115,16 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .With(x => x.Endpoints, new EndpointSubdocument[] { endpointCallbackSubdocument })
                 .Create();
 
+            var dlqhooksSubdocument = new WebhooksSubdocumentBuilder()
+                .With(x => x.SelectionRule, "$.DlqSelector")
+                .With(x => x.UriTransform, new UriTransformSubdocument(replacements))
+                .With(x => x.Endpoints, new EndpointSubdocument[] {endpointDlqhooksSubdocument})
+                .Create();
+
             var subscriberDocument = new SubscriberDocumentBuilder()
                 .With(x => x.Webhooks, webhooksSubdocument)
                 .With(x => x.Callbacks, callbacksSubdocument)
+                .With(x => x.DlqHooks, dlqhooksSubdocument)
                 .With(x => x.Etag, etag)
                 .Create();
 

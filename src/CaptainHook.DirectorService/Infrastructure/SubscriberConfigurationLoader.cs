@@ -35,7 +35,8 @@ namespace CaptainHook.DirectorService.Infrastructure
                 return subscribersFromCosmos.Error;
             }
 
-            return (await _configurationMerger.MergeAsync(subscribersFromKV.Data, subscribersFromCosmos.Data)).Map<IEnumerable<SubscriberConfiguration>>(x => x);
+            return (await _configurationMerger.MergeAsync(subscribersFromKV.Data, subscribersFromCosmos.Data))
+                .Then<IEnumerable<SubscriberConfiguration>>(x => x);
         }
     }
 }
