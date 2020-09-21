@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace CaptainHook.Domain.Entities
 {
@@ -11,7 +12,7 @@ namespace CaptainHook.Domain.Entities
 
         public UriTransformEntity(IDictionary<string, string> replace)
         {
-            Replace = replace;
+            Replace = new ReadOnlyDictionary<string, string>(replace ?? new Dictionary<string, string>());
         }
     }
 }
