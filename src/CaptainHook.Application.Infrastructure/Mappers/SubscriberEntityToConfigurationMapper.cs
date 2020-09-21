@@ -83,7 +83,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
             if (entity.HasDlqHooks)
             {
-                var dlqResult = await MapDlqHooksAsync(entity.Id, entity.ParentEvent.Name, entity.DlqHooks);
+                var dlqResult = await MapDlqHooksAsync(entity.Name, entity.ParentEvent.Name, entity.DlqHooks);
                 if (dlqResult.IsError)
                 {
                     return dlqResult.Error;
@@ -104,7 +104,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             }
 
             var subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
-            subscriberConfiguration.SourceSubscriptionName = webhooksResult.Data.Name;
+            subscriberConfiguration.SourceSubscriptionName = name;
+            subscriberConfiguration.Name = $"{eventType}-DLQ";
             subscriberConfiguration.SubscriberName = "DLQ";
             subscriberConfiguration.DLQMode = SubscriberDlqMode.WebHookMode;
 

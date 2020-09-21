@@ -137,6 +137,39 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         [Theory, IsUnit]
         [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithSingleDLQAndNoUriTransformDefined_MapsToSingleDLQ(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        {
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication)
+                .WithDlq("https://blah-blah.eshopworld.com/dlq/", httpVerb, "*", authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+
+            var webhookConfig = new SubscriberConfigurationBuilder()
+                .WithName(subscriber.Id)
+                .WithHttpVerb(httpVerb)
+                .WithUri("https://blah-blah.eshopworld.com/webhook/")
+                .WithAuthentication(expectedAuthenticationConfig)
+                .Create();
+            var dlqConfig = new SubscriberConfigurationBuilder()
+                //.WithName($"{subscriber.ParentEvent.Name}-DLQ")
+                //.WithSubscriberName("DLQ")
+                //.WithSourceSubscriptionName(subscriber.Id)
+                .WithHttpVerb(httpVerb)
+                .WithUri("https://blah-blah.eshopworld.com/dlq/")
+                .WithAuthentication(expectedAuthenticationConfig)
+                .CreateAsDlq();
+            var expected = new[] { webhookConfig, dlqConfig };
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.Should().BeEquivalentTo(expected);
+            }
+        }
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
         public async Task MapSubscriberAsync_WithSingleWebhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
