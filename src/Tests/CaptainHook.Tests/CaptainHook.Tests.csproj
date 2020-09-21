@@ -41,7 +41,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CaptainHook.Api\CaptainHook.Api.csproj" />
-    <ProjectReference Include="..\..\CaptainHook.Cli\CaptainHook.Cli.csproj" />
     <ProjectReference Include="..\..\CaptainHook.Common\CaptainHook.Common.csproj" />
     <ProjectReference Include="..\..\CaptainHook.DirectorService\CaptainHook.DirectorService.csproj" />
     <ProjectReference Include="..\..\CaptainHook.Domain\CaptainHook.Domain.csproj" />
