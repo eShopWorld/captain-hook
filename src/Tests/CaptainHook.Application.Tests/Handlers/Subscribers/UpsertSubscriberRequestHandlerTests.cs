@@ -28,7 +28,6 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private readonly Mock<IDirectorServiceProxy> _directorServiceMock = new Mock<IDirectorServiceProxy>(MockBehavior.Strict);
         private readonly Mock<IDtoToEntityMapper> _dtoToEntityMapper = new Mock<IDtoToEntityMapper>(MockBehavior.Strict);
 
-
         private readonly UpsertSubscriberRequest _testRequest = new UpsertSubscriberRequest("event", "subscriber", new SubscriberDtoBuilder().Create());
 
         private readonly UpsertSubscriberRequestHandler _handler;
@@ -41,6 +40,8 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .Returns(new WebhooksEntity(WebhooksEntityType.Webhooks));
             _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>(), WebhooksEntityType.Callbacks))
                 .Returns(new WebhooksEntity(WebhooksEntityType.Callbacks));
+             _dtoToEntityMapper.Setup(r => r.MapWebooks(It.IsAny<WebhooksDto>(), WebhooksEntityType.DlqHooks))
+                .Returns(new WebhooksEntity(WebhooksEntityType.DlqHooks));
         }
 
         [Fact, IsUnit]
