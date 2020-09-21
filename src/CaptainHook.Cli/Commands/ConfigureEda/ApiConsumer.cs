@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using CaptainHook.Api.Client;
 using CaptainHook.Cli.Commands.ConfigureEda.Models;
 using CaptainHook.Cli.Common;
@@ -13,13 +15,16 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
 {
     public class ApiConsumer
     {
+        private static readonly HttpStatusCode[] ValidResponseCodes = { HttpStatusCode.Created, HttpStatusCode.Accepted };
+
         private readonly ICaptainHookClient _captainHookClient;
+
         private readonly AsyncRetryPolicy<HttpOperationResponse> _putRequestRetryPolicy;
 
         public ApiConsumer(ICaptainHookClient captainHookClient)
         {
             _captainHookClient = captainHookClient;
-            _putRequestRetryPolicy = RetryUntilStatus(HttpStatusCode.Created, HttpStatusCode.Accepted, HttpStatusCode.Unauthorized);
+            _putRequestRetryPolicy = RetryUntilStatus(ValidResponseCodes);
         }
 
         public async IAsyncEnumerable<ApiOperationResult> CallApiAsync(IEnumerable<PutSubscriberFile> files)
@@ -29,32 +34,48 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
                 var request = file.Request;
                 var response = await _putRequestRetryPolicy.ExecuteAsync(async () =>
                     await _captainHookClient.PutSuscriberWithHttpMessagesAsync(
-                    request.EventName,
-                    request.SubscriberName,
-                    request.Subscriber));
+                        request.EventName,
+                        request.SubscriberName,
+                        request.Subscriber));
 
-                if (response.Response.StatusCode == HttpStatusCode.Unauthorized)
+                var lastResponseValid = ValidResponseCodes.Contains(response.Response.StatusCode);
+                if (lastResponseValid)
                 {
                     yield return new ApiOperationResult
                     {
                         File = file.File,
-                        Response = new CliExecutionError(response.Response.ToString())
+                        Response = response
                     };
                 }
 
                 yield return new ApiOperationResult
                 {
                     File = file.File,
-                    Response = response
+                    Response = await BuildExecutionError(response.Response)
                 };
             }
+        }
+
+        private static async Task<CliExecutionError> BuildExecutionError(HttpResponseMessage response)
+        {
+            var message = new string[]
+            {
+                $"Status code: {response.StatusCode:D}",
+                $"Reason: {response.ReasonPhrase}",
+                $"Response: {await response.Content.ReadAsStringAsync()}"
+            };
+            return new CliExecutionError(string.Join(Environment.NewLine, message));
         }
 
         private static AsyncRetryPolicy<HttpOperationResponse> RetryUntilStatus(params HttpStatusCode[] acceptableHttpStatusCodes)
         {
             return Policy /* poll until desired status */
                 .HandleResult<HttpOperationResponse>(msg => !acceptableHttpStatusCodes.Contains(msg.Response.StatusCode))
-                .WaitAndRetryAsync(10, i => TimeSpan.FromSeconds(5));
+                .WaitAndRetryAsync(new[]
+                {
+                    TimeSpan.FromSeconds(3.0),
+                    TimeSpan.FromSeconds(6.0)
+                });
         }
     }
 }

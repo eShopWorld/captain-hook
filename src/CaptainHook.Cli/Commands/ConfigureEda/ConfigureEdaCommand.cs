@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.IO.Abstractions;
@@ -31,43 +30,40 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
         /// The path to the input folder containing JSON files. Can be absolute or relative.
         /// </summary>
         [Required]
-        [Option(
+        [Option("-i|--input",
             Description = "The path to the folder containing JSON files to process. Can be absolute or relative",
-            ShortName = "i",
-            LongName = "input",
             ShowInHelpText = true)]
         public string InputFolderPath { get; set; }
 
         /// <summary>
         /// The environment name.
         /// </summary>
-        [Required]
-        [Option(
-            Description = "The environment name",
-            ShortName = "env",
-            LongName = "environment",
+        [Option("-e|--env",
+            Description = "The environment name: (CI, TEST, PREP, SAND, PROD). Default: CI",
             ShowInHelpText = true)]
-        public string EnvironmentName { get; set; }
+        public string Environment { get; set; }
 
         /// <summary>
         /// Gets or sets a flag specifying the Dry-Run mode.
         /// </summary>
-        [Option(
-            Description =
-                "By default the CLI is executed in the dry-run mode where no data is passed to Captain Hook API. You can disable dry-run and allow the configuration to be applied to Captain Hook API",
-            LongName = "no-dry-run",
+        [Option("-n|--no-dry-run",
+            Description = "By default the CLI is executed in the dry-run mode where no data is passed to Captain Hook API. You can disable dry-run and allow the configuration to be applied to Captain Hook API",
             ShowInHelpText = true)]
         public bool NoDryRun { get; set; }
 
         public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
         {
-            WriteInGreen("=============================================");
-            WriteInGreen($"Reading files from folder: '{InputFolderPath}'");
-            WriteInGreen("=============================================");
+            if (string.IsNullOrWhiteSpace(Environment))
+            {
+                Environment = "CI";
+            }
+
+            var writer = new ConsoleSubscriberWriter(console);
+
+            writer.WriteSuccess("box", $"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
 
             var processor = new SubscribersDirectoryProcessor(_fileSystem);
-            var writer = new ConsoleSubscriberWriter(console);
-            var readDirectoryResult = processor.ProcessDirectory(InputFolderPath, EnvironmentName);
+            var readDirectoryResult = processor.ProcessDirectory(InputFolderPath, Environment);
 
             if (readDirectoryResult.IsError)
             {
@@ -80,11 +76,9 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
 
             if (NoDryRun)
             {
-                WriteInGreen("=============================================");
-                WriteInGreen("Starting to run configuration against Captain Hook API");
-                WriteInGreen("=============================================");
+                writer.WriteSuccess("box", "Starting to run configuration against Captain Hook API");
 
-                var apiResults = await ConfigureEdaWithCaptainHook(app, console, subscriberFiles);
+                var apiResults = await ConfigureEdaWithCaptainHook(app, writer, subscriberFiles);
                 if (apiResults.Any(r => r.IsError))
                 {
                     return 2;
@@ -92,23 +86,16 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
             }
             else
             {
-                WriteInGreen("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
+                writer.WriteSuccess("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
             }
 
-            WriteInGreen("Processing finished");
+            writer.WriteSuccess("Processing finished");
             return 0;
-
-            void WriteInGreen(string writeLine)
-            {
-                console.ForegroundColor = ConsoleColor.DarkGreen;
-                console.WriteLine(writeLine);
-                console.ResetColor();
-            }
         }
 
         private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(
             CommandLineApplication app,
-            IConsole console,
+            ConsoleSubscriberWriter writer,
             IEnumerable<PutSubscriberFile> subscriberFiles)
         {
             var api = new ApiConsumer(_captainHookClient);
@@ -120,14 +107,14 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
                 var apiResultResponse = apiResult.Response;
                 apiResults.Add(apiResultResponse);
 
+                var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
                 if (apiResultResponse.IsError)
                 {
-                    console.EmitWarning(GetType(), app.Options, apiResultResponse.Error.Message);
+                    writer.WriteError($"Error when processing '{fileRelativePath}':", apiResultResponse.Error.Message);
                 }
                 else
                 {
-                    var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
-                    console.WriteLine($"File '{fileRelativePath}' has been processed successfully");
+                    writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully");
                 }
             }
 
