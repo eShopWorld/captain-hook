@@ -16,7 +16,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _httpVerb = "POST";
         private WebhookConfig _callback;
         private bool _asDlq;
-        private bool _isMainConfiguration;
 
         private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
         
@@ -42,12 +41,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberConfigurationBuilder WithSubscriberName(string subscriberName)
         {
             _subscriberName = subscriberName;
-            return this;
-        }
-
-        public SubscriberConfigurationBuilder WithSourceSubscriptionName(string sourceSubscriptionName)
-        {
-            _sourceSubscriptionName = sourceSubscriptionName;
             return this;
         }
 

@@ -99,7 +99,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.EventType.Should().Be("event");
                 subscriberConfiguration.Uri.Should().Be("https://blah-blah.eshopworld.com/webhook/");
                 subscriberConfiguration.HttpMethod.Should().Be(new HttpMethod(httpVerb));
-                
+
                 subscriberConfiguration.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
@@ -123,7 +123,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
-                
+
                 subscriberConfiguration.Callback.Uri.Should().Be("https://blah-blah.eshopworld.com/webhook/");
                 subscriberConfiguration.Callback.HttpVerb.Should().Be(httpVerb);
                 subscriberConfiguration.Callback.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
@@ -153,9 +153,6 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithAuthentication(expectedAuthenticationConfig)
                 .Create();
             var dlqConfig = new SubscriberConfigurationBuilder()
-                //.WithName($"{subscriber.ParentEvent.Name}-DLQ")
-                //.WithSubscriberName("DLQ")
-                //.WithSourceSubscriptionName(subscriber.Id)
                 .WithHttpVerb(httpVerb)
                 .WithUri("https://blah-blah.eshopworld.com/dlq/")
                 .WithAuthentication(expectedAuthenticationConfig)
@@ -168,6 +165,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 result.Data.Should().BeEquivalentTo(expected);
             }
         }
+
         [Theory, IsUnit]
         [MemberData(nameof(Data))]
         public async Task MapSubscriberAsync_WithSingleWebhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
@@ -245,6 +243,55 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 rule.Routes[0].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithSingleDLQAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        {
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
+            var subscriber = new SubscriberBuilder()
+                .WithWebhooksUriTransform(uriTransform)
+                .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithDlqhooksUriTransform(uriTransform)
+                .WithDlq("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+
+            var webhookConfig = new SubscriberConfigurationBuilder()
+                .WithUri(null).WithoutAuthentication()
+                .WithName(subscriber.Id)
+                .AddWebhookRequestRule(rule => rule
+                    .WithSource(source => source
+                        .AddReplace("orderCode", "$.OrderCode"))
+                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                    .AddRoute(route => route
+                        .WithHttpVerb(httpVerb)
+                        .WithAuthentication(expectedAuthenticationConfig)
+                        .WithUri("https://blah-{orderCode}.eshopworld.com/webhook/")
+                        .WithSelector("*")))
+                .Create();
+            var dlqConfig = new SubscriberConfigurationBuilder()
+                .WithUri(null).WithoutAuthentication()
+                .AddWebhookRequestRule(rule => rule
+                    .WithSource(source => source
+                        .AddReplace("orderCode", "$.OrderCode"))
+                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                    .AddRoute(route => route
+                        .WithHttpVerb(httpVerb)
+                        .WithAuthentication(expectedAuthenticationConfig)
+                        .WithUri("https://blah-{orderCode}.eshopworld.com/webhook/")
+                        .WithSelector("*")))
+                .CreateAsDlq();
+            var expected = new[] { webhookConfig, dlqConfig };
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.Should().BeEquivalentTo(expected);
+            }
+        }
+
 
         [Theory, IsUnit]
         [MemberData(nameof(Data))]
@@ -367,7 +414,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 subscriberConfiguration.EventType.Should().Be("event");
                 subscriberConfiguration.Uri.Should().BeNull();
                 subscriberConfiguration.WebhookRequestRules.Count.Should().Be(1);
-                
+
                 var rule = subscriberConfiguration.WebhookRequestRules.Single();
                 rule.Routes.Count.Should().Be(2);
                 rule.Routes[0].Uri.Should().Be("https://order-{selector}.eshopworld.com/webhook/");
@@ -419,7 +466,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                     .ContainEquivalentOf(StatusCodeRequestRule).And
                     .HaveCount(3);
                 subscriberConfiguration.Callback.Uri.Should().BeNull();
-                
+
                 var rule = subscriberConfiguration.Callback.WebhookRequestRules.SingleOrDefault(x => x.Destination?.RuleAction == RuleAction.RouteAndReplace);
                 rule.Should().NotBeNull();
                 rule.Routes.Count.Should().Be(2);
@@ -619,7 +666,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         public async Task MapSubscriberAsync_NoSelectionRule_MapsFromFirstEndpoint(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             // Arrange
-            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { {"selector", "$.Test" }});
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
@@ -657,7 +704,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         {
             // Arrange
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
-            var authentication = new OidcAuthenticationEntity("client-id", "invalid-secret-key-name", "uri", new string[]{ });
+            var authentication = new OidcAuthenticationEntity("client-id", "invalid-secret-key-name", "uri", new string[] { });
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", "POST", null, authentication)
