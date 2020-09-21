@@ -47,6 +47,11 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         public bool HasCallbacks => !Callbacks.IsEmpty;
 
+        /// <summary>
+        /// Determines if it contains any DLQ hooks
+        /// </summary>
+        public bool HasDlqHooks => !DlqHooks.IsEmpty;
+
         public SubscriberEntity(string name, EventEntity parentEvent = null, string etag = null)
         {
             Name = name;
