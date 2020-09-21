@@ -63,7 +63,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             writer.WriteSuccess("box", $"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
 
             var processor = new SubscribersDirectoryProcessor(_fileSystem);
-            var readDirectoryResult = processor.ProcessDirectory(InputFolderPath, Environment);
+            var readDirectoryResult = processor.ProcessDirectory(InputFolderPath);
 
             if (readDirectoryResult.IsError)
             {
