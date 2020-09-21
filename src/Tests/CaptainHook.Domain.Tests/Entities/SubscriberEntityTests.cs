@@ -43,6 +43,18 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Fact, IsUnit]
+        public void SetHooks_WhenAddingWebhookEndpointsWithSameSelector_ThenValidationErrorReturned()
+        {
+            var subscriber = new SubscriberEntity("testName", new EventEntity("eventName"));
+            var endpointEntities = new[] { new EndpointEntity("uri", null, "POST", "*"), new EndpointEntity("uri", null, "POST", "abc") };
+
+            var result = subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Webhooks, "", endpointEntities));
+
+            result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<ValidationError>();
+        }
+
+        [Fact, IsUnit]
         public void SetWebhookEndpoint_EndpointUpdated_EndpointOnList()
         {
             // Arrange

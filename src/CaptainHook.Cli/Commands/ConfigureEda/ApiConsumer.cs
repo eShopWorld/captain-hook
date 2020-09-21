@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using CaptainHook.Api.Client;
 using CaptainHook.Cli.Commands.ConfigureEda.Models;
 using CaptainHook.Cli.Common;
-using CaptainHook.Domain.Results;
 using Microsoft.Rest;
 using Polly;
 using Polly.Retry;
@@ -23,26 +21,33 @@ namespace CaptainHook.Cli.Commands.ConfigureEda
             _captainHookClient = captainHookClient;
             _putRequestRetryPolicy = RetryUntilStatus(HttpStatusCode.Created, HttpStatusCode.Accepted, HttpStatusCode.Unauthorized);
         }
-        public async Task<OperationResult<IEnumerable<HttpOperationResponse>>> CallApiAsync(IEnumerable<PutSubscriberRequest> requests)
+
+        public async IAsyncEnumerable<ApiOperationResult> CallApiAsync(IEnumerable<PutSubscriberFile> files)
         {
-            var responses = new List<HttpOperationResponse>();
-            foreach (var putSubscriberRequest in requests)
+            foreach (var file in files)
             {
+                var request = file.Request;
                 var response = await _putRequestRetryPolicy.ExecuteAsync(async () =>
                     await _captainHookClient.PutSuscriberWithHttpMessagesAsync(
-                    putSubscriberRequest.EventName,
-                    putSubscriberRequest.SubscriberName,
-                    putSubscriberRequest.Subscriber));
+                    request.EventName,
+                    request.SubscriberName,
+                    request.Subscriber));
 
                 if (response.Response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    return new OperationResult<IEnumerable<HttpOperationResponse>>(new CliExecutionError(response.Response.ToString()));
+                    yield return new ApiOperationResult
+                    {
+                        File = file.File,
+                        Response = new CliExecutionError(response.Response.ToString())
+                    };
                 }
 
-                responses.Add(response);
+                yield return new ApiOperationResult
+                {
+                    File = file.File,
+                    Response = response
+                };
             }
-
-            return responses;
         }
 
         private static AsyncRetryPolicy<HttpOperationResponse> RetryUntilStatus(params HttpStatusCode[] acceptableHttpStatusCodes)
