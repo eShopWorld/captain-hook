@@ -1,10 +1,10 @@
-﻿using System.IO;
+﻿using System.IO.Abstractions;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.Models
 {
     public class PutSubscriberFile
     {
-        public FileInfo File { get; set; }
+        public FileInfoBase File { get; set; }
 
         public PutSubscriberRequest Request { get; set; }
     }
