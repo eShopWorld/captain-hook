@@ -94,7 +94,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             await Assert.ThrowsAsync<ArgumentNullException>(() => _configureEdaCommand.OnExecuteAsync(Application, Console));
         }
 
-
         [Fact]
         public async Task OnExecuteAsync_WhenInputNoDryRunFalse_ApiIsNotCalled()
         {
