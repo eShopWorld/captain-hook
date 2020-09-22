@@ -22,7 +22,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
         private WebhookConfig _callback;
         private bool _asDlq;
-        private bool _isMainConfiguration;
 
         public SubscriberConfigurationBuilder WithType(string type)
         {
