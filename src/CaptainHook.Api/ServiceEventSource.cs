@@ -133,14 +133,12 @@ namespace CaptainHook.Api
         #region Private methods
         private static long GetReplicaOrInstanceId(ServiceContext context)
         {
-            StatelessServiceContext stateless = context as StatelessServiceContext;
-            if (stateless != null)
+            if (context is StatelessServiceContext stateless)
             {
                 return stateless.InstanceId;
             }
 
-            StatefulServiceContext stateful = context as StatefulServiceContext;
-            if (stateful != null)
+            if (context is StatefulServiceContext stateful)
             {
                 return stateful.ReplicaId;
             }
