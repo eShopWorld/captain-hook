@@ -51,6 +51,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
 
             return subscribers;
-        }
+            }
     }
 }
