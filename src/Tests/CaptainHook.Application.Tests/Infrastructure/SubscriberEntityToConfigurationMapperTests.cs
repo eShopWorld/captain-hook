@@ -165,6 +165,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             }
         }
 
+
         [Theory, IsUnit]
         [MemberData(nameof(Data))]
         public async Task MapSubscriberAsync_WithSingleWebhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
@@ -379,7 +380,6 @@ namespace CaptainHook.Application.Tests.Infrastructure
             }
         }
 
-
         [Theory, IsUnit]
         [MemberData(nameof(Data))]
         public async Task MapSubscriberAsync_WithMultipleDLQsAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
@@ -428,6 +428,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
             }
         }
+
 
         [Theory, IsUnit]
         [MemberData(nameof(Data))]
@@ -529,6 +530,56 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         [Theory, IsUnit]
         [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithMultipleDLQsAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        {
+            var uriTransform = new UriTransformEntity(
+                new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithDlqhooksSelectionRule("$.TenantCode")
+                .WithDlqhooksUriTransform(uriTransform)
+                .WithDlq("https://order-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
+                .WithDlq("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "bSelector", authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+
+            var webhookConfig = new SubscriberConfigurationBuilder()
+                .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
+                .WithAuthentication(expectedAuthenticationConfig)
+                .WithName(subscriber.Id)
+                .WithHttpVerb(httpVerb)
+                .Create();
+
+            var dlqConfig = new SubscriberConfigurationBuilder()
+                .WithUri(null).WithoutAuthentication()
+                .AddWebhookRequestRule(rule => rule
+                    .WithSource(source => source
+                        .AddReplace("selector", "$.TenantCode")
+                        .AddReplace("orderCode", "$.OrderCode"))
+                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                    .AddRoute(route => route
+                        .WithHttpVerb(httpVerb)
+                        .WithAuthentication(expectedAuthenticationConfig)
+                        .WithUri("https://order-{selector}.eshopworld.com/dlq/")
+                        .WithSelector("aSelector"))
+                    .AddRoute(route => route
+                        .WithHttpVerb(httpVerb)
+                        .WithAuthentication(expectedAuthenticationConfig)
+                        .WithUri("https://payments-{selector}.eshopworld.com/dlq/")
+                        .WithSelector("bSelector")))
+                .CreateAsDlq();
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
+            }
+        }
+
+
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
         public async Task MapSubscriberAsync_WithMultipleWebhooksAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
@@ -624,6 +675,57 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         [Theory, IsUnit]
         [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithMultipleDLQAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        {
+            var uriTransform = new UriTransformEntity(
+                new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithDlqhooksSelectionRule("$.TenantCode")
+                .WithDlqhooksUriTransform(uriTransform)
+                .WithDlq("https://order-{selector}.eshopworld.com/dlq/", httpVerb, null, authentication)
+                .WithDlq("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+
+            var webhookConfig = new SubscriberConfigurationBuilder()
+               .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
+               .WithAuthentication(expectedAuthenticationConfig)
+               .WithName(subscriber.Id)
+               .WithHttpVerb(httpVerb)
+               .Create();
+
+            var dlqConfig = new SubscriberConfigurationBuilder()
+               .WithUri(null).WithoutAuthentication()
+               .AddWebhookRequestRule(rule => rule
+                   .WithSource(source => source
+                       .AddReplace("selector", "$.TenantCode")
+                       .AddReplace("orderCode", "$.OrderCode"))
+                   .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                   .AddRoute(route => route
+                       .WithHttpVerb(httpVerb)
+                       .WithAuthentication(expectedAuthenticationConfig)
+                       .WithUri("https://order-{selector}.eshopworld.com/dlq/")
+                       .WithSelector("*"))
+                   .AddRoute(route => route
+                       .WithHttpVerb(httpVerb)
+                       .WithAuthentication(expectedAuthenticationConfig)
+                       .WithUri("https://payments-{selector}.eshopworld.com/dlq/")
+                       .WithSelector("aSelector")))
+               .CreateAsDlq();
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
+            }
+        }
+
+
+
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
         public async Task MapSubscriberAsync_WithSingleWebhookAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(null);
@@ -701,6 +803,50 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 rule.Routes[0].AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task MapSubscriberAsync_WithSingleDLQAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        {
+            var uriTransform = new UriTransformEntity(null);
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithDlqhooksSelectionRule("aSelectionRule")
+                .WithDlqhooksUriTransform(uriTransform)
+                .WithDlq("https://blah-{orderCode}.eshopworld.com/dlq/", httpVerb, "*", authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+
+            var webhookConfig = new SubscriberConfigurationBuilder()
+                .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
+                .WithAuthentication(expectedAuthenticationConfig)
+                .WithName(subscriber.Id)
+                .WithHttpVerb(httpVerb)
+                .Create();
+
+            var dlqConfig = new SubscriberConfigurationBuilder()
+               .WithUri(null).WithoutAuthentication()
+               .AddWebhookRequestRule(rule => rule
+                   .WithSource(source => source
+                       .AddReplace("selector", "aSelectionRule"))
+                   .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                   .AddRoute(route => route
+                       .WithHttpVerb(httpVerb)
+                       .WithAuthentication(expectedAuthenticationConfig)
+                       .WithUri("https://blah-{orderCode}.eshopworld.com/dlq/")
+                       .WithSelector("*")))
+               .CreateAsDlq();
+            
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
+            }
+        }
+
+
 
         [Theory, IsUnit]
         [MemberData(nameof(Data))]
