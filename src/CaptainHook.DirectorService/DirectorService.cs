@@ -168,7 +168,7 @@ namespace CaptainHook.DirectorService
             return Task.FromResult(_subscriberConfigurations);
         }
 
-        private async Task ExecuteConfigReload(object state)
+        private async void ExecuteConfigReload(object state)
         {
             var reloadConfigFinishedTimedEvent = new ReloadConfigFinishedEvent();
 
