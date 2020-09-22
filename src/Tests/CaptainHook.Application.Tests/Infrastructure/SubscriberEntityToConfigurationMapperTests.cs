@@ -249,7 +249,6 @@ namespace CaptainHook.Application.Tests.Infrastructure
         {
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
-                .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .WithDlqhooksUriTransform(uriTransform)
                 .WithDlq("https://blah-{orderCode}.eshopworld.com/dlq/", httpVerb, null, authentication)
@@ -258,18 +257,12 @@ namespace CaptainHook.Application.Tests.Infrastructure
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
 
             var webhookConfig = new SubscriberConfigurationBuilder()
-                .WithUri(null).WithoutAuthentication()
                 .WithName(subscriber.Id)
-                .AddWebhookRequestRule(rule => rule
-                    .WithSource(source => source
-                        .AddReplace("orderCode", "$.OrderCode"))
-                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
-                    .AddRoute(route => route
-                        .WithHttpVerb(httpVerb)
-                        .WithAuthentication(expectedAuthenticationConfig)
-                        .WithUri("https://blah-{orderCode}.eshopworld.com/webhook/")
-                        .WithSelector("*")))
+                .WithHttpVerb(httpVerb)
+                .WithAuthentication(expectedAuthenticationConfig)
+                .WithUri("https://blah-{orderCode}.eshopworld.com/webhook/")
                 .Create();
+
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
                 .AddWebhookRequestRule(rule => rule
@@ -409,6 +402,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                .WithName(subscriber.Id)
                .WithHttpVerb(httpVerb)
                .Create();
+
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
                 .AddWebhookRequestRule(rule => rule
