@@ -37,57 +37,22 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
             var subscriber = MapRequestToEntity(request);
-            OperationResult<bool> saveResult;
-            UpsertType upsertType;
 
             if (existingItem.IsError)
             {
                 if (existingItem.Error is EntityNotFoundError)
                 {
-                    saveResult = await InsertSubscriber(subscriber);
-                    upsertType = UpsertType.Created;
+                    return await _directorService.CreateReaderAsync(subscriber)
+                        .Then(async _ => (await _subscriberRepository.AddSubscriberAsync(subscriber)))
+                        .Then(_ => new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(request.Subscriber, UpsertType.Created)));
                 }
-                else
-                {
-                    return existingItem.Error;
-                }
-            }
-            else
-            {
-                saveResult = await UpdateSubscriber(subscriber);
-                upsertType = UpsertType.Updated;
+
+                return existingItem.Error;
             }
 
-            if (saveResult.IsError)
-            {
-                return saveResult.Error;
-            }
-
-            return new UpsertResult<SubscriberDto>(request.Subscriber, upsertType);
-        }
-
-        private async Task<OperationResult<bool>> InsertSubscriber(SubscriberEntity subscriber)
-        {
-            var directorResult = await _directorService.CreateReaderAsync(subscriber);
-            if (directorResult.IsError)
-            {
-                return directorResult.Error;
-            }
-
-            var saveResult = await _subscriberRepository.AddSubscriberAsync(subscriber);
-            return saveResult.Error;
-        }
-
-        private async Task<OperationResult<bool>> UpdateSubscriber(SubscriberEntity subscriber)
-        {
-            var directorResult = await _directorService.UpdateReaderAsync(subscriber);
-            if (directorResult.IsError)
-            {
-                return directorResult.Error;
-            }
-
-            var saveResult = await _subscriberRepository.UpdateSubscriberAsync(subscriber);
-            return saveResult.Error;
+            return await _directorService.UpdateReaderAsync(subscriber)
+                .Then(async _ => (await _subscriberRepository.UpdateSubscriberAsync(subscriber)))
+                .Then(_ => new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(request.Subscriber, UpsertType.Updated)));
         }
 
         private SubscriberEntity MapRequestToEntity(UpsertSubscriberRequest request)
@@ -102,6 +67,12 @@ namespace CaptainHook.Application.Handlers.Subscribers
             {
                 var callbacks = _dtoToEntityMapper.MapWebooks(request.Subscriber.Callbacks, WebhooksEntityType.Callbacks);
                 subscriberEntity.SetHooks(callbacks);
+            }
+
+            if (request.Subscriber.DlqHooks?.Endpoints?.Count > 0)
+            {
+                var dlqHooks = _dtoToEntityMapper.MapWebooks(request.Subscriber.DlqHooks, WebhooksEntityType.DlqHooks);
+                subscriberEntity.SetHooks(dlqHooks);
             }
 
             return subscriberEntity;
