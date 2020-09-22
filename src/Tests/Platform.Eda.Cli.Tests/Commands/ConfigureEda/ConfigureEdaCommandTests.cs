@@ -106,6 +106,28 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             result.Should().Be(0);
         }
+        
+        [Fact, IsUnit]
+        public async Task OnExecuteAsync_WhenEmptyDirectory_Returns0()
+        {
+            // Arrange
+            var configureEdaCommand = new ConfigureEdaCommand(new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory), _mockCaptainHookClient.Object);
+            configureEdaCommand.InputFolderPath = MockCurrentDirectory;
+            configureEdaCommand.NoDryRun = true;
+
+            // Act
+            var result = await configureEdaCommand.OnExecuteAsync(Application, Console);
+
+            // Assert
+            Output.SplitLines().Should()
+                .Contain(
+                    $@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
+                .And.Contain("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.")
+                .And.Contain("Starting to run configuration against Captain Hook API")
+                .And.Contain("Processing finished");
+
+            result.Should().Be(0);
+        }
 
         [Fact, IsUnit]
         public async Task OnExecuteAsync_WhenRequestNotAccepted_Returns2()

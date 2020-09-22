@@ -19,7 +19,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
     public class SubscribersDirectoryProcessorTests
     {
         internal const string MockCurrentDirectory = @"Z:\Sample\";
-        readonly SubscribersDirectoryProcessor _subscribersDirectoryProcessor;
+        private readonly SubscribersDirectoryProcessor _subscribersDirectoryProcessor;
 
         public SubscribersDirectoryProcessorTests()
         {
@@ -106,7 +106,27 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
 
         }
-        
+
+        [Theory, IsUnit]
+        [InlineData(MockCurrentDirectory)]
+        public void ProcessDirectory_EmptyDirectory_ReturnsValidObject(string testFilesDirectoryPath)
+        {
+            // Arrange
+            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(
+                new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory));
+            
+            // Act
+            var result = subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath);
+
+            // Assert
+            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(new List<PutSubscriberFile>());
+
+            result.Should().BeEquivalentTo(expected, opt => opt
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(CaptainHookContractSubscriberDto))
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
+
+        }
+
         private static Dictionary<string, MockFileData> GetMockFiles1()
         {
             Dictionary<string, MockFileData> mockFiles = new Dictionary<string, MockFileData>();
