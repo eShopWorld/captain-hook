@@ -23,17 +23,14 @@ namespace CaptainHook.Api.Controllers
     public class EventsController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IBigBrother _bigBrother;
 
         /// <summary>
         /// Create an instance of this class
         /// </summary>
         /// <param name="mediator">An instance of MediatR mediator</param>
-        /// <param name="bigBrother">An instance of BigBrother logger</param>
-        public EventsController(IMediator mediator, IBigBrother bigBrother)
+        public EventsController(IMediator mediator)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
         }
 
         /// <summary>

@@ -89,13 +89,13 @@ namespace CaptainHook.Common.Configuration
         /// pertains to new callback/DLQ contract designed
         /// </summary>
         [JsonIgnore]
-        public PayloadContractTypeEnum PayloadTransformation { get; set; } = PayloadContractTypeEnum.Raw;
+        public PayloadContractType PayloadTransformation { get; set; } = PayloadContractType.Raw;
     }
 
     /// <summary>
     /// signifies what kind of contract to use for webhook
     /// </summary>
-    public enum PayloadContractTypeEnum
+    public enum PayloadContractType
     {
         /// <summary>
         /// use payload directly

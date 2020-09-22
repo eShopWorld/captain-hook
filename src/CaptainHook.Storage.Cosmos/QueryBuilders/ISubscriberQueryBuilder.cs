@@ -1,5 +1,4 @@
-﻿using CaptainHook.Domain.ValueObjects;
-using Eshopworld.Data.CosmosDb;
+﻿using Eshopworld.Data.CosmosDb;
 
 namespace CaptainHook.Storage.Cosmos.QueryBuilders
 {

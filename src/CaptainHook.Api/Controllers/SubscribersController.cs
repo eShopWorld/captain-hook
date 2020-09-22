@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
@@ -23,17 +22,14 @@ namespace CaptainHook.Api.Controllers
     public class SubscribersController : ControllerBase
     {
         private readonly IBigBrother _bigBrother;
-        private readonly IMediator _mediator;
 
         /// <summary>
         /// Create an instance of this class
         /// </summary>
-        /// <param name="mediator">An instance of MediatR mediator</param>
         /// <param name="bigBrother">An instance of BigBrother logger</param>
-        public SubscribersController(IBigBrother bigBrother, IMediator mediator)
+        public SubscribersController(IBigBrother bigBrother)
         {
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
-            _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         }
 
         /// <summary>

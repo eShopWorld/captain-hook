@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using Autofac;
 using CaptainHook.Api.Core;
-using CaptainHook.Api.Helpers;
 using CaptainHook.Application;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
@@ -161,10 +160,8 @@ namespace CaptainHook.Api
                     x.ApiSecret = serviceConfiguration.ApiSecret;
                     x.Authority = serviceConfiguration.Authority;
                     x.RequireHttpsMetadata = serviceConfiguration.IsHttps;
-                    // To include telemetry Install-Package EShopworld.Security.Services.Telemetry -Source https://eshopworld.myget.org/F/github-dev/api/v3/index.json
-                    // See https://eshopworld.visualstudio.com/evo-core/_git/security-services-telemetry?path=%2FREADME.md&_a=preview
-                    // x.AddJwtBearerEventsTelemetry(bb); 
                 });
+
                 services.AddAuthorization(options =>
                 {
                     options.AddPolicy(Constants.AuthorisationPolicies.ReadSubscribers,

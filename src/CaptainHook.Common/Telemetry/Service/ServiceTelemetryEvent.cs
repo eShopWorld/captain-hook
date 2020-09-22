@@ -6,7 +6,7 @@ namespace CaptainHook.Common.Telemetry.Service
 {
     public abstract class ServiceTelemetryEvent : TelemetryEvent
     {
-        public ServiceTelemetryEvent(StatefulServiceContext context)
+        protected ServiceTelemetryEvent(StatefulServiceContext context)
         {
             ServiceName = context.ServiceName.AbsoluteUri;
             ServiceType = context.ServiceTypeName;

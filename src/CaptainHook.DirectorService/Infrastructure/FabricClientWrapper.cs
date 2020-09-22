@@ -40,7 +40,7 @@ namespace CaptainHook.DirectorService.Infrastructure
             return serviceList.Select(s => s.ServiceName.AbsoluteUri).ToList();
         }
 
-        public async Task CreateServiceAsync(ServiceCreationDescription serviceCreationDescription, CancellationToken cancellationToken)
+        public async Task CreateServiceAsync(ServiceCreationDescription serviceCreationDescription, CancellationToken cancellationToken = default)
         {
             var serviceDescription = new StatefulServiceDescription
             {

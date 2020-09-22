@@ -190,7 +190,7 @@ namespace CaptainHook.Tests.Director
 
             result.Should().Be(ReaderChangeResult.Success);
             _readerServicesManagerMock
-                .Verify(x => x.RefreshReadersAsync(It.Is<IEnumerable<ReaderChangeInfo>>(c => c.Single().ChangeType == ReaderChangeType.ToBeRemoved), It.IsAny<CancellationToken>()));
+                .Verify(x => x.RefreshReadersAsync(It.Is<IEnumerable<ReaderChangeInfo>>(c => c.Single().ChangeType == ReaderChangeTypes.ToBeRemoved), It.IsAny<CancellationToken>()));
         }
 
         [Fact, IsUnit]

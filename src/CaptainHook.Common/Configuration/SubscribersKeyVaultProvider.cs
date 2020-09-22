@@ -21,7 +21,7 @@ namespace CaptainHook.Common.Configuration
             var root = _configurationLoader.Load(keyVaultUri);
             var configurationSections = root.GetSection("event").GetChildren().ToList();
 
-            var subscribers = new List<SubscriberConfiguration>(configurationSections.Count());
+            var subscribers = new List<SubscriberConfiguration>(configurationSections.Count);
 
             var failures = new List<KeyVaultConfigurationFailure>();
 
@@ -39,7 +39,7 @@ namespace CaptainHook.Common.Configuration
                         var path = subscriber.WebHookConfigPath;
                         ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
                         subscriber.EventType = eventHandlerConfig.Type;
-                        subscriber.PayloadTransformation = subscriber.DLQMode != null ? PayloadContractTypeEnum.WrapperContract : PayloadContractTypeEnum.Raw;
+                        subscriber.PayloadTransformation = subscriber.DLQMode != null ? PayloadContractType.WrapperContract : PayloadContractType.Raw;
                         ConfigParser.AddEndpoints(subscriber, configurationSection, path);
 
                         if (subscriber.Callback != null)

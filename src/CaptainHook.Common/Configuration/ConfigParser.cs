@@ -8,7 +8,7 @@ namespace CaptainHook.Common.Configuration
     /// <summary>
     /// <remarks>Won't be needed in V2 has configs are stored in Cosmos and CRD through the API</remarks>
     /// </summary>
-    public class ConfigParser
+    public static class ConfigParser
     {
         /// <summary>
         /// Creates a list of unique endpoints which are used for authentication sharing and pooling

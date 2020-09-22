@@ -50,11 +50,11 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
             LogEvent(changeSet.ToArray());
 
             var servicesToCreate = changeSet
-                .Where(change => (change.ChangeType & ReaderChangeType.ToBeCreated) != 0)
+                .Where(change => (change.ChangeType & ReaderChangeTypes.ToBeCreated) != 0)
                 .Select(change => change.NewReader);
 
             var allServiceNamesToDelete = changeSet
-                .Where(change => (change.ChangeType & ReaderChangeType.ToBeRemoved) != 0)
+                .Where(change => (change.ChangeType & ReaderChangeTypes.ToBeRemoved) != 0)
                 .Select(change => change.OldReader.ServiceNameWithSuffix);
 
             var result = await CreateReaderServicesAsync(servicesToCreate, cancellationToken);
@@ -66,15 +66,15 @@ namespace CaptainHook.DirectorService.ReaderServiceManagement
         private void LogEvent(params ReaderChangeInfo[] changeSet)
         {
             var added = changeSet
-                .Where(change => change.ChangeType == ReaderChangeType.ToBeCreated)
+                .Where(change => change.ChangeType == ReaderChangeTypes.ToBeCreated)
                 .Select(change => change.NewReader.ServiceName);
 
             var deleted = changeSet
-                .Where(change => change.ChangeType == ReaderChangeType.ToBeRemoved)
+                .Where(change => change.ChangeType == ReaderChangeTypes.ToBeRemoved)
                 .Select(change => change.OldReader.ServiceName);
 
             var updated = changeSet
-                .Where(change => change.ChangeType == ReaderChangeType.ToBeUpdated)
+                .Where(change => change.ChangeType == ReaderChangeTypes.ToBeUpdated)
                 .Select(change => change.NewReader.ServiceName);
 
             _bigBrother.Publish(new RefreshSubscribersEvent(added, deleted, updated));

@@ -7,7 +7,7 @@ namespace CaptainHook.Api
     /// <summary>
     /// Swagger factory
     /// </summary>
-    public class SwaggerHostFactory
+    public static class SwaggerHostFactory
     {
         /// <summary>
         /// Create host

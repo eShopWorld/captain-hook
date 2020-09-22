@@ -38,7 +38,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
             var expected = new ExistingReaderDefinition (service);
 
             Assert.Single (changes);
-            Assert.Equal (ReaderChangeType.ToBeRemoved, changes[0].ChangeType);
+            Assert.Equal (ReaderChangeTypes.ToBeRemoved, changes[0].ChangeType);
             Assert.Equal (expected, changes[0].OldReader);
         }
 
@@ -84,7 +84,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
             var expected = new DesiredReaderDefinition (config);
 
             Assert.Single (changes);
-            Assert.Equal (ReaderChangeType.ToBeCreated, changes[0].ChangeType);
+            Assert.Equal (ReaderChangeTypes.ToBeCreated, changes[0].ChangeType);
             Assert.Equal (expected, changes[0].NewReader);
         }
 
@@ -112,10 +112,10 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
 
             Assert.Equal (2, changes.Length);
 
-            var added = changes.First (c => c.ChangeType == ReaderChangeType.ToBeCreated);
+            var added = changes.First (c => c.ChangeType == ReaderChangeTypes.ToBeCreated);
             Assert.Equal (expectedAdd, added.NewReader);
 
-            var removed = changes.First (c => c.ChangeType == ReaderChangeType.ToBeRemoved);
+            var removed = changes.First (c => c.ChangeType == ReaderChangeTypes.ToBeRemoved);
             Assert.Equal (expectedRemove, removed.OldReader);
         }
 
@@ -149,7 +149,7 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
             var expectedRemove = new ExistingReaderDefinition (existingService);
 
             Assert.Single (changes);
-            Assert.Equal (ReaderChangeType.ToBeUpdated, changes[0].ChangeType);
+            Assert.Equal (ReaderChangeTypes.ToBeUpdated, changes[0].ChangeType);
             Assert.Equal (expectedRemove, changes[0].OldReader);
             Assert.Equal (expectedAdd, changes[0].NewReader);
         }

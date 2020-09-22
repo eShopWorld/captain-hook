@@ -138,8 +138,8 @@ namespace Platform.Eda.Cli.Commands.GenerateJson
                 ConfigParser.ParseAuthScheme(subscriber, configurationSection, $"{path}:authenticationconfig");
                 subscriber.EventType = eventHandlerConfig.Type;
                 subscriber.PayloadTransformation = subscriber.DLQMode != null
-                    ? PayloadContractTypeEnum.WrapperContract
-                    : PayloadContractTypeEnum.Raw;
+                    ? PayloadContractType.WrapperContract
+                    : PayloadContractType.Raw;
 
                 ConfigParser.AddEndpoints(subscriber, configurationSection, path);
 

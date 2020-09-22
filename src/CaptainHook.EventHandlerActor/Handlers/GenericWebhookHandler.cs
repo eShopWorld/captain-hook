@@ -68,7 +68,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
                 var httpMethod = RequestBuilder.SelectHttpMethod(WebhookConfig, messageData.Payload);
                 var originalPayload = RequestBuilder.BuildPayload(WebhookConfig, messageData.Payload, metadata);
-                var payload = WebhookConfig.PayloadTransformation == PayloadContractTypeEnum.WrapperContract
+                var payload = WebhookConfig.PayloadTransformation == PayloadContractType.WrapperContract
                     ? WrapPayload(originalPayload, WebhookConfig, messageData)
                     : originalPayload;
 

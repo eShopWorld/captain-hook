@@ -17,14 +17,19 @@ namespace CaptainHook.Common.Configuration.KeyVault
             _bigBrother = bigBrother;
             _secretClient = secretClient;
         }
-
-        public async Task<string> GetSecretValueAsync(string secretName)
+        public Task<string> GetSecretValueAsync(string secretName)
         {
             if (string.IsNullOrEmpty(secretName))
             {
                 throw new ArgumentException("Secret name cannot be null or empty.", nameof(secretName));
             }
 
+            return GetSecretValueInternalAsync(secretName);
+
+        }
+
+        private async Task<string> GetSecretValueInternalAsync(string secretName)
+        {
             try
             {
                 var response = await _secretClient.GetSecretAsync(secretName);

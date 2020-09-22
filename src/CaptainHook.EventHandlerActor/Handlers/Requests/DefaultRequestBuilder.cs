@@ -281,7 +281,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
             headers.AddContentHeader(Constants.Headers.ContentType, webhookConfig.ContentType);
             headers.AddRequestHeader(Constants.Headers.CorrelationId, messageData.CorrelationId);
             headers.AddRequestHeader(Constants.Headers.EventDeliveryId, messageData.CorrelationId);
-            headers.AddRequestHeader(Constants.Headers.EventType, webhookConfig.PayloadTransformation==PayloadContractTypeEnum.WrapperContract ? typeof(NewtonsoftDeliveryStatusMessage).FullName.ToLowerInvariant(): webhookConfig.EventType);
+            headers.AddRequestHeader(Constants.Headers.EventType, webhookConfig.PayloadTransformation==PayloadContractType.WrapperContract ? typeof(NewtonsoftDeliveryStatusMessage).FullName.ToLowerInvariant(): webhookConfig.EventType);
             headers.AddRequestHeader(Constants.Headers.IdempotencyKey, messageData.ServiceBusMessageId);
 
             return headers;

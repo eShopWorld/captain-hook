@@ -213,7 +213,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 Uri = "http://localhost/webhook",
                 HttpMethod = HttpMethod.Put,
                 EventType = "Event1",
-                PayloadTransformation = PayloadContractTypeEnum.WrapperContract,
+                PayloadTransformation = PayloadContractType.WrapperContract,
                 AuthenticationConfig = new AuthenticationConfig(),
                 WebhookRequestRules = new List<WebhookRequestRule>
                 {

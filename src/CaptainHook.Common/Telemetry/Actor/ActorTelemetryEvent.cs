@@ -9,7 +9,7 @@ namespace CaptainHook.Common.Telemetry.Actor
 
         public string ActorId { get; set; }
 
-        public ActorTelemetryEvent(ActorBase actor)
+        protected ActorTelemetryEvent(ActorBase actor)
 
         {
             ActorId = actor.Id.ToString();

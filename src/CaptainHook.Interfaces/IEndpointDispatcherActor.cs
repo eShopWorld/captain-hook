@@ -11,13 +11,11 @@
     public interface IEndpointDispatcherActor : IActor
     {
         /// <summary>
-        /// TODO: Replace with your own actor method.
         /// </summary>
         /// <returns></returns>
         Task<int> GetCountAsync(CancellationToken cancellationToken);
 
         /// <summary>
-        /// TODO: Replace with your own actor method.
         /// </summary>
         /// <param name="count"></param>
         /// <returns></returns>

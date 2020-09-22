@@ -8,9 +8,9 @@ namespace CaptainHook.DirectorService.Infrastructure.Interfaces
     {
         Task<List<string>> GetServiceUriListAsync();
 
-        Task CreateServiceAsync(ServiceCreationDescription serviceCreationDescription, CancellationToken cancellationToken);
+        Task CreateServiceAsync(ServiceCreationDescription serviceCreationDescription, CancellationToken cancellationToken = default);
 
-        Task DeleteServiceAsync(string serviceName, CancellationToken cancellationToken);
+        Task DeleteServiceAsync(string serviceName, CancellationToken cancellationToken = default);
     }
 
     

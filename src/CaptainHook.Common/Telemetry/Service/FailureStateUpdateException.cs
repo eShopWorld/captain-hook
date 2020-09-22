@@ -1,7 +1,9 @@
-﻿using System.Fabric;
+﻿using System;
+using System.Fabric;
 
 namespace CaptainHook.Common.Telemetry.Service
 {
+    [Serializable]
     public class FailureStateUpdateException : ServiceException
     {
         public FailureStateUpdateException(string message, StatefulServiceContext context) : base(message, context)

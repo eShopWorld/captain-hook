@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Fabric;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -150,7 +149,7 @@ namespace CaptainHook.DirectorService
 
             if (!result)
             {
-                throw new Exception($"Code package could not be parsed for value {key}");
+                throw new InvalidOperationException($"Code package could not be parsed for value {key}");
             }
 
             return value;

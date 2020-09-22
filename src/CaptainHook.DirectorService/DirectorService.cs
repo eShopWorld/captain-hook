@@ -92,7 +92,6 @@ namespace CaptainHook.DirectorService
         {
             _cancellationToken = cancellationToken;
 
-            // TODO: Check fabric node topology - if running below Bronze, set min and target replicas to 1 instead of 3
             try
             {
                 lock (_refreshSync)
@@ -169,7 +168,7 @@ namespace CaptainHook.DirectorService
             return Task.FromResult(_subscriberConfigurations);
         }
 
-        private async void ExecuteConfigReload(object state)
+        private async Task ExecuteConfigReload(object state)
         {
             var reloadConfigFinishedTimedEvent = new ReloadConfigFinishedEvent();
 

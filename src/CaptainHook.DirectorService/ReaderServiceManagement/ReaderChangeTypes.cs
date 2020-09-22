@@ -3,7 +3,7 @@
 namespace CaptainHook.DirectorService.ReaderServiceManagement
 {
     [Flags]
-    public enum ReaderChangeType
+    public enum ReaderChangeTypes
     {
         None = 0x00,
         ToBeRemoved = 0x01,
