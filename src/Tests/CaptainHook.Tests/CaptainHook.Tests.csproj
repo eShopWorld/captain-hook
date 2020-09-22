@@ -21,7 +21,7 @@
     <PackageReference Include="Eshopworld.Messaging" Version="2.1.4" />
     <PackageReference Include="EShopworld.Security.Services.Testing" Version="2.6.5" />
     <PackageReference Include="Eshopworld.Telemetry" Version="3.1.5" />
-    <PackageReference Include="Eshopworld.Tests.Core" Version="2.0.6" />
+    <PackageReference Include="Eshopworld.Tests.Core" Version="2.0.7" />
     <PackageReference Include="IdentityModel" Version="4.3.1" />
     <PackageReference Include="JetBrains.DotMemoryUnit" Version="3.1.20200127.214830" />
     <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.34.0" />
