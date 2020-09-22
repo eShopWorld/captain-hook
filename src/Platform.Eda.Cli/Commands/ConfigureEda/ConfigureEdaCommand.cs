@@ -78,7 +78,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             {
                 writer.WriteSuccess("box", "Starting to run configuration against Captain Hook API");
 
-                var apiResults = await ConfigureEdaWithCaptainHook(app, writer, subscriberFiles);
+                var apiResults = await ConfigureEdaWithCaptainHook(writer, subscriberFiles);
                 if (apiResults.Any(r => r.IsError))
                 {
                     return 2;
@@ -93,9 +93,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             return 0;
         }
 
-        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(
-            CommandLineApplication app,
-            ConsoleSubscriberWriter writer,
+        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(ConsoleSubscriberWriter writer,
             IEnumerable<PutSubscriberFile> subscriberFiles)
         {
             var api = new ApiConsumer(_captainHookClient);
