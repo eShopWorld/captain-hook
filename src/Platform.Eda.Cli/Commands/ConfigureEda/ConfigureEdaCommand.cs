@@ -96,7 +96,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(ConsoleSubscriberWriter writer,
             IEnumerable<PutSubscriberFile> subscriberFiles)
         {
-            var api = new ApiConsumer(_captainHookClient);
+            var api = new ApiConsumer(_captainHookClient, null);
             var apiResults = new List<OperationResult<HttpOperationResponse>>();
 
             var sourceFolderPath = Path.GetFullPath(InputFolderPath);

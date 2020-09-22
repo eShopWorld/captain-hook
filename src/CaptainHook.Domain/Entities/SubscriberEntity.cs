@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
 using CaptainHook.Domain.ValueObjects;
@@ -32,12 +30,17 @@ namespace CaptainHook.Domain.Entities
         /// <summary>
         /// Collection of webhook enpoints
         /// </summary>
-        public WebhooksEntity Webhooks { get; private set; } = new WebhooksEntity(WebhooksEntityType.Webhooks);
+        public WebhooksEntity Webhooks { get; } = new WebhooksEntity(WebhooksEntityType.Webhooks);
 
         /// <summary>
         /// Collection of callback enpoints
         /// </summary>
-        public WebhooksEntity Callbacks { get; private set; } = new WebhooksEntity(WebhooksEntityType.Callbacks);
+        public WebhooksEntity Callbacks { get; } = new WebhooksEntity(WebhooksEntityType.Callbacks);
+
+        /// <summary>
+        /// Collection of DLQ endpoints
+        /// </summary>
+        public WebhooksEntity DlqHooks { get; } = new WebhooksEntity(WebhooksEntityType.DlqHooks);
 
         /// <summary>
         /// Determines if it contains any callback
@@ -86,6 +89,25 @@ namespace CaptainHook.Domain.Entities
         public OperationResult<SubscriberEntity> RemoveCallbackEndpoint(EndpointEntity entity)
             => OperationOnWebhooks(() => Callbacks.RemoveEndpoint(entity));
 
+        /// <summary>
+        /// Adds an endpoint to the list of DLQ endpoints if it is not on the list already.
+        /// Removes the existing endpoint and adds the new one to the list if the item is already present.
+        /// </summary>
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> SetDlqEndpoint(EndpointEntity entity)
+        {
+            return DlqHooks.SetEndpoint(entity.SetParentSubscriber(this)).Then<SubscriberEntity>(_ => this);
+        }
+
+        /// <summary>
+        /// Removes the existing DLQ endpoint from the list if the item is present.
+        /// </summary>
+        /// <remarks>The identification is made on selector using case-insensitive comparison.</remarks>
+        public OperationResult<SubscriberEntity> RemoveDlqEndpoint(EndpointEntity entity)
+        {
+            return OperationOnWebhooks(() => DlqHooks?.RemoveEndpoint(entity));
+        }
+
         private OperationResult<SubscriberEntity> OperationOnWebhooks(Func<OperationResult<WebhooksEntity>> funcToRun)
         {
             var result = funcToRun();
@@ -109,12 +131,11 @@ namespace CaptainHook.Domain.Entities
             {
                 WebhooksEntityType.Webhooks => Webhooks.SetHooks(webhooks, this),
                 WebhooksEntityType.Callbacks => Callbacks.SetHooks(webhooks, this),
+                WebhooksEntityType.DlqHooks => DlqHooks.SetHooks(webhooks, this),
                 _ => new ValidationError("Invalid entity")
             };
 
-            return result.Then<SubscriberEntity>(x => this);
+            return result.Then<SubscriberEntity>(_ => this);
         }
-
-        
     }
 }

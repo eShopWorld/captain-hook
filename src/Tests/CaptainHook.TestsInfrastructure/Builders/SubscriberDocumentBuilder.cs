@@ -14,6 +14,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
             With(x => x.Id, $"{eventName}-{subscriberName}");
             With(x => x.Webhooks, new WebhooksSubdocumentBuilder().Create());
             With(x => x.Callbacks, new WebhooksSubdocumentBuilder().Create());
+            With(x => x.DlqHooks, new WebhooksSubdocumentBuilder().Create());
         }
     }
 }
