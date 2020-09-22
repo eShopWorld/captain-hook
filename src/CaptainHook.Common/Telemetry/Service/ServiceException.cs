@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Fabric;
+using System.Runtime.Serialization;
 
 namespace CaptainHook.Common.Telemetry.Service
 {
-    public abstract class ServiceException : Exception
+    [Serializable]
+    public abstract class ServiceException : Exception, ISerializable
     {
         protected ServiceException(string message, StatefulServiceContext context) : base(message)
         {
@@ -11,6 +13,10 @@ namespace CaptainHook.Common.Telemetry.Service
             ServiceType = context.ServiceTypeName;
             ReplicaId = context.ReplicaId;
             PartitionId = context.PartitionId;
+        }
+
+        protected ServiceException(SerializationInfo info, StreamingContext context)
+        {
         }
 
         public string ServiceName { get; set; }

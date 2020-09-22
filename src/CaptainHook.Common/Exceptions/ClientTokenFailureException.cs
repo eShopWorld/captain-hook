@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Net;
+using System.Runtime.Serialization;
 
 namespace CaptainHook.Common.Exceptions
 {
     [Serializable]
-    public class ClientTokenFailureException : System.Exception
+    public class ClientTokenFailureException : Exception, ISerializable
     {
         public ClientTokenFailureException(System.Exception e) : base("Could not get a token", e)
         { }
+
+        protected ClientTokenFailureException(SerializationInfo info, StreamingContext context)
+        {
+        }
 
         public string ClientId { get; set; }
 

@@ -72,13 +72,5 @@ namespace CaptainHook.Common.ServiceBus
                 throw new ArgumentNullException(nameof(prop));
             }
         }
-
-        private void Validate(int prop)
-        {
-            if (prop == default)
-            {
-                throw new ArgumentException("value cannot be zero", nameof(prop));
-            }
-        }
     }
 }

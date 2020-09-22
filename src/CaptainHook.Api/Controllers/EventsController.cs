@@ -6,7 +6,6 @@ using CaptainHook.Application.Results;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
-using Eshopworld.Core;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

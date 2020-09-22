@@ -5,12 +5,9 @@ namespace CaptainHook.Domain.Errors
 {
     public class UnhandledExceptionError : ErrorBase
     {
-        private readonly Exception _exception;
-
-        public UnhandledExceptionError(string message, Exception exception) 
-            : base(message)
+        public UnhandledExceptionError(string message, Exception exception)
+            : base($"{message} {exception.Message}")
         {
-            _exception = exception;
         }
     }
 }

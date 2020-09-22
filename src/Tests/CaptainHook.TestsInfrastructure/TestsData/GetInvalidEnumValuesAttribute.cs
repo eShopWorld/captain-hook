@@ -19,7 +19,7 @@ namespace CaptainHook.TestsInfrastructure.TestsData
             var firstItemType = validEnumValues.First().GetType();
 
             if (!firstItemType.IsEnum)
-                throw new ArgumentException("Passed argument must be an enum value", nameof(_validEnumValues));
+                throw new ArgumentException("Passed argument must be an enum value", nameof(validEnumValues));
 
             if (validEnumValues.All(v => v.GetType() != firstItemType))
                 throw new ArgumentException("All provided values must be of same type", nameof(validEnumValues));

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Fabric;
+using System.Runtime.Serialization;
 
 namespace CaptainHook.Common.Telemetry.Service
 {
@@ -16,6 +17,12 @@ namespace CaptainHook.Common.Telemetry.Service
             TransactionId = transactionId;
             HandlerId = handleDataHandlerId;
             EventType = eventType;
+        }
+
+        private FailureStateUpdateException(SerializationInfo info, StreamingContext context)
+        : base(info, context)
+        {
+            // ...
         }
 
         public long TransactionId { get; set; }
