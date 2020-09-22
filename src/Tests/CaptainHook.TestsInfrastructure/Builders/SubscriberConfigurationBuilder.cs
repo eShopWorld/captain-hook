@@ -95,7 +95,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        // TODO: remove or use version of this method which accepts SubscriberConfigurationBuilder
         public SubscriberConfigurationBuilder WithCallback(string uri = "https://callback.eshopworld.com")
         {
             _callback = new WebhookConfig
