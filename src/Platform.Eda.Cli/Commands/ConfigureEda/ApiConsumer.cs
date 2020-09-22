@@ -57,13 +57,13 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                     yield return new ApiOperationResult
                     {
                         File = file.File,
-                        Response = await BuildExecutionError(response.Response)
+                        Response = await BuildExecutionErrorAsync(response.Response)
                     };
                 }
             }
         }
 
-        private static async Task<CliExecutionError> BuildExecutionError(HttpResponseMessage response)
+        private static async Task<CliExecutionError> BuildExecutionErrorAsync(HttpResponseMessage response)
         {
             var responseString = "(none)";
             if (response.Content != null)
