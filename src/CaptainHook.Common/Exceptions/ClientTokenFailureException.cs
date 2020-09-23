@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace CaptainHook.Common.Exceptions
 {
     [Serializable]
-    public class ClientTokenFailureException : Exception, ISerializable
+    public class ClientTokenFailureException : Exception
     {
         public ClientTokenFailureException(System.Exception e) : base("Could not get a token", e)
         { }

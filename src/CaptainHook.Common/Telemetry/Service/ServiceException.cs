@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 namespace CaptainHook.Common.Telemetry.Service
 {
     [Serializable]
-    public abstract class ServiceException : Exception, ISerializable
+    public abstract class ServiceException : Exception
     {
         protected ServiceException(string message, StatefulServiceContext context) : base(message)
         {

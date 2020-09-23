@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace CaptainHook.Common.Telemetry.Service
 {
     [Serializable]
-    public class LockTokenNotFoundException : Exception, ISerializable
+    public class LockTokenNotFoundException : Exception
     {
         public LockTokenNotFoundException(string message) : base(message)
         {}
