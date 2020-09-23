@@ -17,13 +17,13 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
     [HelpOption]
     public class ConfigureEdaCommand
     {
-        private readonly IFileSystem _fileSystem;
-        private readonly ICaptainHookClient _captainHookClient;
+        private readonly IApiConsumer _apiConsumer;
+        private readonly ISubscribersDirectoryProcessor _subscribersDirectoryProcessor;
 
-        public ConfigureEdaCommand(IFileSystem fileSystem, ICaptainHookClient captainHookClient)
+        public ConfigureEdaCommand(ISubscribersDirectoryProcessor subscribersDirectoryProcessor, IApiConsumer apiConsumer)
         {
-            _fileSystem = fileSystem;
-            _captainHookClient = captainHookClient;
+            _apiConsumer = apiConsumer;
+            _subscribersDirectoryProcessor = subscribersDirectoryProcessor;
         }
 
         /// <summary>
@@ -62,8 +62,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             writer.WriteSuccess("box", $"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
 
-            var processor = new SubscribersDirectoryProcessor(_fileSystem);
-            var readDirectoryResult = processor.ProcessDirectory(InputFolderPath);
+            var readDirectoryResult = _subscribersDirectoryProcessor.ProcessDirectory(InputFolderPath);
 
             if (readDirectoryResult.IsError)
             {
@@ -96,11 +95,10 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(ConsoleSubscriberWriter writer,
             IEnumerable<PutSubscriberFile> subscriberFiles)
         {
-            var api = new ApiConsumer(_captainHookClient, null);
             var apiResults = new List<OperationResult<HttpOperationResponse>>();
 
             var sourceFolderPath = Path.GetFullPath(InputFolderPath);
-            await foreach (var apiResult in api.CallApiAsync(subscriberFiles))
+            await foreach (var apiResult in _apiConsumer.CallApiAsync(subscriberFiles))
             {
                 var apiResultResponse = apiResult.Response;
                 apiResults.Add(apiResultResponse);

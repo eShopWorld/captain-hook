@@ -80,7 +80,12 @@ namespace Platform.Eda.Cli
 
             var builder = new ContainerBuilder();
             builder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
+
+            builder.RegisterType<SubscribersDirectoryProcessor>().As<ISubscribersDirectoryProcessor>();
+            builder.RegisterType<ApiConsumer>().As<IApiConsumer>();
+            
             builder.RegisterInstance(new ApiClientFixture().GetApiClient());
+            
             return serviceProviderFactory.CreateServiceProvider(builder);
         }
     }
