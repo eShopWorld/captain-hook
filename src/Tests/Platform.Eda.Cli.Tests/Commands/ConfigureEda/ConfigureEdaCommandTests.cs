@@ -32,16 +32,17 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _mockConsoleSubscriberWriter = new ConsoleSubscriberWriter(Console);
             _apiConsumer = new ApiConsumer(_mockCaptainHookClient.Object, null);
 
-            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetMockFiles1(), MockCurrentDirectory));
+            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetSingleMockInputFile(), MockCurrentDirectory));
             _configureEdaCommand = new ConfigureEdaCommand(subscribersDirectoryProcessor, _apiConsumer);
+
+            _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
+            _configureEdaCommand.NoDryRun = true;
         }
 
         [Fact, IsUnit]
         public async Task OnExecuteAsync_WhenSingleFileRequestAccepted_Returns0()
         {
             // Arrange
-            _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
-            _configureEdaCommand.NoDryRun = true;
             var response = new HttpOperationResponse<object>
             {
                 Response = new HttpResponseMessage(HttpStatusCode.Accepted)
@@ -77,7 +78,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenMultipleSubdirectoriesRequestAccepted_Returns0()
         {
             // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand(new SubscribersDirectoryProcessor(new MockFileSystem(GetMockFiles2(), MockCurrentDirectory)), _apiConsumer);
+            var configureEdaCommand = new ConfigureEdaCommand(new SubscribersDirectoryProcessor(new MockFileSystem(GetMultipleMockInputFiles(), MockCurrentDirectory)), _apiConsumer);
             configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             configureEdaCommand.NoDryRun = true;
             var response = new HttpOperationResponse<object>
@@ -139,8 +140,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenRequestNotAccepted_Returns2()
         {
             // Arrange
-            _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
-            _configureEdaCommand.NoDryRun = true;
             var response = new HttpOperationResponse<object>
             {
                 Response = new HttpResponseMessage(HttpStatusCode.Conflict)
@@ -185,7 +184,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenNoDryRunFalse_ApiIsNotCalled()
         {
             // Arrange
-            _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             _configureEdaCommand.NoDryRun = false;
 
             // Act;
@@ -213,7 +211,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         {
             // Arrange
             var configureEdaCommand = new ConfigureEdaCommand(
-                new SubscribersDirectoryProcessor(new MockFileSystem(GetMockFilesInvalidJson(), MockCurrentDirectory)),
+                new SubscribersDirectoryProcessor(new MockFileSystem(GetInvalidJsonMockInputFile(), MockCurrentDirectory)),
                 _apiConsumer);
             configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             configureEdaCommand.NoDryRun = false;
@@ -228,7 +226,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 .And.Contain("WARNING - Command Platform.Eda.Cli.Commands.ConfigureEda.ConfigureEdaCommand");
         }
 
-        private static Dictionary<string, MockFileData> GetMockFiles1()
+        private static Dictionary<string, MockFileData> GetSingleMockInputFile()
         {
             var mockFiles = new Dictionary<string, MockFileData>
             {
@@ -259,7 +257,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             return mockFiles;
         }
 
-        private static Dictionary<string, MockFileData> GetMockFiles2()
+        private static Dictionary<string, MockFileData> GetMultipleMockInputFiles()
         {
             var mockFiles = new Dictionary<string, MockFileData>
             {
@@ -313,7 +311,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             return mockFiles;
         }
 
-        private static Dictionary<string, MockFileData> GetMockFilesInvalidJson()
+        private static Dictionary<string, MockFileData> GetInvalidJsonMockInputFile()
         {
             var mockFiles = new Dictionary<string, MockFileData>
             {
