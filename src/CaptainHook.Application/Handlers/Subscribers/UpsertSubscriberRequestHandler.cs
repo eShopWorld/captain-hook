@@ -34,46 +34,54 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         public async Task<OperationResult<SubscriberConfiguration>> ApplyAsync(SubscriberEntity existingEntity, SubscriberEntity requestedEntity)
         {
-            var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberEntityAsync(requestedEntity);
+            //var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberEntityAsync(requestedEntity);
 
-            if (subscriberConfigsResult.IsError)
-            {
-                return subscriberConfigsResult.Error;
-            }
+            //if (subscriberConfigsResult.IsError)
+            //{
+            //    return subscriberConfigsResult.Error;
+            //}
 
-            var keyVaultModels = subscriberConfigsResult.Data;
+            //var keyVaultModels = subscriberConfigsResult.Data;
 
             if (existingEntity == null)
             {
-                return await _directorService.CreateReaderAsync(keyVaultModels.Webhook)
-                    .Then(async sc => await CreateDlqReader(keyVaultModels.Dlqhook, sc, requestedEntity.HasDlqHooks));
+                return await _entityToConfigurationMapper.MapToWebhookAsync(requestedEntity)
+                    .Then(async webhookConfig => await _directorService.CreateReaderAsync(webhookConfig))
+                    .Then(async webhookConfig => await CreateDlqReader(requestedEntity, webhookConfig));
             }
 
-            return await _directorService.UpdateReaderAsync(keyVaultModels.Webhook)
-                .Then(async _ => await UpdateDlqReader(keyVaultModels.Dlqhook, existingEntity.HasDlqHooks, requestedEntity.HasDlqHooks));
+            return await _entityToConfigurationMapper.MapToWebhookAsync(requestedEntity)
+                .Then(async webhookConfig => await _directorService.UpdateReaderAsync(webhookConfig))
+                .Then(async webhookConfig => await UpdateDlqReader(requestedEntity, existingEntity));
         }
 
-        private async Task<OperationResult<SubscriberConfiguration>> CreateDlqReader(SubscriberConfiguration dlqhook, SubscriberConfiguration sc, bool isRequired)
+        private async Task<OperationResult<SubscriberConfiguration>> CreateDlqReader(SubscriberEntity requestedEntity, SubscriberConfiguration webhookConfig)
         {
-            if (isRequired)
-                return await _directorService.CreateReaderAsync(dlqhook);
+            if (requestedEntity.HasDlqHooks)
+            {
+                return await _entityToConfigurationMapper.MapToDlqAsync(requestedEntity)
+                    .Then(async dlqConfig => await _directorService.CreateReaderAsync(dlqConfig));
+            }
 
-            return sc;
+            return webhookConfig;
         }
 
-        private async Task<OperationResult<SubscriberConfiguration>> UpdateDlqReader(SubscriberConfiguration dlqhook, bool alreadyExists, bool isRequired)
+        private async Task<OperationResult<SubscriberConfiguration>> UpdateDlqReader(SubscriberEntity requestedEntity, SubscriberEntity existingEntity)
         {
-            if (!alreadyExists && isRequired)
+            if (!existingEntity.HasDlqHooks && requestedEntity.HasDlqHooks)
             {
-                return await _directorService.CreateReaderAsync(dlqhook);
+                return await _entityToConfigurationMapper.MapToDlqAsync(requestedEntity)
+                    .Then(async dlqConfig => await _directorService.CreateReaderAsync(dlqConfig));
             }
 
-            if (alreadyExists && !isRequired)
+            if (existingEntity.HasDlqHooks && !requestedEntity.HasDlqHooks)
             {
-                return await _directorService.DeleteReaderAsync(dlqhook);
+                return await _entityToConfigurationMapper.MapToDlqAsync(existingEntity)
+                   .Then(async dlqConfig => await _directorService.DeleteReaderAsync(dlqConfig));
             }
 
-            return await _directorService.UpdateReaderAsync(dlqhook);
+            return await _entityToConfigurationMapper.MapToDlqAsync(requestedEntity)
+                .Then(async dlqConfig => await _directorService.UpdateReaderAsync(dlqConfig));
         }
     }
 
