@@ -61,7 +61,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     CancellationToken.None)).Returns(Task.FromResult(response));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
 
             // Assert
             Output.SplitLines().Should()
@@ -98,7 +98,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     CancellationToken.None)).Returns(Task.FromResult(response));
 
             // Act
-            var result = await configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
+            var result = await configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
             // Assert
             Output.SplitLines().Should()
                 .Contain(
@@ -122,7 +122,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             configureEdaCommand.NoDryRun = true;
 
             // Act
-            var result = await configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
+            var result = await configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
 
             // Assert
             Output.SplitLines().Should()
@@ -156,7 +156,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     CancellationToken.None)).Returns(Task.FromResult(response));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
 
             // Assert
             Output.SplitLines().Should()
@@ -176,7 +176,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _configureEdaCommand.InputFolderPath = null;
 
             // Act - Assert;
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter));
         }
 
         [Fact, IsUnit]
@@ -186,7 +186,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _configureEdaCommand.NoDryRun = false;
 
             // Act;
-            var result = await _configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
             
             // Assert
             _mockCaptainHookClient.Verify(client =>
@@ -216,7 +216,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             configureEdaCommand.NoDryRun = false;
 
             // Act;
-            var result = await configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
+            var result = await configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
 
             // Assert
             result.Should().Be(1);

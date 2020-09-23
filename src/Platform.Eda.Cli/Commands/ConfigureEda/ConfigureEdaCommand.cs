@@ -51,7 +51,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             ShowInHelpText = true)]
         public bool NoDryRun { get; set; }
 
-        public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console, IConsoleSubscriberWriter writer)
+        public async Task<int> OnExecuteAsync(IConsoleSubscriberWriter writer)
         {
             if (string.IsNullOrWhiteSpace(Environment))
             {
@@ -64,7 +64,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             if (readDirectoryResult.IsError)
             {
-                console.EmitWarning(GetType(), app.Options, readDirectoryResult.Error.Message);
+                writer.WriteError(readDirectoryResult.Error.Message);
                 return 1;
             }
 
