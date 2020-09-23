@@ -23,6 +23,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         internal const string MockCurrentDirectory = @"Z:\Sample\";
         private readonly ConfigureEdaCommand _configureEdaCommand;
         private readonly Mock<ICaptainHookClient> _mockCaptainHookClient;
+
         private readonly IApiConsumer _apiConsumer;
         private readonly IConsoleSubscriberWriter _mockConsoleSubscriberWriter;
 
@@ -64,8 +65,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             // Assert
             Output.SplitLines().Should()
-                .Contain(
-                    $@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
+                .Contain($@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
                 .And.Contain("File 'sample1.json' has been found")
                 .And.Contain("Starting to run configuration against Captain Hook API")
                 .And.Contain("File 'sample1.json' has been processed successfully")
@@ -99,7 +99,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             // Act
             var result = await configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
-
             // Assert
             Output.SplitLines().Should()
                 .Contain(
@@ -188,7 +187,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             // Act;
             var result = await _configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
-
+            
             // Assert
             _mockCaptainHookClient.Verify(client =>
             client.PutSuscriberWithHttpMessagesAsync(
