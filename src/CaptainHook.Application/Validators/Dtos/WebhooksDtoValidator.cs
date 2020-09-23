@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using FluentValidation;
@@ -12,7 +14,9 @@ namespace CaptainHook.Application.Validators.Dtos
     {
         private static readonly JObject _jObject = new JObject();
 
-        public WebhooksDtoValidator(string subject)
+        private static readonly string[] AllowedTransformTypes = { "Request", "Response", "OrderConfirmation", "PlatformOrderConfirmation", "EmptyCart" };
+
+        public WebhooksDtoValidator(WebhooksDtoType subject)
         {
             RuleFor(x => x.SelectionRule).Cascade(CascadeMode.Stop)
                 .NotEmpty()
@@ -30,12 +34,29 @@ namespace CaptainHook.Application.Validators.Dtos
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
                     .WithMessage("There cannot be multiple endpoints with the same selector");
 
+            RuleFor(x => x.PayloadTransform)
+                .Null()
+                .WithMessage("Payload Transformation is not allowed for callbacks")
+                .When(_ => subject == WebhooksDtoType.Callback);
+
+            RuleFor(x => x.PayloadTransform)
+                .Must(BeValidPayloadTransformType)
+                .WithMessage($"Values allowed for PayloadTransform are: {string.Join(", ", AllowedTransformTypes)}")
+                .When(_ => subject != WebhooksDtoType.Callback);
+
             RuleForEach(x => x.Endpoints).Cascade(CascadeMode.Stop)
                 .SetValidator(new EndpointDtoValidator());
 
             RuleFor(x => x.UriTransform).Cascade(CascadeMode.Stop)
                 .SetValidator((webhooksDto, uriTransform) => new UriTransformValidator(webhooksDto.Endpoints))
                     .When(x => x.UriTransform?.Replace != null, ApplyConditionTo.CurrentValidator);
+        }
+
+        private static bool BeValidPayloadTransformType(string payloadTransform)
+        {
+            return 
+                string.IsNullOrEmpty(payloadTransform) || 
+                AllowedTransformTypes.Any(x => x.Equals(payloadTransform, StringComparison.OrdinalIgnoreCase));
         }
 
         private static bool ThereIsAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)

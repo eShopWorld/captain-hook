@@ -5,6 +5,7 @@ using CaptainHook.Contract;
 using CaptainHook.TestsInfrastructure.Builders;
 using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
+using FluentAssertions.Execution;
 using FluentValidation.TestHelper;
 using Xunit;
 
@@ -13,6 +14,41 @@ namespace CaptainHook.Application.Tests.RequestValidators
     public class UpsertSubscriberRequestValidatorTests
     {
         private readonly UpsertSubscriberRequestValidator _validator = new UpsertSubscriberRequestValidator();
+
+        public static IEnumerable<object[]> ValidPayloadTransforms =>
+            new List<object[]>
+            {
+                new object[] { null },
+                new object[] { "" },
+                new object[] { "Request" },
+                new object[] { "request" },
+                new object[] { "REQUEST" },
+                new object[] { "Response" },
+                new object[] { "response" },
+                new object[] { "RESPONSE" },
+                new object[] { "OrderConfirmation" },
+                new object[] { "orderconfirmation" },
+                new object[] { "ORDERCONFIRMATION" },
+                new object[] { "PlatformOrderConfirmation" },
+                new object[] { "platformorderconfirmation" },
+                new object[] { "PLATFORMORDERCONFIRMATION" },
+                new object[] { "EmptyCart" },
+                new object[] { "emptycart" },
+                new object[] { "EMPTYCART" },
+            };
+
+        public static IEnumerable<object[]> InvalidPayloadTransforms =>
+            new List<object[]>
+            {
+                new object[] { "$" },
+                new object[] { "$.Request" },
+                new object[] { "$.Response" },
+                new object[] { "$.OrderConfirmation" },
+                new object[] { "$.PlatformOrderConfirmation" },
+                new object[] { "$.EmptyCart" },
+                new object[] { "AnyOtherCrazyString" },
+                new object[] { 0 },
+            };
 
         [Fact, IsUnit]
         public void When_RequestIsValid_Then_NoFailuresReturned()
@@ -348,6 +384,105 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var result = _validator.TestValidate(request);
 
             result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(ValidPayloadTransforms))]
+        public void When_OnlyWebhookHasPayloadTransform_Then_ValidationSucceeds(string payloadTransform)
+        {
+            var webhooksDto = new WebhooksDtoBuilder()
+                .With(x => x.PayloadTransform, payloadTransform)
+                .Create();
+
+            var dto = new SubscriberDtoBuilder()
+                .With(x => x.Webhooks, webhooksDto)
+                .Create();
+
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(ValidPayloadTransforms))]
+        public void When_WebhookAndDlqHasPayloadTransform_Then_ValidationSucceeds(string payloadTransform)
+        {
+            var webhooksDto = new WebhooksDtoBuilder()
+                .With(x => x.PayloadTransform, payloadTransform)
+                .Create();
+
+            var dlqHooksDto = new WebhooksDtoBuilder()
+                .With(x => x.PayloadTransform, payloadTransform)
+                .Create();
+
+            var dto = new SubscriberDtoBuilder()
+                .With(x => x.Webhooks, webhooksDto)
+                .With(x => x.DlqHooks, dlqHooksDto)
+                .Create();
+
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(ValidPayloadTransforms))]
+        public void When_CallbackHasPayloadTransform_Then_ValidationFails(string payloadTransform)
+        {
+            var webhooksDto = new WebhooksDtoBuilder()
+                .With(x => x.PayloadTransform, payloadTransform)
+                .Create();
+
+            var callbacksDto = new WebhooksDtoBuilder()
+                .With(x => x.PayloadTransform, payloadTransform)
+                .Create();
+
+            var dto = new SubscriberDtoBuilder()
+                .With(x => x.Webhooks, webhooksDto)
+                .With(x => x.Callbacks, callbacksDto)
+                .Create();
+
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            using (new AssertionScope())
+            if(payloadTransform != null)
+            {
+                    result.ShouldHaveValidationErrorFor(x => x.Subscriber.Callbacks.PayloadTransform);
+            }
+            result.ShouldNotHaveValidationErrorFor(x => x.Subscriber.Webhooks.PayloadTransform);
+        }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(InvalidPayloadTransforms))]
+        public void When_WebhookAndDlqHasInvalidPayloadTransform_Then_ValidationFails(string payloadTransform)
+        {
+            var webhooksDto = new WebhooksDtoBuilder()
+                .With(x => x.PayloadTransform, payloadTransform)
+                .Create();
+
+            var dlqHooksDto = new WebhooksDtoBuilder()
+                .With(x => x.PayloadTransform, payloadTransform)
+                .Create();
+
+            var dto = new SubscriberDtoBuilder()
+                .With(x => x.Webhooks, webhooksDto)
+                .With(x => x.DlqHooks, dlqHooksDto)
+                .Create();
+
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            using(new AssertionScope())
+            result.ShouldNotHaveValidationErrorFor(x => x.Subscriber.Callbacks.PayloadTransform);
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.PayloadTransform);
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.DlqHooks.PayloadTransform);
         }
     }
 }

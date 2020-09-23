@@ -9,13 +9,13 @@ namespace CaptainHook.Application.Validators.Dtos
         {
             RuleFor(x => x.Webhooks).Cascade(CascadeMode.Stop)
                 .NotEmpty()
-                .SetValidator(new WebhooksDtoValidator("Webhooks"));
+                .SetValidator(new WebhooksDtoValidator(WebhooksDtoType.Webhook));
 
             RuleFor(x => x.Callbacks)
-                .SetValidator(new WebhooksDtoValidator("Callbacks"));
+                .SetValidator(new WebhooksDtoValidator(WebhooksDtoType.Callback));
 
             RuleFor(x => x.DlqHooks)
-                .SetValidator(new WebhooksDtoValidator("DlqHooks"));
+                .SetValidator(new WebhooksDtoValidator(WebhooksDtoType.DlqHook));
         }
     }
 }
