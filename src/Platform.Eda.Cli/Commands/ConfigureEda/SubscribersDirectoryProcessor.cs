@@ -18,7 +18,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             _fileSystem = fileSystem;
         }
 
-        public OperationResult<IEnumerable<PutSubscriberFile>> ProcessDirectory(string inputFolderPath, string environmentName)
+        public OperationResult<IEnumerable<PutSubscriberFile>> ProcessDirectory(string inputFolderPath)
         {
             var sourceFolderPath = Path.GetFullPath(inputFolderPath);
             if (!_fileSystem.Directory.Exists(sourceFolderPath))
