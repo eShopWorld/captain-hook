@@ -22,7 +22,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
         private WebhookConfig _callback;
         private bool _asDlq;
-        private bool _isMainConfiguration;
 
         public SubscriberConfigurationBuilder WithType(string type)
         {
@@ -96,7 +95,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        // TODO: remove or use version of this method which accepts SubscriberConfigurationBuilder
         public SubscriberConfigurationBuilder WithCallback(string uri = "https://callback.eshopworld.com")
         {
             _callback = new WebhookConfig
