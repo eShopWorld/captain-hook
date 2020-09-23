@@ -228,7 +228,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
             var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
             if (route == null)
             {
-                throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
+                throw new InvalidOperationException("route http verb mapping/selector not found between config and the properties on the domain object");
             }
             return route;
         }
@@ -257,14 +257,14 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
 
             if (string.IsNullOrWhiteSpace(selector))
             {
-                throw new ArgumentNullException(nameof(rules.Source.Path), "routing path value in message payload is null or empty");
+                throw new InvalidOperationException($"routing path value in message payload is null or empty: {nameof(rules.Source.Path)}");
             }
 
             //selects the route based on the value found in the payload of the message
             var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(selector, StringComparison.OrdinalIgnoreCase));
             if (route == null)
             {
-                throw new Exception("route mapping/selector not found between config and the properties on the domain object");
+                throw new InvalidOperationException("route mapping/selector not found between config and the properties on the domain object");
             }
 
             return route;

@@ -53,7 +53,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             var line = string.Join(Environment.NewLine, writeBox == null ? lines : lines.Skip(1));
             _console.ForegroundColor = color;
-            
+
             writeBox?.Invoke();
             _console.WriteLine(line);
             writeBox?.Invoke();

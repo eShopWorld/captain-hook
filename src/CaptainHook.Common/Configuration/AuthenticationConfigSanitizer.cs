@@ -4,9 +4,9 @@ using CaptainHook.Common.Authentication;
 
 namespace CaptainHook.Common.Configuration
 {
-    public class AuthenticationConfigSanitizer
+    public static class AuthenticationConfigSanitizer
     {
-        private const string SecretDataReplacementString = "***";
+        private static readonly string SecretDataReplacementString = "***";
 
         public static void Sanitize(IEnumerable<SubscriberConfiguration> subscribers)
         {
