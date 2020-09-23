@@ -85,8 +85,6 @@ namespace CaptainHook.Api.Tests.Integration
         [Fact, IsIntegration]
         public async Task DeleteEventSubscriber_WhenUnauthenticated_Returns401Unauthorized()
         {
-            // Arrange
-
             // Act
             var result = await _fixture.UnauthenticatedClient.DeleteSubscriberWithHttpMessagesAsync(_fixture.IntegrationTestEventUpdateName, _fixture.IntegrationTestSubscriberName);
 
