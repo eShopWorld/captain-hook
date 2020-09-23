@@ -51,14 +51,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             ShowInHelpText = true)]
         public bool NoDryRun { get; set; }
 
-        public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
+        public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console, IConsoleSubscriberWriter writer)
         {
             if (string.IsNullOrWhiteSpace(Environment))
             {
                 Environment = "CI";
             }
-
-            var writer = new ConsoleSubscriberWriter(console);
 
             writer.WriteSuccess("box", $"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
 
@@ -92,7 +90,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             return 0;
         }
 
-        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(ConsoleSubscriberWriter writer,
+        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsoleSubscriberWriter writer,
             IEnumerable<PutSubscriberFile> subscriberFiles)
         {
             var apiResults = new List<OperationResult<HttpOperationResponse>>();

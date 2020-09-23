@@ -45,13 +45,14 @@ namespace Platform.Eda.Cli
                 commandParsed = result.SelectedCommand;
             });
 
+            console = app.GetService<IConsole>();
+            
             app.Conventions
                 .UseDefaultConventions()
                 .UseConstructorInjection(SetupAutofac());
 
             try
             {
-                console = app.GetService<IConsole>();
                 int returnCode;
                 if ((returnCode = app.Execute(args)) != 0)
                 {
@@ -83,9 +84,11 @@ namespace Platform.Eda.Cli
 
             builder.RegisterType<SubscribersDirectoryProcessor>().As<ISubscribersDirectoryProcessor>();
             builder.RegisterType<ApiConsumer>().As<IApiConsumer>();
-            
+            builder.RegisterType<ConsoleSubscriberWriter>().As<IConsoleSubscriberWriter>();
+
+            builder.RegisterInstance(console).As<IConsole>();
             builder.RegisterInstance(new ApiClientFixture().GetApiClient());
-            
+
             return serviceProviderFactory.CreateServiceProvider(builder);
         }
     }

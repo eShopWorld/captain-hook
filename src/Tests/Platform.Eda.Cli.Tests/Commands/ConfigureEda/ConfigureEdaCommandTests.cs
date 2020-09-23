@@ -24,11 +24,14 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         private readonly ConfigureEdaCommand _configureEdaCommand;
         private readonly Mock<ICaptainHookClient> _mockCaptainHookClient;
         private readonly IApiConsumer _apiConsumer;
+        private readonly IConsoleSubscriberWriter _mockConsoleSubscriberWriter;
+
         public ConfigureEdaCommandTests(ITestOutputHelper output) : base(output)
         {
             _mockCaptainHookClient = new Mock<ICaptainHookClient>();
+            _mockConsoleSubscriberWriter = new ConsoleSubscriberWriter(Console);
             _apiConsumer = new ApiConsumer(_mockCaptainHookClient.Object, null);
-            
+
             var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetMockFiles1(), MockCurrentDirectory));
             _configureEdaCommand = new ConfigureEdaCommand(subscribersDirectoryProcessor, _apiConsumer);
         }
@@ -37,7 +40,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenSingleFileRequestAccepted_Returns0()
         {
             // Arrange
-            _configureEdaCommand.InputFolderPath = SubscribersDirectoryProcessorTests.MockCurrentDirectory;
+            _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             _configureEdaCommand.NoDryRun = true;
             var response = new HttpOperationResponse<object>
             {
@@ -56,12 +59,12 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     CancellationToken.None)).Returns(Task.FromResult(response));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(Application, Console);
+            var result = await _configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
 
             // Assert
             Output.SplitLines().Should()
                 .Contain(
-                    $@"Reading files from folder: '{SubscribersDirectoryProcessorTests.MockCurrentDirectory}' to be run against CI environment")
+                    $@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
                 .And.Contain("File 'sample1.json' has been found")
                 .And.Contain("Starting to run configuration against Captain Hook API")
                 .And.Contain("File 'sample1.json' has been processed successfully")
@@ -74,7 +77,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenMultipleSubdirectoriesRequestAccepted_Returns0()
         {
             // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand( new SubscribersDirectoryProcessor(new MockFileSystem(GetMockFiles2(), MockCurrentDirectory)), _apiConsumer);
+            var configureEdaCommand = new ConfigureEdaCommand(new SubscribersDirectoryProcessor(new MockFileSystem(GetMockFiles2(), MockCurrentDirectory)), _apiConsumer);
             configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             configureEdaCommand.NoDryRun = true;
             var response = new HttpOperationResponse<object>
@@ -94,7 +97,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     CancellationToken.None)).Returns(Task.FromResult(response));
 
             // Act
-            var result = await configureEdaCommand.OnExecuteAsync(Application, Console);
+            var result = await configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
 
             // Assert
             Output.SplitLines().Should()
@@ -109,7 +112,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             result.Should().Be(0);
         }
-        
+
         [Fact, IsUnit]
         public async Task OnExecuteAsync_WhenEmptyDirectory_Returns0()
         {
@@ -119,7 +122,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             configureEdaCommand.NoDryRun = true;
 
             // Act
-            var result = await configureEdaCommand.OnExecuteAsync(Application, Console);
+            var result = await configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
 
             // Assert
             Output.SplitLines().Should()
@@ -136,7 +139,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenRequestNotAccepted_Returns2()
         {
             // Arrange
-            _configureEdaCommand.InputFolderPath = SubscribersDirectoryProcessorTests.MockCurrentDirectory;
+            _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             _configureEdaCommand.NoDryRun = true;
             var response = new HttpOperationResponse<object>
             {
@@ -155,12 +158,11 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     CancellationToken.None)).Returns(Task.FromResult(response));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(Application, Console);
+            var result = await _configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
 
             // Assert
             Output.SplitLines().Should()
-                .Contain(
-                    $@"Reading files from folder: '{SubscribersDirectoryProcessorTests.MockCurrentDirectory}' to be run against CI environment")
+                .Contain($@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
                 .And.Contain("File 'sample1.json' has been found")
                 .And.Contain("Starting to run configuration against Captain Hook API")
                 .And.NotContain("File 'sample1.json' has been processed successfully")
@@ -176,18 +178,18 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _configureEdaCommand.InputFolderPath = null;
 
             // Act - Assert;
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _configureEdaCommand.OnExecuteAsync(Application, Console));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter));
         }
 
         [Fact, IsUnit]
         public async Task OnExecuteAsync_WhenNoDryRunFalse_ApiIsNotCalled()
         {
             // Arrange
-            _configureEdaCommand.InputFolderPath = SubscribersDirectoryProcessorTests.MockCurrentDirectory;
+            _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             _configureEdaCommand.NoDryRun = false;
 
             // Act;
-            var result = await _configureEdaCommand.OnExecuteAsync(Application, Console);
+            var result = await _configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
 
             // Assert
             _mockCaptainHookClient.Verify(client =>
@@ -199,12 +201,31 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     It.IsAny<CancellationToken>()), Times.Never);
 
             Output.SplitLines().Should()
-                .Contain(
-                    $@"Reading files from folder: '{SubscribersDirectoryProcessorTests.MockCurrentDirectory}' to be run against CI environment")
+                .Contain($@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
                 .And.Contain("File 'sample1.json' has been found")
                 .And.NotContain("Starting to run configuration against Captain Hook API")
                 .And.Contain("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch")
                 .And.Contain("Processing finished");
+        }
+
+        [Fact, IsUnit]
+        public async Task OnExecuteAsync_WhenInvalidJson_Returns1()
+        {
+            // Arrange
+            var configureEdaCommand = new ConfigureEdaCommand(
+                new SubscribersDirectoryProcessor(new MockFileSystem(GetMockFilesInvalidJson(), MockCurrentDirectory)),
+                _apiConsumer);
+            configureEdaCommand.InputFolderPath = MockCurrentDirectory;
+            configureEdaCommand.NoDryRun = false;
+
+            // Act;
+            var result = await configureEdaCommand.OnExecuteAsync(Application, Console, _mockConsoleSubscriberWriter);
+
+            // Assert
+            result.Should().Be(1);
+            Output.Should()
+                .Contain("Reading files from folder: 'Z:\\Sample\\' to be run against CI environment")
+                .And.Contain("WARNING - Command Platform.Eda.Cli.Commands.ConfigureEda.ConfigureEdaCommand");
         }
 
         private static Dictionary<string, MockFileData> GetMockFiles1()
@@ -287,6 +308,17 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
   }
 }
 ")
+                }
+            };
+            return mockFiles;
+        }
+
+        private static Dictionary<string, MockFileData> GetMockFilesInvalidJson()
+        {
+            var mockFiles = new Dictionary<string, MockFileData>
+            {
+                {
+                    "sample3.json", new MockFileData(@"<json>File</json>")
                 }
             };
             return mockFiles;
