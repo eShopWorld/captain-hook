@@ -40,7 +40,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             var subscriberConfig = messageData.SubscriberConfig;
             if (subscriberConfig == null)
             {
-                throw new Exception($"Boom, handler event type '{messageData.Type}' was not found, cannot process the message");
+                throw new InvalidOperationException($"Boom, handler event type '{messageData.Type}' was not found, cannot process the message");
             }
 
             if (subscriberConfig.Callback != null)
@@ -68,7 +68,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         {
             if (webhookConfig == null)
             {
-                throw new Exception("Boom, handler webhook not found cannot process the message");
+                throw new InvalidOperationException("Boom, handler webhook not found cannot process the message");
             }
 
             return new GenericWebhookHandler(

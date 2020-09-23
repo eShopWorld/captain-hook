@@ -3,27 +3,27 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
-using Eshopworld.Telemetry;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace CaptainHook.Benchmark
 {
-    [CoreJob]
+    [SimpleJob(RuntimeMoniker.NetCoreApp31)]
     [RPlotExporter, RankColumn]
     public class RequestBuilderBenchmark
     {
         private WebhookConfig _config;
         private string _data;
 
-        public static void Main(string[] args)
+        public static void Main()
         {
-            var summary = BenchmarkRunner.Run<RequestBuilderBenchmark>();
+            _ = BenchmarkRunner.Run<RequestBuilderBenchmark>();
         }
 
         [GlobalSetup]

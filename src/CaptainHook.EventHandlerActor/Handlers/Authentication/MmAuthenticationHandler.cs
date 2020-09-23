@@ -53,7 +53,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
 
             if (authProviderResponse.StatusCode != HttpStatusCode.Created || authProviderResponse.Content == null)
             {
-                throw new Exception("didn't get a token from the provider");
+                throw new InvalidOperationException("didn't get a token from the provider");
             }
 
             var responseContent = await authProviderResponse.Content.ReadAsStringAsync();
