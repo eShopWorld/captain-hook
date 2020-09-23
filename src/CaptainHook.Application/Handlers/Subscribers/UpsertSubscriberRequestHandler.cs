@@ -16,18 +16,23 @@ using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
-    public class DirectorServiceChangeDecider
+    public interface IDirectorServiceChanger
+    {
+        Task<OperationResult<SubscriberConfiguration>> ApplyAsync(SubscriberEntity existingEntity, SubscriberEntity requestedEntity);
+    }
+
+    public class DirectorServiceChanger : IDirectorServiceChanger
     {
         private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
         private readonly IDirectorServiceProxy _directorService;
 
-        public DirectorServiceChangeDecider(ISubscriberEntityToConfigurationMapper entityToConfigurationMapper, IDirectorServiceProxy directorService)
+        public DirectorServiceChanger(ISubscriberEntityToConfigurationMapper entityToConfigurationMapper, IDirectorServiceProxy directorService)
         {
             _entityToConfigurationMapper = entityToConfigurationMapper;
             _directorService = directorService;
         }
 
-        public async Task<OperationResult<SubscriberConfiguration>> ApplyChangesAsync(SubscriberEntity existingEntity, SubscriberEntity requestedEntity)
+        public async Task<OperationResult<SubscriberConfiguration>> ApplyAsync(SubscriberEntity existingEntity, SubscriberEntity requestedEntity)
         {
             var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberEntityAsync(requestedEntity);
 
@@ -41,11 +46,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
             if (existingEntity == null)
             {
                 return await _directorService.CreateReaderAsync(keyVaultModels.Webhook)
-                    .Then(async _ => await _directorService.CreateReaderAsync(keyVaultModels.Webhook));
+                    .Then(async sc => await CreateDlqReader(keyVaultModels.Dlqhook, sc, requestedEntity.HasDlqHooks));
             }
 
             return await _directorService.UpdateReaderAsync(keyVaultModels.Webhook)
                 .Then(async _ => await UpdateDlqReader(keyVaultModels.Dlqhook, existingEntity.HasDlqHooks, requestedEntity.HasDlqHooks));
+        }
+
+        private async Task<OperationResult<SubscriberConfiguration>> CreateDlqReader(SubscriberConfiguration dlqhook, SubscriberConfiguration sc, bool isRequired)
+        {
+            if (isRequired)
+                return await _directorService.CreateReaderAsync(dlqhook);
+
+            return sc;
         }
 
         private async Task<OperationResult<SubscriberConfiguration>> UpdateDlqReader(SubscriberConfiguration dlqhook, bool alreadyExists, bool isRequired)
@@ -67,17 +80,20 @@ namespace CaptainHook.Application.Handlers.Subscribers
     public class UpsertSubscriberRequestHandler : IRequestHandler<UpsertSubscriberRequest, OperationResult<UpsertResult<SubscriberDto>>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
-        private readonly IDirectorServiceProxy _directorService;
+        //private readonly IDirectorServiceProxy _directorService;
         private readonly IDtoToEntityMapper _dtoToEntityMapper;
+        private readonly IDirectorServiceChanger _directorServiceChanger;
 
         public UpsertSubscriberRequestHandler(
             ISubscriberRepository subscriberRepository,
-            IDirectorServiceProxy directorService,
-            IDtoToEntityMapper dtoToEntityMapper)
+            //IDirectorServiceProxy directorService,
+            IDtoToEntityMapper dtoToEntityMapper,
+            IDirectorServiceChanger directorServiceChanger)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
-            _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
+            //_directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
             _dtoToEntityMapper = dtoToEntityMapper ?? throw new ArgumentNullException(nameof(dtoToEntityMapper));
+            _directorServiceChanger = directorServiceChanger ?? throw new ArgumentNullException(nameof(directorServiceChanger));
         }
 
         public async Task<OperationResult<UpsertResult<SubscriberDto>>> Handle(UpsertSubscriberRequest request, CancellationToken cancellationToken)
@@ -85,22 +101,26 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
             var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-            var subscriber = MapRequestToEntity(request);
-
-            if (existingItem.IsError)
+            if (existingItem.IsError && !(existingItem.Error is EntityNotFoundError))
             {
-                if (existingItem.Error is EntityNotFoundError)
-                {
-                    return await _directorService.CreateReaderAsync(subscriber)
-                        .Then(async _ => (await _subscriberRepository.AddSubscriberAsync(subscriber)))
-                        .Then(_ => new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(request.Subscriber, UpsertType.Created)));
-                }
-
                 return existingItem.Error;
             }
 
-            return await _directorService.UpdateReaderAsync(subscriber)
-                .Then(async _ => (await _subscriberRepository.UpdateSubscriberAsync(subscriber)))
+            var subscriber = MapRequestToEntity(request);
+
+            var directorResult = await _directorServiceChanger.ApplyAsync(existingItem.Data, subscriber);
+            if (directorResult.IsError)
+            {
+                return directorResult.Error;
+            }
+
+            if (existingItem.Error is EntityNotFoundError)
+            {
+                return await _subscriberRepository.AddSubscriberAsync(subscriber)
+                    .Then(_ => new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(request.Subscriber, UpsertType.Created)));
+            }
+
+            return await _subscriberRepository.UpdateSubscriberAsync(subscriber)
                 .Then(_ => new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(request.Subscriber, UpsertType.Updated)));
         }
 

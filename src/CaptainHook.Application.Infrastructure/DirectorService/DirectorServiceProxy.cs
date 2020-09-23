@@ -104,13 +104,6 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                 ReaderChangeResult.ReaderDoesNotExist => new ReaderDoesNotExistError(subscriber.EventType, subscriber.SubscriberName),
                 _ => new BusinessError("Director Service returned unknown result.")
             };
-
-            //if (operationResult.IsError)
-            //{
-            //    return operationResult.Error;
-            //}
-
-            //return request.Subscriber;
         }
     }
 }
