@@ -1,6 +1,4 @@
 using System;
-using System.Diagnostics;
-using Microsoft.Azure.Management.ServiceBus.Fluent;
 
 namespace CaptainHook.Common.ServiceBus
 {
@@ -23,7 +21,7 @@ namespace CaptainHook.Common.ServiceBus
         {
             var name = type;
 #if DEBUG
-            if (Debugger.IsAttached)
+            if (System.Diagnostics.Debugger.IsAttached)
             {
                 name += $"-{Environment.UserName.Replace("$", "")}";
             }
