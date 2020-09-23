@@ -242,48 +242,6 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
 
         [Theory, IsUnit]
         [ClassData(typeof(MapSubscriberAsyncTestData))]
-        public async Task MapSubscriberAsync_WithSingleDlqhookAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
-        {
-            var uriTransform = new UriTransformEntity(null);
-            var subscriber = new SubscriberBuilder()
-                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
-                .WithDlqhooksSelectionRule("aSelectionRule")
-                .WithDlqhooksUriTransform(uriTransform)
-                .WithDlqhook("https://blah-{orderCode}.eshopworld.com/dlq/", httpVerb, "*", authentication)
-                .Create();
-
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
-
-            var webhookConfig = new SubscriberConfigurationBuilder()
-                .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
-                .WithAuthentication(expectedAuthenticationConfig)
-                .WithName(subscriber.Id)
-                .WithHttpVerb(httpVerb)
-                .Create();
-
-            var dlqConfig = new SubscriberConfigurationBuilder()
-               .WithUri(null).WithoutAuthentication()
-               .AddWebhookRequestRule(rule => rule
-                   .WithSource(source => source
-                       .AddReplace("selector", "aSelectionRule"))
-                   .WithDestination(ruleAction: RuleAction.RouteAndReplace)
-                   .AddRoute(route => route
-                       .WithHttpVerb(httpVerb)
-                       .WithAuthentication(expectedAuthenticationConfig)
-                       .WithUri("https://blah-{orderCode}.eshopworld.com/dlq/")
-                       .WithSelector("*")))
-               .CreateAsDlq();
-
-
-            using (new AssertionScope())
-            {
-                result.IsError.Should().BeFalse();
-                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
-            }
-        }
-
-        [Theory, IsUnit]
-        [ClassData(typeof(MapSubscriberAsyncTestData))]
         public async Task MapSubscriberAsync_NoSelectionRule_MapsFromFirstEndpoint(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });

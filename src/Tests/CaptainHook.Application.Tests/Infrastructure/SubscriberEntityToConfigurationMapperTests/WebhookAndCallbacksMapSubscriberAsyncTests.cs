@@ -486,7 +486,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         [ClassData(typeof(MapSubscriberAsyncTestData))]
         public async Task MapSubscriberAsync_WithSingleWebhookAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
-            var uriTransform = new UriTransformEntity(null);
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksSelectionRule("aSelectionRule")
                 .WithWebhooksUriTransform(uriTransform)
@@ -522,7 +522,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         [ClassData(typeof(MapSubscriberAsyncTestData))]
         public async Task MapSubscriberAsync_WithSingleCallbackAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
-            var uriTransform = new UriTransformEntity(null);
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksSelectionRule("aSelectionRule")
                 .WithWebhooksUriTransform(uriTransform)

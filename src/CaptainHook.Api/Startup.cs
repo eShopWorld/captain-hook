@@ -145,19 +145,11 @@ namespace CaptainHook.Api
                                 new string[0]
                             }
                         });
-
-                        c.GeneratePolymorphicSchemas(
-                            type =>
-                            {
-                                if (type == typeof(AuthenticationDto))
-                                {
-                                    return new[] {
-                                        typeof(OidcAuthenticationDto),
-                                        typeof(BasicAuthenticationDto)
-                                    };
-                                }
-                                return Enumerable.Empty<Type>();
-                            });
+                        c.UseOneOfForPolymorphism();
+                        c.SelectSubTypesUsing(baseType =>
+                        {
+                            return typeof(AuthenticationDto).Assembly.GetTypes().Where(type => type.IsSubclassOf(baseType));
+                        });
 
                         c.OperationFilter<OperationIdFilter>();
                     });
