@@ -12,6 +12,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 {
     public class SubscriberEntityToConfigurationMapper : ISubscriberEntityToConfigurationMapper
     {
+        private static readonly Dictionary<string, string> EmptyReplacementsDictionary = new Dictionary<string, string>();
+
         private static readonly WebhookRequestRule StatusCodeRequestRule = new WebhookRequestRule
         {
             Source = new SourceParserLocation
@@ -157,7 +159,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
         {
-            var replacements = webhooksEntity.UriTransform?.Replace ?? new Dictionary<string, string>();
+            var replacements = new Dictionary<string, string>(webhooksEntity.UriTransform?.Replace ?? EmptyReplacementsDictionary);
 
             if (!string.IsNullOrEmpty(webhooksEntity.SelectionRule))
             {
