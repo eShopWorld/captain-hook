@@ -5,6 +5,7 @@ using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Results;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
@@ -15,6 +16,54 @@ using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
+    public class DirectorServiceChangeDecider
+    {
+        private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
+        private readonly IDirectorServiceProxy _directorService;
+
+        public DirectorServiceChangeDecider(ISubscriberEntityToConfigurationMapper entityToConfigurationMapper, IDirectorServiceProxy directorService)
+        {
+            _entityToConfigurationMapper = entityToConfigurationMapper;
+            _directorService = directorService;
+        }
+
+        public async Task<OperationResult<SubscriberConfiguration>> ApplyChangesAsync(SubscriberEntity existingEntity, SubscriberEntity requestedEntity)
+        {
+            var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberEntityAsync(requestedEntity);
+
+            if (subscriberConfigsResult.IsError)
+            {
+                return subscriberConfigsResult.Error;
+            }
+
+            var keyVaultModels = subscriberConfigsResult.Data;
+
+            if (existingEntity == null)
+            {
+                return await _directorService.CreateReaderAsync(keyVaultModels.Webhook)
+                    .Then(async _ => await _directorService.CreateReaderAsync(keyVaultModels.Webhook));
+            }
+
+            return await _directorService.UpdateReaderAsync(keyVaultModels.Webhook)
+                .Then(async _ => await UpdateDlqReader(keyVaultModels.Dlqhook, existingEntity.HasDlqHooks, requestedEntity.HasDlqHooks));
+        }
+
+        private async Task<OperationResult<SubscriberConfiguration>> UpdateDlqReader(SubscriberConfiguration dlqhook, bool alreadyExists, bool isRequired)
+        {
+            if (!alreadyExists && isRequired)
+            {
+                return await _directorService.CreateReaderAsync(dlqhook);
+            }
+
+            if (alreadyExists && !isRequired)
+            {
+                return await _directorService.DeleteReaderAsync(dlqhook);
+            }
+
+            return await _directorService.UpdateReaderAsync(dlqhook);
+        }
+    }
+
     public class UpsertSubscriberRequestHandler : IRequestHandler<UpsertSubscriberRequest, OperationResult<UpsertResult<SubscriberDto>>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
@@ -63,7 +112,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
             subscriberEntity.SetHooks(webhooks);
 
-            if(request.Subscriber.Callbacks?.Endpoints?.Count > 0)
+            if (request.Subscriber.Callbacks?.Endpoints?.Count > 0)
             {
                 var callbacks = _dtoToEntityMapper.MapWebooks(request.Subscriber.Callbacks, WebhooksEntityType.Callbacks);
                 subscriberEntity.SetHooks(callbacks);

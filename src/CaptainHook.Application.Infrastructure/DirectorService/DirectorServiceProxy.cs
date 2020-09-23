@@ -36,11 +36,12 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             return await CallDirector(s => new DeleteReader { Subscriber = s }, subscriber);
         }
 
-        private async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CallDirector(Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
+        private async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CallDirector(
+            Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
         {
             var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberAsync(subscriber);
 
-            if(subscriberConfigsResult.IsError)
+            if (subscriberConfigsResult.IsError)
             {
                 return subscriberConfigsResult.Error;
             }
@@ -62,13 +63,54 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                     _ => new BusinessError("Director Service returned unknown result.")
                 };
 
-                if(operationResult.IsError)
+                if (operationResult.IsError)
                 {
                     return operationResult.Error;
                 }
             }
 
             return subscriberConfigsResult;
+        }
+
+        public async Task<OperationResult<SubscriberConfiguration>> CreateReaderAsync(SubscriberConfiguration subscriber)
+        {
+            return await CallDirector(new CreateReader { Subscriber = subscriber });
+        }
+
+        public async Task<OperationResult<SubscriberConfiguration>> UpdateReaderAsync(SubscriberConfiguration subscriber)
+        {
+            return await CallDirector(new UpdateReader { Subscriber = subscriber });
+        }
+
+        public async Task<OperationResult<SubscriberConfiguration>> DeleteReaderAsync(SubscriberConfiguration subscriber)
+        {
+            return await CallDirector(new DeleteReader { Subscriber = subscriber });
+        }
+
+        private async Task<OperationResult<SubscriberConfiguration>> CallDirector(ReaderChangeBase request)
+        {
+            var subscriber = request.Subscriber;
+
+            var createReaderResult = await _directorService.ApplyReaderChange(request);
+
+            return createReaderResult switch
+            {
+                ReaderChangeResult.Success => request.Subscriber,
+                ReaderChangeResult.NoChangeNeeded => request.Subscriber,
+                ReaderChangeResult.CreateFailed => new ReaderCreateError(subscriber.EventType, subscriber.SubscriberName),
+                ReaderChangeResult.DeleteFailed => new ReaderDeleteError(subscriber.EventType, subscriber.SubscriberName),
+                ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
+                ReaderChangeResult.ReaderAlreadyExist => new ReaderAlreadyExistsError(subscriber.EventType, subscriber.SubscriberName),
+                ReaderChangeResult.ReaderDoesNotExist => new ReaderDoesNotExistError(subscriber.EventType, subscriber.SubscriberName),
+                _ => new BusinessError("Director Service returned unknown result.")
+            };
+
+            //if (operationResult.IsError)
+            //{
+            //    return operationResult.Error;
+            //}
+
+            //return request.Subscriber;
         }
     }
 }

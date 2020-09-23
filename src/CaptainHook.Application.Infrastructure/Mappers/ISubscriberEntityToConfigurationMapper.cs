@@ -14,5 +14,25 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         /// <param name="entity">A subscriber entity</param>
         /// <returns>A subscriber configuration result or error</returns>
         Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapSubscriberAsync(SubscriberEntity entity);
+        
+        
+        Task<OperationResult<MapToKeyVaultResult>> MapSubscriberEntityAsync(SubscriberEntity entity);
+    }
+
+    public class MapToKeyVaultResult
+    {
+        public SubscriberConfiguration Webhook { get; }
+        public SubscriberConfiguration Dlqhook { get; }
+
+        public MapToKeyVaultResult(SubscriberConfiguration webhook)
+        {
+            Webhook = webhook;
+        }
+
+        public MapToKeyVaultResult(SubscriberConfiguration webhook, SubscriberConfiguration dlqhook)
+        {
+            Webhook = webhook;
+            Dlqhook = dlqhook;
+        }
     }
 }

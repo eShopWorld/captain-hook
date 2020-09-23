@@ -9,5 +9,10 @@ namespace CaptainHook.Domain.Errors
             : base($"Can't delete Reader Service for Event {subscriber?.ParentEvent?.Name} and Subscriber {subscriber?.Name}")
         {
         }
+
+        public ReaderDeleteError(string subscriberName, string eventName)
+           : base($"Can't delete Reader Service for Event {eventName} and Subscriber {subscriberName}")
+        {
+        }
     }
 }

@@ -48,5 +48,13 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// ReaderDoesNotExistError if reader can't be deleted because it doesn't exist
         /// </returns>
         Task<OperationResult<IEnumerable<SubscriberConfiguration>>> DeleteReaderAsync(SubscriberEntity subscriber);
+
+
+
+        Task<OperationResult<SubscriberConfiguration>> CreateReaderAsync(SubscriberConfiguration subscriber);
+
+        Task<OperationResult<SubscriberConfiguration>> UpdateReaderAsync(SubscriberConfiguration subscriber);
+
+        Task<OperationResult<SubscriberConfiguration>> DeleteReaderAsync(SubscriberConfiguration subscriber);
     }
 }
