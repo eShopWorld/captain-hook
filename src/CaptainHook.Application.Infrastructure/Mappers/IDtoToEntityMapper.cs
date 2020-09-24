@@ -29,6 +29,14 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         UriTransformEntity MapUriTransform(UriTransformDto uriTransformDto);
 
         /// <summary>
+        /// Maps a Payload Transformation DTO to a PayloadTransform expression for the entity
+        /// </summary>
+        /// <param name="payloadTransform"></param>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        string MapPayloadTransform(string payloadTransform, WebhooksEntityType type);
+
+        /// <summary>
         /// Maps an Authentication DTO to an Authentication entity
         /// </summary>
         /// <param name="authenticationDto">An Authentication DTO</param>

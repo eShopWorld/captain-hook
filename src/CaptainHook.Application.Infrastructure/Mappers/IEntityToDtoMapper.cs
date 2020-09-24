@@ -13,6 +13,13 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         SubscriberDto MapSubscriber(SubscriberEntity subscriberEntity);
 
         /// <summary>
+        /// Maps a Webhooks entity to a Webhooks DTO
+        /// </summary>
+        /// <param name="entity">A Webhooks entity</param>
+        /// <returns>A Webhooks DTO</returns>
+        WebhooksDto MapWebhooks(WebhooksEntity entity);
+
+        /// <summary>
         /// Maps an Endpoint entity to an Endpoint DTO
         /// </summary>
         /// <param name="endpointEntity">An Endpoint entity</param>
@@ -25,6 +32,14 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         /// <param name="uriTransformEntity">A URITransform entity</param>
         /// <returns>A URITransform DTO</returns>
         UriTransformDto MapUriTransform(UriTransformEntity uriTransformEntity);
+
+        /// <summary>
+        /// Maps a payload transformation from its entity to DTO representation
+        /// </summary>
+        /// <param name="payloadTransform">A entity level payload transformation</param>
+        /// <param name="type">Type of Webhook entity</param>
+        /// <returns>A DTO payload transformation</returns>
+        string MapPayloadTransform(string payloadTransform, WebhooksEntityType type);
 
         /// <summary>
         /// Maps an Authentication entity to an Authentication DTO

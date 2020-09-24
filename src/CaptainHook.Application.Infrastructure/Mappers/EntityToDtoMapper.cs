@@ -10,12 +10,36 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         {
             return new SubscriberDto
             {
-                Webhooks = new WebhooksDto
-                {
-                    SelectionRule = subscriberEntity.Webhooks.SelectionRule,
-                    UriTransform = MapUriTransform(subscriberEntity.Webhooks.UriTransform),
-                    Endpoints = subscriberEntity.Webhooks.Endpoints.Select(MapEndpoint).ToList()
-                }
+                Webhooks = MapWebhooks(subscriberEntity.Webhooks),
+                Callbacks = MapWebhooks(subscriberEntity.Callbacks),
+                DlqHooks = MapWebhooks(subscriberEntity.DlqHooks)
+            };
+        }
+
+        public WebhooksDto MapWebhooks(WebhooksEntity entity)
+        {
+            return new WebhooksDto
+            {
+                SelectionRule = entity.SelectionRule,
+                UriTransform = MapUriTransform(entity.UriTransform),
+                Endpoints = entity.Endpoints.Select(MapEndpoint).ToList(),
+                PayloadTransform = MapPayloadTransform(entity.PayloadTransform, entity.Type)
+            };
+        }
+
+        public string MapPayloadTransform(string payloadTransform, WebhooksEntityType type)
+        {
+            if (type == WebhooksEntityType.Callbacks)
+                return null;
+
+            return payloadTransform switch
+            {
+                "$.Request" => "Request",
+                "$.Response" => "Response",
+                "$.OrderConfirmation" => "OrderConfirmation",
+                "$.PlatformOrderConfirmation" => "PlatformOrderConfirmation",
+                "$.EmptyCart" => "EmptyCart",
+                _ => null
             };
         }
 

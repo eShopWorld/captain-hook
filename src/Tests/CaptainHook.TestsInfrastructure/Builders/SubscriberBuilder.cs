@@ -12,6 +12,8 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _webhookSelectionRule;
         private string _callbackSelectionRule;
         private string _dlqhooksSelectionRule;
+        private string _webhookPayloadTransform;
+        private string _dlqhookPayloadTransform;
         private UriTransformEntity _webhooksUriTransformEntity;
         private UriTransformEntity _callbacksUriTransformEntity;
         private UriTransformEntity _dlqhooksTransformEntity;
@@ -52,6 +54,18 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberBuilder WithDlqhooksUriTransform(UriTransformEntity uriTransformEntity)
         {
             _dlqhooksTransformEntity = uriTransformEntity;
+            return this;
+        }
+
+        public SubscriberBuilder WithWebhooksPayloadTransform(string payloadTransform)
+        {
+            _webhookPayloadTransform = payloadTransform;
+            return this;
+        }
+
+        public SubscriberBuilder WithDlqhooksPayloadTransform(string payloadTransform)
+        {
+            _dlqhookPayloadTransform = payloadTransform;
             return this;
         }
 
@@ -98,9 +112,9 @@ namespace CaptainHook.TestsInfrastructure.Builders
         {
             var subscriber = new SubscriberEntity(_name, _event, _etag);
 
-            return subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity))
+            return subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity, _webhookPayloadTransform))
                 .Then(_ => subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Callbacks, _callbackSelectionRule, _callbacks, _callbacksUriTransformEntity)))
-                .Then(_ => subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.DlqHooks, _dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity)))
+                .Then(_ => subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.DlqHooks, _dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity, _dlqhookPayloadTransform)))
                 .Match(
                     error => throw new ArgumentException(error.Message), 
                     s => s

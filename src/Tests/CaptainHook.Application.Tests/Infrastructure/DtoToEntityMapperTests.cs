@@ -8,24 +8,63 @@ using FluentAssertions;
 using System.Collections.Generic;
 using CaptainHook.Contract;
 using System.Linq;
+using CaptainHook.TestsInfrastructure.TestsData;
 
 namespace CaptainHook.Application.Tests.Infrastructure
 {
     public class DtoToEntityMapperTests
     {
+        public static IEnumerable<object[]> ValidPayloadTransforms =>
+            new List<object[]>
+            {
+                new object[] { null, "$" },
+                new object[] { "", "$" },
+                new object[] { "Request", "$.Request" },
+                new object[] { "request", "$.Request" },
+                new object[] { "REQUEST", "$.Request" },
+                new object[] { "Response", "$.Response" },
+                new object[] { "response", "$.Response" },
+                new object[] { "RESPONSE", "$.Response" },
+                new object[] { "OrderConfirmation", "$.OrderConfirmation" },
+                new object[] { "orderconfirmation", "$.OrderConfirmation" },
+                new object[] { "ORDERCONFIRMATION", "$.OrderConfirmation" },
+                new object[] { "PlatformOrderConfirmation", "$.PlatformOrderConfirmation" },
+                new object[] { "platformorderconfirmation", "$.PlatformOrderConfirmation" },
+                new object[] { "PLATFORMORDERCONFIRMATION", "$.PlatformOrderConfirmation" },
+                new object[] { "EmptyCart", "$.EmptyCart" },
+                new object[] { "emptycart", "$.EmptyCart" },
+                new object[] { "EMPTYCART", "$.EmptyCart" },
+            };
+
+        public static IEnumerable<object[]> InvalidPayloadTransforms =>
+            new List<object[]>
+            {
+                new object[] { "$" },
+                new object[] { "$.Request" },
+                new object[] { "$.Response" },
+                new object[] { "$.OrderConfirmation" },
+                new object[] { "$.PlatformOrderConfirmation" },
+                new object[] { "$.EmptyCart" },
+                new object[] { "AnyOtherCrazyString" },
+                new object[] { 0 },
+            };
+
+        private readonly DtoToEntityMapper sut = new DtoToEntityMapper();
+
         [Fact]
         [IsUnit]
         public void MapAuthentication_When_BasicAuthenticationDtoIsUsed_Then_IsMappedToBasicAuthenticationEntity()
         {
-            var sut = new DtoToEntityMapper();
-
+            // Arrange
             var dto = new BasicAuthenticationDtoBuilder()
                 .With(x => x.Username, "Username")
                 .With(x => x.PasswordKeyName, "Password")
                 .Create();
 
+            // Act
             var entity = sut.MapAuthentication(dto);
 
+            // Assert
             using (new AssertionScope())
             {
                 entity.Should().BeOfType(typeof(BasicAuthenticationEntity));
@@ -39,8 +78,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [IsUnit]
         public void MapAuthentication_When_OidcAuthenticationDtoIsUsed_Then_IsMappedToOidcAuthenticationEntity()
         {
-            var sut = new DtoToEntityMapper();
-
+            // Arrange
             var dto = new OidcAuthenticationDtoBuilder()
                 .With(x => x.ClientId, "ClientId")
                 .With(x => x.ClientSecretKeyName, "ClientSecretKeyName")
@@ -48,8 +86,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .With(x => x.Scopes, new List<string> { "scope" })
                 .Create();
 
+            // Act
             var entity = sut.MapAuthentication(dto);
 
+            // Assert
             using (new AssertionScope())
             {
                 entity.Should().BeOfType(typeof(OidcAuthenticationEntity));
@@ -65,8 +105,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [IsUnit]
         public void MapUriTransform_When_ValidUriTransformDtoIsUsed_Then_IsMappedToUriTransformEntity()
         {
-            var sut = new DtoToEntityMapper();
-
+            // Arrange
             var dictionary = new Dictionary<string, string>
             {
                 ["key1"] = "value1",
@@ -76,28 +115,29 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .With(x => x.Replace, dictionary)
                 .Create();
 
+            // Act
             var entity = sut.MapUriTransform(dto);
 
+            // Assert
             entity.Replace.Should().Contain(dictionary.ToList());
         }
 
         [Theory]
-        [InlineData("POST")]
-        [InlineData("PUT")]
-        [InlineData("GET")]
         [IsUnit]
+        [ClassData(typeof(ValidHttpVerbs))]
         public void MapEndpoint_When_ValidEndpointDtoIsUsed_Then_IsMappedToEndpointEntity(string httpVerb)
         {
-            var sut = new DtoToEntityMapper();
-
+            // Arrange
             var dto = new EndpointDtoBuilder()
                 .With(x => x.Selector, "Select")
                 .With(x => x.HttpVerb, httpVerb)
                 .With(x => x.Uri, "http://www.test.url")
                 .Create();
 
+            // Act
             var entity = sut.MapEndpoint(dto, null);
 
+            // Assert
             using (new AssertionScope())
             {
                 entity.Selector.Should().Be("Select");
@@ -106,11 +146,11 @@ namespace CaptainHook.Application.Tests.Infrastructure
             }
         }
 
-        [Fact, IsUnit]
+        [Fact]
+        [IsUnit]
         public void MapEndpoint_When_ValidEndpointDtoIsUsedWithSelectorProvided_Then_IsMappedToEndpointEntity()
         {
-            var sut = new DtoToEntityMapper();
-
+            // Arrange
             var dto = new EndpointDtoBuilder()
                 .With(x => x.Selector, "Select")
                 .With(x => x.HttpVerb, "PUT")
@@ -118,8 +158,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .With(x => x.Authentication, null)
                 .Create();
 
+            // Act
             var entity = sut.MapEndpoint(dto, "abc");
 
+            // Assert
             var expectedEntity = new EndpointDto
             {
                 Selector = "abc",
@@ -130,14 +172,11 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory]
-        [InlineData("POST")]
-        [InlineData("PUT")]
-        [InlineData("GET")]
         [IsUnit]
+        [ClassData(typeof(ValidHttpVerbs))]
         public void MapWebooks_When_ValidEndpointIsUsed_Then_IsMappedToEndpointEntity(string httpVerb)
         {
-            var sut = new DtoToEntityMapper();
-
+            // Arrange
             var endpointDto = new EndpointDtoBuilder()
                 .With(x => x.Selector, "Select")
                 .With(x => x.HttpVerb, httpVerb)
@@ -159,8 +198,10 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .With(x => x.UriTransform, uriTransformDto)
                 .Create();
 
+            // Act
             var entity = sut.MapWebooks(dto, WebhooksEntityType.Webhooks);
 
+            // Assert
             using (new AssertionScope())
             {
                 entity.SelectionRule.Should().Be("$.Select");
@@ -171,6 +212,79 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 endpointEntity.HttpVerb.Should().Be(httpVerb);
                 entity.UriTransform.Replace.Should().Contain(dictionary.ToList());
             }
+        }
+
+        [Theory]
+        [IsUnit]
+        [MemberData(nameof(ValidPayloadTransforms))]
+        public void MapWebhooks_When_ValidPayloadTransformIsUsed_Then_IsMappedCorrectEntityValue(string payloadTransform, string expectedPayloadTransform)
+        {
+            // Act
+            var result = sut.MapPayloadTransform(payloadTransform, WebhooksEntityType.Webhooks);
+
+            // Assert
+            result.Should().Be(expectedPayloadTransform);
+        }
+
+        [Theory]
+        [IsUnit]
+        [MemberData(nameof(ValidPayloadTransforms))]
+        public void MapCallbacks_When_ValidPayloadTransformIsUsed_Then_IsMappedToNull(string payloadTransform, string _)
+        {
+            // Act
+            var result = sut.MapPayloadTransform(payloadTransform, WebhooksEntityType.Callbacks);
+
+            // Assert
+            result.Should().BeNull();
+        }
+
+        [Theory]
+        [IsUnit]
+        [MemberData(nameof(ValidPayloadTransforms))]
+        public void MapDlqhooks_When_ValidPayloadTransformIsUsed_Then_IsMappedCorrectEntityValue(string payloadTransform, string expectedPayloadTransform)
+        {
+
+            // Act
+            var result = sut.MapPayloadTransform(payloadTransform, WebhooksEntityType.DlqHooks);
+
+            // Assert
+            result.Should().Be(expectedPayloadTransform);
+        }
+
+        [Theory]
+        [IsUnit]
+        [MemberData(nameof(InvalidPayloadTransforms))]
+        public void MapWebhooks_When_InvalidPayloadTransformIsUsed_Then_IsMappedToDefault(string payloadTransform)
+        {
+            // Act
+            var result = sut.MapPayloadTransform(payloadTransform, WebhooksEntityType.Webhooks);
+
+            // Assert
+            result.Should().Be("$");
+        }
+
+        [Theory]
+        [IsUnit]
+        [MemberData(nameof(InvalidPayloadTransforms))]
+        public void MapCallbacks_When_InvalidPayloadTransformIsUsed_Then_IsMappedToDefault(string payloadTransform)
+        {
+            // Act
+            var result = sut.MapPayloadTransform(payloadTransform, WebhooksEntityType.Callbacks);
+
+            // Assert
+            result.Should().BeNull();
+        }
+
+        [Theory]
+        [IsUnit]
+        [MemberData(nameof(InvalidPayloadTransforms))]
+        public void MapDlqhooks_When_InvalidPayloadTransformIsUsed_Then_IsMappedToDefault(string payloadTransform)
+        {
+            // Act
+            var result = sut.MapPayloadTransform(payloadTransform, WebhooksEntityType.DlqHooks);
+
+            // Assert
+            result.Should().Be("$");
         }
     }
 }

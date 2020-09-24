@@ -12,7 +12,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 type,
                 webhooksDto.SelectionRule,
                 webhooksDto.Endpoints?.Select(endpointDto => MapEndpoint(endpointDto)) ?? Enumerable.Empty<EndpointEntity>(),
-                MapUriTransform(webhooksDto.UriTransform));
+                MapUriTransform(webhooksDto.UriTransform),
+                MapPayloadTransform(webhooksDto.PayloadTransform, type));
         }
 
         public EndpointEntity MapEndpoint(EndpointDto endpointDto, string selector = null)
@@ -31,6 +32,22 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             }
 
             return new UriTransformEntity(uriTransformDto.Replace);
+        }
+
+        public string MapPayloadTransform(string payloadTransform, WebhooksEntityType type)
+        {
+            if (type == WebhooksEntityType.Callbacks)
+                return null;
+
+            return payloadTransform?.ToLowerInvariant() switch
+            {
+                "request" => "$.Request",
+                "response" => "$.Response",
+                "orderconfirmation" => "$.OrderConfirmation",
+                "platformorderconfirmation" => "$.PlatformOrderConfirmation",
+                "emptycart" => "$.EmptyCart",
+                _ => "$"
+            };
         }
 
         public AuthenticationEntity MapAuthentication(AuthenticationDto authenticationDto)
