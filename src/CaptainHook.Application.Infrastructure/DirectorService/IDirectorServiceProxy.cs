@@ -50,11 +50,10 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         Task<OperationResult<IEnumerable<SubscriberConfiguration>>> DeleteReaderAsync(SubscriberEntity subscriber);
 
 
+        Task<OperationResult<SubscriberConfiguration>> CreateDlqReaderAsync(SubscriberEntity subscriber);
 
-        Task<OperationResult<SubscriberConfiguration>> CreateReaderAsync(SubscriberConfiguration subscriber);
+        Task<OperationResult<SubscriberConfiguration>> UpdateDlqReaderAsync(SubscriberEntity subscriber);
 
-        Task<OperationResult<SubscriberConfiguration>> UpdateReaderAsync(SubscriberConfiguration subscriber);
-
-        Task<OperationResult<SubscriberConfiguration>> DeleteReaderAsync(SubscriberConfiguration subscriber);
+        Task<OperationResult<SubscriberConfiguration>> DeleteDlqReaderAsync(SubscriberEntity subscriber);
     }
 }
