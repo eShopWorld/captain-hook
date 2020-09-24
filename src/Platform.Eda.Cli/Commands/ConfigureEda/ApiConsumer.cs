@@ -1,11 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
+using Eshopworld.DevOps;
+using EShopworld.Security.Services.Rest;
+using Eshopworld.Telemetry;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Rest;
+using Moq;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 using Polly;
@@ -24,6 +31,19 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         private readonly AsyncRetryPolicy<HttpOperationResponse> _putRequestRetryPolicy;
 
         private static readonly TimeSpan[] DefaultSleepDurations = { TimeSpan.FromSeconds(3.0), TimeSpan.FromSeconds(6.0) };
+
+        private static readonly string AssemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+        public static ApiConsumer BuildApiConsumer(IHttpClientFactory clientFactory, string environment)
+        {
+            var configuration = EswDevOpsSdk.BuildConfiguration(AssemblyLocation, environment);
+            var configureEdaConfig = configuration.GetSection(nameof(ConfigureEdaCommand)).Get<ConfigureEdaConfig>();
+
+            var tokenProvider = new RefreshingTokenProvider(clientFactory, Mock.Of<BigBrother>(), configureEdaConfig.RefreshingTokenProviderOptions);
+
+            var client = new CaptainHookClient(configureEdaConfig.CaptainHookUrl, new TokenCredentials(tokenProvider));
+            return new ApiConsumer(client, null);
+        }
 
         public ApiConsumer(ICaptainHookClient captainHookClient, TimeSpan[] sleepDurations)
         {
