@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Results;
@@ -18,16 +17,16 @@ namespace CaptainHook.Application.Handlers.Subscribers
     public class UpsertSubscriberRequestHandler : IRequestHandler<UpsertSubscriberRequest, OperationResult<UpsertResult<SubscriberDto>>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
-        private readonly IDirectorServiceProxy _directorService;
         private readonly IDtoToEntityMapper _dtoToEntityMapper;
+        private readonly IDirectorServiceChanger _directorServiceChanger;
 
         public UpsertSubscriberRequestHandler(
             ISubscriberRepository subscriberRepository,
-            IDirectorServiceProxy directorService,
+            IDirectorServiceChanger directorServiceChanger,
             IDtoToEntityMapper dtoToEntityMapper)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
-            _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
+            _directorServiceChanger = directorServiceChanger ?? throw new ArgumentNullException(nameof(directorServiceChanger));
             _dtoToEntityMapper = dtoToEntityMapper ?? throw new ArgumentNullException(nameof(dtoToEntityMapper));
         }
 
@@ -36,22 +35,26 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
             var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
-            var subscriber = MapRequestToEntity(request);
-
-            if (existingItem.IsError)
+            if (existingItem.IsError && !(existingItem.Error is EntityNotFoundError))
             {
-                if (existingItem.Error is EntityNotFoundError)
-                {
-                    return await _directorService.CreateReaderAsync(subscriber)
-                        .Then(async _ => (await _subscriberRepository.AddSubscriberAsync(subscriber)))
-                        .Then(_ => new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(request.Subscriber, UpsertType.Created)));
-                }
-
                 return existingItem.Error;
             }
 
-            return await _directorService.UpdateReaderAsync(subscriber)
-                .Then(async _ => (await _subscriberRepository.UpdateSubscriberAsync(subscriber)))
+            var subscriber = MapRequestToEntity(request);
+
+            var directorResult = await _directorServiceChanger.ApplyAsync(existingItem.Data, subscriber);
+            if (directorResult.IsError)
+            {
+                return directorResult.Error;
+            }
+
+            if (existingItem.Error is EntityNotFoundError)
+            {
+                return await _subscriberRepository.AddSubscriberAsync(subscriber)
+                    .Then(_ => new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(request.Subscriber, UpsertType.Created)));
+            }
+
+            return await _subscriberRepository.UpdateSubscriberAsync(subscriber)
                 .Then(_ => new OperationResult<UpsertResult<SubscriberDto>>(new UpsertResult<SubscriberDto>(request.Subscriber, UpsertType.Updated)));
         }
 
@@ -63,7 +66,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
             subscriberEntity.SetHooks(webhooks);
 
-            if(request.Subscriber.Callbacks?.Endpoints?.Count > 0)
+            if (request.Subscriber.Callbacks?.Endpoints?.Count > 0)
             {
                 var callbacks = _dtoToEntityMapper.MapWebooks(request.Subscriber.Callbacks, WebhooksEntityType.Callbacks);
                 subscriberEntity.SetHooks(callbacks);

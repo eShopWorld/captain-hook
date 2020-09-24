@@ -14,25 +14,25 @@ using Xunit;
 
 namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigurationMapperTests
 {
-    public class DlqhooksMappingTests
+    public class MapToDlqAsyncTests
     {
         private readonly Mock<ISecretProvider> _secretProviderMock = new Mock<ISecretProvider>();
 
-        public DlqhooksMappingTests()
+        public MapToDlqAsyncTests()
         {
             _secretProviderMock.Setup(m => m.GetSecretValueAsync("kv-secret-name")).ReturnsAsync(MapSubscriberAsyncTestData.Secret);
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(MapSubscriberAsyncTestData))]
-        public async Task MapSubscriberAsync_WithSingleDlqhookAndNoUriTransformDefined_MapsToSingleDlqhook(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        public async Task WhenSingleDlqhookAndNoUriTransformDefined_MapsToSingleDlqhook(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var subscriber = new SubscriberBuilder()
                 .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication)
                 .WithDlqhook("https://blah-blah.eshopworld.com/dlq/", httpVerb, "*", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var webhookConfig = new SubscriberConfigurationBuilder()
                 .WithName(subscriber.Id)
@@ -49,13 +49,13 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
+                result.Data.Should().BeEquivalentTo(dlqConfig);
             }
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(MapSubscriberAsyncTestData))]
-        public async Task MapSubscriberAsync_WithSingleDlqhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        public async Task WhenSingleDlqhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
@@ -64,7 +64,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://blah-{orderCode}.eshopworld.com/dlq/", httpVerb, null, authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var webhookConfig = new SubscriberConfigurationBuilder()
                 .WithName(subscriber.Id)
@@ -89,13 +89,13 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
+                result.Data.Should().BeEquivalentTo(dlqConfig);
             }
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(MapSubscriberAsyncTestData))]
-        public async Task MapSubscriberAsync_WithMultipleDlqhooksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        public async Task WhenMultipleDlqhooksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -107,7 +107,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var webhookConfig = new SubscriberConfigurationBuilder()
                .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
@@ -138,13 +138,13 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
+                result.Data.Should().BeEquivalentTo(dlqConfig);
             }
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(MapSubscriberAsyncTestData))]
-        public async Task MapSubscriberAsync_WithMultipleDlqhooksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        public async Task WhenMultipleDlqhooksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -156,7 +156,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "bSelector", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var webhookConfig = new SubscriberConfigurationBuilder()
                 .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
@@ -187,13 +187,13 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
+                result.Data.Should().BeEquivalentTo(dlqConfig);
             }
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(MapSubscriberAsyncTestData))]
-        public async Task MapSubscriberAsync_WithMultipleDlqhookAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        public async Task WhenMultipleDlqhookAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
@@ -205,7 +205,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var webhookConfig = new SubscriberConfigurationBuilder()
                .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
@@ -236,13 +236,13 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
+                result.Data.Should().BeEquivalentTo(dlqConfig);
             }
         }
 
         [Theory, IsUnit]
         [ClassData(typeof(MapSubscriberAsyncTestData))]
-        public async Task MapSubscriberAsync_NoSelectionRule_MapsFromFirstEndpoint(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        public async Task WhenNoSelectionRule_MapsFromFirstEndpoint(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
             var subscriber = new SubscriberBuilder()
@@ -251,7 +251,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://blah-{selector}.eshopworld.com/dlq/", httpVerb, "*", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var webhookConfig = new SubscriberConfigurationBuilder()
                 .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
@@ -277,13 +277,13 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().BeEquivalentTo(webhookConfig, dlqConfig);
+                result.Data.Should().BeEquivalentTo(dlqConfig);
             }
         }
 
         [Fact]
         [IsUnit]
-        public async Task MapSubscriberAsync_InvalidSecretKey_ReturnsError()
+        public async Task WhenInvalidSecretKey_ReturnsError()
         {
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
             var authentication = new OidcAuthenticationEntity("client-id", "invalid-secret-key-name", "uri", new string[] { });
@@ -296,7 +296,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             _secretProviderMock.Setup(x => x.GetSecretValueAsync("invalid-secret-key-name"))
                 .Throws(new System.Exception());
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             using (new AssertionScope())
             {
@@ -307,7 +307,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
 
         [Fact]
         [IsUnit]
-        public async Task MapSubscriberAsync_InvalidPasswordKey_ReturnsError()
+        public async Task WhenInvalidPasswordKey_ReturnsError()
         {
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
             var authentication = new BasicAuthenticationEntity("username", "password-key-name");
@@ -320,7 +320,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             _secretProviderMock.Setup(x => x.GetSecretValueAsync("password-key-name"))
                 .Throws(new System.Exception());
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             using (new AssertionScope())
             {

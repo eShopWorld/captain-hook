@@ -9,5 +9,10 @@ namespace CaptainHook.Domain.Errors
             : base($"Can't update Reader Service for Event {subscriber?.ParentEvent?.Name} and Subscriber {subscriber?.Name} because it doesn't exist.")
         {
         }
+
+         public ReaderDoesNotExistError(string subscriberName, string eventName)
+            : base($"Can't update Reader Service for Event {eventName} and Subscriber {subscriberName} because it doesn't exist.")
+        {
+        }
     }
 }
