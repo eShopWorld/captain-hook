@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions.TestingHelpers;
 using System.Net;
 using System.Net.Http;
@@ -8,108 +9,79 @@ using System.Threading.Tasks;
 using CaptainHook.Api.Client;
 using CaptainHook.Api.Client.Models;
 using CaptainHook.Cli.Tests;
+using CaptainHook.Domain.Results;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Microsoft.Rest;
 using Moq;
 using Platform.Eda.Cli.Commands.ConfigureEda;
+using Platform.Eda.Cli.Commands.ConfigureEda.Models;
+using Platform.Eda.Cli.Common;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 {
-    public class ConfigureEdaCommandTests : CliTestBase
+    public class ConfigureEdaCommandTests
     {
         internal const string MockCurrentDirectory = @"Z:\Sample\";
         private readonly ConfigureEdaCommand _configureEdaCommand;
-        private readonly Mock<ICaptainHookClient> _mockCaptainHookClient;
 
-        private readonly IApiConsumer _apiConsumer;
-        private readonly IConsoleSubscriberWriter _mockConsoleSubscriberWriter;
+        private readonly Mock<IApiConsumer> _apiConsumer;
+        private readonly Mock<IConsoleSubscriberWriter> _mockConsoleSubscriberWriter;
+        private readonly Mock<ISubscribersDirectoryProcessor> _mockSubscribersDirectoryProcessor;
 
-        public ConfigureEdaCommandTests(ITestOutputHelper output) : base(output)
+        public ConfigureEdaCommandTests()
         {
-            _mockCaptainHookClient = new Mock<ICaptainHookClient>();
-            _mockConsoleSubscriberWriter = new ConsoleSubscriberWriter(Console);
-            _apiConsumer = new ApiConsumer(_mockCaptainHookClient.Object, null);
+            _mockConsoleSubscriberWriter = new Mock<IConsoleSubscriberWriter>();
+            _apiConsumer = new Mock<IApiConsumer>();
+            _mockSubscribersDirectoryProcessor = new Mock<ISubscribersDirectoryProcessor>();
 
-            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetSingleMockInputFile(), MockCurrentDirectory));
-            _configureEdaCommand = new ConfigureEdaCommand(subscribersDirectoryProcessor, _apiConsumer);
-
-            _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
-            _configureEdaCommand.NoDryRun = true;
+            _configureEdaCommand = new ConfigureEdaCommand(_mockSubscribersDirectoryProcessor.Object, _apiConsumer.Object)
+            {
+                InputFolderPath = MockCurrentDirectory,
+                NoDryRun = true
+            };
         }
 
         [Fact, IsUnit]
         public async Task OnExecuteAsync_WhenSingleFileRequestAccepted_Returns0()
         {
             // Arrange
-            var response = new HttpOperationResponse<object>
-            {
-                Response = new HttpResponseMessage(HttpStatusCode.Accepted)
-                {
-                    Content = new StringContent("Request accepted.")
-                }
-            };
-
-            _mockCaptainHookClient.Setup(client =>
-                client.PutSuscriberWithHttpMessagesAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CaptainHookContractSubscriberDto>(),
-                    null,
-                    CancellationToken.None)).Returns(Task.FromResult(response));
+            var files = GetOneSampleInputFile();
+            _mockSubscribersDirectoryProcessor.Setup(proc => proc.ProcessDirectory(MockCurrentDirectory))
+                .Returns(() => new OperationResult<IEnumerable<PutSubscriberFile>>(files));
+            _apiConsumer.Setup(apiConsumer => apiConsumer.CallApiAsync(files))
+                .Returns(AsyncEnumerableResponse(files));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter.Object);
 
             // Assert
-            Output.SplitLines().Should()
-                .Contain($@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
-                .And.Contain("File 'sample1.json' has been found")
-                .And.Contain("Starting to run configuration against Captain Hook API")
-                .And.Contain("File 'sample1.json' has been processed successfully")
-                .And.Contain("Processing finished");
-
+            _mockSubscribersDirectoryProcessor.Verify(proc => proc.ProcessDirectory(MockCurrentDirectory), Times.Once);
+            _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(files), Times.Once);
+            VerifySubscriberWriterCallsForFiles(files);
             result.Should().Be(0);
         }
+
 
         [Fact, IsUnit]
         public async Task OnExecuteAsync_WhenMultipleSubdirectoriesRequestAccepted_Returns0()
         {
             // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand(new SubscribersDirectoryProcessor(new MockFileSystem(GetMultipleMockInputFiles(), MockCurrentDirectory)), _apiConsumer);
-            configureEdaCommand.InputFolderPath = MockCurrentDirectory;
-            configureEdaCommand.NoDryRun = true;
-            var response = new HttpOperationResponse<object>
-            {
-                Response = new HttpResponseMessage(HttpStatusCode.Accepted)
-                {
-                    Content = new StringContent("Request accepted.")
-                }
-            };
-
-            _mockCaptainHookClient.Setup(client =>
-                client.PutSuscriberWithHttpMessagesAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CaptainHookContractSubscriberDto>(),
-                    null,
-                    CancellationToken.None)).Returns(Task.FromResult(response));
+            var files = GetMultipleMockInputFiles();
+            _mockSubscribersDirectoryProcessor.Setup(proc => proc.ProcessDirectory(MockCurrentDirectory))
+                .Returns(() => new OperationResult<IEnumerable<PutSubscriberFile>>(files));
+            _apiConsumer.Setup(apiConsumer => apiConsumer.CallApiAsync(files))
+                .Returns(AsyncEnumerableResponse(files));
 
             // Act
-            var result = await configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
-            // Assert
-            Output.SplitLines().Should()
-                .Contain(
-                    $@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
-                .And.Contain("File 'sample1.json' has been found")
-                .And.Contain(@"File 'subdir\sample2.json' has been found")
-                .And.Contain("Starting to run configuration against Captain Hook API")
-                .And.Contain("File 'sample1.json' has been processed successfully")
-                .And.Contain(@"File 'subdir\sample2.json' has been processed successfully")
-                .And.Contain("Processing finished");
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter.Object);
 
+            // Assert
+            _mockSubscribersDirectoryProcessor.Verify(proc => proc.ProcessDirectory(MockCurrentDirectory), Times.Once);
+            _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(files), Times.Once);
+            VerifySubscriberWriterCallsForFiles(files);
             result.Should().Be(0);
         }
 
@@ -117,66 +89,70 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenEmptyDirectory_Returns0()
         {
             // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand(new SubscribersDirectoryProcessor(new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory)), _apiConsumer);
-            configureEdaCommand.InputFolderPath = MockCurrentDirectory;
-            configureEdaCommand.NoDryRun = true;
+            var files = new PutSubscriberFile[0];
+            _mockSubscribersDirectoryProcessor.Setup(proc => proc.ProcessDirectory(MockCurrentDirectory))
+                .Returns(() => new OperationResult<IEnumerable<PutSubscriberFile>>(files));
+            _apiConsumer.Setup(apiConsumer => apiConsumer.CallApiAsync(files))
+                .Returns(AsyncEnumerableResponse(files));
 
             // Act
-            var result = await configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter.Object);
 
             // Assert
-            Output.SplitLines().Should()
-                .Contain(
-                    $@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
-                .And.Contain("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.")
-                .And.Contain("Starting to run configuration against Captain Hook API")
-                .And.Contain("Processing finished");
-
+            _mockSubscribersDirectoryProcessor.Verify(proc => proc.ProcessDirectory(MockCurrentDirectory), Times.Once);
+            _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(files), Times.Once);
+            VerifySubscriberWriterCallsForFiles(files);
             result.Should().Be(0);
         }
 
         [Fact, IsUnit]
-        public async Task OnExecuteAsync_WhenRequestNotAccepted_Returns2()
+        public async Task OnExecuteAsync_WhenProcessDirectoryError_Returns1()
         {
             // Arrange
-            var response = new HttpOperationResponse<object>
-            {
-                Response = new HttpResponseMessage(HttpStatusCode.Conflict)
-                {
-                    Content = new StringContent("Request rejected.")
-                }
-            };
-
-            _mockCaptainHookClient.Setup(client =>
-                client.PutSuscriberWithHttpMessagesAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CaptainHookContractSubscriberDto>(),
-                    null,
-                    CancellationToken.None)).Returns(Task.FromResult(response));
+            _mockSubscribersDirectoryProcessor.Setup(proc => proc.ProcessDirectory(MockCurrentDirectory))
+                .Returns(() =>
+                    new OperationResult<IEnumerable<PutSubscriberFile>>(new CliExecutionError("Error text")));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter.Object);
 
             // Assert
-            Output.SplitLines().Should()
-                .Contain($@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
-                .And.Contain("File 'sample1.json' has been found")
-                .And.Contain("Starting to run configuration against Captain Hook API")
-                .And.NotContain("File 'sample1.json' has been processed successfully")
-                .And.Contain("Error when processing 'sample1.json':")
-                .And.Contain("Status code: 409");
-            result.Should().Be(2);
+            _mockSubscribersDirectoryProcessor.Verify(proc => proc.ProcessDirectory(MockCurrentDirectory), Times.Once);
+            _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()), Times.Never);
+            _mockConsoleSubscriberWriter.Verify(writer => writer.WriteError("Error text"));
+            result.Should().Be(1);
         }
 
         [Fact, IsUnit]
         public async Task OnExecuteAsync_WhenInputDirectoryPathNull_ThrowsException()
         {
             // Arrange
+            _mockSubscribersDirectoryProcessor.Setup(proc => proc.ProcessDirectory(null))
+                .Throws<ArgumentNullException>();
             _configureEdaCommand.InputFolderPath = null;
 
             // Act - Assert;
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter.Object));
+        }
+
+        [Fact, IsUnit]
+        public async Task OnExecuteAsync_OnApiError_Returns2()
+        {
+            // Arrange
+            var files = GetOneSampleInputFile();
+            _mockSubscribersDirectoryProcessor.Setup(proc => proc.ProcessDirectory(MockCurrentDirectory))
+                .Returns(() => new OperationResult<IEnumerable<PutSubscriberFile>>(files));
+            _apiConsumer.Setup(apiConsumer => apiConsumer.CallApiAsync(files))
+                .Returns(AsyncEnumerableException(files));
+
+            // Act
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter.Object);
+
+            // Assert;
+            _mockSubscribersDirectoryProcessor.Verify(proc => proc.ProcessDirectory(MockCurrentDirectory), Times.Once);
+            _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(files), Times.Once);
+            VerifySubscriberWriterCallsForFiles(files);
+            result.Should().Be(2);
         }
 
         [Fact, IsUnit]
@@ -184,141 +160,89 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         {
             // Arrange
             _configureEdaCommand.NoDryRun = false;
+            var files = new PutSubscriberFile[0];
+            _mockSubscribersDirectoryProcessor.Setup(proc => proc.ProcessDirectory(MockCurrentDirectory))
+                .Returns(() => new OperationResult<IEnumerable<PutSubscriberFile>>(files));
 
-            // Act;
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
-            
-            // Assert
-            _mockCaptainHookClient.Verify(client =>
-            client.PutSuscriberWithHttpMessagesAsync(
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<CaptainHookContractSubscriberDto>(),
-                    It.IsAny<Dictionary<string, List<string>>>(),
-                    It.IsAny<CancellationToken>()), Times.Never);
-
-            Output.SplitLines().Should()
-                .Contain($@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment")
-                .And.Contain("File 'sample1.json' has been found")
-                .And.NotContain("Starting to run configuration against Captain Hook API")
-                .And.Contain("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch")
-                .And.Contain("Processing finished");
-        }
-
-        [Fact, IsUnit]
-        public async Task OnExecuteAsync_WhenInvalidJson_Returns1()
-        {
-            // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand(
-                new SubscribersDirectoryProcessor(new MockFileSystem(GetInvalidJsonMockInputFile(), MockCurrentDirectory)),
-                _apiConsumer);
-            configureEdaCommand.InputFolderPath = MockCurrentDirectory;
-            configureEdaCommand.NoDryRun = false;
-
-            // Act;
-            var result = await configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            // Act
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter.Object);
 
             // Assert
-            result.Should().Be(1);
-            Output.Should()
-                .Contain("Reading files from folder: 'Z:\\Sample\\' to be run against CI environment")
-                .And.Contain("Unexpected character encountered while parsing value");
+            _mockSubscribersDirectoryProcessor.Verify(proc => proc.ProcessDirectory(MockCurrentDirectory), Times.Once);
+            _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()), Times.Never);
+            VerifySubscriberWriterCallsForFiles(files);
+            result.Should().Be(0);
         }
 
-        private static Dictionary<string, MockFileData> GetSingleMockInputFile()
+        private static PutSubscriberFile[] GetOneSampleInputFile()
         {
-            var mockFiles = new Dictionary<string, MockFileData>
+            return new[]
             {
+                new PutSubscriberFile
                 {
-                    "sample1.json", new MockFileData(@"
-{
-  ""subscriberName"": ""test-sub"",
-  ""eventName"": ""test-event"",
-  ""subscriber"": {
-    ""webhooks"": {
-      ""endpoints"": [
-        {
-          ""uri"": ""https://blah.blah/testing"",
-          ""authentication"": {
-            ""type"": ""Basic"",
-            ""username"": ""test"",
-            ""passwordKeyName"": ""AzureSubscriptionId""
-          },
-          ""httpVerb"": ""post""
-        }
-      ]
-    }
-  }
-}
-")
+                    File = new FileInfo(Path.Combine(MockCurrentDirectory, "sample1.json"))
                 }
             };
-            return mockFiles;
         }
 
-        private static Dictionary<string, MockFileData> GetMultipleMockInputFiles()
+        private static PutSubscriberFile[] GetMultipleMockInputFiles()
         {
-            var mockFiles = new Dictionary<string, MockFileData>
+            return new[]
             {
+                new PutSubscriberFile
                 {
-                    "sample1.json", new MockFileData(@"
-{
-  ""subscriberName"": ""test-sub"",
-  ""eventName"": ""test-event"",
-  ""subscriber"": {
-    ""webhooks"": {
-      ""endpoints"": [
-        {
-          ""uri"": ""https://blah.blah/testing"",
-          ""authentication"": {
-            ""type"": ""Basic"",
-            ""username"": ""test"",
-            ""passwordKeyName"": ""AzureSubscriptionId""
-          },
-          ""httpVerb"": ""post""
-        }
-      ]
-    }
-  }
-}
-")
+                    File = new FileInfo(Path.Combine(MockCurrentDirectory, "sample1.json"))
                 },
+                new PutSubscriberFile
                 {
-                    "subdir/sample2.json", new MockFileData(@"
-{
-  ""subscriberName"": ""test-sub2"",
-  ""eventName"": ""test-event2"",
-  ""subscriber"": {
-    ""webhooks"": {
-      ""endpoints"": [
-        {
-          ""uri"": ""https://blah.blah/testing2"",
-          ""authentication"": {
-            ""type"": ""Basic"",
-            ""username"": ""test2"",
-            ""passwordKeyName"": ""AzureSubscriptionId""
-          },
-          ""httpVerb"": ""post""
-        }
-      ]
-    }
-  }
-}
-")
+                    File = new FileInfo(Path.Combine(MockCurrentDirectory, "subdir/sample2.json"))
                 }
             };
-            return mockFiles;
         }
 
-        private static Dictionary<string, MockFileData> GetInvalidJsonMockInputFile()
+        private void VerifySubscriberWriterCallsForFiles(PutSubscriberFile[] files)
         {
-            var mockFiles = new Dictionary<string, MockFileData>
+            _mockConsoleSubscriberWriter.Verify(writer => writer.OutputSubscribers(files, MockCurrentDirectory), Times.Once);
+            _mockConsoleSubscriberWriter.Verify(writer => writer.WriteSuccess("box",
+                    $@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment"), Times.Once);
+        }
+
+#pragma warning disable 1998
+        private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableResponse(IEnumerable<PutSubscriberFile> files)
+        {
+            foreach (var putSubscriberFile in files)
             {
+                yield return new ApiOperationResult
                 {
-                    "sample3.json", new MockFileData(@"<json>File</json>")
-                }
-            };
-            return mockFiles;
+                    File = new FileInfo($"{putSubscriberFile}"),
+                    Response = new OperationResult<HttpOperationResponse>(new HttpOperationResponse())
+                };
+            }
+        }
+
+        private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableException(IEnumerable<PutSubscriberFile> files)
+        {
+
+            foreach (var putSubscriberFile in files)
+            {
+                yield return new ApiOperationResult
+                {
+                    File = new FileInfo($"{putSubscriberFile}"),
+                    Response = new CliExecutionError("Exception text", new Failure("0", "Failure message"))
+                };
+            }
+        }
+#pragma warning restore 1998
+
+        private static async Task<IEnumerable<T>> GetAll<T>(IAsyncEnumerable<T> enumerable)
+        {
+            var list = new List<T>();
+            await foreach (var item in enumerable)
+            {
+                list.Add(item);
+            }
+
+            return list;
         }
     }
 }

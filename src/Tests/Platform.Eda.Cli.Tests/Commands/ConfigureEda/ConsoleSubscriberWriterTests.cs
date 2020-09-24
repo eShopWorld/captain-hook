@@ -108,62 +108,75 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
         [Theory, IsUnit]
         [MemberData(nameof(WriteTextTests))]
-        public void WriteNormal_DifferentStrings_OutputsDefaultForegroundColor(string toWrite)
+        public void WriteNormal_DifferentStrings_OutputsDefaultForegroundColor(string outputString)
         {
-            _consoleSubscriberWriter.WriteNormal(toWrite);
+            _consoleSubscriberWriter.WriteNormal(outputString);
 
             _mockConsole.VerifySet(console => console.ForegroundColor = _mockConsole.Object.ForegroundColor);
-            _mockConsole.Verify(console => console.Out.WriteLine(toWrite));
+            _streamWriter.Verify(writer => writer.WriteLine(outputString), Times.Once);
             _mockConsole.Verify(console => console.ResetColor());
         }
 
-        [Fact, IsUnit]
-        public void WriteNormal_WhenStringNull_OutputsNoText()
+        [Theory, IsUnit]
+        [InlineData(null)]
+        public void WriteNormal_WhenStringNull_OutputsEmptyLine(string outputString)
         {
-            _consoleSubscriberWriter.WriteNormal(null);
+            _consoleSubscriberWriter.WriteNormal(outputString);
 
             _mockConsole.VerifySet(console => console.ForegroundColor = _mockConsole.Object.ForegroundColor, Times.Once);
-            _mockConsole.Verify(console => console.Out.WriteLine(), Times.Never);
+            _streamWriter.Verify(writer => writer.WriteLine(""), Times.Once);
         }
 
         [Theory, IsUnit]
         [MemberData(nameof(WriteTextTests))]
-        public void WriteError_DifferentStrings_OutputsRedText(string toWrite)
+        public void WriteError_DifferentStrings_OutputsRedText(string outputString)
         {
-            _consoleSubscriberWriter.WriteError(toWrite);
+            _consoleSubscriberWriter.WriteError(outputString);
 
             _mockConsole.VerifySet(console => console.ForegroundColor = ConsoleColor.Red, Times.Once);
-            _mockConsole.Verify(console => console.Out.WriteLine(toWrite));
-            _mockConsole.Verify(console => console.ResetColor());
+            _streamWriter.Verify(writer => writer.WriteLine(outputString), Times.Once);
         }
 
-        [Fact, IsUnit]
-        public void WriteError_WhenStringNull_OutputsNoText()
+        [Theory, IsUnit]
+        [InlineData(null)]
+        public void WriteError_WhenStringNull_OutputsEmptyLine(string outputString)
         {
-            _consoleSubscriberWriter.WriteError(null);
+            _consoleSubscriberWriter.WriteError(outputString);
 
             _mockConsole.VerifySet(console => console.ForegroundColor = ConsoleColor.Red, Times.Once);
-            _mockConsole.Verify(console => console.Out.WriteLine(), Times.Never);
+            _streamWriter.Verify(writer => writer.WriteLine(""), Times.Once);
         }
 
         [Theory, IsUnit]
         [MemberData(nameof(WriteTextTests))]
-        public void WriteSuccess_DifferentStrings_OutputsGreenText(string toWrite)
+        public void WriteSuccess_DifferentStrings_OutputsGreenText(string outputString)
         {
-            _consoleSubscriberWriter.WriteSuccess(toWrite);
+            _consoleSubscriberWriter.WriteSuccess(outputString);
 
             _mockConsole.VerifySet(console => console.ForegroundColor = ConsoleColor.DarkGreen, Times.Once);
-            _mockConsole.Verify(console => console.Out.WriteLine(toWrite));
-            _mockConsole.Verify(console => console.ResetColor());
+            _streamWriter.Verify(writer => writer.WriteLine(outputString), Times.Once);
         }
 
-        [Fact, IsUnit]
-        public void WriteSuccess_WhenStringNull_OutputsNoText()
+        [Theory, IsUnit]
+        [InlineData(null)]
+        public void WriteSuccess_WhenStringNull_OutputsEmptyLine(string outputString)
         {
-            _consoleSubscriberWriter.WriteSuccess(null);
+            _consoleSubscriberWriter.WriteSuccess(outputString);
 
             _mockConsole.VerifySet(console => console.ForegroundColor = ConsoleColor.DarkGreen, Times.Once);
+            _streamWriter.Verify(writer => writer.WriteLine(""), Times.Once);
+        }
+
+        [Theory, IsUnit]
+        [InlineData("box", "Test")]
+        public void WriteNormal_WhenFirstParamBox_OutputsBoxedText(params string[] outputStrings)
+        {
+            _consoleSubscriberWriter.WriteNormal(outputStrings);
+
+            _mockConsole.VerifySet(console => console.ForegroundColor = It.IsAny<ConsoleColor>(), Times.Once);
             _mockConsole.Verify(console => console.Out.WriteLine(), Times.Never);
+            _streamWriter.Verify(writer=>writer.WriteLine("===="), Times.Exactly(2));
+            _streamWriter.Verify(writer=>writer.WriteLine("Test"), Times.Once);
         }
 
         [Theory, IsUnit]

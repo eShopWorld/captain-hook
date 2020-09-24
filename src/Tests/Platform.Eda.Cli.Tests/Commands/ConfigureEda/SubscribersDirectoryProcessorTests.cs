@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
-using System.Linq;
 using CaptainHook.Api.Client.Models;
 using CaptainHook.Domain.Results;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using FluentAssertions.Execution;
 using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
@@ -23,7 +20,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
         public SubscribersDirectoryProcessorTests()
         {
-            _subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetMockFiles1(), MockCurrentDirectory));
+            _subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetOneSampleInputFile(), MockCurrentDirectory));
         }
 
         [Theory, IsUnit]
@@ -75,7 +72,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         [InlineData(MockCurrentDirectory)]
         public void ProcessDirectory_WithMultipleValidFiles_ReturnsValidObject(string testFilesDirectoryPath)
         {
-            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetMockFiles2(), MockCurrentDirectory));
+            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetMultipleMockInputFiles(), MockCurrentDirectory));
             // Act
             var result = subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath);
 
@@ -127,7 +124,19 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
         }
 
-        private static Dictionary<string, MockFileData> GetMockFiles1()
+        [Fact, IsUnit]
+        public void ProcessDirectory_WithInvalidJsonFile_ReturnsError()
+        {
+            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetInvalidJsonMockInputFile(), MockCurrentDirectory));
+            // Act
+            var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
+
+            // Assert
+            result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<CliExecutionError>();
+        }
+        
+        private static Dictionary<string, MockFileData> GetOneSampleInputFile()
         {
             Dictionary<string, MockFileData> mockFiles = new Dictionary<string, MockFileData>();
             mockFiles.Add("sample1.json", new MockFileData(@"
@@ -154,7 +163,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             return mockFiles;
         }
 
-        private static Dictionary<string, MockFileData> GetMockFiles2()
+        private static Dictionary<string, MockFileData> GetMultipleMockInputFiles()
         {
             var mockFiles = new Dictionary<string, MockFileData>
             {
@@ -203,6 +212,17 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
   }
 }
 ")
+                }
+            };
+            return mockFiles;
+        }
+
+        private static Dictionary<string, MockFileData> GetInvalidJsonMockInputFile()
+        {
+            var mockFiles = new Dictionary<string, MockFileData>
+            {
+                {
+                    "sample3.json", new MockFileData(@"<json>File</json>")
                 }
             };
             return mockFiles;
