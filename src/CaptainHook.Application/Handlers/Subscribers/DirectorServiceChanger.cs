@@ -20,7 +20,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             if (existingEntity == null)
             {
                 return await _directorService.CreateReaderAsync(requestedEntity)
-                    .Then(async _ => await CreateDlqReaderAsync(requestedEntity))
+                    .Then(async webhookConfiguration => await CreateDlqReaderAsync(requestedEntity, webhookConfiguration))
                     .Then<SubscriberConfiguration, SubscriberEntity>(_ => requestedEntity);
             }
 
@@ -29,14 +29,14 @@ namespace CaptainHook.Application.Handlers.Subscribers
                 .Then<SubscriberConfiguration, SubscriberEntity>(_ => requestedEntity);
         }
 
-        private async Task<OperationResult<SubscriberConfiguration>> CreateDlqReaderAsync(SubscriberEntity requestedEntity)
+        private async Task<OperationResult<SubscriberConfiguration>> CreateDlqReaderAsync(SubscriberEntity requestedEntity, SubscriberConfiguration webhookConfiguration)
         {
             if (requestedEntity.HasDlqHooks)
             {
                 return await _directorService.CreateDlqReaderAsync(requestedEntity);
             }
 
-            return null;
+            return webhookConfiguration;
         }
 
         private async Task<OperationResult<SubscriberConfiguration>> ChangeDlqReaderAsync(SubscriberEntity requestedEntity, SubscriberEntity existingEntity)
