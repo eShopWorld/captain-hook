@@ -135,7 +135,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         public async Task When_DirectorServiceFailsToUpdateReaderBecauseOfDeleteError_Then_OperationFails()
         {
             _directorServiceMock.Setup(x => x.DeleteReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new ReaderDeleteError(new SubscriberEntity("subscriber")));
+                .ReturnsAsync(new ReaderDeleteError("subscriber", "event"));
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 

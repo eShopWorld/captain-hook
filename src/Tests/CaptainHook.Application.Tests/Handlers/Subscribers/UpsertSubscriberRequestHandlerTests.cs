@@ -123,11 +123,11 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _directorServiceMock.Setup(r => r.ApplyAsync(It.IsAny<SubscriberEntity>(), It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new ReaderCreateError(new SubscriberEntity("subscriber")));
+                .ReturnsAsync(new ReaderCreateError("subscriber", "event"));
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
 
-            var expectedResult = new OperationResult<SubscriberDto>(new ReaderCreateError(new SubscriberEntity("subscriber")));
+            var expectedResult = new OperationResult<SubscriberDto>(new ReaderCreateError("subscriber", "event"));
             result.Should().BeEquivalentTo(expectedResult);
         }
 
