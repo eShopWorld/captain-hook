@@ -17,7 +17,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private WebhookConfig _callback;
         private bool _asDlq;
 
-        private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
+        private readonly List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
         
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
         {
@@ -123,11 +123,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
 
         public SubscriberConfigurationBuilder AddWebhookRequestRule(Action<WebhookRequestRuleBuilder> ruleBuilder)
         {
-            if (_webhookRequestRules == null)
-            {
-                _webhookRequestRules = new List<WebhookRequestRule>();
-            }
-
             var builder = new WebhookRequestRuleBuilder();
             ruleBuilder(builder);
             _webhookRequestRules.Add(builder.Create());

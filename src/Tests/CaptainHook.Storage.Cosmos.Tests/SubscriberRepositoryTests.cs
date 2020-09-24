@@ -107,6 +107,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .With(x => x.SelectionRule, "$.TestSelector")
                 .With(x => x.UriTransform, new UriTransformSubdocument(replacements))
                 .With(x => x.Endpoints, new EndpointSubdocument[] { endpointWebhookSubdocument })
+                .With(x => x.PayloadTransform, "$")
                 .Create();
 
             var callbacksSubdocument = new WebhooksSubdocumentBuilder()
@@ -119,6 +120,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .With(x => x.SelectionRule, "$.DlqSelector")
                 .With(x => x.UriTransform, new UriTransformSubdocument(replacements))
                 .With(x => x.Endpoints, new EndpointSubdocument[] {endpointDlqhooksSubdocument})
+                .With(x => x.PayloadTransform, "$")
                 .Create();
 
             var subscriberDocument = new SubscriberDocumentBuilder()

@@ -60,7 +60,7 @@ namespace CaptainHook.Domain.Entities
             SelectionRule = selectionRule;
             Endpoints = endpoints?.ToList();
             UriTransform = uriTransform;
-            PayloadTransform = (type == WebhooksEntityType.Callbacks) ? null : payloadTransform;
+            PayloadTransform = (type == WebhooksEntityType.Callbacks) ? null : (payloadTransform ?? "$");
         }
 
         public WebhooksEntity SetSelectionRule(string selectionRule)
@@ -99,10 +99,19 @@ namespace CaptainHook.Domain.Entities
             return this;
         }
 
+        public void SetPayloadTransform(string payloadTransform)
+        {
+            if (Type != WebhooksEntityType.Callbacks)
+            {
+                PayloadTransform = payloadTransform;
+            }
+        }
+
         public OperationResult<WebhooksEntity> SetHooks(WebhooksEntity webhooks, SubscriberEntity subscriberEntity = null)
         {
             SetSelectionRule(webhooks.SelectionRule);
             SetUriTransform(webhooks.UriTransform);
+            SetPayloadTransform(webhooks.PayloadTransform);
             Endpoints.Clear();
             foreach (var endpoint in webhooks.Endpoints)
             {
