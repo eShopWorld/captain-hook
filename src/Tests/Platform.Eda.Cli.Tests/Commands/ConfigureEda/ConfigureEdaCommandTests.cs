@@ -27,7 +27,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public ConfigureEdaCommandTests(ITestOutputHelper output) : base(output)
         {
             _mockCaptainHookClient = new Mock<ICaptainHookClient>();
-            _configureEdaCommand = new ConfigureEdaCommand(new MockFileSystem(GetMockFiles1(), MockCurrentDirectory), _mockCaptainHookClient.Object);
+            _configureEdaCommand = new ConfigureEdaCommand(new MockFileSystem(GetMockFiles1(), MockCurrentDirectory), env => new ApiConsumer(_mockCaptainHookClient.Object, null));
         }
 
         [Fact, IsUnit]
@@ -71,7 +71,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenMultipleSubdirectoriesRequestAccepted_Returns0()
         {
             // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand(new MockFileSystem(GetMockFiles2(), MockCurrentDirectory), _mockCaptainHookClient.Object);
+            var configureEdaCommand = new ConfigureEdaCommand(new MockFileSystem(GetMockFiles2(), MockCurrentDirectory), env => new ApiConsumer(_mockCaptainHookClient.Object, null));
             configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             configureEdaCommand.NoDryRun = true;
             var response = new HttpOperationResponse<object>
@@ -111,7 +111,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenEmptyDirectory_Returns0()
         {
             // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand(new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory), _mockCaptainHookClient.Object);
+            var configureEdaCommand = new ConfigureEdaCommand(new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory), env => new ApiConsumer(_mockCaptainHookClient.Object, null));
             configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             configureEdaCommand.NoDryRun = true;
 
