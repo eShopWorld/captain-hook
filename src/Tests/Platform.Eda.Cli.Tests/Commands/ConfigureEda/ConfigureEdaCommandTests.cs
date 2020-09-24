@@ -34,7 +34,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _apiConsumer = new ApiConsumer(_mockCaptainHookClient.Object, null);
 
             var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetSingleMockInputFile(), MockCurrentDirectory));
-            _configureEdaCommand = new ConfigureEdaCommand(subscribersDirectoryProcessor, _apiConsumer);
+            _configureEdaCommand = new ConfigureEdaCommand(subscribersDirectoryProcessor, env => new ApiConsumer(_mockCaptainHookClient.Object, null));
 
             _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             _configureEdaCommand.NoDryRun = true;
@@ -78,7 +78,8 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenMultipleSubdirectoriesRequestAccepted_Returns0()
         {
             // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand(new SubscribersDirectoryProcessor(new MockFileSystem(GetMultipleMockInputFiles(), MockCurrentDirectory)), _apiConsumer);
+            var configureEdaCommand = new ConfigureEdaCommand(
+                new SubscribersDirectoryProcessor(new MockFileSystem(GetMultipleMockInputFiles(), MockCurrentDirectory)), env => new ApiConsumer(_mockCaptainHookClient.Object, null));
             configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             configureEdaCommand.NoDryRun = true;
             var response = new HttpOperationResponse<object>
@@ -117,7 +118,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenEmptyDirectory_Returns0()
         {
             // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand(new SubscribersDirectoryProcessor(new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory)), _apiConsumer);
+            var configureEdaCommand = new ConfigureEdaCommand(new SubscribersDirectoryProcessor(new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory)), env => new ApiConsumer(_mockCaptainHookClient.Object, null));
             configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             configureEdaCommand.NoDryRun = true;
 
@@ -209,9 +210,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenInvalidJson_Returns1()
         {
             // Arrange
-            var configureEdaCommand = new ConfigureEdaCommand(
-                new SubscribersDirectoryProcessor(new MockFileSystem(GetInvalidJsonMockInputFile(), MockCurrentDirectory)),
-                _apiConsumer);
+            var configureEdaCommand = 
+                new ConfigureEdaCommand(new SubscribersDirectoryProcessor(new MockFileSystem(GetInvalidJsonMockInputFile(), MockCurrentDirectory)),
+                    env => new ApiConsumer(_mockCaptainHookClient.Object, null));
             configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             configureEdaCommand.NoDryRun = false;
 

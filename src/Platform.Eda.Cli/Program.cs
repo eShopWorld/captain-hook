@@ -1,12 +1,18 @@
 ﻿using System;
+using System.IO.Abstractions;
+using System.Net.Http;
 using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using CaptainHook.Api.Client;
+using EShopworld.Security.Services.Rest;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Rest;
 using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.GenerateJson;
 using Platform.Eda.Cli.Commands.GeneratePowerShell;
+using Platform.Eda.Cli.Common;
 using Platform.Eda.Cli.Extensions;
 
 namespace Platform.Eda.Cli
@@ -49,7 +55,7 @@ namespace Platform.Eda.Cli
             
             app.Conventions
                 .UseDefaultConventions()
-                .UseConstructorInjection(SetupAutofac());
+                .UseConstructorInjection(SetupServices());
 
             try
             {
@@ -75,21 +81,24 @@ namespace Platform.Eda.Cli
             }
         }
 
-        private static IServiceProvider SetupAutofac()
+        private static IServiceProvider SetupServices()
         {
-            var serviceProviderFactory = new AutofacServiceProviderFactory();
+            var collection = new ServiceCollection();
 
-            var builder = new ContainerBuilder();
-            builder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
+            collection.AddHttpClient();
+            collection.AddTransient<IFileSystem, FileSystem>();
+            collection.AddTransient<IApiConsumer, ApiConsumer>();
+            collection.AddTransient<IConsoleSubscriberWriter, ConsoleSubscriberWriter>();
+            collection.AddTransient<ISubscribersDirectoryProcessor, SubscribersDirectoryProcessor>();
 
-            builder.RegisterType<SubscribersDirectoryProcessor>().As<ISubscribersDirectoryProcessor>();
-            builder.RegisterType<ApiConsumer>().As<IApiConsumer>();
-            builder.RegisterType<ConsoleSubscriberWriter>().As<IConsoleSubscriberWriter>();
+            collection.AddSingleton(console);
+            collection.AddSingleton<BuildCaptainHookProxyDelegate>(serviceProvider =>
+            {
+                var clientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+                return environment => ApiConsumer.BuildApiConsumer(clientFactory, environment);
+            });
 
-            builder.RegisterInstance(console).As<IConsole>();
-            builder.RegisterInstance(new ApiClientFixture().GetApiClient());
-
-            return serviceProviderFactory.CreateServiceProvider(builder);
+            return collection.BuildServiceProvider();
         }
     }
 }
