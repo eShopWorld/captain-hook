@@ -38,23 +38,32 @@ namespace CaptainHook.DirectorService.Infrastructure
 
             async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapCosmosEntries()
             {
-                var tasks = subscribersFromCosmos.Select(_subscriberEntityToConfigurationMapper.MapSubscriberAsync).ToArray();
+                var tasks = new List<Task<OperationResult<SubscriberConfiguration>>>();
+                foreach (var entity in subscribersFromCosmos)
+                {
+                    tasks.Add(_subscriberEntityToConfigurationMapper.MapToWebhookAsync(entity));
+                    if (entity.HasDlqHooks)
+                    {
+                        tasks.Add(_subscriberEntityToConfigurationMapper.MapToDlqAsync(entity));
+                    }
+                }
+
                 await Task.WhenAll(tasks);
 
                 var errors = tasks.Select(x => x.Result).Where(x => x.IsError);
 
-                if(errors.Any())
+                if (errors.Any())
                 {
                     var failures = errors.SelectMany(x => x.Error.Failures).ToArray();
                     return new MappingError("Cannot map Cosmos DB entries", failures);
                 }
 
-                return tasks.SelectMany(t => t.Result.Data).ToList();
+                return tasks.Select(t => t.Result.Data).ToList();
             }
 
             var fromCosmosResult = await MapCosmosEntries();
 
-            if(fromCosmosResult.IsError)
+            if (fromCosmosResult.IsError)
             {
                 return fromCosmosResult.Error;
             }
