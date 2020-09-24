@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
-using CaptainHook.Api.Client;
 using CaptainHook.Domain.Results;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
@@ -18,12 +17,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
     public class ConfigureEdaCommand
     {
         private readonly IFileSystem _fileSystem;
-        private readonly ICaptainHookClient _captainHookClient;
+        private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
 
-        public ConfigureEdaCommand(IFileSystem fileSystem, ICaptainHookClient captainHookClient)
+        public ConfigureEdaCommand(IFileSystem fileSystem, BuildCaptainHookProxyDelegate captainHookBuilder)
         {
             _fileSystem = fileSystem;
-            _captainHookClient = captainHookClient;
+            _captainHookBuilder = captainHookBuilder;
         }
 
         /// <summary>
@@ -96,7 +95,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(ConsoleSubscriberWriter writer,
             IEnumerable<PutSubscriberFile> subscriberFiles)
         {
-            var api = new ApiConsumer(_captainHookClient, null);
+            var api = _captainHookBuilder(Environment);
             var apiResults = new List<OperationResult<HttpOperationResponse>>();
 
             var sourceFolderPath = Path.GetFullPath(InputFolderPath);
