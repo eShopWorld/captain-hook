@@ -243,7 +243,6 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [MemberData(nameof(ValidPayloadTransforms))]
         public void MapDlqhooks_When_ValidPayloadTransformIsUsed_Then_IsMappedCorrectEntityValue(string payloadTransform, string expectedPayloadTransform)
         {
-
             // Act
             var result = sut.MapPayloadTransform(payloadTransform, WebhooksEntityType.DlqHooks);
 
@@ -266,7 +265,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
         [Theory]
         [IsUnit]
         [MemberData(nameof(InvalidPayloadTransforms))]
-        public void MapCallbacks_When_InvalidPayloadTransformIsUsed_Then_IsMappedToDefault(string payloadTransform)
+        public void MapCallbacks_When_InvalidPayloadTransformIsUsed_Then_IsMappedToNull(string payloadTransform)
         {
             // Act
             var result = sut.MapPayloadTransform(payloadTransform, WebhooksEntityType.Callbacks);
