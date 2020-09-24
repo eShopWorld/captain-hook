@@ -12,7 +12,6 @@ using EShopworld.Security.Services.Rest;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Rest;
-using Moq;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 using Polly;
@@ -39,7 +38,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             var configuration = EswDevOpsSdk.BuildConfiguration(AssemblyLocation, environment);
             var configureEdaConfig = configuration.GetSection(nameof(ConfigureEdaCommand)).Get<ConfigureEdaConfig>();
 
-            var tokenProvider = new RefreshingTokenProvider(clientFactory, Mock.Of<BigBrother>(), configureEdaConfig.RefreshingTokenProviderOptions);
+            var tokenProvider = new RefreshingTokenProvider(clientFactory, BigBrother.CreateDefault("", ""), configureEdaConfig.RefreshingTokenProviderOptions);
 
             var client = new CaptainHookClient(configureEdaConfig.CaptainHookUrl, new TokenCredentials(tokenProvider));
             return new ApiConsumer(client, null);

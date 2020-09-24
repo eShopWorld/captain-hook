@@ -50,7 +50,6 @@ namespace CaptainHook.EventReaderService
 
         private ConcurrentQueue<int> _freeHandlers = new ConcurrentQueue<int>();
 
-        //todo move this to config driven in the code package
         internal int HandlerCount = 10;
 
         private readonly TimeSpan _longPollThreshold = TimeSpan.FromMilliseconds(5000);
@@ -92,24 +91,6 @@ namespace CaptainHook.EventReaderService
             ParseOutInitData(context.InitializationData);
         }
 
-        private void ParseOutInitData(byte[] initializationData)
-        {
-            if (initializationData == null || initializationData.Length == 0)
-                throw new ArgumentException("invalid initialization data structure", nameof(initializationData));
-
-            _initData = EventReaderInitData.FromByteArray(initializationData);
-
-            if (_initData == null)
-                throw new ArgumentException("failed to deserialize init data", nameof(initializationData));
-
-            if (string.IsNullOrWhiteSpace(_initData.SubscriberName))
-                throw new ArgumentException($"invalid init data - {nameof(EventReaderInitData.SubscriberName)} is empty");
-
-            if (string.IsNullOrWhiteSpace(_initData.EventType))
-                throw new ArgumentException($"invalid init data - {nameof(EventReaderInitData.EventType)} is empty");
-
-        }
-
         /// <summary>
         /// Ctor used for mocking and tests
         /// </summary>
@@ -133,6 +114,24 @@ namespace CaptainHook.EventReaderService
             _proxyFactory = proxyFactory;
             _settings = settings;
             ParseOutInitData(context.InitializationData);
+        }
+
+        private void ParseOutInitData(byte[] initializationData)
+        {
+            if (initializationData == null || initializationData.Length == 0)
+                throw new ArgumentException("invalid initialization data structure", nameof(initializationData));
+
+            _initData = EventReaderInitData.FromByteArray(initializationData);
+
+            if (_initData == null)
+                throw new ArgumentException("failed to deserialize init data", nameof(initializationData));
+
+            if (string.IsNullOrWhiteSpace(_initData.SubscriberName))
+                throw new ArgumentException($"invalid init data - {nameof(EventReaderInitData.SubscriberName)} is empty");
+
+            if (string.IsNullOrWhiteSpace(_initData.EventType))
+                throw new ArgumentException($"invalid init data - {nameof(EventReaderInitData.EventType)} is empty");
+
         }
 
         /// <summary>
@@ -226,13 +225,6 @@ namespace CaptainHook.EventReaderService
                 {
                     try
                     {
-                        //if (_messageReceiver.IsClosedOrClosing)
-                        //{
-                        //    _bigBrother.Publish(new MessageReceiverClosingEvent { FabricId = $"{this.Context.ServiceName}:{this.Context.ReplicaId}" });
-
-                        //    continue;
-                        //}
-
                         var (messages, activeReaderId) = await ReceiveMessagesFromActiveReceiver();
 
                         var readMessages = messages?.Count ?? 0;
@@ -328,10 +320,6 @@ namespace CaptainHook.EventReaderService
             return messageData;
         }
 
-        /// <summary>
-        /// //TODO: add doco
-        /// </summary>
-        /// <returns></returns>
         private async Task ServiceReceiversLifecycle(CancellationToken cancellationToken)
         {
             var inactivityTimeoutReached =

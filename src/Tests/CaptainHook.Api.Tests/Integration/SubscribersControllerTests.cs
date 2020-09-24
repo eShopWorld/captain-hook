@@ -11,6 +11,8 @@ namespace CaptainHook.Api.Tests.Integration
     [Collection(ApiClientCollection.TestFixtureName)]
     public class SubscribersControllerTests : ControllerTestBase
     {
+        private const string SubscriberTestEventName = "core.events.test.trackingdomainevent;captain-hook";
+
         public SubscribersControllerTests(ApiClientFixture testFixture) : base(testFixture)
         {
         }
@@ -45,7 +47,7 @@ namespace CaptainHook.Api.Tests.Integration
         public async Task GetSubscriber_WhenUnauthenticated_Returns401Unauthorized()
         {
             // Act
-            var result = await UnauthenticatedClient.GetSubscriberWithHttpMessagesAsync("core.events.test.trackingdomainevent;captain-hook");
+            var result = await UnauthenticatedClient.GetSubscriberWithHttpMessagesAsync(SubscriberTestEventName);
 
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
@@ -55,7 +57,7 @@ namespace CaptainHook.Api.Tests.Integration
         public async Task GetSubscriber_WhenAuthenticated_Returns200AndData()
         {
             // Act
-            var result = await AuthenticatedClient.GetSubscriberWithHttpMessagesAsync("core.events.test.trackingdomainevent;captain-hook");
+            var result = await AuthenticatedClient.GetSubscriberWithHttpMessagesAsync(SubscriberTestEventName);
 
             // Assert
             using (new AssertionScope())
