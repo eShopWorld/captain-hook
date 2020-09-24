@@ -36,9 +36,13 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         public static ApiConsumer BuildApiConsumer(IHttpClientFactory clientFactory, string environment)
         {
             var configuration = EswDevOpsSdk.BuildConfiguration(AssemblyLocation, environment);
-            var configureEdaConfig = configuration.GetSection(nameof(ConfigureEdaCommand)).Get<ConfigureEdaConfig>();
+            var configureEdaConfig = configuration.BindSection<ConfigureEdaCommandConfig>(nameof(ConfigureEdaCommandConfig));
 
-            var tokenProvider = new RefreshingTokenProvider(clientFactory, BigBrother.CreateDefault("", ""), configureEdaConfig.RefreshingTokenProviderOptions);
+            var refreshingTokenProviderOptions = configuration.BindSection<RefreshingTokenProviderOptions>(
+                $"{nameof(ConfigureEdaCommandConfig)}:{nameof(RefreshingTokenProviderOptions)}",
+                c => c.AddMapping(m => m.ClientSecret, configureEdaConfig.ClientKeyVaultSecretName));
+
+            var tokenProvider = new RefreshingTokenProvider(clientFactory, BigBrother.CreateDefault("", ""), refreshingTokenProviderOptions);
 
             var client = new CaptainHookClient(configureEdaConfig.CaptainHookUrl, new TokenCredentials(tokenProvider));
             return new ApiConsumer(client, null);
