@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Results;
-using CaptainHook.Common.Configuration;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
@@ -16,92 +14,20 @@ using MediatR;
 
 namespace CaptainHook.Application.Handlers.Subscribers
 {
-    public interface IDirectorServiceChanger
-    {
-        Task<OperationResult<SubscriberConfiguration>> ApplyAsync(SubscriberEntity existingEntity, SubscriberEntity requestedEntity);
-    }
-
-    public class DirectorServiceChanger : IDirectorServiceChanger
-    {
-        private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
-        private readonly IDirectorServiceProxy _directorService;
-
-        public DirectorServiceChanger(ISubscriberEntityToConfigurationMapper entityToConfigurationMapper, IDirectorServiceProxy directorService)
-        {
-            _entityToConfigurationMapper = entityToConfigurationMapper;
-            _directorService = directorService;
-        }
-
-        public async Task<OperationResult<SubscriberConfiguration>> ApplyAsync(SubscriberEntity existingEntity, SubscriberEntity requestedEntity)
-        {
-            //var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberEntityAsync(requestedEntity);
-
-            //if (subscriberConfigsResult.IsError)
-            //{
-            //    return subscriberConfigsResult.Error;
-            //}
-
-            //var keyVaultModels = subscriberConfigsResult.Data;
-
-            if (existingEntity == null)
-            {
-                return await _entityToConfigurationMapper.MapToWebhookAsync(requestedEntity)
-                    .Then(async webhookConfig => await _directorService.CreateReaderAsync(webhookConfig))
-                    .Then(async webhookConfig => await CreateDlqReader(requestedEntity, webhookConfig));
-            }
-
-            return await _entityToConfigurationMapper.MapToWebhookAsync(requestedEntity)
-                .Then(async webhookConfig => await _directorService.UpdateReaderAsync(webhookConfig))
-                .Then(async webhookConfig => await UpdateDlqReader(requestedEntity, existingEntity));
-        }
-
-        private async Task<OperationResult<SubscriberConfiguration>> CreateDlqReader(SubscriberEntity requestedEntity, SubscriberConfiguration webhookConfig)
-        {
-            if (requestedEntity.HasDlqHooks)
-            {
-                return await _entityToConfigurationMapper.MapToDlqAsync(requestedEntity)
-                    .Then(async dlqConfig => await _directorService.CreateReaderAsync(dlqConfig));
-            }
-
-            return webhookConfig;
-        }
-
-        private async Task<OperationResult<SubscriberConfiguration>> UpdateDlqReader(SubscriberEntity requestedEntity, SubscriberEntity existingEntity)
-        {
-            if (!existingEntity.HasDlqHooks && requestedEntity.HasDlqHooks)
-            {
-                return await _entityToConfigurationMapper.MapToDlqAsync(requestedEntity)
-                    .Then(async dlqConfig => await _directorService.CreateReaderAsync(dlqConfig));
-            }
-
-            if (existingEntity.HasDlqHooks && !requestedEntity.HasDlqHooks)
-            {
-                return await _entityToConfigurationMapper.MapToDlqAsync(existingEntity)
-                   .Then(async dlqConfig => await _directorService.DeleteReaderAsync(dlqConfig));
-            }
-
-            return await _entityToConfigurationMapper.MapToDlqAsync(requestedEntity)
-                .Then(async dlqConfig => await _directorService.UpdateReaderAsync(dlqConfig));
-        }
-    }
-
     public class UpsertSubscriberRequestHandler : IRequestHandler<UpsertSubscriberRequest, OperationResult<UpsertResult<SubscriberDto>>>
     {
         private readonly ISubscriberRepository _subscriberRepository;
-        //private readonly IDirectorServiceProxy _directorService;
         private readonly IDtoToEntityMapper _dtoToEntityMapper;
         private readonly IDirectorServiceChanger _directorServiceChanger;
 
         public UpsertSubscriberRequestHandler(
             ISubscriberRepository subscriberRepository,
-            //IDirectorServiceProxy directorService,
-            IDtoToEntityMapper dtoToEntityMapper,
-            IDirectorServiceChanger directorServiceChanger)
+            IDirectorServiceChanger directorServiceChanger,
+            IDtoToEntityMapper dtoToEntityMapper)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
-            //_directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
-            _dtoToEntityMapper = dtoToEntityMapper ?? throw new ArgumentNullException(nameof(dtoToEntityMapper));
             _directorServiceChanger = directorServiceChanger ?? throw new ArgumentNullException(nameof(directorServiceChanger));
+            _dtoToEntityMapper = dtoToEntityMapper ?? throw new ArgumentNullException(nameof(dtoToEntityMapper));
         }
 
         public async Task<OperationResult<UpsertResult<SubscriberDto>>> Handle(UpsertSubscriberRequest request, CancellationToken cancellationToken)

@@ -19,21 +19,4 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         Task<OperationResult<SubscriberConfiguration>> MapToDlqAsync(SubscriberEntity entity);
     }
-
-    //public class MapToKeyVaultResult
-    //{
-    //    public SubscriberConfiguration Webhook { get; }
-    //    public SubscriberConfiguration Dlqhook { get; }
-
-    //    public MapToKeyVaultResult(SubscriberConfiguration webhook)
-    //    {
-    //        Webhook = webhook;
-    //    }
-
-    //    public MapToKeyVaultResult(SubscriberConfiguration webhook, SubscriberConfiguration dlqhook)
-    //    {
-    //        Webhook = webhook;
-    //        Dlqhook = dlqhook;
-    //    }
-    //}
 }

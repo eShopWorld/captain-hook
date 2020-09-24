@@ -129,54 +129,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 throw new ArgumentException("Entity must contain Dlqhooks", nameof(entity));
 
             return await MapDlqHooksAsync(entity.Name, entity.ParentEvent.Name, entity.DlqHooks);
-
-            //if (entity.HasDlqHooks)
-            //{
-            //    var dlqResult = await MapDlqHooksAsync(entity.Name, entity.ParentEvent.Name, entity.DlqHooks);
-            //    if (dlqResult.IsError)
-            //    {
-            //        return dlqResult.Error;
-            //    }
-
-            //    return new MapToKeyVaultResult(subscriberConfiguration, dlqResult.Data);
-            //}
         }
-
-        //public async Task<OperationResult<MapToKeyVaultResult>> MapSubscriberEntityAsync(SubscriberEntity entity)
-        //{
-        //    var webhooksResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.Webhooks);
-        //    if (webhooksResult.IsError)
-        //    {
-        //        return webhooksResult.Error;
-        //    }
-
-        //    var subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
-        //    subscriberConfiguration.SubscriberName = entity.Name;
-
-        //    if (entity.HasCallbacks)
-        //    {
-        //        var callbackResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.Callbacks);
-        //        if (callbackResult.IsError)
-        //        {
-        //            return callbackResult.Error;
-        //        }
-        //        subscriberConfiguration.Callback = callbackResult.Data;
-        //        AddCallbackRules(subscriberConfiguration.Callback);
-        //    }
-
-        //    if (entity.HasDlqHooks)
-        //    {
-        //        var dlqResult = await MapDlqHooksAsync(entity.Name, entity.ParentEvent.Name, entity.DlqHooks);
-        //        if (dlqResult.IsError)
-        //        {
-        //            return dlqResult.Error;
-        //        }
-
-        //        return new MapToKeyVaultResult(subscriberConfiguration, dlqResult.Data);
-        //    }
-
-        //    return new MapToKeyVaultResult(subscriberConfiguration);
-        //}
 
         private async Task<OperationResult<SubscriberConfiguration>> MapDlqHooksAsync(string name, string eventType, WebhooksEntity webhooksEntity)
         {
