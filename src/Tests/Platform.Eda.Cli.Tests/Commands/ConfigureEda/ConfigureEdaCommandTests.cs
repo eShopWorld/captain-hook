@@ -222,7 +222,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             result.Should().Be(1);
             Output.Should()
                 .Contain("Reading files from folder: 'Z:\\Sample\\' to be run against CI environment")
-                .And.Contain("WARNING - Command Platform.Eda.Cli.Commands.ConfigureEda.ConfigureEdaCommand");
+                .And.Contain("Unexpected character encountered while parsing value");
         }
 
         private static Dictionary<string, MockFileData> GetSingleMockInputFile()
