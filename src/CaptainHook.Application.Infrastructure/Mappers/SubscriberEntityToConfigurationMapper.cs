@@ -92,20 +92,18 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             if (!entity.HasDlqHooks)
                 throw new ArgumentException("Entity must contain Dlqhooks", nameof(entity));
 
-            var webhooksResult = await MapWebhooksAsync(entity.Name, entity.ParentEvent.Name, entity.DlqHooks);
+            var webhooksResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.DlqHooks);
             if (webhooksResult.IsError)
             {
                 return webhooksResult.Error;
             }
 
             var subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
-            subscriberConfiguration.SourceSubscriptionName = entity.Name;
-            subscriberConfiguration.Name = $"{entity.ParentEvent.Name}-DLQ";
-            subscriberConfiguration.SubscriberName = "DLQ";
             subscriberConfiguration.DLQMode = SubscriberDlqMode.WebHookMode;
+            subscriberConfiguration.SourceSubscriptionName = entity.Name;
+            subscriberConfiguration.SubscriberName = $"{entity.Name}-DLQ";
 
             return subscriberConfiguration;
-
         }
 
         private void AddCallbackRules(WebhookConfig callback)
