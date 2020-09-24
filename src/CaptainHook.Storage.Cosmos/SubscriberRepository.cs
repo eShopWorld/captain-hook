@@ -245,7 +245,8 @@ namespace CaptainHook.Storage.Cosmos
             {
                 SelectionRule = webhooksEntity.SelectionRule,
                 UriTransform = Map(webhooksEntity.UriTransform),
-                Endpoints = endpoints.ToArray()
+                Endpoints = endpoints.ToArray(),
+                PayloadTransform = webhooksEntity.PayloadTransform
             };
         }
 
@@ -293,7 +294,7 @@ namespace CaptainHook.Storage.Cosmos
         {
             var uriTransformEntity = Map(webhookSubdocument.UriTransform);
             var endpoints = webhookSubdocument.Endpoints.Select(x => Map(x, subscriberEntity));
-            return new WebhooksEntity(type, webhookSubdocument.SelectionRule, endpoints, uriTransformEntity);
+            return new WebhooksEntity(type, webhookSubdocument.SelectionRule, endpoints, uriTransformEntity, webhookSubdocument.PayloadTransform);
         }
 
         private EndpointEntity Map(EndpointSubdocument endpointSubdocument, SubscriberEntity subscriberEntity)
