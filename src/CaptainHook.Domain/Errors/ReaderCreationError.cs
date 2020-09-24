@@ -9,5 +9,10 @@ namespace CaptainHook.Domain.Errors
             : base($"Can't create Reader Service for Event {subscriber?.ParentEvent?.Name} and Subscriber {subscriber?.Name}")
         {
         }
+
+        public ReaderCreateError(string subscriberName, string eventName)
+           : base($"Can't create Reader Service for Event {eventName} and Subscriber {subscriberName}")
+        {
+        }
     }
 }

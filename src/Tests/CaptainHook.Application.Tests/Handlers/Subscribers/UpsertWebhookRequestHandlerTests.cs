@@ -76,7 +76,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
-                .ReturnsAsync(new List<SubscriberConfiguration>());
+                .ReturnsAsync(new SubscriberConfiguration());
             
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -94,7 +94,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriberEntity);
             _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberConfiguration>());
+                .ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             
@@ -179,7 +179,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new BusinessError("test error"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
-                .ReturnsAsync(new List<SubscriberConfiguration>());
+                .ReturnsAsync(new SubscriberConfiguration());
             
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -197,7 +197,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
             _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberConfiguration>());
+                .ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()));
             
@@ -217,7 +217,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
             _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberConfiguration>());
+                .ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.SetupSequence(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()))
                 .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
@@ -239,12 +239,12 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
                 .ReturnsAsync(() => DefaultSubscriberBuilder.Create())
                 .ReturnsAsync(new EntityNotFoundError("dummy-type", "dummy-key"));
             _directorServiceMock.Setup(r => r.UpdateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberConfiguration>());
+                .ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.SetupSequence(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(new CannotUpdateEntityError("dummy-type", new Exception()))
                 .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
             _directorServiceMock.Setup(x => x.CreateReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberConfiguration>());
+                .ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.Setup(x => x.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
                 .ReturnsAsync(() => DefaultSubscriberBuilder.Create());
             
