@@ -87,7 +87,7 @@ namespace Platform.Eda.Cli
             collection.AddHttpClient();
             collection.AddTransient<IFileSystem, FileSystem>();
 
-            collection.AddSingleton<BuildCaptainHookProxy>(serviceProvider =>
+            collection.AddSingleton<BuildCaptainHookProxyDelegate>(serviceProvider =>
             {
                 var clientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
                 return environment => ApiConsumer.BuildApiConsumer(clientFactory, environment);

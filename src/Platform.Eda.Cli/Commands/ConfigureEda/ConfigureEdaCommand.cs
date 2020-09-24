@@ -17,9 +17,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
     public class ConfigureEdaCommand
     {
         private readonly IFileSystem _fileSystem;
-        private readonly BuildCaptainHookProxy _captainHookBuilder;
+        private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
 
-        public ConfigureEdaCommand(IFileSystem fileSystem, BuildCaptainHookProxy captainHookBuilder)
+        public ConfigureEdaCommand(IFileSystem fileSystem, BuildCaptainHookProxyDelegate captainHookBuilder)
         {
             _fileSystem = fileSystem;
             _captainHookBuilder = captainHookBuilder;
