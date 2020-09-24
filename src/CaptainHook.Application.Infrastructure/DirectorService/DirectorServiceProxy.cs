@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common.Configuration;
@@ -21,19 +19,22 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             _directorService = directorService;
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CreateReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<SubscriberConfiguration>> CreateReaderAsync(SubscriberEntity subscriber)
         {
-            return await CallDirector(s => new CreateReader { Subscriber = s }, subscriber);
+             return await _entityToConfigurationMapper.MapToWebhookAsync(subscriber)
+                   .Then(async sc => await CallDirector(new CreateReader { Subscriber = sc }));
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> UpdateReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<SubscriberConfiguration>> UpdateReaderAsync(SubscriberEntity subscriber)
         {
-            return await CallDirector(s => new UpdateReader { Subscriber = s }, subscriber);
+            return await _entityToConfigurationMapper.MapToWebhookAsync(subscriber)
+                   .Then(async sc => await CallDirector(new UpdateReader { Subscriber = sc }));
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> DeleteReaderAsync(SubscriberEntity subscriber)
+        public async Task<OperationResult<SubscriberConfiguration>> DeleteReaderAsync(SubscriberEntity subscriber)
         {
-            return await CallDirector(s => new DeleteReader { Subscriber = s }, subscriber);
+            return await _entityToConfigurationMapper.MapToWebhookAsync(subscriber)
+                   .Then(async sc => await CallDirector(new DeleteReader { Subscriber = sc }));
         }
 
         public async Task<OperationResult<SubscriberConfiguration>> CreateDlqReaderAsync(SubscriberEntity subscriber)
@@ -52,42 +53,6 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         {
             return await _entityToConfigurationMapper.MapToDlqAsync(subscriber)
                    .Then(async sc => await CallDirector(new DeleteReader { Subscriber = sc }));
-        }
-
-        private async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> CallDirector(
-            Func<SubscriberConfiguration, ReaderChangeBase> requestFunc, SubscriberEntity subscriber)
-        {
-            var subscriberConfigsResult = await _entityToConfigurationMapper.MapSubscriberAsync(subscriber);
-
-            if (subscriberConfigsResult.IsError)
-            {
-                return subscriberConfigsResult.Error;
-            }
-
-            foreach (var subscriberConfig in subscriberConfigsResult.Data)
-            {
-                var request = requestFunc(subscriberConfig);
-                var createReaderResult = await _directorService.ApplyReaderChange(request);
-
-                OperationResult<SubscriberConfiguration> operationResult = createReaderResult switch
-                {
-                    ReaderChangeResult.Success => subscriberConfig,
-                    ReaderChangeResult.NoChangeNeeded => subscriberConfig,
-                    ReaderChangeResult.CreateFailed => new ReaderCreateError(subscriber),
-                    ReaderChangeResult.DeleteFailed => new ReaderDeleteError(subscriber),
-                    ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
-                    ReaderChangeResult.ReaderAlreadyExist => new ReaderAlreadyExistsError(subscriber),
-                    ReaderChangeResult.ReaderDoesNotExist => new ReaderDoesNotExistError(subscriber),
-                    _ => new BusinessError("Director Service returned unknown result.")
-                };
-
-                if (operationResult.IsError)
-                {
-                    return operationResult.Error;
-                }
-            }
-
-            return subscriberConfigsResult;
         }
 
         private async Task<OperationResult<SubscriberConfiguration>> CallDirector(ReaderChangeBase request)
