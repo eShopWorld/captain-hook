@@ -9,6 +9,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
     public interface IApiConsumer
     {
-        public IAsyncEnumerable<ApiOperationResult> CallApiAsync(IEnumerable<PutSubscriberFile> files);
+        IAsyncEnumerable<ApiOperationResult> CallApiAsync(IEnumerable<PutSubscriberFile> files);
     }
 }

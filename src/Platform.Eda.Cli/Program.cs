@@ -2,17 +2,11 @@
 using System.IO.Abstractions;
 using System.Net.Http;
 using System.Reflection;
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
-using CaptainHook.Api.Client;
-using EShopworld.Security.Services.Rest;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Rest;
 using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.GenerateJson;
 using Platform.Eda.Cli.Commands.GeneratePowerShell;
-using Platform.Eda.Cli.Common;
 using Platform.Eda.Cli.Extensions;
 
 namespace Platform.Eda.Cli
@@ -87,7 +81,6 @@ namespace Platform.Eda.Cli
 
             collection.AddHttpClient();
             collection.AddTransient<IFileSystem, FileSystem>();
-            collection.AddTransient<IApiConsumer, ApiConsumer>();
             collection.AddTransient<IConsoleSubscriberWriter, ConsoleSubscriberWriter>();
             collection.AddTransient<ISubscribersDirectoryProcessor, SubscribersDirectoryProcessor>();
 
