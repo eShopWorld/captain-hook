@@ -48,18 +48,6 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 {
                     new Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>>((proxy, entity) => proxy.DeleteReaderAsync(entity))
                 };
-                yield return new object[]
-                {
-                    new Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>>((proxy, entity) => proxy.CreateDlqReaderAsync(entity))
-                };
-                yield return new object[]
-                {
-                    new Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>>((proxy, entity) => proxy.UpdateDlqReaderAsync(entity))
-                };
-                yield return new object[]
-                {
-                    new Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>>((proxy, entity) => proxy.DeleteDlqReaderAsync(entity))
-                };
             }
         }
 
