@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Entities;
@@ -21,6 +22,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// ReaderAlreadyExistsError if reader can't be crated because it already exists
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// </returns>
+        [Obsolete("Use CallDirectorService instead")]
         Task<OperationResult<SubscriberConfiguration>> CreateReaderAsync(SubscriberEntity subscriber);
 
         /// <summary>
@@ -35,6 +37,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// ReaderDoesNotExistError if reader can't be deleted because it doesn't exist
         /// </returns>
+        [Obsolete("Use CallDirectorService instead")]
         Task<OperationResult<SubscriberConfiguration>> UpdateReaderAsync(SubscriberEntity subscriber);
 
         /// <summary>
@@ -47,6 +50,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// ReaderDoesNotExistError if reader can't be deleted because it doesn't exist
         /// </returns>
+        [Obsolete("Use CallDirectorService instead")]
         Task<OperationResult<SubscriberConfiguration>> DeleteReaderAsync(SubscriberEntity subscriber);
 
         /// <summary>

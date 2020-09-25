@@ -18,7 +18,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 {
     public class DirectorServiceRequestsGeneratorTests
     {
-        private readonly Mock<ISubscriberEntityToConfigurationMapper> _mapperMock = new Mock<ISubscriberEntityToConfigurationMapper>(MockBehavior.Strict);
+        private readonly Mock<ISubscriberEntityToConfigurationMapper> _mapperMock = new Mock<ISubscriberEntityToConfigurationMapper>();
 
         private static readonly SubscriberEntity SubscriberWithoutDlq = new SubscriberBuilder()
             .WithWebhook("https://blah-blah.eshopworld.com/webhook/", "PUT", "*")
@@ -33,8 +33,9 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
         public DirectorServiceRequestsGeneratorTests()
         {
-            _mapperMock.Setup(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(new SubscriberConfiguration());
-            _mapperMock.Setup(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>())).ReturnsAsync(new SubscriberConfiguration());
+            _mapperMock.Setup(x => x.MapToWebhookAsync(It.Is<SubscriberEntity>(s => !s.HasDlqHooks))).ReturnsAsync(new SubscriberConfiguration { Name = "without-dlq" });
+            _mapperMock.Setup(x => x.MapToWebhookAsync(It.Is<SubscriberEntity>(s => s.HasDlqHooks))).ReturnsAsync(new SubscriberConfiguration { Name = "with-dlq" });
+            _mapperMock.Setup(x => x.MapToDlqAsync(It.Is<SubscriberEntity>(s => s.HasDlqHooks))).ReturnsAsync(new SubscriberConfiguration { Name = "dlq" });
         }
 
         public static IEnumerable<object[]> FailureFlowsData
@@ -77,7 +78,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             var result = await Generator.DefineChangesAsync(SubscriberWithoutDlq, null);
 
-            result.Data.Single().Should().BeOfType<CreateReader>();
+            result.Data.Single().Should().BeOfType<CreateReader>().Which.Subscriber.Name.Should().Be("without-dlq");
         }
 
         [Fact, IsUnit]
@@ -86,10 +87,17 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var result = await Generator.DefineChangesAsync(SubscriberWithDlq, null);
 
             var array = result.Data.ToArray();
-            array[0].Should().BeOfType<CreateReader>();
-            array[1].Should().BeOfType<CreateReader>();
+            array[0].Should().BeOfType<CreateReader>().Which.Subscriber.Name.Should().Be("with-dlq");
+            array[1].Should().BeOfType<CreateReader>().Which.Subscriber.Name.Should().Be("dlq");
         }
 
+        [Fact, IsUnit]
+        public async Task When_UpdatingSubscriberWithoutDlq_ThenOnlyWebhookReaderUpdated()
+        {
+            var result = await Generator.DefineChangesAsync(SubscriberWithoutDlq, SubscriberWithoutDlq);
+
+            result.Data.Single().Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("without-dlq");
+        }
 
         [Fact, IsUnit]
         public async Task When_AddingDlqToExistingSubscriber_ThenWebhookUpdatedAndDlqReaderCreated()
@@ -97,8 +105,8 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var result = await Generator.DefineChangesAsync(SubscriberWithDlq, SubscriberWithoutDlq);
 
             var array = result.Data.ToArray();
-            array[0].Should().BeOfType<UpdateReader>();
-            array[1].Should().BeOfType<CreateReader>();
+            array[0].Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("with-dlq");
+            array[1].Should().BeOfType<CreateReader>().Which.Subscriber.Name.Should().Be("dlq");
         }
 
         [Fact, IsUnit]
@@ -107,8 +115,8 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var result = await Generator.DefineChangesAsync(SubscriberWithDlq, SubscriberWithDlq);
 
             var array = result.Data.ToArray();
-            array[0].Should().BeOfType<UpdateReader>();
-            array[1].Should().BeOfType<UpdateReader>();
+            array[0].Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("with-dlq");
+            array[1].Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("dlq");
         }
 
         [Fact, IsUnit]
@@ -117,8 +125,8 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var result = await Generator.DefineChangesAsync(SubscriberWithoutDlq, SubscriberWithDlq);
 
             var array = result.Data.ToArray();
-            array[0].Should().BeOfType<UpdateReader>();
-            array[1].Should().BeOfType<DeleteReader>();
+            array[0].Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("without-dlq");
+            array[1].Should().BeOfType<DeleteReader>().Which.Subscriber.Name.Should().Be("dlq");
         }
     }
 }
