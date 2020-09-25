@@ -225,16 +225,5 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             }
         }
 #pragma warning restore 1998
-
-        private static async Task<IEnumerable<T>> GetAll<T>(IAsyncEnumerable<T> enumerable)
-        {
-            var list = new List<T>();
-            await foreach (var item in enumerable)
-            {
-                list.Add(item);
-            }
-
-            return list;
-        }
     }
 }
