@@ -140,6 +140,16 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
+        public SubscriberConfiguration CreateAsDlq()
+        {
+            _asDlq = true;
+            _sourceSubscriptionName = _subscriberName;
+            _subscriberName = "DLQ";
+            _name = $"{_name}-{_subscriberName}";
+
+            return Create();
+        }
+
         public SubscriberConfiguration Create()
         {
             var subscriber = new SubscriberConfiguration

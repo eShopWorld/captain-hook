@@ -30,6 +30,11 @@ namespace CaptainHook.Domain.Entities
         public UriTransformEntity UriTransform { get; private set; }
 
         /// <summary>
+        /// Payload Transformation
+        /// </summary>
+        public string PayloadTransform { get; private set; }
+
+        /// <summary>
         /// Type of entity
         /// </summary>
         public WebhooksEntityType Type { get; }
@@ -51,11 +56,12 @@ namespace CaptainHook.Domain.Entities
 
         public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints) : this(type, selectionRule, endpoints, null) { }
 
-        public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints, UriTransformEntity uriTransform) : this(type)
+        public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints, UriTransformEntity uriTransform, string payloadTransform = null) : this(type)
         {
             SelectionRule = selectionRule;
             Endpoints = endpoints?.ToList();
             UriTransform = uriTransform;
+            PayloadTransform = payloadTransform;
         }
 
         public WebhooksEntity SetSelectionRule(string selectionRule)
@@ -75,7 +81,7 @@ namespace CaptainHook.Domain.Entities
             var extendedEndpointsCollection = Endpoints
                 .Except(new [] { endpoint }, SelectorEndpointEntityEqualityComparer)
                 .Concat(new[] { endpoint });
-            var endpointsEntityForValidation = new WebhooksEntity(Type, SelectionRule, extendedEndpointsCollection, UriTransform);
+            var endpointsEntityForValidation = new WebhooksEntity(Type, SelectionRule, extendedEndpointsCollection, UriTransform, PayloadTransform);
 
             var validationResult = WebhooksValidator.Validate(endpointsEntityForValidation);
 

@@ -104,6 +104,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             subscriberConfiguration.SubscriberName = $"{entity.Name}-DLQ";
 
             return subscriberConfiguration;
+            return subscriberConfiguration;
+
         }
 
         private void AddCallbackRules(WebhookConfig callback)
