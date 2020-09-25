@@ -12,8 +12,8 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _webhookSelectionRule;
         private string _callbackSelectionRule;
         private string _dlqhooksSelectionRule;
-        private string _webhookPayloadTransform;
-        private string _dlqhookPayloadTransform;
+        private string _webhookPayloadTransform = "$";
+        private string _dlqhookPayloadTransform = "$";
         private UriTransformEntity _webhooksUriTransformEntity;
         private UriTransformEntity _callbacksUriTransformEntity;
         private UriTransformEntity _dlqhooksTransformEntity;

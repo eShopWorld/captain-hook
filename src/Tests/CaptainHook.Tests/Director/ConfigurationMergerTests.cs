@@ -194,6 +194,11 @@ namespace CaptainHook.Tests.Director
                 .WithUri("https://cosmos.eshopworld.com/testevent/")
                 .WithHttpVerb(httpVerb)
                 .WithAuthentication(authenticationConfig)
+                .AddWebhookRequestRule(rule => rule
+                    .WithSource(source => source
+                        .WithPath("$")
+                        .WithType(DataType.Model))
+                    .WithDestination(type: DataType.Model))
                 .Create();
 
             result.Data.Should().BeEquivalentTo(new[] { expectedConfiguration }, options => options.RespectingRuntimeTypes());
@@ -228,29 +233,6 @@ namespace CaptainHook.Tests.Director
                     .ContainEquivalentOf(ContentRequestRule).And
                     .ContainEquivalentOf(StatusCodeRequestRule).And
                     .HaveCount(2);
-            }
-        }
-
-        [Fact(Skip = "DLQ handling not needed as for now"), IsUnit]
-        public async Task CosmosSubscriberWithDlq_ShouldBeMappedProperly()
-        {
-            var cosmosSubscribers = new[]
-            {
-                new SubscriberBuilder().WithEvent("testevent-dlq").WithName("DLQ")
-                    .WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector")
-                    .WithDlqhook("https://cosmos.eshopworld.com/dlq/", "PUT", "selector")
-                    .Create(),
-            };
-
-            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object));
-            var result = await configurationMerger.MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
-
-            using (new AssertionScope())
-            {
-                result.Data.Should().HaveCount(2);
-                result.Data.Should().Contain(x => x.Name == "testevent-dlq"
-                                             && x.SubscriberName == "DLQ"
-                                             && x.WebhookRequestRules.SelectMany(w => w.Routes).All(r => r.Uri == "https://cosmos.eshopworld.com/dlq/"));
             }
         }
     }

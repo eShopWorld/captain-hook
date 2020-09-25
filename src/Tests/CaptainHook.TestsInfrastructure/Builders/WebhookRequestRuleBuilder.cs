@@ -8,7 +8,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
     {
         private SourceParserLocation _source;
         private ParserLocation _destination;
-        private List<WebhookConfigRoute> _routes;
+        private readonly List<WebhookConfigRoute> _routes = new List<WebhookConfigRoute>();
 
         public WebhookRequestRuleBuilder WithSource(Action<SourceParserLocationBuilder> sourceBuilder)
         {
@@ -37,11 +37,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
 
         public WebhookRequestRuleBuilder AddRoute(Action<WebhookConfigRouteBuilder> routeBuilder)
         {
-            if (_routes == null)
-            {
-                _routes = new List<WebhookConfigRoute>();
-            }
-
             var builder = new WebhookConfigRouteBuilder();
             routeBuilder(builder);
             _routes.Add(builder.Create());

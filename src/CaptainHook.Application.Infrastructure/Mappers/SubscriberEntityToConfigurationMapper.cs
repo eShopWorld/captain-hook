@@ -55,6 +55,19 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             ContentRequestRule
         };
 
+        private static WebhookRequestRule PayloadTransformRule(string payloadTransform) => new WebhookRequestRule
+        {
+            Source = new SourceParserLocation
+            {
+                Path = payloadTransform,
+                Type = DataType.Model
+            },
+            Destination = new ParserLocation
+            {
+                Type = DataType.Model
+            }
+        };
+
         private readonly ISecretProvider _secretProvider;
 
         public SubscriberEntityToConfigurationMapper(ISecretProvider secretProvider)
@@ -81,7 +94,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                     return callbackResult.Error;
                 }
                 subscriberConfiguration.Callback = callbackResult.Data;
-                AddCallbackRules(subscriberConfiguration.Callback);
+                subscriberConfiguration.Callback.WebhookRequestRules.AddRange(CallbackRequestRules);
             }
 
             return subscriberConfiguration;
@@ -104,32 +117,35 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             subscriberConfiguration.SubscriberName = $"{entity.Name}-DLQ";
 
             return subscriberConfiguration;
-            return subscriberConfiguration;
 
-        }
-
-        private void AddCallbackRules(WebhookConfig callback)
-        {
-            if (callback.WebhookRequestRules == null)
-            {
-                callback.WebhookRequestRules = new List<WebhookRequestRule>();
-            }
-
-            callback.WebhookRequestRules.AddRange(CallbackRequestRules);
         }
 
         private async Task<OperationResult<WebhookConfig>> MapWebhooksAsync(string name, string eventType, WebhooksEntity webhooksEntity)
         {
+            OperationResult<WebhookConfig> result;
+
             if (string.IsNullOrEmpty(webhooksEntity?.SelectionRule) &&
                 webhooksEntity?.Endpoints?.Count() == 1 &&
                 webhooksEntity?.UriTransform == null)
             {
-                return await MapSingleWebhookWithNoUriTransformAsync(name, eventType, webhooksEntity);
+                result = await MapSingleWebhookWithNoUriTransformAsync(name, eventType, webhooksEntity);
             }
             else
             {
-                return await MapForUriTransformAsync(name, eventType, webhooksEntity);
+                result = await MapForUriTransformAsync(name, eventType, webhooksEntity);
             }
+
+            return result.Then<WebhookConfig>(config => AddPayloadTransformRule(config, webhooksEntity.PayloadTransform, webhooksEntity.Type));
+        }
+
+        private WebhookConfig AddPayloadTransformRule(WebhookConfig webhookConfig, string payloadTransform, WebhooksEntityType entityType)
+        {
+            if(entityType != WebhooksEntityType.Callbacks)
+            {
+                webhookConfig.WebhookRequestRules.Add(PayloadTransformRule(payloadTransform));
+            }
+
+            return webhookConfig;
         }
 
         private async Task<OperationResult<WebhookConfig>> MapSingleWebhookWithNoUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
@@ -147,7 +163,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 EventType = eventType,
                 Uri = webhooksEntity?.Endpoints?.FirstOrDefault()?.Uri,
                 HttpVerb = webhooksEntity?.Endpoints?.FirstOrDefault()?.HttpVerb,
-                AuthenticationConfig = authenticationResult.Data,
+                AuthenticationConfig = authenticationResult.Data
             };
         }
 
