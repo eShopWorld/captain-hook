@@ -15,19 +15,11 @@ using FluentAssertions.Execution;
 using Moq;
 using Xunit;
 
-namespace CaptainHook.Application.Tests.Infrastructure
+namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigurationMapperTests
 {
-    public class SubscriberEntityToConfigurationMapperTests
+    public class MapToWebhookAsyncTests
     {
         private readonly Mock<ISecretProvider> _secretProviderMock = new Mock<ISecretProvider>();
-
-        private static readonly string Secret = "MySecret";
-
-        private static readonly OidcAuthenticationEntity OidcAuthenticationEntity = new OidcAuthenticationEntity("captain-hook-id", "kv-secret-name", "https://blah-blah.sts.eshopworld.com", new[] { "scope1" });
-        private static readonly BasicAuthenticationEntity BasicAuthenticationEntity = new BasicAuthenticationEntity("mark", "kv-secret-name");
-
-        private static readonly OidcAuthenticationConfig OidcAuthenticationConfig = new OidcAuthenticationConfig { ClientId = "captain-hook-id", ClientSecret = Secret, Scopes = new[] { "scope1" }, Uri = "https://blah-blah.sts.eshopworld.com", Type = AuthenticationType.OIDC };
-        private static readonly BasicAuthenticationConfig BasicAuthenticationConfig = new BasicAuthenticationConfig { Username = "mark", Password = Secret, Type = AuthenticationType.Basic };
 
         private static readonly WebhookRequestRule StatusCodeRequestRule = new WebhookRequestRule
         {
@@ -63,37 +55,25 @@ namespace CaptainHook.Application.Tests.Infrastructure
             }
         };
 
-        public static IEnumerable<object[]> Data =>
-            new List<object[]>
-            {
-                new object[] { "POST", OidcAuthenticationEntity, OidcAuthenticationConfig },
-                new object[] { "GET", OidcAuthenticationEntity, OidcAuthenticationConfig },
-                new object[] { "PUT", OidcAuthenticationEntity, OidcAuthenticationConfig },
-                new object[] { "POST", BasicAuthenticationEntity, BasicAuthenticationConfig },
-                new object[] { "GET", BasicAuthenticationEntity, BasicAuthenticationConfig },
-                new object[] { "PUT", BasicAuthenticationEntity, BasicAuthenticationConfig }
-            };
-
-        public SubscriberEntityToConfigurationMapperTests()
+        public MapToWebhookAsyncTests()
         {
-            _secretProviderMock.Setup(m => m.GetSecretValueAsync("kv-secret-name")).ReturnsAsync(Secret);
+            _secretProviderMock.Setup(m => m.GetSecretValueAsync("kv-secret-name")).ReturnsAsync(MapSubscriberAsyncTestData.Secret);
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithSingleWebhookAndNoUriTransformDefined_MapsToSingleWebhook(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenSingleWebhookAndNoUriTransformDefined_MapsToSingleWebhook(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var subscriber = new SubscriberBuilder()
                 .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication: authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -105,21 +85,20 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithSingleCallbackAndNoUriTransformDefined_MapsToSingleCallback(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenSingleCallbackAndNoUriTransformDefined_MapsToSingleCallback(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var subscriber = new SubscriberBuilder()
                 .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication: authentication)
                 .WithCallback("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication: authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -136,8 +115,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithSingleWebhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenSingleWebhookAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -146,14 +125,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -172,8 +150,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithSingleCallbackAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenSingleCallbackAndNoSelectionRuleAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -184,14 +162,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithCallback("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -214,8 +191,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithMultipleWebhooksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenMultipleWebhooksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -226,14 +203,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -258,8 +234,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithMultipleCallbacksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenMultipleCallbacksAndDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -274,14 +250,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithCallback("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -309,8 +284,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithMultipleWebhooksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenMultipleWebhooksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -321,14 +296,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "bSelector", authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -354,8 +328,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithMultipleCallbacksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenMultipleCallbacksAndNoDefaultSelectorAndUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
@@ -370,14 +344,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithCallback("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "bSelector", authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -407,8 +380,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithMultipleWebhooksAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenMultipleWebhooksAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
@@ -419,14 +392,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -451,8 +423,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithMultipleCallbacksAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenMultipleCallbacksAndSelectorInUriTransformDefined_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(
                 new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
@@ -467,14 +439,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithCallback("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -502,8 +473,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithSingleWebhookAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenSingleWebhookAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
@@ -512,14 +483,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithWebhook("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, "*", authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -538,8 +508,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_WithSingleCallbackAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenSingleCallbackAndInvalidUriTransform_MapsToRouteAndReplace(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode" });
             var subscriber = new SubscriberBuilder()
@@ -551,14 +521,13 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .WithCallback("https://blah-{orderCode}.eshopworld.com/webhook/", httpVerb, "*", authentication)
                 .Create();
 
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
 
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
@@ -582,8 +551,8 @@ namespace CaptainHook.Application.Tests.Infrastructure
         }
 
         [Theory, IsUnit]
-        [MemberData(nameof(Data))]
-        public async Task MapSubscriberAsync_NoSelectionRule_MapsFromFirstEndpoint(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
+        [ClassData(typeof(MapSubscriberAsyncTestData))]
+        public async Task WhenNoSelectionRule_MapsFromFirstEndpoint(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             // Arrange
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { {"selector", "$.Test" }});
@@ -593,7 +562,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .Create();
 
             // Act
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             // Assert
             var webhookRequestRule = new WebhookRequestRule
@@ -610,8 +579,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.Should().HaveCount(1);
-                var subscriberConfiguration = result.Data.Single();
+                var subscriberConfiguration = result.Data;
                 subscriberConfiguration.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
                 subscriberConfiguration.WebhookRequestRules.Should().HaveCount(1);
                 subscriberConfiguration.WebhookRequestRules.First().Should().BeEquivalentTo(webhookRequestRule, opt => opt.Including(x => x.Source.Replace));
@@ -620,7 +588,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         [Fact]
         [IsUnit]
-        public async Task MapSubscriberAsync_InvalidSecretKey_ReturnsError()
+        public async Task WhenInvalidSecretKey_ReturnsError()
         {
             // Arrange
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
@@ -634,7 +602,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .Throws(new System.Exception());
 
             // Act
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             // Assert
             using (new AssertionScope())
@@ -646,7 +614,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         [Fact]
         [IsUnit]
-        public async Task MapSubscriberAsync_InvalidPasswordKey_ReturnsError()
+        public async Task WhenInvalidPasswordKey_ReturnsError()
         {
             // Arrange
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
@@ -660,7 +628,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .Throws(new System.Exception());
 
             // Act
-            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapSubscriberAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             // Assert
             using (new AssertionScope())

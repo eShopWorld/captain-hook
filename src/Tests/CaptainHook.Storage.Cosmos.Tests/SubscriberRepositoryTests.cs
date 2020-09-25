@@ -71,7 +71,7 @@ namespace CaptainHook.Storage.Cosmos.Tests
                 .WithCallback("http://www.test.uri/callback/path", httpVerb, "Selector1", authenticationEntity ?? OidcAuthenticationEntity)
                 .WithDlqhooksSelectionRule("$.DlqSelector")
                 .WithDlqhooksUriTransform(new UriTransformEntity(replacements))
-                .WithDlq("http://www.test.uri/dlq/path", httpVerb, "DlqSelector", authenticationEntity ?? OidcAuthenticationEntity)
+                .WithDlqhook("http://www.test.uri/dlq/path", httpVerb, "DlqSelector", authenticationEntity ?? OidcAuthenticationEntity)
                 .WithEtag(etag)
                 .Create();
 

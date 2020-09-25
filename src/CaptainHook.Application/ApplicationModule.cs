@@ -1,5 +1,6 @@
 ﻿using System;
 using Autofac;
+using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
@@ -21,6 +22,7 @@ namespace CaptainHook.Application
             builder.RegisterType<SubscriberEntityToConfigurationMapper>().As<ISubscriberEntityToConfigurationMapper>();
             builder.RegisterType<DtoToEntityMapper>().As<IDtoToEntityMapper>();
             builder.RegisterType<EntityToDtoMapper>().As<IEntityToDtoMapper>();
+            builder.RegisterType<DirectorServiceRequestsGenerator>().As<IDirectorServiceRequestsGenerator>();
 
             builder.RegisterMediatorInfrastructure(ThisAssembly, ThisAssembly);
         }
