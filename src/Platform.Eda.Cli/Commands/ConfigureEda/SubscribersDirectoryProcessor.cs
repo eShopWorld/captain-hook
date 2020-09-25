@@ -9,7 +9,7 @@ using Platform.Eda.Cli.Common;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
-    public class SubscribersDirectoryProcessor
+    public class SubscribersDirectoryProcessor : ISubscribersDirectoryProcessor
     {
         private readonly IFileSystem _fileSystem;
 

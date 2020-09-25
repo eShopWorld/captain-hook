@@ -41,8 +41,8 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
                 .Create();
 
             result.IsError.Should().BeFalse();
-             result.Data.Single().Should().BeEquivalentTo(expectedResult, options => 
-                options.Excluding(sc => sc.IsMainConfiguration).Excluding(sc => sc.WebHookConfigPath).Excluding(sc => sc.CallbackConfigPath));
+            result.Data.Single().Should().BeEquivalentTo(expectedResult, options =>
+               options.Excluding(sc => sc.IsMainConfiguration).Excluding(sc => sc.WebHookConfigPath).Excluding(sc => sc.CallbackConfigPath));
         }
 
         [Fact, IsUnit]
@@ -100,8 +100,8 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
                 .Create();
 
             result.IsError.Should().BeFalse();
-             result.Data.Single().Should().BeEquivalentTo(expectedResult, options => 
-                options.Excluding(sc => sc.IsMainConfiguration).Excluding(sc => sc.WebHookConfigPath).Excluding(sc => sc.CallbackConfigPath));
+            result.Data.Single().Should().BeEquivalentTo(expectedResult, options =>
+               options.Excluding(sc => sc.IsMainConfiguration).Excluding(sc => sc.WebHookConfigPath).Excluding(sc => sc.CallbackConfigPath));
         }
 
         [Fact, IsUnit]
@@ -154,7 +154,7 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
                 .Create();
 
             result.IsError.Should().BeFalse();
-            result.Data.Single().Should().BeEquivalentTo(expectedResult, options => 
+            result.Data.Single().Should().BeEquivalentTo(expectedResult, options =>
                 options.Excluding(sc => sc.IsMainConfiguration).Excluding(sc => sc.WebHookConfigPath).Excluding(sc => sc.CallbackConfigPath));
         }
 

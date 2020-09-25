@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -61,7 +62,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             _secretProvider = secretProvider;
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapSubscriberAsync(SubscriberEntity entity)
+        public async Task<OperationResult<SubscriberConfiguration>> MapToWebhookAsync(SubscriberEntity entity)
         {
             var webhooksResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.Webhooks);
             if (webhooksResult.IsError)
@@ -69,7 +70,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 return webhooksResult.Error;
             }
 
-            SubscriberConfiguration subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
+            var subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
             subscriberConfiguration.SubscriberName = entity.Name;
 
             if (entity.HasCallbacks)
@@ -83,12 +84,31 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 AddCallbackRules(subscriberConfiguration.Callback);
             }
 
-            return new SubscriberConfiguration[] { subscriberConfiguration };
+            return subscriberConfiguration;
+        }
+
+        public async Task<OperationResult<SubscriberConfiguration>> MapToDlqAsync(SubscriberEntity entity)
+        {
+            if (!entity.HasDlqHooks)
+                throw new ArgumentException("Entity must contain Dlqhooks", nameof(entity));
+
+            var webhooksResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.DlqHooks);
+            if (webhooksResult.IsError)
+            {
+                return webhooksResult.Error;
+            }
+
+            var subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
+            subscriberConfiguration.DLQMode = SubscriberDlqMode.WebHookMode;
+            subscriberConfiguration.SourceSubscriptionName = entity.Name;
+            subscriberConfiguration.SubscriberName = $"{entity.Name}-DLQ";
+
+            return subscriberConfiguration;
         }
 
         private void AddCallbackRules(WebhookConfig callback)
         {
-            if(callback.WebhookRequestRules == null)
+            if (callback.WebhookRequestRules == null)
             {
                 callback.WebhookRequestRules = new List<WebhookRequestRule>();
             }
@@ -114,7 +134,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         {
             var authenticationResult = await MapAuthenticationAsync(webhooksEntity?.Endpoints?.FirstOrDefault()?.Authentication);
 
-            if(authenticationResult.IsError)
+            if (authenticationResult.IsError)
             {
                 return authenticationResult.Error;
             }
@@ -181,7 +201,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         {
             var authenticationResult = await MapAuthenticationAsync(endpoint.Authentication);
 
-            if(authenticationResult.IsError)
+            if (authenticationResult.IsError)
             {
                 return authenticationResult.Error;
             }
@@ -239,7 +259,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             }
 
             try
-            { 
+            {
                 var secretValue = await _secretProvider.GetSecretValueAsync(authenticationEntity.PasswordKeyName);
 
                 return new BasicAuthenticationConfig

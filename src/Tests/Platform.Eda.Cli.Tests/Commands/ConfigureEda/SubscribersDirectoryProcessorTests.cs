@@ -18,7 +18,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 {
     public class SubscribersDirectoryProcessorTests
     {
-        internal const string MockCurrentDirectory = @"Z:\Sample\";
+        private const string MockCurrentDirectory = @"Z:\Sample\";
         private readonly SubscribersDirectoryProcessor _subscribersDirectoryProcessor;
 
         public SubscribersDirectoryProcessorTests()

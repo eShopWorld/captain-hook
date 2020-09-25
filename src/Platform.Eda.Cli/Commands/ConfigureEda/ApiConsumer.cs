@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -19,7 +20,7 @@ using Polly.Retry;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
-    public class ApiConsumer
+    public class ApiConsumer : IApiConsumer
     {
         private static readonly HttpStatusCode[] ValidResponseCodes = { HttpStatusCode.Created, HttpStatusCode.Accepted };
 
@@ -33,6 +34,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
         private static readonly string AssemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
+        [ExcludeFromCodeCoverage]
         public static ApiConsumer BuildApiConsumer(IHttpClientFactory clientFactory, string environment)
         {
             var configuration = EswDevOpsSdk.BuildConfiguration(AssemblyLocation, environment);

@@ -16,12 +16,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
     [HelpOption]
     public class ConfigureEdaCommand
     {
-        private readonly IFileSystem _fileSystem;
-        private readonly BuildCaptainHookProxy _captainHookBuilder;
+        private readonly ISubscribersDirectoryProcessor _subscribersDirectoryProcessor;
+        private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
 
-        public ConfigureEdaCommand(IFileSystem fileSystem, BuildCaptainHookProxy captainHookBuilder)
+        public ConfigureEdaCommand(ISubscribersDirectoryProcessor subscribersDirectoryProcessor, BuildCaptainHookProxyDelegate captainHookBuilder)
         {
-            _fileSystem = fileSystem;
+            _subscribersDirectoryProcessor = subscribersDirectoryProcessor;
             _captainHookBuilder = captainHookBuilder;
         }
 
@@ -50,23 +50,20 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             ShowInHelpText = true)]
         public bool NoDryRun { get; set; }
 
-        public async Task<int> OnExecuteAsync(CommandLineApplication app, IConsole console)
+        public async Task<int> OnExecuteAsync(IConsoleSubscriberWriter writer)
         {
             if (string.IsNullOrWhiteSpace(Environment))
             {
                 Environment = "CI";
             }
 
-            var writer = new ConsoleSubscriberWriter(console);
-
             writer.WriteSuccess("box", $"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
 
-            var processor = new SubscribersDirectoryProcessor(_fileSystem);
-            var readDirectoryResult = processor.ProcessDirectory(InputFolderPath);
+            var readDirectoryResult = _subscribersDirectoryProcessor.ProcessDirectory(InputFolderPath);
 
             if (readDirectoryResult.IsError)
             {
-                console.EmitWarning(GetType(), app.Options, readDirectoryResult.Error.Message);
+                writer.WriteError(readDirectoryResult.Error.Message);
                 return 1;
             }
 
@@ -92,7 +89,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             return 0;
         }
 
-        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(ConsoleSubscriberWriter writer,
+        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsoleSubscriberWriter writer,
             IEnumerable<PutSubscriberFile> subscriberFiles)
         {
             var api = _captainHookBuilder(Environment);
