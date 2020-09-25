@@ -1,7 +1,7 @@
 ﻿using System;
+using System.IO.Abstractions;
+using System.Net.Http;
 using System.Reflection;
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Platform.Eda.Cli.Commands.ConfigureEda;
@@ -45,13 +45,14 @@ namespace Platform.Eda.Cli
                 commandParsed = result.SelectedCommand;
             });
 
+            console = app.GetService<IConsole>();
+            
             app.Conventions
                 .UseDefaultConventions()
-                .UseConstructorInjection(SetupAutofac());
+                .UseConstructorInjection(SetupServices());
 
             try
             {
-                console = app.GetService<IConsole>();
                 int returnCode;
                 if ((returnCode = app.Execute(args)) != 0)
                 {
@@ -74,14 +75,23 @@ namespace Platform.Eda.Cli
             }
         }
 
-        private static IServiceProvider SetupAutofac()
+        private static IServiceProvider SetupServices()
         {
-            var serviceProviderFactory = new AutofacServiceProviderFactory();
+            var collection = new ServiceCollection();
 
-            var builder = new ContainerBuilder();
-            builder.RegisterAssemblyModules(Assembly.GetExecutingAssembly());
-            builder.RegisterInstance(new ApiClientFixture().GetApiClient());
-            return serviceProviderFactory.CreateServiceProvider(builder);
+            collection.AddHttpClient();
+            collection.AddTransient<IFileSystem, FileSystem>();
+            collection.AddTransient<IConsoleSubscriberWriter, ConsoleSubscriberWriter>();
+            collection.AddTransient<ISubscribersDirectoryProcessor, SubscribersDirectoryProcessor>();
+
+            collection.AddSingleton(console);
+            collection.AddSingleton<BuildCaptainHookProxyDelegate>(serviceProvider =>
+            {
+                var clientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+                return environment => ApiConsumer.BuildApiConsumer(clientFactory, environment);
+            });
+
+            return collection.BuildServiceProvider();
         }
     }
 }

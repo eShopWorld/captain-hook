@@ -117,7 +117,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
-                .ReturnsAsync(new ReaderAlreadyExistsError(new SubscriberEntity("subscriber")));
+                .ReturnsAsync(new ReaderAlreadyExistsError("subscriber", "event"));
 
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 
@@ -158,7 +158,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.Is<SubscriberEntity>(entity => entity.Webhooks.Endpoints.Count() == 1)))
                 .ReturnsAsync(new SubscriberEntity("subscriber"));
             _directorServiceMock.Setup(r => r.CreateReaderAsync(It.Is<SubscriberEntity>(rci => MatchReaderChangeInfo(rci, _defaultUpsertRequest))))
-                .ReturnsAsync(new ReaderCreateError(new SubscriberEntity("subscriber")));
+                .ReturnsAsync(new ReaderCreateError("subscriber", "event"));
             
             var result = await Handler.Handle(_defaultUpsertRequest, CancellationToken.None);
 

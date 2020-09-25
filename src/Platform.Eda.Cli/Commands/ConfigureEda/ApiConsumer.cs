@@ -1,10 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
+using Eshopworld.DevOps;
+using EShopworld.Security.Services.Rest;
+using Eshopworld.Telemetry;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Rest;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
@@ -13,7 +20,7 @@ using Polly.Retry;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
-    public class ApiConsumer
+    public class ApiConsumer : IApiConsumer
     {
         private static readonly HttpStatusCode[] ValidResponseCodes = { HttpStatusCode.Created, HttpStatusCode.Accepted };
 
@@ -24,6 +31,24 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         private readonly AsyncRetryPolicy<HttpOperationResponse> _putRequestRetryPolicy;
 
         private static readonly TimeSpan[] DefaultSleepDurations = { TimeSpan.FromSeconds(3.0), TimeSpan.FromSeconds(6.0) };
+
+        private static readonly string AssemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+        [ExcludeFromCodeCoverage]
+        public static ApiConsumer BuildApiConsumer(IHttpClientFactory clientFactory, string environment)
+        {
+            var configuration = EswDevOpsSdk.BuildConfiguration(AssemblyLocation, environment);
+            var configureEdaConfig = configuration.BindSection<ConfigureEdaCommandConfig>(nameof(ConfigureEdaCommandConfig));
+
+            var refreshingTokenProviderOptions = configuration.BindSection<RefreshingTokenProviderOptions>(
+                $"{nameof(ConfigureEdaCommandConfig)}:{nameof(RefreshingTokenProviderOptions)}",
+                c => c.AddMapping(m => m.ClientSecret, configureEdaConfig.ClientKeyVaultSecretName));
+
+            var tokenProvider = new RefreshingTokenProvider(clientFactory, BigBrother.CreateDefault("", ""), refreshingTokenProviderOptions);
+
+            var client = new CaptainHookClient(configureEdaConfig.CaptainHookUrl, new TokenCredentials(tokenProvider));
+            return new ApiConsumer(client, null);
+        }
 
         public ApiConsumer(ICaptainHookClient captainHookClient, TimeSpan[] sleepDurations)
         {
