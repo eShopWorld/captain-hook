@@ -11,7 +11,6 @@ using CaptainHook.TestsInfrastructure.TestsData;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Microsoft.Azure.Management.EventHub.Fluent.Models;
 using Moq;
 using Xunit;
 
@@ -46,7 +45,11 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                         .WithPath("$")
                         .WithType(DataType.Model))
                     .WithDestination(type: DataType.Model))
-                .CreateAsDlq();
+                .WithSubscriberName($"{subscriber.Name}-DLQ")
+                .WithName(subscriber.Id)
+                .WithSourceSubscriptionName(subscriber.Name)
+                .AsDLQ()
+                .Create();
 
             using (new AssertionScope())
             {
@@ -68,13 +71,6 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
 
             var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
-            var webhookConfig = new SubscriberConfigurationBuilder()
-                .WithName(subscriber.Id)
-                .WithHttpVerb(httpVerb)
-                .WithAuthentication(expectedAuthenticationConfig)
-                .WithUri("https://blah-{orderCode}.eshopworld.com/webhook/")
-                .Create();
-
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
                 .AddWebhookRequestRule(rule => rule
@@ -91,7 +87,11 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                         .WithPath("$")
                         .WithType(DataType.Model))
                    .WithDestination(type: DataType.Model))
-                .CreateAsDlq();
+                .WithSubscriberName($"{subscriber.Name}-DLQ")
+                .WithName(subscriber.Id)
+                .WithSourceSubscriptionName(subscriber.Name)
+                .AsDLQ()
+                .Create();
 
             using (new AssertionScope())
             {
@@ -116,13 +116,6 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
 
             var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
-            var webhookConfig = new SubscriberConfigurationBuilder()
-               .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
-               .WithAuthentication(expectedAuthenticationConfig)
-               .WithName(subscriber.Id)
-               .WithHttpVerb(httpVerb)
-               .Create();
-
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
                 .AddWebhookRequestRule(rule => rule
@@ -140,12 +133,16 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                         .WithAuthentication(expectedAuthenticationConfig)
                         .WithUri("https://payments-{selector}.eshopworld.com/dlq/")
                         .WithSelector("aSelector")))
-               .AddWebhookRequestRule(rule => rule
+                .AddWebhookRequestRule(rule => rule
                     .WithSource(source => source
                         .WithPath("$")
                         .WithType(DataType.Model))
                     .WithDestination(type: DataType.Model))
-                .CreateAsDlq();
+                .WithSubscriberName($"{subscriber.Name}-DLQ")
+                .WithName(subscriber.Id)
+                .WithSourceSubscriptionName(subscriber.Name)
+                .AsDLQ()
+                .Create();
 
             using (new AssertionScope())
             {
@@ -170,13 +167,6 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
 
             var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
-            var webhookConfig = new SubscriberConfigurationBuilder()
-                .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
-                .WithAuthentication(expectedAuthenticationConfig)
-                .WithName(subscriber.Id)
-                .WithHttpVerb(httpVerb)
-                .Create();
-
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
                 .AddWebhookRequestRule(rule => rule
@@ -199,7 +189,11 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                         .WithPath("$")
                         .WithType(DataType.Model))
                     .WithDestination(type: DataType.Model))
-                .CreateAsDlq();
+                .WithSubscriberName($"{subscriber.Name}-DLQ")
+                .WithName(subscriber.Id)
+                .WithSourceSubscriptionName(subscriber.Name)
+                .AsDLQ()
+                .Create();
 
             using (new AssertionScope())
             {
@@ -224,36 +218,33 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
 
             var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
-            var webhookConfig = new SubscriberConfigurationBuilder()
-               .WithUri("https://blah-{selector}.eshopworld.com/webhook/")
-               .WithAuthentication(expectedAuthenticationConfig)
-               .WithName(subscriber.Id)
-               .WithHttpVerb(httpVerb)
-               .Create();
-
             var dlqConfig = new SubscriberConfigurationBuilder()
-               .WithUri(null).WithoutAuthentication()
-               .AddWebhookRequestRule(rule => rule
-                   .WithSource(source => source
-                       .AddReplace("selector", "$.TenantCode")
-                       .AddReplace("orderCode", "$.OrderCode"))
-                   .WithDestination(ruleAction: RuleAction.RouteAndReplace)
-                   .AddRoute(route => route
-                       .WithHttpVerb(httpVerb)
-                       .WithAuthentication(expectedAuthenticationConfig)
-                       .WithUri("https://order-{selector}.eshopworld.com/dlq/")
-                       .WithSelector("*"))
-                   .AddRoute(route => route
-                       .WithHttpVerb(httpVerb)
-                       .WithAuthentication(expectedAuthenticationConfig)
-                       .WithUri("https://payments-{selector}.eshopworld.com/dlq/")
-                       .WithSelector("aSelector")))
+                .WithUri(null).WithoutAuthentication()
+                .AddWebhookRequestRule(rule => rule
+                    .WithSource(source => source
+                        .AddReplace("selector", "$.TenantCode")
+                        .AddReplace("orderCode", "$.OrderCode"))
+                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                    .AddRoute(route => route
+                        .WithHttpVerb(httpVerb)
+                        .WithAuthentication(expectedAuthenticationConfig)
+                        .WithUri("https://order-{selector}.eshopworld.com/dlq/")
+                        .WithSelector("*"))
+                    .AddRoute(route => route
+                        .WithHttpVerb(httpVerb)
+                        .WithAuthentication(expectedAuthenticationConfig)
+                        .WithUri("https://payments-{selector}.eshopworld.com/dlq/")
+                        .WithSelector("aSelector")))
                 .AddWebhookRequestRule(rule => rule
                     .WithSource(source => source
                         .WithPath("$")
                         .WithType(DataType.Model))
-                   .WithDestination(type: DataType.Model))
-               .CreateAsDlq();
+                    .WithDestination(type: DataType.Model))
+                .WithSubscriberName($"{subscriber.Name}-DLQ")
+                .WithName(subscriber.Id)
+                .WithSourceSubscriptionName(subscriber.Name)
+                .AsDLQ()
+                .Create();
 
             using (new AssertionScope())
             {
@@ -276,22 +267,26 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var dlqConfig = new SubscriberConfigurationBuilder()
-               .WithUri(null).WithoutAuthentication()
-               .AddWebhookRequestRule(rule => rule
-                   .WithSource(source => source
-                       .AddReplace("selector", "$.Test"))
-                   .WithDestination(ruleAction: RuleAction.RouteAndReplace)
-                   .AddRoute(route => route
-                       .WithHttpVerb(httpVerb)
-                       .WithAuthentication(expectedAuthenticationConfig)
-                       .WithUri("https://blah-{selector}.eshopworld.com/dlq/")
-                       .WithSelector("*")))
-               .AddWebhookRequestRule(rule => rule
+                .WithUri(null).WithoutAuthentication()
+                .AddWebhookRequestRule(rule => rule
+                    .WithSource(source => source
+                        .AddReplace("selector", "$.Test"))
+                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                    .AddRoute(route => route
+                        .WithHttpVerb(httpVerb)
+                        .WithAuthentication(expectedAuthenticationConfig)
+                        .WithUri("https://blah-{selector}.eshopworld.com/dlq/")
+                        .WithSelector("*")))
+                .AddWebhookRequestRule(rule => rule
                     .WithSource(source => source
                         .WithPath("$")
                         .WithType(DataType.Model))
-                   .WithDestination(type: DataType.Model))
-               .CreateAsDlq();
+                    .WithDestination(type: DataType.Model))
+                .WithSubscriberName($"{subscriber.Name}-DLQ")
+                .WithName(subscriber.Id)
+                .WithSourceSubscriptionName(subscriber.Name)
+                .AsDLQ()
+                .Create();
 
             using (new AssertionScope())
             {
@@ -380,7 +375,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
 
             // Assert
             using (new AssertionScope())
-            result.IsError.Should().BeFalse();
+                result.IsError.Should().BeFalse();
             result.Data.WebhookRequestRules.Should().HaveCount(1);
             result.Data.WebhookRequestRules.Single().Should().BeEquivalentTo(RequestRule);
         }

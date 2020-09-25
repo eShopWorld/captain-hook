@@ -44,6 +44,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
+        public SubscriberConfigurationBuilder WithSourceSubscriptionName(string sourceSubscriptionName)
+        {
+            _sourceSubscriptionName = sourceSubscriptionName;
+            return this;
+        }
+
         public SubscriberConfigurationBuilder WithUri(string uri)
         {
             _uri = uri;
