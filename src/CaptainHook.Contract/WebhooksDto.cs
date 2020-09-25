@@ -18,5 +18,10 @@ namespace CaptainHook.Contract
         /// Webhook endpoints
         /// </summary>
         public List<EndpointDto> Endpoints { get; set; }
+
+        /// <summary>
+        /// Payload transformation
+        /// </summary>
+        public string PayloadTransform { get; set; }
     }
 }
