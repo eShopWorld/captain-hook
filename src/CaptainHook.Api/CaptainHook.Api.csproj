@@ -31,8 +31,8 @@
     <PackageReference Include="Microsoft.ApplicationInsights.ServiceFabric.Native" Version="2.3.1" />
     <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="4.0.470" />
     <PackageReference Include="Microsoft.ServiceFabric.Services" Version="4.0.470" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.6.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.5.1" />
   </ItemGroup>
 
   <ItemGroup>
