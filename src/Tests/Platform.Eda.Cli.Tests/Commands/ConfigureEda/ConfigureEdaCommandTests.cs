@@ -50,7 +50,8 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
 
             // Assert
-            VerifySubscriberWriterCallsForFiles(files);
+            OutputShouldContainFileNames(files);
+            Output.Should().Contain($"File '{Path.GetRelativePath(MockCurrentDirectory, files[0].File.FullName)}' has been processed successfully");
             result.Should().Be(0);
         }
 
@@ -65,7 +66,11 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
 
             // Assert
-            VerifySubscriberWriterCallsForFiles(files);
+            OutputShouldContainFileNames(files);
+            foreach (var putSubscriberFile in files)
+            {
+                Output.Should().Contain($"File '{Path.GetRelativePath(MockCurrentDirectory, putSubscriberFile.File.FullName)}' has been processed successfully");
+            }
             result.Should().Be(0);
         }
 
@@ -80,7 +85,10 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
 
             // Assert
-            VerifySubscriberWriterCallsForFiles(files);
+            OutputShouldContainFileNames(files);
+            Output.Should()
+                .Contain("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.")
+                .And.NotContain("has been processed successfully");
             result.Should().Be(0);
         }
 
@@ -125,10 +133,34 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
 
             // Assert;
-            VerifySubscriberWriterCallsForFiles(files);
+            OutputShouldContainFileNames(files);
             Output.SplitLines().Should()
                 .Contain($"Error when processing '{files[0].File.Name}':")
                 .And.Contain("Exception text");
+            result.Should().Be(2);
+        }
+
+        [Fact, IsUnit]
+        public async Task OnExecuteAsync_OnApiPartialFailure_Returns2()
+        {
+            // Arrange
+            var files = GetMultipleMockInputFiles();
+            _mockSubscribersDirectoryProcessor.Setup(proc => proc.ProcessDirectory(MockCurrentDirectory))
+                .Returns(() => new OperationResult<IEnumerable<PutSubscriberFile>>(files));
+            _apiConsumer.Setup(apiConsumer => apiConsumer.CallApiAsync(files))
+                .Returns(AsyncEnumerableMixed(files));
+
+            // Act
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+
+            // Assert
+            _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(files), Times.Once);
+
+            // OutputsFailureAndSuccess
+            OutputShouldContainFileNames(files);
+            Output.Should().Contain($"Error when processing '{Path.GetRelativePath(MockCurrentDirectory, files[0].File.FullName)}'");
+            Output.Should().Contain($"File '{Path.GetRelativePath(MockCurrentDirectory, files[1].File.FullName)}' has been processed successfully");
+
             result.Should().Be(2);
         }
 
@@ -144,16 +176,17 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             // Assert
             _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(files), Times.Once);
-            VerifySubscriberWriterCallsForFiles(files);
+            OutputShouldContainFileNames(files);
+            Output.Should().Contain($"File '{Path.GetRelativePath(MockCurrentDirectory, files[0].File.FullName)}' has been processed successfully");
             result.Should().Be(0);
         }
 
         [Fact, IsUnit]
-        public async Task OnExecuteAsync_WhenNoDryRunFalse_ApiIsNotCalled()
+        public async Task OnExecuteAsync_WhenNoDryRunFalse_ApiConsumerIsNotCalled()
         {
             // Arrange
             _configureEdaCommand.NoDryRun = false;
-            var files = new PutSubscriberFile[0];
+            var files = GetOneSampleInputFile();
             SetupDirectoryProcessorAndApiConsumer(files);
 
             // Act
@@ -161,7 +194,14 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             // Assert
             _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()), Times.Never);
-            VerifySubscriberWriterCallsForFiles(files);
+            OutputShouldContainFileNames(files);
+            Output.Should()
+                .NotContain(
+                    $"File '{Path.GetRelativePath(MockCurrentDirectory, files[0].File.FullName)}' has been processed successfully")
+                .And.NotContain("Starting to run configuration against Captain Hook API")
+                .And.Contain(
+                    "By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
+
             result.Should().Be(0);
         }
 
@@ -199,19 +239,18 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             };
         }
 
-        private void VerifySubscriberWriterCallsForFiles(PutSubscriberFile[] files)
+        private void OutputShouldContainFileNames(PutSubscriberFile[] files)
         {
+            Output.Should().Contain($@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment");
             foreach (var putSubscriberFile in files)
             {
-                
-                Output.Should().Contain($"File '{Path.GetRelativePath(MockCurrentDirectory, putSubscriberFile.File.FullName)}' has been found");
+                var fileRelativePath = Path.GetRelativePath(MockCurrentDirectory, putSubscriberFile.File.FullName);
+                Output.Should().Contain($"File '{fileRelativePath}' has been found");
             }
-
-            Output.Should().Contain($@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment");
         }
 
 #pragma warning disable 1998 // Async function without await expression
-        private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableResponse(IEnumerable<PutSubscriberFile> files)
+        private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableResponse(PutSubscriberFile[] files)
         {
             foreach (var putSubscriberFile in files)
             {
@@ -223,7 +262,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             }
         }
 
-        private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableException(IEnumerable<PutSubscriberFile> files)
+        private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableException(PutSubscriberFile[] files)
         {
 
             foreach (var putSubscriberFile in files)
@@ -233,6 +272,30 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     File = new FileInfo(putSubscriberFile.File.FullName),
                     Response = new CliExecutionError("Exception text", new Failure("0", "Failure message"))
                 };
+            }
+        }
+
+        private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableMixed(PutSubscriberFile[] files)
+        {
+            for (var i = 0; i < files.Length; i++)
+            {
+                var putSubscriberFile = files[i];
+                if (i == 0)
+                {
+                    yield return new ApiOperationResult
+                    {
+                        File = new FileInfo(putSubscriberFile.File.FullName),
+                        Response = new CliExecutionError("Exception text", new Failure("0", "Failure message"))
+                    };
+                }
+                else
+                {
+                    yield return new ApiOperationResult
+                    {
+                        File = new FileInfo(putSubscriberFile.File.FullName),
+                        Response = new OperationResult<HttpOperationResponse>(new HttpOperationResponse())
+                    };
+                }
             }
         }
 #pragma warning restore 1998
