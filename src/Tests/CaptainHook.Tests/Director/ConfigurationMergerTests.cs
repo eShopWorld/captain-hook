@@ -238,7 +238,7 @@ namespace CaptainHook.Tests.Director
             {
                 new SubscriberBuilder().WithEvent("testevent-dlq").WithName("DLQ")
                     .WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "selector")
-                    .WithDlq("https://cosmos.eshopworld.com/dlq/", "PUT", "selector")
+                    .WithDlqhook("https://cosmos.eshopworld.com/dlq/", "PUT", "selector")
                     .Create(),
             };
 

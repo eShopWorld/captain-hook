@@ -68,7 +68,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                .ReturnsAsync(subscriber);
             _directorServiceMock.Setup(x => x.DeleteReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberConfiguration>());
+                .ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.Setup(x => x.RemoveSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new SubscriberId("event", "subscriber"));
             _entityToDtoMapperMock.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>())).Returns(_subscriberDto);
@@ -135,7 +135,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         public async Task When_DirectorServiceFailsToUpdateReaderBecauseOfDeleteError_Then_OperationFails()
         {
             _directorServiceMock.Setup(x => x.DeleteReaderAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new ReaderDeleteError(new SubscriberEntity("subscriber")));
+                .ReturnsAsync(new ReaderDeleteError("subscriber", "event"));
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 

@@ -8,20 +8,23 @@ namespace CaptainHook.TestsInfrastructure.Builders
 {
     public class SubscriberConfigurationBuilder
     {
-        private string _type = "event1";
-        private string _name = "event1";
+        private string _type = "event";
+        private string _name = "event";
         private string _subscriberName = "captain-hook";
+        private string _sourceSubscriptionName;
         private string _uri = "https://blah.blah.eshopworld.com";
         private string _httpVerb = "POST";
+        private WebhookConfig _callback;
+        private bool _asDlq;
+
+        private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
+
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
         {
             Type = AuthenticationType.Basic,
             Username = "user",
             Password = "password",
         };
-        private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
-        private WebhookConfig _callback;
-        private bool _asDlq;
 
         public SubscriberConfigurationBuilder WithType(string type)
         {
@@ -38,6 +41,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberConfigurationBuilder WithSubscriberName(string subscriberName)
         {
             _subscriberName = subscriberName;
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithSourceSubscriptionName(string sourceSubscriptionName)
+        {
+            _sourceSubscriptionName = sourceSubscriptionName;
             return this;
         }
 
@@ -84,14 +93,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberConfigurationBuilder WithAuthentication(AuthenticationConfig authenticationConfig)
         {
             _authenticationConfig = authenticationConfig;
-
             return this;
         }
 
         public SubscriberConfigurationBuilder WithHttpVerb(string httpVerb)
         {
             _httpVerb = httpVerb;
-
             return this;
         }
 
@@ -140,6 +147,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
                 Name = _name,
                 EventType = _type,
                 SubscriberName = _subscriberName,
+                SourceSubscriptionName = _sourceSubscriptionName,
                 HttpVerb = _httpVerb,
                 Uri = _uri,
                 AuthenticationConfig = _authenticationConfig,

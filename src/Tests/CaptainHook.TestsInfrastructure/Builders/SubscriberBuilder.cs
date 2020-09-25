@@ -87,7 +87,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        public SubscriberBuilder WithDlq(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
+        public SubscriberBuilder WithDlqhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
             var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null);
             _dlqhooks.Add(endpoint);
