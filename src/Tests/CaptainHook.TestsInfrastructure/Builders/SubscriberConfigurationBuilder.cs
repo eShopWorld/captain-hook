@@ -18,7 +18,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private bool _asDlq;
 
         private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
-        
+
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
         {
             Type = AuthenticationType.Basic,
@@ -41,6 +41,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberConfigurationBuilder WithSubscriberName(string subscriberName)
         {
             _subscriberName = subscriberName;
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithSourceSubscriptionName(string sourceSubscriptionName)
+        {
+            _sourceSubscriptionName = sourceSubscriptionName;
             return this;
         }
 
