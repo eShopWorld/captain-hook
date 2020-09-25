@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
@@ -26,17 +27,20 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
         private readonly IDtoToEntityMapper _dtoToEntityMapper;
+        private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
         private readonly TimeSpan[] _retrySleepDurations;
 
         public UpsertWebhookRequestHandler(
             ISubscriberRepository subscriberRepository,
             IDirectorServiceProxy directorService,
             IDtoToEntityMapper dtoToEntityMapper,
+            ISubscriberEntityToConfigurationMapper entityToConfigurationMapper,
             TimeSpan[] sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
             _dtoToEntityMapper = dtoToEntityMapper ?? throw new ArgumentNullException(nameof(dtoToEntityMapper));
+            _entityToConfigurationMapper = entityToConfigurationMapper ?? throw new ArgumentNullException(nameof(entityToConfigurationMapper));
             _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 
@@ -79,7 +83,14 @@ namespace CaptainHook.Application.Handlers.Subscribers
             }
 
             var subscriber = subscriberResult.Data;
-            var directorResult = await _directorService.CreateReaderAsync(subscriber);
+
+            var subscriberConfiguration = await _entityToConfigurationMapper.MapToWebhookAsync(subscriber);
+            if (subscriberConfiguration.IsError)
+            {
+                return subscriberConfiguration.Error;
+            }
+
+            var directorResult = await _directorService.CallDirectorService(new CreateReader(subscriberConfiguration));
             if (directorResult.IsError)
             {
                 return directorResult.Error;
@@ -96,23 +107,29 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
         private async Task<OperationResult<EndpointDto>> UpdateAsync(
             UpsertWebhookRequest request,
-            SubscriberEntity existingItem)
+            SubscriberEntity subscriber)
         {
-            var endpoint = MapRequestToEndpointEntity(request, existingItem);
-            var addWebhookResult = existingItem.SetWebhookEndpoint(endpoint);
+            var endpoint = MapRequestToEndpointEntity(request, subscriber);
+            var addWebhookResult = subscriber.SetWebhookEndpoint(endpoint);
 
             if (addWebhookResult.IsError)
             {
                 return addWebhookResult.Error;
             }
 
-            var directorResult = await _directorService.UpdateReaderAsync(existingItem);
+            var subscriberConfiguration = await _entityToConfigurationMapper.MapToWebhookAsync(subscriber);
+            if (subscriberConfiguration.IsError)
+            {
+                return subscriberConfiguration.Error;
+            }
+
+            var directorResult = await _directorService.CallDirectorService(new UpdateReader(subscriberConfiguration));
             if (directorResult.IsError)
             {
                 return directorResult.Error;
             }
 
-            var updateResult = await _subscriberRepository.UpdateSubscriberAsync(existingItem);
+            var updateResult = await _subscriberRepository.UpdateSubscriberAsync(subscriber);
             if (updateResult.IsError)
             {
                 return updateResult.Error;
