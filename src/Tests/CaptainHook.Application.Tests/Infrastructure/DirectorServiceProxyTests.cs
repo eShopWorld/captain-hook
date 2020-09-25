@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
@@ -6,6 +7,7 @@ using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
+using CaptainHook.Domain.Results;
 using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -23,89 +25,118 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         public DirectorServiceProxyTests()
         {
-            _mapperMock.Setup(x => x.MapSubscriberAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new List<SubscriberConfiguration> { new SubscriberConfiguration() });
+            _mapperMock.Setup(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()))
+                .ReturnsAsync(new SubscriberConfiguration());
+
+            _mapperMock.Setup(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()))
+               .ReturnsAsync(new SubscriberConfiguration());
         }
 
-        [Fact, IsUnit]
-        public async Task When_Success_Then_TrueIsReturned()
+        public static IEnumerable<object[]> Data
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    new Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>>((proxy, entity) => proxy.CreateReaderAsync(entity))
+                };
+                yield return new object[]
+                {
+                    new Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>>((proxy, entity) => proxy.UpdateReaderAsync(entity))
+                };
+                yield return new object[]
+                {
+                    new Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>>((proxy, entity) => proxy.DeleteReaderAsync(entity))
+                };
+            }
+        }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task When_Success_Then_SubscriberConfigurationIsReturned(Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>> func)
         {
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.Success);
 
-            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await func(Proxy, new SubscriberBuilder().Create());
 
             result.IsError.Should().BeFalse();
-            result.Data.Should().NotBeNullOrEmpty();
+            result.Data.Should().NotBeNull();
         }
 
-        [Fact, IsUnit]
-        public async Task When_ReaderAlreadyExists_Then_ErrorIsReturned()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task When_ReaderAlreadyExists_Then_ErrorIsReturned(Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>> func)
         {
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.ReaderAlreadyExist);
 
-            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await func(Proxy, new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderAlreadyExistsError>();
         }
 
-        [Fact, IsUnit]
-        public async Task When_ReaderDoesNotExist_Then_ErrorIsReturned()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task When_ReaderDoesNotExist_Then_ErrorIsReturned(Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>> func)
         {
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.ReaderDoesNotExist);
 
-            var result = await Proxy.UpdateReaderAsync(new SubscriberBuilder().Create());
+            var result = await func(Proxy, new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderDoesNotExistError>();
         }
 
-        [Fact, IsUnit]
-        public async Task When_DirectorServiceIsBusy_Then_DirectorServiceIsBusyErrorReturned()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task When_DirectorServiceIsBusy_Then_DirectorServiceIsBusyErrorReturned(Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>> func)
         {
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.DirectorIsBusy);
 
-            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await func(Proxy, new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
         }
 
-        [Fact, IsUnit]
-        public async Task When_ReaderCreateFailed_Then_ReaderCreationErrorReturned()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task When_ReaderCreateFailed_Then_ReaderCreationErrorReturned(Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>> func)
         {
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.CreateFailed);
 
-            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await func(Proxy, new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderCreateError>();
         }
 
-        [Fact, IsUnit]
-        public async Task When_ReaderDeleteFailed_Then_ReaderDeletionErrorReturned()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task When_ReaderDeleteFailed_Then_ReaderDeletionErrorReturned(Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>> func)
         {
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.DeleteFailed);
 
-            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await func(Proxy, new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderDeleteError>();
         }
 
-        [Fact, IsUnit]
-        public async Task When_DirectorServiceResultNotSet_Then_GenericErrorReturned()
+        [Theory, IsUnit]
+        [MemberData(nameof(Data))]
+        public async Task When_DirectorServiceResultNotSet_Then_GenericErrorReturned(Func<DirectorServiceProxy, SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>> func)
         {
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.None);
 
-            var result = await Proxy.CreateReaderAsync(new SubscriberBuilder().Create());
+            var result = await func(Proxy, new SubscriberBuilder().Create());
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();

@@ -18,7 +18,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private bool _asDlq;
 
         private List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
-        
+
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
         {
             Type = AuthenticationType.Basic,
@@ -41,6 +41,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberConfigurationBuilder WithSubscriberName(string subscriberName)
         {
             _subscriberName = subscriberName;
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithSourceSubscriptionName(string sourceSubscriptionName)
+        {
+            _sourceSubscriptionName = sourceSubscriptionName;
             return this;
         }
 
@@ -96,7 +102,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        // TODO: remove or use version of this method which accepts SubscriberConfigurationBuilder
         public SubscriberConfigurationBuilder WithCallback(string uri = "https://callback.eshopworld.com")
         {
             _callback = new WebhookConfig
@@ -133,16 +138,6 @@ namespace CaptainHook.TestsInfrastructure.Builders
             ruleBuilder(builder);
             _webhookRequestRules.Add(builder.Create());
             return this;
-        }
-
-        public SubscriberConfiguration CreateAsDlq()
-        {
-            _asDlq = true;
-            _sourceSubscriptionName = _subscriberName;
-            _subscriberName = "DLQ";
-            _name = $"{_name}-{_subscriberName}";
-
-            return Create();
         }
 
         public SubscriberConfiguration Create()

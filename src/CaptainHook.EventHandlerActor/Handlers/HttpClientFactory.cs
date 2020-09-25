@@ -50,7 +50,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
             if (!result)
             {
-                throw new ArgumentNullException(nameof(httpClient), $"HttpClient for {uri.Host} could not be added to the dictionary of http clients");
+                throw new InvalidOperationException($"HttpClient for {uri.Host} could not be added to the dictionary of http clients");
             }
             return httpClient;
         }

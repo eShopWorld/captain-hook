@@ -57,7 +57,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             {
                 if (!(request is MessageData messageData))
                 {
-                    throw new Exception("injected wrong implementation");
+                    throw new InvalidOperationException("injected wrong implementation");
                 }
 
                 //todo refactor into a single call and a dto

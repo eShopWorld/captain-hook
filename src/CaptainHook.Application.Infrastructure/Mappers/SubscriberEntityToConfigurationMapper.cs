@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 {
     public class SubscriberEntityToConfigurationMapper : ISubscriberEntityToConfigurationMapper
     {
+        private static readonly Dictionary<string, string> EmptyReplacementsDictionary = new Dictionary<string, string>();
+
         private static readonly WebhookRequestRule StatusCodeRequestRule = new WebhookRequestRule
         {
             Source = new SourceParserLocation
@@ -59,7 +62,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             _secretProvider = secretProvider;
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapSubscriberAsync(SubscriberEntity entity)
+        public async Task<OperationResult<SubscriberConfiguration>> MapToWebhookAsync(SubscriberEntity entity)
         {
             var webhooksResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.Webhooks);
             if (webhooksResult.IsError)
@@ -81,40 +84,31 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 AddCallbackRules(subscriberConfiguration.Callback);
             }
 
-            if (entity.HasDlqHooks)
-            {
-                var dlqResult = await MapDlqHooksAsync(entity.Name, entity.ParentEvent.Name, entity.DlqHooks);
-                if (dlqResult.IsError)
-                {
-                    return dlqResult.Error;
-                }
-
-                return new[] { subscriberConfiguration, dlqResult.Data };
-            }
-
-            return new[] { subscriberConfiguration };
+            return subscriberConfiguration;
         }
 
-        private async Task<OperationResult<SubscriberConfiguration>> MapDlqHooksAsync(string name, string eventType, WebhooksEntity webhooksEntity)
+        public async Task<OperationResult<SubscriberConfiguration>> MapToDlqAsync(SubscriberEntity entity)
         {
-            var webhooksResult = await MapWebhooksAsync(name, eventType, webhooksEntity);
+            if (!entity.HasDlqHooks)
+                throw new ArgumentException("Entity must contain Dlqhooks", nameof(entity));
+
+            var webhooksResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.DlqHooks);
             if (webhooksResult.IsError)
             {
                 return webhooksResult.Error;
             }
 
             var subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
-            subscriberConfiguration.SourceSubscriptionName = name;
-            subscriberConfiguration.Name = $"{eventType}-DLQ";
-            subscriberConfiguration.SubscriberName = "DLQ";
             subscriberConfiguration.DLQMode = SubscriberDlqMode.WebHookMode;
+            subscriberConfiguration.SourceSubscriptionName = entity.Name;
+            subscriberConfiguration.SubscriberName = $"{entity.Name}-DLQ";
 
             return subscriberConfiguration;
         }
 
         private void AddCallbackRules(WebhookConfig callback)
         {
-            if(callback.WebhookRequestRules == null)
+            if (callback.WebhookRequestRules == null)
             {
                 callback.WebhookRequestRules = new List<WebhookRequestRule>();
             }
@@ -157,7 +151,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
         {
-            var replacements = webhooksEntity.UriTransform?.Replace ?? new Dictionary<string, string>();
+            var replacements = new Dictionary<string, string>(webhooksEntity.UriTransform?.Replace ?? EmptyReplacementsDictionary);
 
             if (!string.IsNullOrEmpty(webhooksEntity.SelectionRule))
             {
