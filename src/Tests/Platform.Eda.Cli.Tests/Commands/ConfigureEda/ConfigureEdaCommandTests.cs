@@ -210,7 +210,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             Output.Should().Contain($@"Reading files from folder: '{MockCurrentDirectory}' to be run against CI environment");
         }
 
-#pragma warning disable 1998 
+#pragma warning disable 1998 // Async function without await expression
         private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableResponse(IEnumerable<PutSubscriberFile> files)
         {
             foreach (var putSubscriberFile in files)
