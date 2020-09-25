@@ -22,5 +22,10 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public UriTransformSubdocument UriTransform { get; set; }
+
+        /// <summary>
+        /// Payload transformation
+        /// </summary>
+        public string PayloadTransform { get; set; }
     }
 }

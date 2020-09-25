@@ -12,7 +12,6 @@ namespace CaptainHook.Domain.Entities
     /// </summary>
     public class WebhooksEntity
     {
-
         private static readonly ValidationErrorBuilder ValidationErrorBuilder = new ValidationErrorBuilder();
 
         private static readonly SelectorEndpointEntityEqualityComparer SelectorEndpointEntityEqualityComparer = new SelectorEndpointEntityEqualityComparer();
@@ -61,7 +60,7 @@ namespace CaptainHook.Domain.Entities
             SelectionRule = selectionRule;
             Endpoints = endpoints?.ToList();
             UriTransform = uriTransform;
-            PayloadTransform = payloadTransform;
+            PayloadTransform = (type == WebhooksEntityType.Callbacks) ? null : payloadTransform;
         }
 
         public WebhooksEntity SetSelectionRule(string selectionRule)
