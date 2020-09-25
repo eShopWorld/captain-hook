@@ -1,14 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Abstractions.TestingHelpers;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
-using CaptainHook.Api.Client;
-using CaptainHook.Api.Client.Models;
-using CaptainHook.Cli.Tests;
 using CaptainHook.Domain.Results;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -18,7 +11,6 @@ using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 {
@@ -37,7 +29,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _apiConsumer = new Mock<IApiConsumer>();
             _mockSubscribersDirectoryProcessor = new Mock<ISubscribersDirectoryProcessor>();
 
-            _configureEdaCommand = new ConfigureEdaCommand(_mockSubscribersDirectoryProcessor.Object, _apiConsumer.Object)
+            _configureEdaCommand = new ConfigureEdaCommand(_mockSubscribersDirectoryProcessor.Object, env=> _apiConsumer.Object)
             {
                 InputFolderPath = MockCurrentDirectory,
                 NoDryRun = true
