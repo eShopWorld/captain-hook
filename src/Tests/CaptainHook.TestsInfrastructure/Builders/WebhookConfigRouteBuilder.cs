@@ -58,10 +58,15 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
+        public WebhookConfigRouteBuilder WithAuthentication(AuthenticationConfig authenticationConfig)
+        {
+            _authenticationConfig = authenticationConfig;
+            return this;
+        }
+
         public WebhookConfigRouteBuilder WithHttpVerb(string verb)
         {
             _httpVerb = verb;
-
             return this;
         }
 
