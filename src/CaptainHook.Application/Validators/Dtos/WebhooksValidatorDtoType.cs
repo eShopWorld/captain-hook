@@ -1,6 +1,6 @@
 ﻿namespace CaptainHook.Application.Validators.Dtos
 {
-    public enum WebhooksDtoType
+    public enum WebhooksValidatorDtoType
     {
         Webhook = 0,
         Callback,
