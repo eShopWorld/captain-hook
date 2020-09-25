@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Application.Results;
@@ -18,16 +19,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
     {
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDtoToEntityMapper _dtoToEntityMapper;
-        private readonly IDirectorServiceChanger _directorServiceChanger;
+        private readonly IDirectorServiceRequestsGenerator _directorServiceRequestsGenerator;
+        private readonly IDirectorServiceProxy _directorServiceProxy;
 
         public UpsertSubscriberRequestHandler(
             ISubscriberRepository subscriberRepository,
-            IDirectorServiceChanger directorServiceChanger,
-            IDtoToEntityMapper dtoToEntityMapper)
+            IDirectorServiceRequestsGenerator directorServiceRequestsGenerator,
+            IDtoToEntityMapper dtoToEntityMapper,
+            IDirectorServiceProxy directorServiceProxy)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
-            _directorServiceChanger = directorServiceChanger ?? throw new ArgumentNullException(nameof(directorServiceChanger));
+            _directorServiceRequestsGenerator = directorServiceRequestsGenerator ?? throw new ArgumentNullException(nameof(directorServiceRequestsGenerator));
             _dtoToEntityMapper = dtoToEntityMapper ?? throw new ArgumentNullException(nameof(dtoToEntityMapper));
+            _directorServiceProxy = directorServiceProxy ?? throw new ArgumentNullException(nameof(directorServiceProxy));
         }
 
         public async Task<OperationResult<UpsertResult<SubscriberDto>>> Handle(UpsertSubscriberRequest request, CancellationToken cancellationToken)
@@ -42,10 +46,19 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
             var subscriber = MapRequestToEntity(request);
 
-            var directorResult = await _directorServiceChanger.ApplyAsync(existingItem.Data, subscriber);
-            if (directorResult.IsError)
+            var requests = await _directorServiceRequestsGenerator.DefineChangesAsync(subscriber, existingItem.Data);
+            if (requests.IsError)
             {
-                return directorResult.Error;
+                return requests.Error;
+            }
+
+            foreach (var dsRequest in requests.Data)
+            {
+                var directorResult = await _directorServiceProxy.CallDirectorService(dsRequest);
+                if (directorResult.IsError)
+                {
+                    return directorResult.Error;
+                }
             }
 
             if (existingItem.Error is EntityNotFoundError)

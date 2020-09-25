@@ -7,7 +7,7 @@ using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
-    public class ConsoleSubscriberWriter
+    public class ConsoleSubscriberWriter : IConsoleSubscriberWriter
     {
         private readonly IConsole _console;
 

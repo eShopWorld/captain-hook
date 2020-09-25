@@ -22,40 +22,22 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         public async Task<OperationResult<SubscriberConfiguration>> CreateReaderAsync(SubscriberEntity subscriber)
         {
              return await _entityToConfigurationMapper.MapToWebhookAsync(subscriber)
-                   .Then(async sc => await CallDirector(new CreateReader { Subscriber = sc }));
+                   .Then(async sc => await CallDirectorService(new CreateReader { Subscriber = sc }));
         }
 
         public async Task<OperationResult<SubscriberConfiguration>> UpdateReaderAsync(SubscriberEntity subscriber)
         {
             return await _entityToConfigurationMapper.MapToWebhookAsync(subscriber)
-                   .Then(async sc => await CallDirector(new UpdateReader { Subscriber = sc }));
+                   .Then(async sc => await CallDirectorService(new UpdateReader { Subscriber = sc }));
         }
 
         public async Task<OperationResult<SubscriberConfiguration>> DeleteReaderAsync(SubscriberEntity subscriber)
         {
             return await _entityToConfigurationMapper.MapToWebhookAsync(subscriber)
-                   .Then(async sc => await CallDirector(new DeleteReader { Subscriber = sc }));
+                   .Then(async sc => await CallDirectorService(new DeleteReader { Subscriber = sc }));
         }
 
-        public async Task<OperationResult<SubscriberConfiguration>> CreateDlqReaderAsync(SubscriberEntity subscriber)
-        {
-            return await _entityToConfigurationMapper.MapToDlqAsync(subscriber)
-                   .Then(async sc => await CallDirector(new CreateReader { Subscriber = sc }));
-        }
-
-        public async Task<OperationResult<SubscriberConfiguration>> UpdateDlqReaderAsync(SubscriberEntity subscriber)
-        {
-            return await _entityToConfigurationMapper.MapToDlqAsync(subscriber)
-                   .Then(async sc => await CallDirector(new UpdateReader { Subscriber = sc }));
-        }
-
-        public async Task<OperationResult<SubscriberConfiguration>> DeleteDlqReaderAsync(SubscriberEntity subscriber)
-        {
-            return await _entityToConfigurationMapper.MapToDlqAsync(subscriber)
-                   .Then(async sc => await CallDirector(new DeleteReader { Subscriber = sc }));
-        }
-
-        private async Task<OperationResult<SubscriberConfiguration>> CallDirector(ReaderChangeBase request)
+        public async Task<OperationResult<SubscriberConfiguration>> CallDirectorService(ReaderChangeBase request)
         {
             var createReaderResult = await _directorService.ApplyReaderChange(request);
 

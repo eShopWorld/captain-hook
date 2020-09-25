@@ -22,7 +22,7 @@ namespace CaptainHook.Application
             builder.RegisterType<SubscriberEntityToConfigurationMapper>().As<ISubscriberEntityToConfigurationMapper>();
             builder.RegisterType<DtoToEntityMapper>().As<IDtoToEntityMapper>();
             builder.RegisterType<EntityToDtoMapper>().As<IEntityToDtoMapper>();
-            builder.RegisterType<DirectorServiceChanger>().As<IDirectorServiceChanger>();
+            builder.RegisterType<DirectorServiceRequestsGenerator>().As<IDirectorServiceRequestsGenerator>();
 
             builder.RegisterMediatorInfrastructure(ThisAssembly, ThisAssembly);
         }
