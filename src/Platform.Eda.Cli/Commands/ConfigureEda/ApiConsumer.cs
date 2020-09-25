@@ -19,7 +19,7 @@ using Polly.Retry;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
-    public class ApiConsumer
+    public class ApiConsumer : IApiConsumer
     {
         private static readonly HttpStatusCode[] ValidResponseCodes = { HttpStatusCode.Created, HttpStatusCode.Accepted };
 
