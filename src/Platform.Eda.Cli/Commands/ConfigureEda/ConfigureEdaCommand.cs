@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
-using CaptainHook.Api.Client;
 using CaptainHook.Domain.Results;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
@@ -17,13 +16,13 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
     [HelpOption]
     public class ConfigureEdaCommand
     {
-        private readonly IApiConsumer _apiConsumer;
         private readonly ISubscribersDirectoryProcessor _subscribersDirectoryProcessor;
+        private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
 
-        public ConfigureEdaCommand(ISubscribersDirectoryProcessor subscribersDirectoryProcessor, IApiConsumer apiConsumer)
+        public ConfigureEdaCommand(ISubscribersDirectoryProcessor subscribersDirectoryProcessor, BuildCaptainHookProxyDelegate captainHookBuilder)
         {
-            _apiConsumer = apiConsumer;
             _subscribersDirectoryProcessor = subscribersDirectoryProcessor;
+            _captainHookBuilder = captainHookBuilder;
         }
 
         /// <summary>
@@ -93,10 +92,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsoleSubscriberWriter writer,
             IEnumerable<PutSubscriberFile> subscriberFiles)
         {
+            var api = _captainHookBuilder(Environment);
             var apiResults = new List<OperationResult<HttpOperationResponse>>();
 
             var sourceFolderPath = Path.GetFullPath(InputFolderPath);
-            await foreach (var apiResult in _apiConsumer.CallApiAsync(subscriberFiles))
+            await foreach (var apiResult in api.CallApiAsync(subscriberFiles))
             {
                 var apiResultResponse = apiResult.Response;
                 apiResults.Add(apiResultResponse);
