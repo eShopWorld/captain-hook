@@ -114,7 +114,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             var subscriberConfiguration = SubscriberConfiguration.FromWebhookConfig(webhooksResult.Data);
             subscriberConfiguration.DLQMode = SubscriberDlqMode.WebHookMode;
             subscriberConfiguration.SourceSubscriptionName = entity.Name;
-            subscriberConfiguration.SubscriberName = $"{entity.Name}-DLQ";
+            subscriberConfiguration.SubscriberName = entity.Name;
 
             return subscriberConfiguration;
 
