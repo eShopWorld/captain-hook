@@ -218,7 +218,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 {
                     new PutSubscriberFile
                     {
-                        File = new FileInfo(Path.Combine(MockCurrentDirectory, "TheGoodFile.json")),
+                        File = new FileInfo(Path.Combine(MockCurrentDirectory, "TheGoodFile.json")), 
                         Error = null
                     },
                     new PutSubscriberFile
@@ -239,10 +239,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 It.Is<IEnumerable<PutSubscriberFile>>(files=> files.Count() == 1 
                                                               && files.Count(file => file.File.Name == "TheGoodFile.json") == 1)), Times.Never);
             Output.Should()
-                .Contain(
-                    $"File 'TheGoodFile.json' has been found")
-                .And.Contain(
-                    $"File 'TheBadFile.json' has been found, but encountered {errorText}. File will be skipped.");
+                .Contain($"File 'TheGoodFile.json' has been found")
+                .And.Contain($"File 'TheBadFile.json' has been found, but encountered {errorText}. File will be skipped.")
+                .And.Contain("Unexpected character encountered while parsing value");
 
             result.Should().Be(0);
         }

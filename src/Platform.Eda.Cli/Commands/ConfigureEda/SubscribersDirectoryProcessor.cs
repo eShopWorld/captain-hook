@@ -32,32 +32,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             try
             {
                 var subscriberFiles = _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
-                foreach (var fileName in subscriberFiles)
-                {
-                    try
-                    {
-                        var content = _fileSystem.File.ReadAllText(fileName);
-                        var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
-
-                        var successFile = new PutSubscriberFile
-                        {
-                            File = new FileInfo(fileName),
-                            Request = request
-                        };
-
-                        subscribers.Add(successFile);
-                    }
-                    catch (Exception)
-                    {
-                        var errorFile = new PutSubscriberFile
-                        {
-                            File = new FileInfo(fileName),
-                            Error = "Error when reading or deserialising"
-                        };
-
-                        subscribers.Add(errorFile);
-                    }
-                }
+                subscribers.AddRange(subscriberFiles.Select(ProcessFile));
 
                 if (!subscribers.Any())
                 {
@@ -70,6 +45,32 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
 
             return subscribers;
+        }
+
+        private PutSubscriberFile ProcessFile(string fileName)
+        {
+            PutSubscriberFile processedFile;
+            try
+            {
+                var content = _fileSystem.File.ReadAllText(fileName);
+                var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
+
+                processedFile = new PutSubscriberFile
+                {
+                    File = new FileInfo(fileName),
+                    Request = request
+                };
+            }
+            catch (Exception ex)
+            {
+                processedFile = new PutSubscriberFile
+                {
+                    File = new FileInfo(fileName),
+                    Error = $"Error when reading or deserializing '{fileName}': '{ex}'"
+                };
+            }
+
+            return processedFile;
         }
     }
 }

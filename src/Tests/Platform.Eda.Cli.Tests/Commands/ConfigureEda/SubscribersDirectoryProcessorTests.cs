@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
-using System.Linq;
 using CaptainHook.Api.Client.Models;
 using CaptainHook.Domain.Results;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using Moq;
 using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
@@ -131,19 +131,10 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
 
             // Assert
-            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
-                new[]
-                {
-                    new PutSubscriberFile
-                    {
-                        Request = null,
-                        Error = "Error when reading or deserialising"
-                    }
-                });
-
-            result.Should().BeEquivalentTo(expected, opt => opt
-                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(CaptainHookContractSubscriberDto))
-                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
+            result.Data.Should().OnlyContain(
+                file => file.IsError && 
+                        file.Error.StartsWith("Error when reading or deserializing 'Z:\\Sample\\sample3.json'") && // file information
+                        file.Error.Contains("Unexpected character encountered while parsing value")); // error information
         }
 
         private static Dictionary<string, MockFileData> GetOneSampleInputFile()
