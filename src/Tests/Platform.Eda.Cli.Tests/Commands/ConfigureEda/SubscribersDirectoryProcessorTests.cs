@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
+using System.Linq;
 using CaptainHook.Api.Client.Models;
 using CaptainHook.Domain.Results;
 using Eshopworld.Tests.Core;
@@ -116,26 +117,35 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var result = subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath);
 
             // Assert
-            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(new List<PutSubscriberFile>());
+            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(new CliExecutionError("No files have been found in 'Z:\\Sample\\'"));
 
-            result.Should().BeEquivalentTo(expected, opt => opt
-                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(CaptainHookContractSubscriberDto))
-                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
+            result.Should().BeEquivalentTo(expected);
 
         }
 
         [Fact, IsUnit]
-        public void ProcessDirectory_WithInvalidJsonFile_ReturnsError()
+        public void ProcessDirectory_WithInvalidJsonFile_ReturnsCollectionWithErrorInformation()
         {
             var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetInvalidJsonMockInputFile(), MockCurrentDirectory));
             // Act
             var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
 
             // Assert
-            result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<CliExecutionError>();
+            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
+                new[]
+                {
+                    new PutSubscriberFile
+                    {
+                        Request = null,
+                        Error = "Error when reading or deserialising"
+                    }
+                });
+
+            result.Should().BeEquivalentTo(expected, opt => opt
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(CaptainHookContractSubscriberDto))
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
         }
-        
+
         private static Dictionary<string, MockFileData> GetOneSampleInputFile()
         {
             Dictionary<string, MockFileData> mockFiles = new Dictionary<string, MockFileData>();

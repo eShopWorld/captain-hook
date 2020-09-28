@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using CaptainHook.Domain.Results;
 using Newtonsoft.Json;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
@@ -33,16 +34,34 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 var subscriberFiles = _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
                 foreach (var fileName in subscriberFiles)
                 {
-                    var content = _fileSystem.File.ReadAllText(fileName);
-                    var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
-
-                    var file = new PutSubscriberFile
+                    try
                     {
-                        File = new FileInfo(fileName),
-                        Request = request
-                    };
+                        var content = _fileSystem.File.ReadAllText(fileName);
+                        var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
 
-                    subscribers.Add(file);
+                        var successFile = new PutSubscriberFile
+                        {
+                            File = new FileInfo(fileName),
+                            Request = request
+                        };
+
+                        subscribers.Add(successFile);
+                    }
+                    catch (Exception)
+                    {
+                        var errorFile = new PutSubscriberFile
+                        {
+                            File = new FileInfo(fileName),
+                            Error = "Error when reading or deserialising"
+                        };
+
+                        subscribers.Add(errorFile);
+                    }
+                }
+
+                if (!subscribers.Any())
+                {
+                    return new CliExecutionError($"No files have been found in '{sourceFolderPath}'");
                 }
             }
             catch (Exception e)
