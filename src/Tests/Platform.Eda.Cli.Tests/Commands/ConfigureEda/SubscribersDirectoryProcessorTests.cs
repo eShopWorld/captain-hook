@@ -137,6 +137,57 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                         file.Error.Contains("Unexpected character encountered while parsing value")); // error information
         }
 
+        [Fact, IsUnit]
+        public void ProcessDirectory_JsonFileWithCallbacksDlqHooks_ReturnsValidObject()
+        {
+            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetSampleInputFileWithDlq(), MockCurrentDirectory));
+            // Act
+            var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
+
+            // Assert
+            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
+                new[]
+                {
+                    new PutSubscriberFile
+                    {
+                        Request = new PutSubscriberRequest
+                        {
+                            SubscriberName = "test-sub",
+                            EventName = "test-event",
+                            Subscriber = new CaptainHookContractSubscriberDto()
+                            {
+                                Webhooks = new CaptainHookContractWebhooksDto
+                                {
+                                    Endpoints = new List<CaptainHookContractEndpointDto>
+                                    {
+                                        new CaptainHookContractEndpointDto("https://webhook.site/testing", "post")
+                                    }
+                                },
+                                Callbacks = new CaptainHookContractWebhooksDto
+                                {
+                                    Endpoints = new List<CaptainHookContractEndpointDto>
+                                    {
+                                        new CaptainHookContractEndpointDto("https://webhook.site/callbacktesting", "put")
+                                    }
+                                },
+                                DlqHooks = new CaptainHookContractWebhooksDto
+                                {
+                                    Endpoints = new List<CaptainHookContractEndpointDto>
+                                    {
+                                        new CaptainHookContractEndpointDto("https://webhook.site/dlqtesting", "post")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+            result.Should().BeEquivalentTo(expected, opt => opt
+                .Excluding(info => info.SelectedMemberInfo.Name == "Authentication")
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));   
+
+        }
+
         private static Dictionary<string, MockFileData> GetOneSampleInputFile()
         {
             Dictionary<string, MockFileData> mockFiles = new Dictionary<string, MockFileData>();
@@ -225,6 +276,58 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 {
                     "sample3.json", new MockFileData(@"<json>File</json>")
                 }
+            };
+            return mockFiles;
+        }
+
+        private static Dictionary<string, MockFileData> GetSampleInputFileWithDlq()
+        {
+            var mockFiles = new Dictionary<string, MockFileData>
+            {
+                {
+                    "sample1.json", new MockFileData(@"
+{
+  ""subscriberName"": ""test-sub"",
+  ""eventName"": ""test-event"",
+  ""subscriber"": {
+	    ""webhooks"": {
+		    ""endpoints"": [{
+			    ""uri"": ""https://webhook.site/testing"",
+			    ""authentication"": {
+				    ""type"": ""Basic"",
+				    ""username"": ""test"",
+				    ""passwordKeyName"": ""AzureSubscriptionId""
+			    },
+			    ""httpVerb"": ""post""		
+		    }]
+	    },
+	    ""callbacks"": {
+		    ""endpoints"": [{
+			    ""uri"": ""https://webhook.site/callbacktesting"",
+			    ""authentication"": {
+				    ""type"": ""Basic"",
+				    ""username"": ""test"",
+				    ""passwordKeyName"": ""AzureSubscriptionId""
+			    },
+			    ""httpVerb"": ""put""		
+		    }]
+	    },
+	    ""dlqHooks"": {
+		    ""endpoints"": [{
+			    ""uri"": ""https://webhook.site/dlqtesting"",
+			    ""authentication"": {
+				    ""type"": ""Basic"",
+				    ""username"": ""test"",
+				    ""passwordKeyName"": ""AzureSubscriptionId""
+			    },
+			    ""httpVerb"": ""post""		
+		    }]
+	    }
+    }
+}
+")
+                }
+
             };
             return mockFiles;
         }
