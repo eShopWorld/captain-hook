@@ -49,13 +49,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
         private PutSubscriberFile ProcessFile(string fileName)
         {
-            PutSubscriberFile processedFile;
             try
             {
                 var content = _fileSystem.File.ReadAllText(fileName);
                 var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
 
-                processedFile = new PutSubscriberFile
+                return new PutSubscriberFile
                 {
                     File = new FileInfo(fileName),
                     Request = request
@@ -63,14 +62,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
             catch (Exception ex)
             {
-                processedFile = new PutSubscriberFile
+                return new PutSubscriberFile
                 {
                     File = new FileInfo(fileName),
-                    Error = $"Error when reading or deserializing '{fileName}': '{ex}'"
+                    Error = $"Error when reading or deserializing '{fileName}': '{ex.Message}'"
                 };
             }
-
-            return processedFile;
         }
     }
 }

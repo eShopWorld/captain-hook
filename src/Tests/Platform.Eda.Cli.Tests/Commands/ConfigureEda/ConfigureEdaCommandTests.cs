@@ -241,7 +241,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             Output.Should()
                 .Contain($"File 'TheGoodFile.json' has been found")
                 .And.Contain(// File '{fileRelativePath}' has been found, but skipped due to error
-                    $"File 'TheBadFile.json' has been found, but encountered {errorText}.");
+                    $"File 'TheBadFile.json' has been found, but will be skipped due to error {errorText}.");
             result.Should().Be(0);
         }
         private void SetupDirectoryProcessorAndApiConsumer(PutSubscriberFile[] files)
