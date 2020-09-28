@@ -31,7 +31,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 var fileRelativePath = Path.GetRelativePath(sourceFolderPath, file.File.FullName);
                 if (file.IsError)
                 {
-                    WriteError($"File '{fileRelativePath}' has been found, but encountered {file.Error?.ToLower()}. File will be skipped.");
+                    WriteError($"File '{fileRelativePath}' has been found, but encountered {file.Error}. File will be skipped.");
                 }
                 else
                 {

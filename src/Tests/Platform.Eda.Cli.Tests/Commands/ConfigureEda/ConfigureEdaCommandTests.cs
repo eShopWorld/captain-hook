@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
+using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Cli.Tests;
 using CaptainHook.Domain.Results;
@@ -205,6 +206,46 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             result.Should().Be(0);
         }
 
+        [Fact, IsUnit]
+        public async Task OnExecuteAsync_WhenErrorInProcessFile_FileIsNotPassedToApi()
+        {
+            // Arrange
+            _configureEdaCommand.NoDryRun = false;
+            _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
+            var errorText = "Error text";
+            _mockSubscribersDirectoryProcessor.Setup(processor => processor.ProcessDirectory(MockCurrentDirectory))
+                .Returns(() => new OperationResult<IEnumerable<PutSubscriberFile>>(new List<PutSubscriberFile>
+                {
+                    new PutSubscriberFile
+                    {
+                        File = new FileInfo(Path.Combine(MockCurrentDirectory, "TheGoodFile.json")),
+                        Error = null
+                    },
+                    new PutSubscriberFile
+                    {
+                        File = new FileInfo(Path.Combine(MockCurrentDirectory, "TheBadFile.json")),
+                        Error = errorText
+                    }
+                }));
+
+            _apiConsumer.Setup(apiConsumer => apiConsumer.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()))
+                .Returns(AsyncEnumerableResponse(new PutSubscriberFile[0]));
+
+            // Act
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+
+            // Assert
+            _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(
+                It.Is<IEnumerable<PutSubscriberFile>>(files=> files.Count() == 1 
+                                                              && files.Count(file => file.File.Name == "TheGoodFile.json") == 1)), Times.Never);
+            Output.Should()
+                .Contain(
+                    $"File 'TheGoodFile.json' has been found")
+                .And.Contain(
+                    $"File 'TheBadFile.json' has been found, but encountered {errorText}. File will be skipped.");
+
+            result.Should().Be(0);
+        }
         private void SetupDirectoryProcessorAndApiConsumer(PutSubscriberFile[] files)
         {
             _mockSubscribersDirectoryProcessor.Setup(proc => proc.ProcessDirectory(MockCurrentDirectory))
