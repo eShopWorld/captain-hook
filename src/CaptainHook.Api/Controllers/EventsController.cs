@@ -6,7 +6,6 @@ using CaptainHook.Application.Results;
 using CaptainHook.Contract;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
-using Eshopworld.Core;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -23,17 +22,14 @@ namespace CaptainHook.Api.Controllers
     public class EventsController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IBigBrother _bigBrother;
 
         /// <summary>
         /// Create an instance of this class
         /// </summary>
         /// <param name="mediator">An instance of MediatR mediator</param>
-        /// <param name="bigBrother">An instance of BigBrother logger</param>
-        public EventsController(IMediator mediator, IBigBrother bigBrother)
+        public EventsController(IMediator mediator)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
         }
 
         /// <summary>
@@ -41,16 +37,23 @@ namespace CaptainHook.Api.Controllers
         /// </summary>
         /// <param name="eventName">Event name</param>
         /// <param name="subscriberName">Subscriber name</param>
-        /// /// <param name="selector">Endpoint selector, use * (asterisk) for the default endpoint</param>
+        /// <param name="selector">Endpoint selector, use * (asterisk) for the default endpoint</param>
         /// <param name="dto">Webhook configuration</param>
         /// <returns></returns>
+        /// <response code="201">The requested webhook has been successfully created</response>
+        /// <response code="400">A validation error has occurred</response>   
+        /// <response code="401">This request requires authentication</response>   
+        /// <response code="403">This request requires authorization</response>   
+        /// <response code="409">Director service is currently busy and unable to process this request</response>   
+        /// <response code="422">An error occurred either with Reader creation or while saving the entity</response>   
+        /// <response code="500">The server encountered an unexpected error</response>  
         [HttpPut("{eventName}/subscriber/{subscriberName}/webhooks/endpoint/{selector}")]
         [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> PutWebhook([FromRoute] string eventName, [FromRoute] string subscriberName, [FromRoute] string selector, [FromBody] EndpointDto dto)
         {
@@ -77,6 +80,14 @@ namespace CaptainHook.Api.Controllers
         /// <param name="subscriberName">Subscriber name</param>
         /// <param name="selector">Endpoint selector, use * (asterisk) for the default endpoint</param>
         /// <returns></returns>
+        /// <response code="200">The requested webhook has been successfully deleted</response>
+        /// <response code="400">A validation error has occurred</response>   
+        /// <response code="401">This request requires authentication</response>   
+        /// <response code="403">This request requires authorization</response>   
+        /// <response code="409">Director service is currently busy and unable to process this request</response>   
+        /// <response code="422">An error occurred either with Reader deletion/missing Reader or while updating the entity</response>   
+        /// <response code="404">The requested webhook does not exist</response>   
+        /// <response code="500">The server encountered an unexpected error</response>   
         [HttpDelete("{eventName}/subscriber/{subscriberName}/webhooks/endpoint/{selector}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
@@ -84,6 +95,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
+        [ProducesResponseType(typeof(EntityNotFoundError), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteWebhook([FromRoute] string eventName, [FromRoute] string subscriberName, [FromRoute] string selector)
         {
@@ -114,10 +126,17 @@ namespace CaptainHook.Api.Controllers
         /// <param name="subscriberName">Subscriber name</param>
         /// <param name="dto">Webhook configuration</param>
         /// <returns></returns>
+        /// <response code="201">The requested subscriber has been successfully created</response>
+        /// <response code="202">The requested subscriber has been successfully updated</response>   
+        /// <response code="400">A validation error has occurred</response>   
+        /// <response code="401">This request requires authentication</response>   
+        /// <response code="403">This request requires authorization</response>   
+        /// <response code="409">Director service is currently busy and unable to process this request</response>   
+        /// <response code="422">An error occurred either with Reader creation or while saving the entity</response>   
+        /// <response code="500">The server encountered an unexpected error</response>   
         [HttpPut("{eventName}/subscriber/{subscriberName}")]
-        [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status202Accepted)]
-        [ProducesResponseType(typeof(EndpointDto), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(SubscriberDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(SubscriberDto), StatusCodes.Status202Accepted)]
         [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status403Forbidden)]
@@ -153,6 +172,14 @@ namespace CaptainHook.Api.Controllers
         /// <param name="eventName">Event name</param>
         /// <param name="subscriberName">Subscriber name</param>
         /// <returns></returns>
+        /// <response code="200">The requested subscriber has been successfully deleted</response>
+        /// <response code="400">A validation error has occurred</response>   
+        /// <response code="401">This request requires authentication</response>   
+        /// <response code="403">This request requires authorization</response>   
+        /// <response code="409">Director service is currently busy and unable to process this request</response>   
+        /// <response code="422">An error occurred either with Reader deletion/missing Reader or while updating the entity</response>   
+        /// <response code="404">The requested subscriber does not exist</response>   
+        /// <response code="500">The server encountered an unexpected error</response>   
         [HttpDelete("{eventName}/subscriber/{subscriberName}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ValidationError), StatusCodes.Status400BadRequest)]
