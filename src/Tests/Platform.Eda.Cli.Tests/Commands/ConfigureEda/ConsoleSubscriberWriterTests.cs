@@ -35,9 +35,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             new object[] {
                 new List<PutSubscriberFile>
                 {
-                    new PutSubscriberFile { File = new FileInfo("C:\\dir1\\RandomFile1.txt") },
-                    new PutSubscriberFile { File = new FileInfo("C:\\dir1\\RandomFile2.txt") },
-                    new PutSubscriberFile { File = new FileInfo("C:\\dir1\\RandomFile3.txt") }
+                    new PutSubscriberFile("C:\\dir1\\RandomFile1.txt", new PutSubscriberRequest()),
+                    new PutSubscriberFile("C:\\dir1\\RandomFile2.txt", new PutSubscriberRequest()),
+                    new PutSubscriberFile("C:\\dir1\\RandomFile3.txt", new PutSubscriberRequest())
                 },
                 "C:\\",
                 new List<string>
@@ -67,9 +67,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             new object[] {
                 new List<PutSubscriberFile>
                 {
-                    new PutSubscriberFile { File = new FileInfo("C:\\dir1\\RandomFile1.txt") },
-                    new PutSubscriberFile { File = new FileInfo("C:\\dir1\\dir2\\RandomFile2.txt") },
-                    new PutSubscriberFile { File = new FileInfo("C:\\dir3\\RandomFile3.txt") }
+                    new PutSubscriberFile("C:\\dir1\\RandomFile1.txt", new PutSubscriberRequest()),
+                    new PutSubscriberFile("C:\\dir1\\dir2\\RandomFile2.txt", new PutSubscriberRequest()),
+                    new PutSubscriberFile("C:\\dir3\\RandomFile3.txt", new PutSubscriberRequest())
                 },
                 "C:\\",
                 new List<string>
@@ -82,9 +82,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             new object[] {
                 new List<PutSubscriberFile>
                 {
-                    new PutSubscriberFile { File = new FileInfo("C:\\dir1\\RandomFile1.txt") },
-                    new PutSubscriberFile { File = new FileInfo("C:\\dir1\\dir2\\RandomFile2.txt") },
-                    new PutSubscriberFile { File = new FileInfo("C:\\dir3\\RandomFile3.txt") }
+                    new PutSubscriberFile("C:\\dir1\\RandomFile1.txt", new PutSubscriberRequest()),
+                    new PutSubscriberFile("C:\\dir1\\dir2\\RandomFile2.txt", new PutSubscriberRequest()),
+                    new PutSubscriberFile("C:\\dir3\\RandomFile3.txt", new PutSubscriberRequest())
                 },
                 "C:\\dir1",
                 new List<string>
@@ -177,19 +177,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _mockConsole.Verify(console => console.Out.WriteLine(), Times.Never);
             _streamWriter.Verify(writer=>writer.WriteLine("===="), Times.Exactly(2));
             _streamWriter.Verify(writer=>writer.WriteLine("Test"), Times.Once);
-        }
-
-        [Theory, IsUnit]
-        [MemberData(nameof(TestOutputSubscribersParams))]
-        public void OutputSubscribers_WritesExpectedOutputs(IEnumerable<PutSubscriberFile> files, string rootDir, IEnumerable<string> expectedOutputs)
-        {
-            _consoleSubscriberWriter.OutputSubscribers(files, rootDir);
-
-            foreach (var expectedOutput in expectedOutputs)
-            {
-                _streamWriter.Verify(writer => writer.WriteLine(expectedOutput));
-            }
-            _streamWriter.VerifyNoOtherCalls();
         }
     }
 }

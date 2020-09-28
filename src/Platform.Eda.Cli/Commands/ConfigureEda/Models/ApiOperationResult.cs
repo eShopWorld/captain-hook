@@ -1,13 +1,21 @@
-﻿using System.IO.Abstractions;
-using CaptainHook.Domain.Results;
+﻿using CaptainHook.Domain.Results;
 using Microsoft.Rest;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.Models
 {
     public class ApiOperationResult
     {
-        public FileInfoBase File { get; set; }
+        public string Filename { get; }
 
-        public OperationResult<HttpOperationResponse> Response { get; set; }
+        public PutSubscriberRequest Request { get; }
+
+        public OperationResult<HttpOperationResponse> Response { get; }
+
+        public ApiOperationResult(string filename, PutSubscriberRequest request, OperationResult<HttpOperationResponse> response)
+        {
+            Filename = filename;
+            Request = request;
+            Response = response;
+        }
     }
 }

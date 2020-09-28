@@ -71,19 +71,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 var lastResponseValid = ValidResponseCodes.Contains(response.Response.StatusCode);
                 if (lastResponseValid)
                 {
-                    yield return new ApiOperationResult
-                    {
-                        File = file.File,
-                        Response = response
-                    };
+                    yield return new ApiOperationResult(file.Filename, file.Request, response);
                 }
                 else
                 {
-                    yield return new ApiOperationResult
-                    {
-                        File = file.File,
-                        Response = await BuildExecutionErrorAsync(response.Response)
-                    };
+                    var errorResponse = await BuildExecutionErrorAsync(response.Response);
+                    yield return new ApiOperationResult(file.Filename, file.Request, errorResponse);
                 }
             }
         }

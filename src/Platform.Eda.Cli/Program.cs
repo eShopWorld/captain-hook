@@ -82,7 +82,8 @@ namespace Platform.Eda.Cli
             collection.AddHttpClient();
             collection.AddTransient<IFileSystem, FileSystem>();
             collection.AddTransient<IConsoleSubscriberWriter, ConsoleSubscriberWriter>();
-            collection.AddTransient<ISubscribersDirectoryProcessor, SubscribersDirectoryProcessor>();
+            collection.AddTransient<ISubscribersDirectoryParser, SubscribersDirectoryParser>();
+            collection.AddTransient<ISubscribersProcessor, SubscribersProcessor>();
 
             collection.AddSingleton(console);
             collection.AddSingleton<BuildCaptainHookProxyDelegate>(serviceProvider =>

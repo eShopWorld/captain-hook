@@ -17,11 +17,13 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
     public class SubscribersDirectoryProcessorTests
     {
         private const string MockCurrentDirectory = @"Z:\Sample\";
-        private readonly SubscribersDirectoryProcessor _subscribersDirectoryProcessor;
+        private readonly SubscribersDirectoryParser _subscribersDirectoryParser;
+        private readonly IConsoleSubscriberWriter _writer;
 
         public SubscribersDirectoryProcessorTests()
         {
-            _subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetOneSampleInputFile(), MockCurrentDirectory));
+            _writer = Mock.Of<IConsoleSubscriberWriter>();
+            _subscribersDirectoryParser = new SubscribersDirectoryParser(new MockFileSystem(GetOneSampleInputFile(), MockCurrentDirectory), _writer);
         }
 
         [Theory, IsUnit]
@@ -30,14 +32,14 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public void ProcessDirectory_WhenPathEmptyOrNull_ThrowsException(string testFilesDirectoryPath, Type exceptionType)
         {
             Assert.Throws(exceptionType, () =>
-                _subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath));
+                _subscribersDirectoryParser.ProcessDirectory(testFilesDirectoryPath));
         }
 
         [Theory, IsUnit]
         [InlineData("a-nonexistent-path")]
         public void ProcessDirectory_WithNonExistentPath_ReturnsError(string testFilesDirectoryPath)
         {
-            var result = _subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath);
+            var result = _subscribersDirectoryParser.ProcessDirectory(testFilesDirectoryPath);
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<CliExecutionError>();
         }
@@ -47,20 +49,17 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public void ProcessDirectory_WithValidFile_ReturnsValidObject(string testFilesDirectoryPath)
         {
             // Act
-            var result = _subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath);
+            var result = _subscribersDirectoryParser.ProcessDirectory(testFilesDirectoryPath);
 
             // Assert
             var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
                 new[]
                 {
-                    new PutSubscriberFile
+                    new PutSubscriberFile("a-file-name", new PutSubscriberRequest
                     {
-                        Request = new PutSubscriberRequest
-                        {
-                            SubscriberName = "test-sub",
-                            EventName = "test-event",
-                        }
-                    }
+                        SubscriberName = "test-sub",
+                        EventName = "test-event",
+                    })
                 });
 
             result.Should().BeEquivalentTo(expected, opt => opt
@@ -73,7 +72,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         [InlineData(MockCurrentDirectory)]
         public void ProcessDirectory_WithMultipleValidFiles_ReturnsValidObject(string testFilesDirectoryPath)
         {
-            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetMultipleMockInputFiles(), MockCurrentDirectory));
+            var subscribersDirectoryProcessor = new SubscribersDirectoryParser(new MockFileSystem(GetMultipleMockInputFiles(), MockCurrentDirectory), _writer);
             // Act
             var result = subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath);
 
@@ -81,22 +80,16 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
                 new[]
                 {
-                    new PutSubscriberFile
+                    new PutSubscriberFile("filename1", new PutSubscriberRequest
                     {
-                        Request = new PutSubscriberRequest
-                        {
-                            SubscriberName = "test-sub",
-                            EventName = "test-event",
-                        }
-                    },
-                    new PutSubscriberFile
+                        SubscriberName = "test-sub",
+                        EventName = "test-event",
+                    }),
+                    new PutSubscriberFile("filename2", new PutSubscriberRequest
                     {
-                        Request = new PutSubscriberRequest
-                        {
-                            SubscriberName = "test-sub2",
-                            EventName = "test-event2",
-                        }
-                    }
+                        SubscriberName = "test-sub2",
+                        EventName = "test-event2",
+                    })
                 });
 
             result.Should().BeEquivalentTo(expected, opt => opt
@@ -110,46 +103,38 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public void ProcessDirectory_EmptyDirectory_ReturnsValidObject(string testFilesDirectoryPath)
         {
             // Arrange
-            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(
-                new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory));
+            var subscribersDirectoryProcessor = new SubscribersDirectoryParser(
+                new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory), _writer);
             
             // Act
             var result = subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath);
 
             // Assert
-            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(new CliExecutionError("No files have been found in 'Z:\\Sample\\'"));
-
-            result.Should().BeEquivalentTo(expected);
-
-        }
-
-        [Fact, IsUnit]
-        public void ProcessDirectory_WithInvalidJsonFile_ReturnsCollectionWithErrorInformation()
-        {
-            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetInvalidJsonMockInputFile(), MockCurrentDirectory));
-            // Act
-            var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
-
-            // Assert
-            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
-                new[]
-                {
-                    new PutSubscriberFile
-                    {
-                        Request = null,
-                        Error = "Unexpected character encountered while parsing value: <. Path '', line 0, position 0."
-                    }
-                });
+            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(new List<PutSubscriberFile>());
 
             result.Should().BeEquivalentTo(expected, opt => opt
                 .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(CaptainHookContractSubscriberDto))
                 .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
+
         }
+
+        [Fact, IsUnit]
+        public void ProcessDirectory_WithInvalidJsonFile_ReturnsError()
+        {
+            var subscribersDirectoryProcessor = new SubscribersDirectoryParser(new MockFileSystem(GetInvalidJsonMockInputFile(), MockCurrentDirectory), _writer);
+            // Act
+            var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
+
+            // Assert
+            result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<CliExecutionError>();
+        }
+
 
         [Fact, IsUnit]
         public void ProcessDirectory_JsonFileWithCallbacksDlqHooks_ReturnsValidObject()
         {
-            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetSampleInputFileWithDlq(), MockCurrentDirectory));
+            var subscribersDirectoryProcessor = new SubscribersDirectoryParser(new MockFileSystem(GetSampleInputFileWithDlq(), MockCurrentDirectory), _writer);
             // Act
             var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
 
@@ -157,38 +142,35 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
                 new[]
                 {
-                    new PutSubscriberFile
+                    new PutSubscriberFile("filename", new PutSubscriberRequest
                     {
-                        Request = new PutSubscriberRequest
+                        SubscriberName = "test-sub",
+                        EventName = "test-event",
+                        Subscriber = new CaptainHookContractSubscriberDto()
                         {
-                            SubscriberName = "test-sub",
-                            EventName = "test-event",
-                            Subscriber = new CaptainHookContractSubscriberDto()
+                            Webhooks = new CaptainHookContractWebhooksDto
                             {
-                                Webhooks = new CaptainHookContractWebhooksDto
+                                Endpoints = new List<CaptainHookContractEndpointDto>
                                 {
-                                    Endpoints = new List<CaptainHookContractEndpointDto>
-                                    {
-                                        new CaptainHookContractEndpointDto("https://webhook.site/testing", "post")
-                                    }
-                                },
-                                Callbacks = new CaptainHookContractWebhooksDto
+                                    new CaptainHookContractEndpointDto("https://webhook.site/testing", "post")
+                                }
+                            },
+                            Callbacks = new CaptainHookContractWebhooksDto
+                            {
+                                Endpoints = new List<CaptainHookContractEndpointDto>
                                 {
-                                    Endpoints = new List<CaptainHookContractEndpointDto>
-                                    {
-                                        new CaptainHookContractEndpointDto("https://webhook.site/callbacktesting", "put")
-                                    }
-                                },
-                                DlqHooks = new CaptainHookContractWebhooksDto
+                                    new CaptainHookContractEndpointDto("https://webhook.site/callbacktesting", "put")
+                                }
+                            },
+                            DlqHooks = new CaptainHookContractWebhooksDto
+                            {
+                                Endpoints = new List<CaptainHookContractEndpointDto>
                                 {
-                                    Endpoints = new List<CaptainHookContractEndpointDto>
-                                    {
-                                        new CaptainHookContractEndpointDto("https://webhook.site/dlqtesting", "post")
-                                    }
+                                    new CaptainHookContractEndpointDto("https://webhook.site/dlqtesting", "post")
                                 }
                             }
                         }
-                    }
+                    })
                 });
 
             result.Should().BeEquivalentTo(expected, opt => opt

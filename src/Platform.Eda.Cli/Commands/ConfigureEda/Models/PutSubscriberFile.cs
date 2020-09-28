@@ -1,15 +1,28 @@
-﻿using System.IO.Abstractions;
-
-namespace Platform.Eda.Cli.Commands.ConfigureEda.Models
+﻿namespace Platform.Eda.Cli.Commands.ConfigureEda.Models
 {
     public class PutSubscriberFile
     {
-        public FileInfoBase File { get; set; }
+        public string Filename { get; }
 
-        public PutSubscriberRequest Request { get; set; }
+        public PutSubscriberRequest Request { get; }
 
-        public string Error { get; set; }
+        public string Error { get; }
 
         public bool IsError => !string.IsNullOrEmpty(Error);
+
+        private PutSubscriberFile(string filename)
+        {
+            Filename = filename;
+        }
+
+        public PutSubscriberFile(string filename, string error): this(filename)
+        {
+            Error = error;
+        }
+
+        public PutSubscriberFile(string filename, PutSubscriberRequest request) : this(filename)
+        {
+            Request = request;
+        }
     }
 }

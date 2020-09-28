@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Domain.Results;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
-using Platform.Eda.Cli.Extensions;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
@@ -16,13 +15,13 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
     [HelpOption]
     public class ConfigureEdaCommand
     {
-        private readonly ISubscribersDirectoryProcessor _subscribersDirectoryProcessor;
-        private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
+        private readonly ISubscribersDirectoryParser _subscribersDirectoryParser;
+        private readonly ISubscribersProcessor _subscribersProcessor;
 
-        public ConfigureEdaCommand(ISubscribersDirectoryProcessor subscribersDirectoryProcessor, BuildCaptainHookProxyDelegate captainHookBuilder)
+        public ConfigureEdaCommand(ISubscribersDirectoryParser subscribersDirectoryParser, ISubscribersProcessor subscribersProcessor)
         {
-            _subscribersDirectoryProcessor = subscribersDirectoryProcessor;
-            _captainHookBuilder = captainHookBuilder;
+            _subscribersDirectoryParser = subscribersDirectoryParser ?? throw new ArgumentNullException(nameof(subscribersDirectoryParser));
+            _subscribersProcessor = subscribersProcessor ?? throw new ArgumentNullException(nameof(subscribersProcessor));
         }
 
         /// <summary>
@@ -59,7 +58,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             writer.WriteSuccess("box", $"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
 
-            var readDirectoryResult = _subscribersDirectoryProcessor.ProcessDirectory(InputFolderPath);
+            var readDirectoryResult = _subscribersDirectoryParser.ProcessDirectory(InputFolderPath);
 
             if (readDirectoryResult.IsError)
             {
@@ -67,14 +66,14 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 return 1;
             }
 
-            var subscriberFiles = readDirectoryResult.Data;
-            writer.OutputSubscribers(subscriberFiles, InputFolderPath);
+            var subscriberRequests = readDirectoryResult.Data.Where(x => !x.IsError);
 
             if (NoDryRun)
             {
                 writer.WriteSuccess("box", "Starting to run configuration against Captain Hook API");
 
-                var apiResults = await ConfigureEdaWithCaptainHook(writer, subscriberFiles);
+                var apiResults = await _subscribersProcessor.ConfigureEdaAsync(subscriberRequests, Environment);
+
                 if (apiResults.Any(r => r.IsError))
                 {
                     return 2;
@@ -87,32 +86,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             writer.WriteSuccess("Processing finished");
             return 0;
-        }
-
-        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsoleSubscriberWriter writer,
-            IEnumerable<PutSubscriberFile> subscriberFiles)
-        {
-            var api = _captainHookBuilder(Environment);
-            var apiResults = new List<OperationResult<HttpOperationResponse>>();
-
-            var sourceFolderPath = Path.GetFullPath(InputFolderPath);
-            await foreach (var apiResult in api.CallApiAsync(subscriberFiles.Where(f => !f.IsError)))
-            {
-                var apiResultResponse = apiResult.Response;
-                apiResults.Add(apiResultResponse);
-
-                var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
-                if (apiResultResponse.IsError)
-                {
-                    writer.WriteError($"Error when processing '{fileRelativePath}':", apiResultResponse.Error.Message);
-                }
-                else
-                {
-                    writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully");
-                }
-            }
-
-            return apiResults;
         }
     }
 }

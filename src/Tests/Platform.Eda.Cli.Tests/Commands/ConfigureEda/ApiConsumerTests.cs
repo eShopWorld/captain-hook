@@ -41,7 +41,7 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
             }
         };
 
-        private readonly FileInfoBase _fileInfo = Mock.Of<FileInfoBase>();
+        private readonly string _fileName = "a-file-name";
 
         public ApiConsumerTests()
         {
@@ -52,6 +52,8 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
         public async Task CallApiAsync_OneFileToProcess_SingleResultSuccessful()
         {
             // Arrange
+            var request = new PutSubscriberRequest();
+
             _apiClientMock
                 .Setup(s => s.PutSuscriberWithHttpMessagesAsync(
                     It.IsAny<string>(),
@@ -62,11 +64,7 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
                 .ReturnsAsync(_positiveResponse);
             var files = new[]
             {
-                new PutSubscriberFile
-                {
-                    File = _fileInfo,
-                    Request = new PutSubscriberRequest()
-                }
+                new PutSubscriberFile(_fileName, request)
             };
 
             // Act
@@ -75,7 +73,7 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
             // Assert
             var expected = new[]
             {
-                new ApiOperationResult { File = _fileInfo, Response = _positiveResponse }
+                new ApiOperationResult(_fileName, request, _positiveResponse)
             };
 
             results.Should().BeEquivalentTo(expected);
@@ -85,6 +83,9 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
         public async Task CallApiAsync_TwoFileToProcess_TwoResultSuccessful()
         {
             // Arrange
+            var request1 = new PutSubscriberRequest();
+            var request2 = new PutSubscriberRequest();
+
             _apiClientMock
                 .Setup(s => s.PutSuscriberWithHttpMessagesAsync(
                     It.IsAny<string>(),
@@ -95,16 +96,8 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
                 .ReturnsAsync(_positiveResponse);
             var files = new[]
             {
-                new PutSubscriberFile
-                {
-                    File = _fileInfo,
-                    Request = new PutSubscriberRequest()
-                },
-                new PutSubscriberFile
-                {
-                    File = _fileInfo,
-                    Request = new PutSubscriberRequest()
-                }
+                new PutSubscriberFile(_fileName, request1),
+                new PutSubscriberFile(_fileName, request2)
             };
 
             // Act
@@ -113,8 +106,8 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
             // Assert
             var expected = new[]
             {
-                new ApiOperationResult { File = _fileInfo, Response = _positiveResponse },
-                new ApiOperationResult { File = _fileInfo, Response = _positiveResponse },
+                new ApiOperationResult(_fileName, request1, _positiveResponse),
+                new ApiOperationResult(_fileName, request2, _positiveResponse),
             };
 
             results.Should().BeEquivalentTo(expected);
@@ -124,6 +117,9 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
         public async Task CallApiAsync_TwoFileToProcessFirstOneFails_ResultsInSuccessAndFailure()
         {
             // Arrange
+            var request1 = new PutSubscriberRequest();
+            var request2 = new PutSubscriberRequest();
+
             _apiClientMock.SetupSequence(s => s.PutSuscriberWithHttpMessagesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -135,16 +131,8 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
                 .ReturnsAsync(_negativeResponse); //2nd call for 2nd file
             var files = new[]
             {
-                new PutSubscriberFile
-                {
-                    File = _fileInfo,
-                    Request = new PutSubscriberRequest()
-                },
-                new PutSubscriberFile
-                {
-                    File = _fileInfo,
-                    Request = new PutSubscriberRequest()
-                }
+                new PutSubscriberFile(_fileName, request1),
+                new PutSubscriberFile(_fileName, request2)
             };
 
             // Act
@@ -153,8 +141,8 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
             // Assert
             var expected = new[]
             {
-                new ApiOperationResult { File = _fileInfo, Response = _positiveResponse },
-                new ApiOperationResult { File = _fileInfo, Response = new CliExecutionError("Status code: 400\r\nReason: Bad Request\r\nResponse: test-content") },
+               new ApiOperationResult(_fileName, request1, _positiveResponse),
+               new ApiOperationResult(_fileName, request2, new CliExecutionError("Status code: 400\r\nReason: Bad Request\r\nResponse: test-content")),
             };
 
             results.Should().BeEquivalentTo(expected);
@@ -164,6 +152,8 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
         public async Task CallApiAsync_OneFileToProcessExpectedToFail_TwoCallsAreMade()
         {
             // Arrange
+            var request = new PutSubscriberRequest();
+
             _apiClientMock.SetupSequence(s => s.PutSuscriberWithHttpMessagesAsync(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
@@ -174,11 +164,7 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
                 .ReturnsAsync(_negativeResponse); //2nd call for 2nd file
             var files = new[]
             {
-                new PutSubscriberFile
-                {
-                    File = _fileInfo,
-                    Request = new PutSubscriberRequest()
-                }
+                new PutSubscriberFile(_fileName, request)
             };
 
             // Act
