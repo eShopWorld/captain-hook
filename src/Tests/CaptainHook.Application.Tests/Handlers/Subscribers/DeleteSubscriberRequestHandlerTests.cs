@@ -89,7 +89,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             });
 
         [Fact, IsUnit]
-        public async Task When_EndpointCanBeDeleted_Then_ChangesWillBeAppliedByDirectorServiceAndStoredInRepository()
+        public async Task When_SubscriberWithoutDLQHooksCanBeDeleted_Then_ChangesAreBeAppliedByDirectorServiceAndStoredInRepository()
         {
             var result = await Handler.Handle(new DeleteSubscriberRequest("event", "subscriber"), CancellationToken.None);
 
@@ -105,7 +105,33 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         }
 
         [Fact, IsUnit]
-        public async Task When_SubscriberDoesNotExist_Then_EntityNotFoundErrorReturned()
+        public async Task When_SubscriberWithDLQHooksAndCanBeDeleted_Then_ChangesAreAppliedByDirectorServiceAndStoredInRepository()
+        {
+            var subscriber = new SubscriberBuilder()
+                .WithEvent("event")
+                .WithName("subscriber")
+                .WithWebhooksSelectionRule("$.Test")
+                .WithWebhook("https://blah.blah.eshopworld.com/default/", "POST", "*")
+                .WithDlqhook("https://blah-blah.eshopworld.com/dlq/", "PUT", "*")
+                .Create();
+            _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
+               .ReturnsAsync(subscriber);
+
+            var result = await Handler.Handle(new DeleteSubscriberRequest("event", "subscriber"), CancellationToken.None);
+
+            using var scope = new AssertionScope();
+            result.IsError.Should().BeFalse();
+            result.Data.Should().BeEquivalentTo(_subscriberDto);
+
+            var subscriberId = new SubscriberId("event", "subscriber");
+
+            _repositoryMock.Verify(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(subscriberId))), Times.Once);
+            _directorServiceMock.Verify(x => x.CallDirectorService(It.IsAny<DeleteReader>()), Times.Exactly(2));
+            _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(subscriberId))), Times.Once);
+        }
+
+        [Fact, IsUnit]
+        public async Task When_SubscriberDoesNotExist_Then_EntityNotFoundErrorIsReturned()
         {
             _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
