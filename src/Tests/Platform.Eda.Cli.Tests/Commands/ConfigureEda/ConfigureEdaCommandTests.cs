@@ -240,9 +240,8 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                                                               && files.Count(file => file.File.Name == "TheGoodFile.json") == 1)), Times.Never);
             Output.Should()
                 .Contain($"File 'TheGoodFile.json' has been found")
-                .And.Contain($"File 'TheBadFile.json' has been found, but encountered {errorText}. File will be skipped.")
-                .And.Contain("Unexpected character encountered while parsing value");
-
+                .And.Contain(// File '{fileRelativePath}' has been found, but skipped due to error
+                    $"File 'TheBadFile.json' has been found, but encountered {errorText}.");
             result.Should().Be(0);
         }
         private void SetupDirectoryProcessorAndApiConsumer(PutSubscriberFile[] files)
