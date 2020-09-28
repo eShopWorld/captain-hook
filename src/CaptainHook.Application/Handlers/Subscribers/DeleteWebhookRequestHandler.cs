@@ -57,38 +57,18 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private async Task<OperationResult<SubscriberDto>> DeleteEndpointAsync(DeleteWebhookRequest request)
         {
             var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
-            var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
+            var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
             if (existingItem.IsError)
             {
                 return existingItem.Error;
             }
 
-            var removeResult = existingItem.Data.RemoveWebhookEndpoint(EndpointEntity.FromSelector(request.Selector));
-            if (removeResult.IsError)
-            {
-                return removeResult.Error;
-            }
-
-            var subscriberConfiguration = await _entityToConfigurationMapper.MapToWebhookAsync(existingItem);
-            if (subscriberConfiguration.IsError)
-            {
-                return subscriberConfiguration.Error;
-            }
-
-            var directorResult = await _directorService.CallDirectorService(new UpdateReader(subscriberConfiguration));
-            if (directorResult.IsError)
-            {
-                return directorResult.Error;
-            }
-
-            var saveResult = await _subscriberRepository.UpdateSubscriberAsync(existingItem);
-            if (saveResult.IsError)
-            {
-                return saveResult.Error;
-            }
-
-            return _entityToDtoMapper.MapSubscriber(saveResult);
+            return await existingItem.Data.RemoveWebhookEndpoint(EndpointEntity.FromSelector(request.Selector))
+                .Then(_ => _entityToConfigurationMapper.MapToWebhookAsync(existingItem))
+                .Then(configuration => _directorService.CallDirectorService(new UpdateReader(configuration)))
+                .Then(_ => _subscriberRepository.UpdateSubscriberAsync(existingItem))
+                .Then<SubscriberEntity, SubscriberDto>(entity => _entityToDtoMapper.MapSubscriber(entity));
         }
     }
 }
