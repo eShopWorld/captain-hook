@@ -24,9 +24,11 @@ namespace CaptainHook.Api.Client.Models
         /// Initializes a new instance of the CaptainHookContractSubscriberDto
         /// class.
         /// </summary>
-        public CaptainHookContractSubscriberDto(CaptainHookContractWebhooksDto webhooks = default(CaptainHookContractWebhooksDto))
+        public CaptainHookContractSubscriberDto(CaptainHookContractWebhooksDto webhooks = default(CaptainHookContractWebhooksDto), CaptainHookContractWebhooksDto callbacks = default(CaptainHookContractWebhooksDto), CaptainHookContractWebhooksDto dlqHooks = default(CaptainHookContractWebhooksDto))
         {
             Webhooks = webhooks;
+            Callbacks = callbacks;
+            DlqHooks = dlqHooks;
             CustomInit();
         }
 
@@ -39,6 +41,16 @@ namespace CaptainHook.Api.Client.Models
         /// </summary>
         [JsonProperty(PropertyName = "webhooks")]
         public CaptainHookContractWebhooksDto Webhooks { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "callbacks")]
+        public CaptainHookContractWebhooksDto Callbacks { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "dlqHooks")]
+        public CaptainHookContractWebhooksDto DlqHooks { get; set; }
 
     }
 }
