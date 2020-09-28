@@ -131,10 +131,19 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
 
             // Assert
-            result.Data.Should().OnlyContain(
-                file => file.IsError && 
-                        file.Error.StartsWith("Error when reading or deserializing 'Z:\\Sample\\sample3.json'") && // file information
-                        file.Error.Contains("Unexpected character encountered while parsing value")); // error information
+            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
+                new[]
+                {
+                    new PutSubscriberFile
+                    {
+                        Request = null,
+                        Error = "Unexpected character encountered while parsing value: <. Path '', line 0, position 0."
+                    }
+                });
+
+            result.Should().BeEquivalentTo(expected, opt => opt
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(CaptainHookContractSubscriberDto))
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
         }
 
         [Fact, IsUnit]

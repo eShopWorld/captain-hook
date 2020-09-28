@@ -65,7 +65,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 return new PutSubscriberFile
                 {
                     File = new FileInfo(fileName),
-                    Error = $"Error when reading or deserializing '{fileName}': '{ex.Message}'"
+                    Error = ex.Message
                 };
             }
         }
