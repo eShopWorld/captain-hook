@@ -6,6 +6,7 @@ using CaptainHook.Api.Client.Models;
 using CaptainHook.Domain.Results;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
+using Moq;
 using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
@@ -116,26 +117,34 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var result = subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath);
 
             // Assert
-            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(new List<PutSubscriberFile>());
+            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(new CliExecutionError("No files have been found in 'Z:\\Sample\\'"));
 
-            result.Should().BeEquivalentTo(expected, opt => opt
-                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(CaptainHookContractSubscriberDto))
-                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
+            result.Should().BeEquivalentTo(expected);
 
         }
 
         [Fact, IsUnit]
-        public void ProcessDirectory_WithInvalidJsonFile_ReturnsError()
+        public void ProcessDirectory_WithInvalidJsonFile_ReturnsCollectionWithErrorInformation()
         {
             var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(GetInvalidJsonMockInputFile(), MockCurrentDirectory));
             // Act
             var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
 
             // Assert
-            result.IsError.Should().BeTrue();
-            result.Error.Should().BeOfType<CliExecutionError>();
-        }
+            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
+                new[]
+                {
+                    new PutSubscriberFile
+                    {
+                        Request = null,
+                        Error = "Unexpected character encountered while parsing value: <. Path '', line 0, position 0."
+                    }
+                });
 
+            result.Should().BeEquivalentTo(expected, opt => opt
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(CaptainHookContractSubscriberDto))
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
+        }
 
         [Fact, IsUnit]
         public void ProcessDirectory_JsonFileWithCallbacksDlqHooks_ReturnsValidObject()

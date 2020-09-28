@@ -96,7 +96,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             var apiResults = new List<OperationResult<HttpOperationResponse>>();
 
             var sourceFolderPath = Path.GetFullPath(InputFolderPath);
-            await foreach (var apiResult in api.CallApiAsync(subscriberFiles))
+            await foreach (var apiResult in api.CallApiAsync(subscriberFiles.Where(f => !f.IsError)))
             {
                 var apiResultResponse = apiResult.Response;
                 apiResults.Add(apiResultResponse);

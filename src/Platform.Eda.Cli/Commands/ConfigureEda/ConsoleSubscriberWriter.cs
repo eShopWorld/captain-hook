@@ -29,7 +29,14 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             foreach (var file in files)
             {
                 var fileRelativePath = Path.GetRelativePath(sourceFolderPath, file.File.FullName);
-                _console.WriteLine($"File '{fileRelativePath}' has been found");
+                if (file.IsError)
+                {
+                    WriteError($"File '{fileRelativePath}' has been found, but will be skipped due to error {file.Error}.");
+                }
+                else
+                {
+                    WriteNormal($"File '{fileRelativePath}' has been found");
+                }
             }
         }
 

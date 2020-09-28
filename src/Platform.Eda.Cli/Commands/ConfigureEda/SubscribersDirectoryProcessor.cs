@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using CaptainHook.Domain.Results;
 using Newtonsoft.Json;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
@@ -31,18 +32,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             try
             {
                 var subscriberFiles = _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
-                foreach (var fileName in subscriberFiles)
+                subscribers.AddRange(subscriberFiles.Select(ProcessFile));
+
+                if (!subscribers.Any())
                 {
-                    var content = _fileSystem.File.ReadAllText(fileName);
-                    var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
-
-                    var file = new PutSubscriberFile
-                    {
-                        File = new FileInfo(fileName),
-                        Request = request
-                    };
-
-                    subscribers.Add(file);
+                    return new CliExecutionError($"No files have been found in '{sourceFolderPath}'");
                 }
             }
             catch (Exception e)
@@ -51,6 +45,29 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
 
             return subscribers;
+        }
+
+        private PutSubscriberFile ProcessFile(string fileName)
+        {
+            try
+            {
+                var content = _fileSystem.File.ReadAllText(fileName);
+                var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
+
+                return new PutSubscriberFile
+                {
+                    File = new FileInfo(fileName),
+                    Request = request
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PutSubscriberFile
+                {
+                    File = new FileInfo(fileName),
+                    Error = ex.Message
+                };
+            }
         }
     }
 }

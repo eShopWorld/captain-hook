@@ -7,5 +7,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.Models
         public FileInfoBase File { get; set; }
 
         public PutSubscriberRequest Request { get; set; }
+
+        public string Error { get; set; }
+
+        public bool IsError => !string.IsNullOrEmpty(Error);
     }
 }
