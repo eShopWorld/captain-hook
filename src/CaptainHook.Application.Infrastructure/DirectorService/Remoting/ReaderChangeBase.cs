@@ -9,5 +9,14 @@ namespace CaptainHook.Application.Infrastructure.DirectorService.Remoting
     public abstract class ReaderChangeBase
     {
         public SubscriberConfiguration Subscriber { get; set; }
+
+        protected ReaderChangeBase()
+        {
+        }
+
+        protected ReaderChangeBase(SubscriberConfiguration subscriber)
+        {
+            Subscriber = subscriber;
+        }
     }
 }
