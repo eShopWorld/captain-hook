@@ -33,7 +33,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _apiConsumer = new Mock<IApiConsumer>();
             _mockSubscribersDirectoryProcessor = new Mock<ISubscribersDirectoryProcessor>();
 
-            _configureEdaCommand = new ConfigureEdaCommand(_mockSubscribersDirectoryProcessor.Object, env => _apiConsumer.Object)
+            _configureEdaCommand = new ConfigureEdaCommand(
+                _mockSubscribersDirectoryProcessor.Object,
+                env => _apiConsumer.Object)
             {
                 InputFolderPath = MockCurrentDirectory,
                 NoDryRun = true
@@ -288,7 +290,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             }
         }
 
-#pragma warning disable 1998 // Async function without await expression
         private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableResponse(PutSubscriberFile[] files)
         {
             foreach (var putSubscriberFile in files)
@@ -296,22 +297,27 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 yield return new ApiOperationResult
                 {
                     File = new FileInfo(putSubscriberFile.File.FullName),
+                    Request = new PutSubscriberRequest(),
                     Response = new OperationResult<HttpOperationResponse>(new HttpOperationResponse())
                 };
             }
+
+            await Task.CompletedTask;
         }
 
         private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableException(PutSubscriberFile[] files)
         {
-
             foreach (var putSubscriberFile in files)
             {
                 yield return new ApiOperationResult
                 {
                     File = new FileInfo(putSubscriberFile.File.FullName),
+                    Request = new PutSubscriberRequest(),
                     Response = new CliExecutionError("Exception text", new Failure("0", "Failure message"))
                 };
             }
+
+            await Task.CompletedTask;
         }
 
         private static async IAsyncEnumerable<ApiOperationResult> AsyncEnumerableMixed(PutSubscriberFile[] files)
@@ -324,6 +330,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     yield return new ApiOperationResult
                     {
                         File = new FileInfo(putSubscriberFile.File.FullName),
+                        Request = new PutSubscriberRequest(),
                         Response = new CliExecutionError("Exception text", new Failure("0", "Failure message"))
                     };
                 }
@@ -332,11 +339,13 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     yield return new ApiOperationResult
                     {
                         File = new FileInfo(putSubscriberFile.File.FullName),
+                        Request = new PutSubscriberRequest(),
                         Response = new OperationResult<HttpOperationResponse>(new HttpOperationResponse())
                     };
                 }
             }
+
+            await Task.CompletedTask;
         }
-#pragma warning restore 1998
     }
 }

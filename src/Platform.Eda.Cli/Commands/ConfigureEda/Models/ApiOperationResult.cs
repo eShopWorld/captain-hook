@@ -9,5 +9,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.Models
         public FileInfoBase File { get; set; }
 
         public OperationResult<HttpOperationResponse> Response { get; set; }
+
+        public PutSubscriberRequest Request { get; set; }
     }
 }

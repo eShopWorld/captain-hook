@@ -75,7 +75,7 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
             // Assert
             var expected = new[]
             {
-                new ApiOperationResult { File = _fileInfo, Response = _positiveResponse }
+                new ApiOperationResult { File = _fileInfo, Request = new PutSubscriberRequest(), Response = _positiveResponse }
             };
 
             results.Should().BeEquivalentTo(expected);
@@ -113,8 +113,8 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
             // Assert
             var expected = new[]
             {
-                new ApiOperationResult { File = _fileInfo, Response = _positiveResponse },
-                new ApiOperationResult { File = _fileInfo, Response = _positiveResponse },
+                new ApiOperationResult { File = _fileInfo, Request = new PutSubscriberRequest(), Response = _positiveResponse },
+                new ApiOperationResult { File = _fileInfo, Request = new PutSubscriberRequest(), Response = _positiveResponse },
             };
 
             results.Should().BeEquivalentTo(expected);
@@ -153,8 +153,8 @@ namespace Platform.Eda.Cli.Tests.ConfigureEda
             // Assert
             var expected = new[]
             {
-                new ApiOperationResult { File = _fileInfo, Response = _positiveResponse },
-                new ApiOperationResult { File = _fileInfo, Response = new CliExecutionError("Status code: 400\r\nReason: Bad Request\r\nResponse: test-content") },
+                new ApiOperationResult { File = _fileInfo, Request = new PutSubscriberRequest(), Response = _positiveResponse },
+                new ApiOperationResult { File = _fileInfo, Request = new PutSubscriberRequest(), Response = new CliExecutionError("Status code: 400\r\nReason: Bad Request\r\nResponse: test-content") },
             };
 
             results.Should().BeEquivalentTo(expected);

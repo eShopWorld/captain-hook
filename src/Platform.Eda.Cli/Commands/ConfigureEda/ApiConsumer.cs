@@ -73,6 +73,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 {
                     yield return new ApiOperationResult
                     {
+                        Request = file.Request,
                         File = file.File,
                         Response = response
                     };
@@ -81,6 +82,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 {
                     yield return new ApiOperationResult
                     {
+                        Request = file.Request,
                         File = file.File,
                         Response = await BuildExecutionErrorAsync(response.Response)
                     };
