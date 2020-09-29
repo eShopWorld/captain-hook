@@ -112,19 +112,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 }
                 else
                 {
-                    string operationDescription;
-                    switch (apiResult.Response.Data.Response.StatusCode)
+                    string operationDescription = apiResult.Response.Data.Response.StatusCode switch
                     {
-                        case HttpStatusCode.Created:
-                            operationDescription = "created";
-                            break;
-                        case HttpStatusCode.Accepted:
-                            operationDescription = "updated";
-                            break;
-                        default:
-                            operationDescription = "unknown result";
-                            break;
-                    }
+                        HttpStatusCode.Created => "created",
+                        HttpStatusCode.Accepted => "updated",
+                        _ => "unknown result"
+                    };
 
                     writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
                                        $"subscriber '{apiResult.Request.SubscriberName}' has been {operationDescription}.");
