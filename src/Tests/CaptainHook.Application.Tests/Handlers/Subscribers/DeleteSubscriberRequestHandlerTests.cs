@@ -30,7 +30,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         private readonly Mock<IEntityToDtoMapper> _entityToDtoMapperMock = new Mock<IEntityToDtoMapper>();
         private readonly Mock<ISubscriberEntityToConfigurationMapper> _entityToConfigurationMapperMock = new Mock<ISubscriberEntityToConfigurationMapper>();
 
-        private static OidcAuthenticationEntity _authentication = new OidcAuthenticationEntity(
+        private static readonly OidcAuthenticationEntity _authentication = new OidcAuthenticationEntity(
                 "captain-hook-id",
                 "kv-secret-name",
                 "https://blah-blah.sts.eshopworld.com",

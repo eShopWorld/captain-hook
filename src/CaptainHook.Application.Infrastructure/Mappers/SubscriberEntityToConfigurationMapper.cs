@@ -239,6 +239,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             {
                 OidcAuthenticationEntity ent => (await MapOidcAuthenticationAsync(ent)).Then<AuthenticationConfig>(x => x),
                 BasicAuthenticationEntity ent => (await MapBasicAuthenticationAsync(ent)).Then<AuthenticationConfig>(x => x),
+                null => new AuthenticationConfig(),
                 _ => new MappingError("Could not find a suitable authentication mechanism.")
             };
         }

@@ -50,7 +50,8 @@ namespace CaptainHook.Api
             {
                 OidcAuthenticationDto.Type => new OidcAuthenticationDto(),
                 BasicAuthenticationDto.Type => new BasicAuthenticationDto(),
-                _ => null
+                NoAuthenticationDto.Type => new BasicAuthenticationDto(),
+                _ => null,
             };
 
             if (item != null)

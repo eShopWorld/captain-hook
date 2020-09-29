@@ -32,6 +32,7 @@ namespace CaptainHook.Application.Tests
             {
                 AuthenticationType.Basic => config is BasicAuthenticationConfig basicConfig && MatchesBasicAuthentication(basicConfig, (BasicAuthenticationConfig)expectation),
                 AuthenticationType.OIDC => config is OidcAuthenticationConfig oidcConfig && MatchesOidcAuthentication(oidcConfig, (OidcAuthenticationConfig)expectation),
+                AuthenticationType.None => config is AuthenticationConfig noneConfig && noneConfig.Type == AuthenticationType.None,
                 _ => false
             };
         }
