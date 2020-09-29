@@ -116,7 +116,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                     {
                         HttpStatusCode.Created => "created",
                         HttpStatusCode.Accepted => "updated",
-                        _ => "unknown result"
+                        _ => $"unknown result (HTTP Status {apiResult.Response.Data.Response.StatusCode:D})"
                     };
 
                     writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
