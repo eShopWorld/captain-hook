@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Cli.Tests;
 using CaptainHook.Domain.Results;
@@ -137,8 +139,8 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             // Assert;
             OutputShouldContainFileNames(files);
-            Output.SplitLines().Should()
-                .Contain($"Error when processing '{files[0].File.Name}':")
+            Output.Should()
+                .Contain($"Error when processing '{files[0].File.Name}'")
                 .And.Contain("Exception text");
             result.Should().Be(2);
         }
@@ -212,7 +214,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         public async Task OnExecuteAsync_WhenErrorInProcessFile_FileIsNotPassedToApi()
         {
             // Arrange
-            _configureEdaCommand.NoDryRun = false;
+            _configureEdaCommand.NoDryRun = true;
             _configureEdaCommand.InputFolderPath = MockCurrentDirectory;
             var errorText = "Error text";
             _mockSubscribersDirectoryProcessor.Setup(processor => processor.ProcessDirectory(MockCurrentDirectory))
@@ -239,7 +241,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             // Assert
             _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(
                 It.Is<IEnumerable<PutSubscriberFile>>(files=> files.Count() == 1 
-                                                              && files.Count(file => file.File.Name == "TheGoodFile.json") == 1)), Times.Never);
+                                                              && files.Count(file => file.File.Name == "TheGoodFile.json") == 1)), Times.Once);
             Output.Should()
                 .Contain($"File 'TheGoodFile.json' has been found")
                 .And.Contain(// File '{fileRelativePath}' has been found, but skipped due to error
@@ -298,7 +300,10 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 {
                     File = new FileInfo(putSubscriberFile.File.FullName),
                     Request = new PutSubscriberRequest(),
-                    Response = new OperationResult<HttpOperationResponse>(new HttpOperationResponse())
+                    Response = new OperationResult<HttpOperationResponse>(new HttpOperationResponse
+                    {
+                        Response = new HttpResponseMessage(HttpStatusCode.Accepted)
+                    })
                 };
             }
 
@@ -340,7 +345,10 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     {
                         File = new FileInfo(putSubscriberFile.File.FullName),
                         Request = new PutSubscriberRequest(),
-                        Response = new OperationResult<HttpOperationResponse>(new HttpOperationResponse())
+                        Response = new OperationResult<HttpOperationResponse>(new HttpOperationResponse
+                        {
+                            Response = new HttpResponseMessage(HttpStatusCode.Accepted)
+                        })
                     };
                 }
             }

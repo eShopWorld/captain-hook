@@ -107,7 +107,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
                 if (apiResultResponse.IsError)
                 {
-                    writer.WriteError($"Error when processing '{fileRelativePath}' for event '{apiResult.Request.EventName}', subscriber '{apiResult.Request.SubscriberName}'", apiResultResponse.Error.Message);
+                    writer.WriteError($"Error when processing '{fileRelativePath}' for event '{apiResult.Request.EventName}'," +
+                        $" subscriber '{apiResult.Request.SubscriberName}'", apiResultResponse.Error.Message);
                 }
                 else
                 {
@@ -117,7 +118,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                         HttpStatusCode.Accepted => "updated",
                         _ => "unknown result"
                     };
-                    writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', subscriber '{apiResult.Request.SubscriberName}' has been {operationDescription}.");
+                    writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
+                                       $"subscriber '{apiResult.Request.SubscriberName}' has been {operationDescription}.");
                 }
             }
 
