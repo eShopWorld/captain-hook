@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using EShopworld.Security.Services.Rest;
 using JetBrains.Annotations;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
@@ -10,6 +11,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
     {
         public Uri CaptainHookUrl { get; set; }
 
-        public string ClientKeyVaultSecretName { get; set; }
+        public RefreshingTokenProviderOptions RefreshingTokenProviderOptions { get; set; }
     }
 }

@@ -54,7 +54,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
             foreach (var dsRequest in requests.Data)
             {
-                var directorResult = await _directorServiceProxy.CallDirectorService(dsRequest);
+                var directorResult = await _directorServiceProxy.CallDirectorServiceAsync(dsRequest);
                 if (directorResult.IsError)
                 {
                     return directorResult.Error;

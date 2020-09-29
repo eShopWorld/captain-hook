@@ -9,193 +9,193 @@ namespace CaptainHook.Tests.Director.ReaderServiceManagement
     public class DesiredReaderDefinitionTests
     {
         [IsUnit, Theory]
-        [InlineData (true)]
-        [InlineData (false)]
-        public void Ctor_WithValidConfiguration_CreatesValidServiceName (bool asDlq)
+        [InlineData(true)]
+        [InlineData(false)]
+        public void Ctor_WithValidConfiguration_CreatesValidServiceName(bool asDlq)
         {
             // Arrange
             const string eventName = "my.event.type";
             const string subscriberName = "my-subscriber";
 
-            var config = new SubscriberConfigurationBuilder ()
-                .WithType (eventName)
-                .WithSubscriberName (subscriberName)
-                .AsDLQ (asDlq)
-                .Create ();
+            var config = new SubscriberConfigurationBuilder()
+                .WithType(eventName)
+                .WithSubscriberName(subscriberName)
+                .AsDLQ(asDlq)
+                .Create();
 
             // Act
-            var definition = new DesiredReaderDefinition (config);
+            var definition = new DesiredReaderDefinition(config);
 
             // Assert
-            var expectedName = ServiceNaming.EventReaderServiceFullUri (eventName, subscriberName, asDlq);
+            var expectedName = ServiceNaming.EventReaderServiceFullUri(eventName, subscriberName);
 
-            Assert.Equal (expectedName, definition.ServiceName);
-            Assert.StartsWith (definition.ServiceName, definition.ServiceNameWithSuffix);
+            Assert.Equal(expectedName, definition.ServiceName);
+            Assert.StartsWith(definition.ServiceName, definition.ServiceNameWithSuffix);
         }
 
         [IsUnit, Fact]
-        public void Ctor_WithValidConfiguration_CreatesValidDefinition ()
+        public void Ctor_WithValidConfiguration_CreatesValidDefinition()
         {
             // Arrange
             const string eventName = "my.event.type";
             const string subscriberName = "my-subscriber";
 
-            var config = new SubscriberConfigurationBuilder ()
-                .WithType (eventName)
-                .WithSubscriberName (subscriberName)
-                .Create ();
+            var config = new SubscriberConfigurationBuilder()
+                .WithType(eventName)
+                .WithSubscriberName(subscriberName)
+                .Create();
 
             // Act
-            var definition = new DesiredReaderDefinition (config);
+            var definition = new DesiredReaderDefinition(config);
 
             // Assert
-            Assert.True (definition.IsValid);
-            Assert.Equal (config, definition.SubscriberConfig);
-            Assert.NotNull (definition.ServiceNameWithSuffix);
-            Assert.NotNull (definition.ServiceName);
+            Assert.True(definition.IsValid);
+            Assert.Equal(config, definition.SubscriberConfig);
+            Assert.NotNull(definition.ServiceNameWithSuffix);
+            Assert.NotNull(definition.ServiceName);
         }
 
         [Fact, IsUnit]
-        public void IsTheSameService_ForTheSameDefinition_ReturnsTrue ()
+        public void IsTheSameService_ForTheSameDefinition_ReturnsTrue()
         {
             // Arrange
             const string eventName = "my.event.type";
             const string subscriberName = "my-subscriber";
 
-            var config = new SubscriberConfigurationBuilder ()
-                .WithType (eventName)
-                .WithSubscriberName (subscriberName)
-                .Create ();
+            var config = new SubscriberConfigurationBuilder()
+                .WithType(eventName)
+                .WithSubscriberName(subscriberName)
+                .Create();
 
-            var definition = new DesiredReaderDefinition (config);
-            var existing = new ExistingReaderDefinition (definition.ServiceNameWithSuffix);
+            var definition = new DesiredReaderDefinition(config);
+            var existing = new ExistingReaderDefinition(definition.ServiceNameWithSuffix);
 
             // Act
-            var result = definition.IsTheSameService (existing);
+            var result = definition.IsTheSameService(existing);
 
             // Assert
-            Assert.True (result);
+            Assert.True(result);
         }
 
         [Fact, IsUnit]
-        public void IsTheSameService_ForDifferentServiceName_ReturnsFalse ()
+        public void IsTheSameService_ForDifferentServiceName_ReturnsFalse()
         {
             // Arrange
             const string subscriberName = "my-subscriber";
 
-            var config = new SubscriberConfigurationBuilder ()
-                .WithType ("event-one")
-                .WithSubscriberName (subscriberName)
-                .Create ();
+            var config = new SubscriberConfigurationBuilder()
+                .WithType("event-one")
+                .WithSubscriberName(subscriberName)
+                .Create();
 
-            var definition = new DesiredReaderDefinition (config);
+            var definition = new DesiredReaderDefinition(config);
 
-            var different = new SubscriberConfigurationBuilder ()
-                .WithType ("different-event")
-                .WithSubscriberName (subscriberName)
-                .Create ();
-            var existing = new ExistingReaderDefinition (new DesiredReaderDefinition (different).ServiceNameWithSuffix);
+            var different = new SubscriberConfigurationBuilder()
+                .WithType("different-event")
+                .WithSubscriberName(subscriberName)
+                .Create();
+            var existing = new ExistingReaderDefinition(new DesiredReaderDefinition(different).ServiceNameWithSuffix);
 
             // Act
-            var result = definition.IsTheSameService (existing);
+            var result = definition.IsTheSameService(existing);
 
             // Assert
-            Assert.False (result);
+            Assert.False(result);
         }
 
         [Fact, IsUnit]
-        public void IsTheSameService_ForTheServiceNameButDifferentVersion_ReturnsTrue ()
-        {
-            // Arrange
-            const string eventName = "my.event.type";
-            const string subscriberName = "my-subscriber";
-
-            var config = new SubscriberConfigurationBuilder ()
-                .WithType (eventName)
-                .WithSubscriberName (subscriberName)
-                .WithUri ("first-uri")
-                .Create ();
-
-            var definition = new DesiredReaderDefinition (config);
-
-            var existingConfig = new SubscriberConfigurationBuilder ()
-                .WithType (eventName)
-                .WithSubscriberName (subscriberName)
-                .WithUri ("different-uri")
-                .Create ();
-
-            var existingDefinition = new DesiredReaderDefinition (existingConfig);
-            var existing = new ExistingReaderDefinition (existingDefinition.ServiceNameWithSuffix);
-
-            // Act
-            var result = definition.IsTheSameService (existing);
-
-            // Assert
-            Assert.Equal (definition.ServiceName, existingDefinition.ServiceName);
-            Assert.True (result);
-        }
-
-        [Fact, IsUnit]
-        public void IsUnchanged_ForTheServiceNameButDifferentVersion_ReturnsFalse ()
+        public void IsTheSameService_ForTheServiceNameButDifferentVersion_ReturnsTrue()
         {
             // Arrange
             const string eventName = "my.event.type";
             const string subscriberName = "my-subscriber";
 
-            var config = new SubscriberConfigurationBuilder ()
-                .WithType (eventName)
-                .WithSubscriberName (subscriberName)
-                .WithUri ("first-uri")
-                .Create ();
+            var config = new SubscriberConfigurationBuilder()
+                .WithType(eventName)
+                .WithSubscriberName(subscriberName)
+                .WithUri("first-uri")
+                .Create();
 
-            var definition = new DesiredReaderDefinition (config);
+            var definition = new DesiredReaderDefinition(config);
 
-            var existingConfig = new SubscriberConfigurationBuilder ()
-                .WithType (eventName)
-                .WithSubscriberName (subscriberName)
-                .WithUri ("different-uri")
-                .Create ();
+            var existingConfig = new SubscriberConfigurationBuilder()
+                .WithType(eventName)
+                .WithSubscriberName(subscriberName)
+                .WithUri("different-uri")
+                .Create();
 
-            var existingDefinition = new DesiredReaderDefinition (existingConfig);
-            var existing = new ExistingReaderDefinition (existingDefinition.ServiceNameWithSuffix);
+            var existingDefinition = new DesiredReaderDefinition(existingConfig);
+            var existing = new ExistingReaderDefinition(existingDefinition.ServiceNameWithSuffix);
 
             // Act
-            var result = definition.IsUnchanged (existing);
+            var result = definition.IsTheSameService(existing);
 
             // Assert
-            Assert.Equal (definition.ServiceName, existingDefinition.ServiceName);
-            Assert.False (result);
+            Assert.Equal(definition.ServiceName, existingDefinition.ServiceName);
+            Assert.True(result);
         }
 
         [Fact, IsUnit]
-        public void IsUnchanged_ForTheSameConfig_ReturnsTrue ()
+        public void IsUnchanged_ForTheServiceNameButDifferentVersion_ReturnsFalse()
         {
             // Arrange
             const string eventName = "my.event.type";
             const string subscriberName = "my-subscriber";
 
-            var config = new SubscriberConfigurationBuilder ()
-                .WithType (eventName)
-                .WithSubscriberName (subscriberName)
-                .Create ();
+            var config = new SubscriberConfigurationBuilder()
+                .WithType(eventName)
+                .WithSubscriberName(subscriberName)
+                .WithUri("first-uri")
+                .Create();
 
-            var definition = new DesiredReaderDefinition (config);
+            var definition = new DesiredReaderDefinition(config);
 
-            var existingConfig = new SubscriberConfigurationBuilder ()
-                .WithType (eventName)
-                .WithSubscriberName (subscriberName)
-                .Create ();
+            var existingConfig = new SubscriberConfigurationBuilder()
+                .WithType(eventName)
+                .WithSubscriberName(subscriberName)
+                .WithUri("different-uri")
+                .Create();
 
-            var existingDefinition = new DesiredReaderDefinition (existingConfig);
-            var existing = new ExistingReaderDefinition (existingDefinition.ServiceNameWithSuffix);
+            var existingDefinition = new DesiredReaderDefinition(existingConfig);
+            var existing = new ExistingReaderDefinition(existingDefinition.ServiceNameWithSuffix);
 
             // Act
-            var result = definition.IsUnchanged (existing);
+            var result = definition.IsUnchanged(existing);
 
             // Assert
-            Assert.True (result);
-            Assert.Equal (definition.ServiceName, existingDefinition.ServiceName);
-            Assert.Equal (definition.ServiceNameWithSuffix, existingDefinition.ServiceNameWithSuffix);
+            Assert.Equal(definition.ServiceName, existingDefinition.ServiceName);
+            Assert.False(result);
+        }
+
+        [Fact, IsUnit]
+        public void IsUnchanged_ForTheSameConfig_ReturnsTrue()
+        {
+            // Arrange
+            const string eventName = "my.event.type";
+            const string subscriberName = "my-subscriber";
+
+            var config = new SubscriberConfigurationBuilder()
+                .WithType(eventName)
+                .WithSubscriberName(subscriberName)
+                .Create();
+
+            var definition = new DesiredReaderDefinition(config);
+
+            var existingConfig = new SubscriberConfigurationBuilder()
+                .WithType(eventName)
+                .WithSubscriberName(subscriberName)
+                .Create();
+
+            var existingDefinition = new DesiredReaderDefinition(existingConfig);
+            var existing = new ExistingReaderDefinition(existingDefinition.ServiceNameWithSuffix);
+
+            // Act
+            var result = definition.IsUnchanged(existing);
+
+            // Assert
+            Assert.True(result);
+            Assert.Equal(definition.ServiceName, existingDefinition.ServiceName);
+            Assert.Equal(definition.ServiceNameWithSuffix, existingDefinition.ServiceNameWithSuffix);
         }
     }
 }
