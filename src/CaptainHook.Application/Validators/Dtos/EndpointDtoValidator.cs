@@ -16,7 +16,7 @@ namespace CaptainHook.Application.Validators.Dtos
                 .SetValidator(new UriValidator());
             RuleFor(x => x.Authentication).Cascade(CascadeMode.Stop)
                 .NotNull()
-                .WithMessage($"Authentication type must be one of these values: {BasicAuthenticationDto.Type}, {OidcAuthenticationDto.Type}.")
+                .WithMessage($"Authentication type must be one of these values: {NoAuthenticationDto.Type}, {BasicAuthenticationDto.Type}, {OidcAuthenticationDto.Type}.")
                 .SetValidator(new PolymorphicValidator<EndpointDto, AuthenticationDto>()
                     .Add(new BasicAuthenticationValidator())
                     .Add(new OidcAuthenticationValidator()));
