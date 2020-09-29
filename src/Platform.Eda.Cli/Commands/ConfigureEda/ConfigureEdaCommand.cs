@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CaptainHook.Domain.Results;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
-using Platform.Eda.Cli.Extensions;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
@@ -19,10 +20,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         private readonly ISubscribersDirectoryProcessor _subscribersDirectoryProcessor;
         private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
 
-        public ConfigureEdaCommand(ISubscribersDirectoryProcessor subscribersDirectoryProcessor, BuildCaptainHookProxyDelegate captainHookBuilder)
+        public ConfigureEdaCommand(
+            ISubscribersDirectoryProcessor subscribersDirectoryProcessor,
+            BuildCaptainHookProxyDelegate captainHookBuilder)
         {
-            _subscribersDirectoryProcessor = subscribersDirectoryProcessor;
-            _captainHookBuilder = captainHookBuilder;
+            _subscribersDirectoryProcessor = subscribersDirectoryProcessor ?? throw new ArgumentNullException(nameof(subscribersDirectoryProcessor));
+            _captainHookBuilder = captainHookBuilder ?? throw new ArgumentNullException(nameof(captainHookBuilder));
         }
 
         /// <summary>
@@ -104,11 +107,20 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
                 if (apiResultResponse.IsError)
                 {
-                    writer.WriteError($"Error when processing '{fileRelativePath}':", apiResultResponse.Error.Message);
+                    writer.WriteError($"Error when processing '{fileRelativePath}' for event '{apiResult.Request.EventName}'," +
+                        $" subscriber '{apiResult.Request.SubscriberName}'. Error details: ", apiResultResponse.Error.Message);
                 }
                 else
                 {
-                    writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully");
+                    string operationDescription = apiResult.Response.Data.Response.StatusCode switch
+                    {
+                        HttpStatusCode.Created => "created",
+                        HttpStatusCode.Accepted => "updated",
+                        _ => $"unknown result (HTTP Status {apiResult.Response.Data.Response.StatusCode:D})"
+                    };
+
+                    writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
+                                       $"subscriber '{apiResult.Request.SubscriberName}' has been {operationDescription}.");
                 }
             }
 
