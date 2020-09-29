@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
-using Eshopworld.DevOps;
 using EShopworld.Security.Services.Rest;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
@@ -32,21 +29,26 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
         private static readonly TimeSpan[] DefaultSleepDurations = { TimeSpan.FromSeconds(3.0), TimeSpan.FromSeconds(6.0) };
 
-        private static readonly string AssemblyLocation = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
         [ExcludeFromCodeCoverage]
         public static ApiConsumer BuildApiConsumer(IHttpClientFactory clientFactory, string environment)
         {
-            var configuration = EswDevOpsSdk.BuildConfiguration(AssemblyLocation, environment);
-            var configureEdaConfig = configuration.BindSection<ConfigureEdaCommandConfig>(nameof(ConfigureEdaCommandConfig));
+            var configuration = new ConfigurationBuilder()
+                .UseDefaultConfigs(environment: environment)
+                .AddKeyVaultSecrets(new Dictionary<string, string> {
+                    { "sts--sts-secret--platform-captainhook-api-client", "ConfigureEdaCommandConfig:RefreshingTokenProviderOptions:ClientSecret" }
+                })
+                .Build();
 
-            var refreshingTokenProviderOptions = configuration.BindSection<RefreshingTokenProviderOptions>(
-                $"{nameof(ConfigureEdaCommandConfig)}:{nameof(RefreshingTokenProviderOptions)}",
-                c => c.AddMapping(m => m.ClientSecret, configureEdaConfig.ClientKeyVaultSecretName));
+            var configureEdaCommandConfig = configuration
+                .GetSection(nameof(ConfigureEdaCommandConfig))
+                .Get<ConfigureEdaCommandConfig>();
 
-            var tokenProvider = new RefreshingTokenProvider(clientFactory, BigBrother.CreateDefault("", ""), refreshingTokenProviderOptions);
+            var tokenProvider = new RefreshingTokenProvider(
+                clientFactory,
+                BigBrother.CreateDefault("", ""),
+                configureEdaCommandConfig.RefreshingTokenProviderOptions);
 
-            var client = new CaptainHookClient(configureEdaConfig.CaptainHookUrl, new TokenCredentials(tokenProvider));
+            var client = new CaptainHookClient(configureEdaCommandConfig.CaptainHookUrl, new TokenCredentials(tokenProvider));
             return new ApiConsumer(client, null);
         }
 

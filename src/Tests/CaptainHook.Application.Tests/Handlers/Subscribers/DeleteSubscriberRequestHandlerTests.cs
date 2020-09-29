@@ -69,7 +69,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var subscriber = _subscriberBuilder.Create();
             _repositoryMock.Setup(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                .ReturnsAsync(subscriber);
-            _directorServiceMock.Setup(x => x.CallDirectorService(It.IsAny<DeleteReader>())).ReturnsAsync(new SubscriberConfiguration());
+            _directorServiceMock.Setup(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>())).ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.Setup(x => x.RemoveSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new SubscriberId("event", "subscriber"));
             _entityToDtoMapperMock.Setup(x => x.MapSubscriber(It.IsAny<SubscriberEntity>())).Returns(_subscriberDto);
@@ -100,7 +100,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var subscriberId = new SubscriberId("event", "subscriber");
 
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(subscriberId))), Times.Once);
-            _directorServiceMock.Verify(x => x.CallDirectorService(It.IsAny<DeleteReader>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>()), Times.Once);
             _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(subscriberId))), Times.Once);
         }
 
@@ -126,7 +126,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var subscriberId = new SubscriberId("event", "subscriber");
 
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(subscriberId))), Times.Once);
-            _directorServiceMock.Verify(x => x.CallDirectorService(It.IsAny<DeleteReader>()), Times.Exactly(2));
+            _directorServiceMock.Verify(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>()), Times.Exactly(2));
             _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(subscriberId))), Times.Once);
         }
 
@@ -142,14 +142,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<EntityNotFoundError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.CallDirectorService(It.IsAny<DeleteReader>()), Times.Never);
+            _directorServiceMock.Verify(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>()), Times.Never);
             _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.IsAny<SubscriberId>()), Times.Never);
         }
 
         [Fact, IsUnit]
         public async Task When_DirectorServiceIsBusyReloading_Then_OperationFails()
         {
-            _directorServiceMock.Setup(x => x.CallDirectorService(It.IsAny<DeleteReader>())).ReturnsAsync(new DirectorServiceIsBusyError());
+            _directorServiceMock.Setup(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>())).ReturnsAsync(new DirectorServiceIsBusyError());
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
 
@@ -157,14 +157,14 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.CallDirectorService(It.IsAny<DeleteReader>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>()), Times.Once);
             _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.IsAny<SubscriberId>()), Times.Never);
         }
 
         [Fact, IsUnit]
         public async Task When_DirectorServiceFailsToUpdateReaderBecauseOfDeleteError_Then_OperationFails()
         {
-            _directorServiceMock.Setup(x => x.CallDirectorService(It.IsAny<DeleteReader>()))
+            _directorServiceMock.Setup(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>()))
                 .ReturnsAsync(new ReaderDeleteError("subscriber", "event"));
 
             var result = await Handler.Handle(_defaultRequest, CancellationToken.None);
@@ -173,7 +173,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderDeleteError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.CallDirectorService(It.IsAny<DeleteReader>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>()), Times.Once);
             _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.IsAny<SubscriberId>()), Times.Never);
         }
 
@@ -189,7 +189,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
-            _directorServiceMock.Verify(x => x.CallDirectorService(It.IsAny<DeleteReader>()), Times.Once);
+            _directorServiceMock.Verify(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>()), Times.Once);
             _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.IsAny<SubscriberId>()), Times.Once);
         }
 
@@ -206,7 +206,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
             result.Should().BeEquivalentTo(new OperationResult<SubscriberDto>(new CannotDeleteEntityError("dummy-type", new Exception())));
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(3));
-            _directorServiceMock.Verify(x => x.CallDirectorService(It.IsAny<DeleteReader>()), Times.Exactly(3));
+            _directorServiceMock.Verify(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>()), Times.Exactly(3));
             _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(3));
         }
 
@@ -224,7 +224,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
             result.IsError.Should().BeFalse();
             _repositoryMock.Verify(x => x.GetSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(2));
-            _directorServiceMock.Verify(x => x.CallDirectorService(It.IsAny<DeleteReader>()), Times.Exactly(2));
+            _directorServiceMock.Verify(x => x.CallDirectorServiceAsync(It.IsAny<DeleteReader>()), Times.Exactly(2));
             _repositoryMock.Verify(x => x.RemoveSubscriberAsync(It.IsAny<SubscriberId>()), Times.Exactly(2));
         }
     }
