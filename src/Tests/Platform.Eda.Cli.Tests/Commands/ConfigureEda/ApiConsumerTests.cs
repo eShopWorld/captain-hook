@@ -16,7 +16,7 @@ using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 using Xunit;
 
-namespace Platform.Eda.Cli.Tests.ConfigureEda
+namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 {
     public class ApiConsumerTests
     {

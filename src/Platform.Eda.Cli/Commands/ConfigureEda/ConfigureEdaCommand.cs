@@ -108,16 +108,24 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 if (apiResultResponse.IsError)
                 {
                     writer.WriteError($"Error when processing '{fileRelativePath}' for event '{apiResult.Request.EventName}'," +
-                        $" subscriber '{apiResult.Request.SubscriberName}'", apiResultResponse.Error.Message);
+                        $" subscriber '{apiResult.Request.SubscriberName}'. Error details: ", apiResultResponse.Error.Message);
                 }
                 else
                 {
-                    var operationDescription = apiResult.Response.Data.Response.StatusCode switch
+                    string operationDescription;
+                    switch (apiResult.Response.Data.Response.StatusCode)
                     {
-                        HttpStatusCode.Created => "created",
-                        HttpStatusCode.Accepted => "updated",
-                        _ => "unknown result"
-                    };
+                        case HttpStatusCode.Created:
+                            operationDescription = "created";
+                            break;
+                        case HttpStatusCode.Accepted:
+                            operationDescription = "updated";
+                            break;
+                        default:
+                            operationDescription = "unknown result";
+                            break;
+                    }
+
                     writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
                                        $"subscriber '{apiResult.Request.SubscriberName}' has been {operationDescription}.");
                 }
