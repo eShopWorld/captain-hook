@@ -84,7 +84,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             }
 
             return await _entityToConfigurationMapper.MapToWebhookAsync(subscriber)
-                .Then(configuration => _directorService.CallDirectorService(new CreateReader(configuration)))
+                .Then(configuration => _directorService.CallDirectorServiceAsync(new CreateReader(configuration)))
                 .Then(_ => _subscriberRepository.AddSubscriberAsync(subscriber))
                 .Then<SubscriberEntity, EndpointDto>(_ => request.Endpoint);
         }
@@ -95,7 +95,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
             return await subscriber.SetWebhookEndpoint(endpoint)
                 .Then(_ => _entityToConfigurationMapper.MapToWebhookAsync(subscriber))
-                .Then(configuration => _directorService.CallDirectorService(new UpdateReader(configuration)))
+                .Then(configuration => _directorService.CallDirectorServiceAsync(new UpdateReader(configuration)))
                 .Then(_ => _subscriberRepository.UpdateSubscriberAsync(subscriber))
                 .Then<SubscriberEntity, EndpointDto>(_ => request.Endpoint);
         }

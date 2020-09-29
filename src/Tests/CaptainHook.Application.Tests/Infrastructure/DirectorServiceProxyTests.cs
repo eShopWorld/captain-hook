@@ -22,7 +22,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.Success);
 
-            var result = await Proxy.CallDirectorService(new CreateReader(new SubscriberConfigurationBuilder().Create()));
+            var result = await Proxy.CallDirectorServiceAsync(new CreateReader(new SubscriberConfigurationBuilder().Create()));
 
             result.IsError.Should().BeFalse();
             result.Data.Should().NotBeNull();
@@ -34,7 +34,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.ReaderAlreadyExist);
 
-            var result = await Proxy.CallDirectorService(new CreateReader(new SubscriberConfigurationBuilder().Create()));
+            var result = await Proxy.CallDirectorServiceAsync(new CreateReader(new SubscriberConfigurationBuilder().Create()));
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderAlreadyExistsError>();
@@ -46,7 +46,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.ReaderDoesNotExist);
 
-            var result = await Proxy.CallDirectorService(new CreateReader(new SubscriberConfigurationBuilder().Create()));
+            var result = await Proxy.CallDirectorServiceAsync(new CreateReader(new SubscriberConfigurationBuilder().Create()));
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderDoesNotExistError>();
@@ -58,7 +58,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.DirectorIsBusy);
 
-            var result = await Proxy.CallDirectorService(new CreateReader(new SubscriberConfigurationBuilder().Create()));
+            var result = await Proxy.CallDirectorServiceAsync(new CreateReader(new SubscriberConfigurationBuilder().Create()));
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<DirectorServiceIsBusyError>();
@@ -70,7 +70,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.CreateFailed);
 
-            var result = await Proxy.CallDirectorService(new CreateReader(new SubscriberConfigurationBuilder().Create()));
+            var result = await Proxy.CallDirectorServiceAsync(new CreateReader(new SubscriberConfigurationBuilder().Create()));
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderCreateError>();
@@ -82,7 +82,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.DeleteFailed);
 
-            var result = await Proxy.CallDirectorService(new CreateReader(new SubscriberConfigurationBuilder().Create()));
+            var result = await Proxy.CallDirectorServiceAsync(new CreateReader(new SubscriberConfigurationBuilder().Create()));
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<ReaderDeleteError>();
@@ -94,7 +94,7 @@ namespace CaptainHook.Application.Tests.Infrastructure
             _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(ReaderChangeResult.None);
 
-            var result = await Proxy.CallDirectorService(new CreateReader(new SubscriberConfigurationBuilder().Create()));
+            var result = await Proxy.CallDirectorServiceAsync(new CreateReader(new SubscriberConfigurationBuilder().Create()));
 
             result.IsError.Should().BeTrue();
             result.Error.Should().BeOfType<BusinessError>();

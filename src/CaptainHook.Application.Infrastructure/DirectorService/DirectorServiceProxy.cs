@@ -15,7 +15,7 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
             _directorService = directorService;
         }
 
-        public async Task<OperationResult<SubscriberConfiguration>> CallDirectorService(ReaderChangeBase request)
+        public async Task<OperationResult<SubscriberConfiguration>> CallDirectorServiceAsync(ReaderChangeBase request)
         {
             var createReaderResult = await _directorService.ApplyReaderChange(request);
 

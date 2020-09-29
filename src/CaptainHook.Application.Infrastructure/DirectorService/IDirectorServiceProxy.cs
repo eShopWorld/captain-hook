@@ -21,6 +21,6 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
         /// ReaderAlreadyExistsError if reader can't be crated because it already exists
         /// DirectorServiceIsBusyError if DirectorService is performing another operation
         /// </returns>
-        Task<OperationResult<SubscriberConfiguration>> CallDirectorService(ReaderChangeBase request);
+        Task<OperationResult<SubscriberConfiguration>> CallDirectorServiceAsync(ReaderChangeBase request);
     }
 }

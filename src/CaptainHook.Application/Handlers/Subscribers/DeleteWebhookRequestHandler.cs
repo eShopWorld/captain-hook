@@ -66,7 +66,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
 
             return await existingItem.Data.RemoveWebhookEndpoint(EndpointEntity.FromSelector(request.Selector))
                 .Then(_ => _entityToConfigurationMapper.MapToWebhookAsync(existingItem))
-                .Then(configuration => _directorService.CallDirectorService(new UpdateReader(configuration)))
+                .Then(configuration => _directorService.CallDirectorServiceAsync(new UpdateReader(configuration)))
                 .Then(_ => _subscriberRepository.UpdateSubscriberAsync(existingItem))
                 .Then<SubscriberEntity, SubscriberDto>(entity => _entityToDtoMapper.MapSubscriber(entity));
         }
