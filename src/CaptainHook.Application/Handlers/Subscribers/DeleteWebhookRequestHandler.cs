@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
@@ -26,17 +27,20 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
         private readonly IEntityToDtoMapper _entityToDtoMapper;
+        private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
         private readonly TimeSpan[] _retrySleepDurations;
 
         public DeleteWebhookRequestHandler(
             ISubscriberRepository subscriberRepository,
             IDirectorServiceProxy directorService,
             IEntityToDtoMapper entityToDtoMapper,
+            ISubscriberEntityToConfigurationMapper entityToConfigurationMapper,
             TimeSpan[] sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
             _entityToDtoMapper = entityToDtoMapper ?? throw new ArgumentNullException(nameof(entityToDtoMapper));
+            _entityToConfigurationMapper = entityToConfigurationMapper ?? throw new ArgumentNullException(nameof(entityToConfigurationMapper));
             _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 
@@ -53,32 +57,18 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private async Task<OperationResult<SubscriberDto>> DeleteEndpointAsync(DeleteWebhookRequest request)
         {
             var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
-            var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
 
+            var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
             if (existingItem.IsError)
             {
                 return existingItem.Error;
             }
 
-            var removeResult = existingItem.Data.RemoveWebhookEndpoint(EndpointEntity.FromSelector(request.Selector));
-            if (removeResult.IsError)
-            {
-                return removeResult.Error;
-            }
-
-            var directorResult = await _directorService.UpdateReaderAsync(existingItem);
-            if (directorResult.IsError)
-            {
-                return directorResult.Error;
-            }
-
-            var saveResult = await _subscriberRepository.UpdateSubscriberAsync(existingItem);
-            if (saveResult.IsError)
-            {
-                return saveResult.Error;
-            }
-
-            return _entityToDtoMapper.MapSubscriber(saveResult);
+            return await existingItem.Data.RemoveWebhookEndpoint(EndpointEntity.FromSelector(request.Selector))
+                .Then(_ => _entityToConfigurationMapper.MapToWebhookAsync(existingItem))
+                .Then(configuration => _directorService.CallDirectorServiceAsync(new UpdateReader(configuration)))
+                .Then(_ => _subscriberRepository.UpdateSubscriberAsync(existingItem))
+                .Then<SubscriberEntity, SubscriberDto>(entity => _entityToDtoMapper.MapSubscriber(entity));
         }
     }
 }
