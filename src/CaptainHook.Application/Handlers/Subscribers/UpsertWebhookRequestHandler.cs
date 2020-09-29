@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
+using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Application.Requests.Subscribers;
 using CaptainHook.Contract;
@@ -26,17 +27,20 @@ namespace CaptainHook.Application.Handlers.Subscribers
         private readonly ISubscriberRepository _subscriberRepository;
         private readonly IDirectorServiceProxy _directorService;
         private readonly IDtoToEntityMapper _dtoToEntityMapper;
+        private readonly ISubscriberEntityToConfigurationMapper _entityToConfigurationMapper;
         private readonly TimeSpan[] _retrySleepDurations;
 
         public UpsertWebhookRequestHandler(
             ISubscriberRepository subscriberRepository,
             IDirectorServiceProxy directorService,
             IDtoToEntityMapper dtoToEntityMapper,
+            ISubscriberEntityToConfigurationMapper entityToConfigurationMapper,
             TimeSpan[] sleepDurations = null)
         {
             _subscriberRepository = subscriberRepository ?? throw new ArgumentNullException(nameof(subscriberRepository));
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
             _dtoToEntityMapper = dtoToEntityMapper ?? throw new ArgumentNullException(nameof(dtoToEntityMapper));
+            _entityToConfigurationMapper = entityToConfigurationMapper ?? throw new ArgumentNullException(nameof(entityToConfigurationMapper));
             _retrySleepDurations = sleepDurations?.SafeFastNullIfEmpty() ?? DefaultRetrySleepDurations;
         }
 
@@ -44,81 +48,56 @@ namespace CaptainHook.Application.Handlers.Subscribers
             UpsertWebhookRequest request,
             CancellationToken cancellationToken)
         {
-            async Task<OperationResult<EndpointDto>> AddOrUpdateEndpointAsync()
-            {
-                var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
-                var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
-
-                if (existingItem.Error is EntityNotFoundError)
-                {
-                    return await AddAsync(request);
-                }
-
-                if (!existingItem.IsError)
-                {
-                    return await UpdateAsync(request, existingItem.Data);
-                }
-
-                return existingItem.Error;
-            }
-
             var executionResult = await Policy
                 .HandleResult<OperationResult<EndpointDto>>(result => result.Error is CannotUpdateEntityError)
                 .WaitAndRetryAsync(_retrySleepDurations)
-                .ExecuteAsync(AddOrUpdateEndpointAsync);
+                .ExecuteAsync(() => AddOrUpdateEndpointAsync(request));
 
             return executionResult;
         }
 
-        private async Task<OperationResult<EndpointDto>> AddAsync(UpsertWebhookRequest request)
+        private async Task<OperationResult<EndpointDto>> AddOrUpdateEndpointAsync(UpsertWebhookRequest request)
         {
-            var subscriberResult = MapRequestToSubscriberEntity(request);
-            if (subscriberResult.IsError)
+            var subscriberId = new SubscriberId(request.EventName, request.SubscriberName);
+            var existingItem = await _subscriberRepository.GetSubscriberAsync(subscriberId);
+
+            if (existingItem.Error is EntityNotFoundError)
             {
-                return subscriberResult.Error;
+                return await AddAsync(request);
             }
 
-            var subscriber = subscriberResult.Data;
-            var directorResult = await _directorService.CreateReaderAsync(subscriber);
-            if (directorResult.IsError)
+            if (!existingItem.IsError)
             {
-                return directorResult.Error;
+                return await UpdateAsync(request, existingItem.Data);
             }
 
-            var saveResult = await _subscriberRepository.AddSubscriberAsync(subscriber);
-            if (saveResult.IsError)
-            {
-                return saveResult.Error;
-            }
-
-            return request.Endpoint;
+            return existingItem.Error;
         }
 
-        private async Task<OperationResult<EndpointDto>> UpdateAsync(
-            UpsertWebhookRequest request,
-            SubscriberEntity existingItem)
+        private async Task<OperationResult<EndpointDto>> AddAsync(UpsertWebhookRequest request)
         {
-            var endpoint = MapRequestToEndpointEntity(request, existingItem);
-            var addWebhookResult = existingItem.SetWebhookEndpoint(endpoint);
+            var subscriber = MapRequestToSubscriberEntity(request);
 
-            if (addWebhookResult.IsError)
+            if (subscriber.IsError)
             {
-                return addWebhookResult.Error;
+                return subscriber.Error;
             }
 
-            var directorResult = await _directorService.UpdateReaderAsync(existingItem);
-            if (directorResult.IsError)
-            {
-                return directorResult.Error;
-            }
+            return await _entityToConfigurationMapper.MapToWebhookAsync(subscriber)
+                .Then(configuration => _directorService.CallDirectorServiceAsync(new CreateReader(configuration)))
+                .Then(_ => _subscriberRepository.AddSubscriberAsync(subscriber))
+                .Then<SubscriberEntity, EndpointDto>(_ => request.Endpoint);
+        }
 
-            var updateResult = await _subscriberRepository.UpdateSubscriberAsync(existingItem);
-            if (updateResult.IsError)
-            {
-                return updateResult.Error;
-            }
+        private async Task<OperationResult<EndpointDto>> UpdateAsync(UpsertWebhookRequest request, SubscriberEntity subscriber)
+        {
+            var endpoint = MapRequestToEndpointEntity(request, subscriber);
 
-            return request.Endpoint;
+            return await subscriber.SetWebhookEndpoint(endpoint)
+                .Then(_ => _entityToConfigurationMapper.MapToWebhookAsync(subscriber))
+                .Then(configuration => _directorService.CallDirectorServiceAsync(new UpdateReader(configuration)))
+                .Then(_ => _subscriberRepository.UpdateSubscriberAsync(subscriber))
+                .Then<SubscriberEntity, EndpointDto>(_ => request.Endpoint);
         }
 
         private EndpointEntity MapRequestToEndpointEntity(UpsertWebhookRequest request, SubscriberEntity parent)

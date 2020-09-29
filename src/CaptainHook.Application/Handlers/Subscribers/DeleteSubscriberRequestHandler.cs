@@ -68,7 +68,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             var subscriberEntity = existingItem.Data;
 
             return await _entityToConfigurationMapper.MapToWebhookAsync(subscriberEntity)
-                .Then(webhookConfig => _directorService.CallDirectorService(new DeleteReader(webhookConfig)))
+                .Then(webhookConfig => _directorService.CallDirectorServiceAsync(new DeleteReader(webhookConfig)))
                 .Then<SubscriberConfiguration, SubscriberEntity>(async _ => await DeleteDlqIfExists(subscriberEntity))
                 .Then(_ => _subscriberRepository.RemoveSubscriberAsync(subscriberId))
                 .Then<SubscriberId, SubscriberDto>(_ => _entityToDtoMapper.MapSubscriber(subscriberEntity));
@@ -79,7 +79,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
             if (subscriberEntity.HasDlqHooks)
             {
                 return await _entityToConfigurationMapper.MapToDlqAsync(subscriberEntity)
-                    .Then(dlqConfig => _directorService.CallDirectorService(new DeleteReader(dlqConfig)))
+                    .Then(dlqConfig => _directorService.CallDirectorServiceAsync(new DeleteReader(dlqConfig)))
                     .Then(_ => new OperationResult<SubscriberEntity>(subscriberEntity));
             }
 
