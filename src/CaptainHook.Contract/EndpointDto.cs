@@ -8,6 +8,7 @@ namespace CaptainHook.Contract
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class EndpointDto
     {
+        private static readonly AuthenticationDto NoAuthentication = new NoAuthenticationDto();
         /// <summary>
         /// Webhook URI
         /// </summary>
@@ -21,7 +22,7 @@ namespace CaptainHook.Contract
         /// <summary>
         /// Authentication type and details
         /// </summary>
-        public AuthenticationDto Authentication { get; set; }
+        public AuthenticationDto Authentication { get; set; } = NoAuthentication;
 
         /// <summary>
         /// Selector

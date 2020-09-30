@@ -64,7 +64,7 @@ namespace CaptainHook.Tests.Json
 
         [Fact]
         [IsUnit]
-        public void WhenAuthenticationTypeIsNone_ThenItIsDeserializedProperly()
+        public void WhenAuthenticationTypeIsNone_ThenItIsDeserializedAsNoAuthentication()
         {
             string data = @"{
                 ""type"": ""None""
@@ -79,6 +79,23 @@ namespace CaptainHook.Tests.Json
             }
         }
 
+        [Fact]
+        [IsUnit]
+        public void WhenAuthenticationIsNull_ThenItIsDeserializedAsNoAuthentication()
+        {
+            string data = @"{
+                ""authentication"": null
+            }";
+
+            var result = JsonConvert.DeserializeObject<AuthenticationWrapper>(data, new AuthenticationDtoJsonConverter());
+
+            using (new AssertionScope())
+            {
+                result.Authentication.Should().BeOfType<NoAuthenticationDto>();
+                result.Authentication.AuthenticationType.Should().Be(NoAuthenticationDto.Type);
+            }
+        }
+
         [Theory]
         [InlineData("0")]
         [InlineData("basic")]
@@ -89,7 +106,7 @@ namespace CaptainHook.Tests.Json
         [InlineData(null)]
         [InlineData("")]
         [IsUnit]
-        public void WhenAuthenticationTypeIsInvalid_ThenItIsDeserializedAsNull(string authType)
+        public void WhenAuthenticationTypeIsInvalid_ThenItIsDeserializedAsInvalidAuthentication(string authType)
         {
             string data = $@"{{
                 ""type"": ""{authType}"",
@@ -99,7 +116,7 @@ namespace CaptainHook.Tests.Json
 
             var result = JsonConvert.DeserializeObject<AuthenticationDto>(data, new AuthenticationDtoJsonConverter());
 
-            result.Should().BeNull();
+            result.Should().BeOfType(typeof(InvalidAuthenticationDto));
         }
 
         [Theory]
@@ -107,13 +124,12 @@ namespace CaptainHook.Tests.Json
         [InlineData("{ authentication: \"invalid\" }")]
         [InlineData("{ authentication: \"\" }")]
         [InlineData("{ authentication: {} }")]
-        [InlineData("{ authentication: null }")]
         [IsUnit]
-        public void WhenAuthenticationIsInvalid_ThenItIsDeserializedAsNull(string data)
+        public void WhenAuthenticationIsInvalid_ThenItIsDeserializedAsInvalidAuthentication(string data)
         {
             var result = JsonConvert.DeserializeObject<AuthenticationWrapper>(data, new AuthenticationDtoJsonConverter());
 
-            result.Authentication.Should().BeNull();
+            result.Authentication.Should().BeOfType(typeof(InvalidAuthenticationDto));
         }
 
         internal class AuthenticationWrapper

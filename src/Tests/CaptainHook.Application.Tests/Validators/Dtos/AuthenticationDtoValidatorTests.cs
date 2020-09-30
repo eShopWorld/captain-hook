@@ -11,8 +11,37 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
 {
     public class AuthenticationDtoValidatorTests
     {
-        private readonly OidcAuthenticationValidator _oidcValidator = new OidcAuthenticationValidator();
-        private readonly BasicAuthenticationValidator _basicValidator = new BasicAuthenticationValidator();
+        private readonly OidcAuthenticationDtoValidator _oidcValidator = new OidcAuthenticationDtoValidator();
+        private readonly BasicAuthenticationDtoValidator _basicValidator = new BasicAuthenticationDtoValidator();
+        private readonly EndpointDtoValidator _endpointDtoValidator = new EndpointDtoValidator();
+
+        [Fact, IsUnit]
+        public void When_RequestIsNoAuthentication_Then_NoFailuresReturned()
+        {
+            var authenticationDto = new NoAuthenticationDto();
+
+            var dto = new EndpointDtoBuilder()
+                .With(x => x.Authentication, authenticationDto)
+                .Create();
+
+            var result = _endpointDtoValidator.TestValidate(dto);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Fact, IsUnit]
+        public void When_RequestIsInvalidAuthentication_Then_ValidationFails()
+        {
+            var authenticationDto = new InvalidAuthenticationDto();
+
+            var dto = new EndpointDtoBuilder()
+                .With(x => x.Authentication, authenticationDto)
+                .Create();
+
+            var result = _endpointDtoValidator.TestValidate(dto);
+
+            result.ShouldHaveValidationErrorFor(x => x.Authentication);
+        }
 
         [Fact, IsUnit]
         public void When_RequestIsValidOidc_Then_NoFailuresReturned()
