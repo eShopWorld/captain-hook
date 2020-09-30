@@ -11,6 +11,8 @@ namespace CaptainHook.Api
     public class AuthenticationDtoJsonConverter : JsonConverter
     {
         private static readonly Type AuthenticationDtoType = typeof(AuthenticationDto);
+        private static readonly NoAuthenticationDto NoAuthentication = new NoAuthenticationDto();
+        private static readonly InvalidAuthenticationDto InvalidAuthentication = new InvalidAuthenticationDto();
 
         /// <summary>
         /// Tells whether this converter can read JSON
@@ -38,9 +40,14 @@ namespace CaptainHook.Api
             // First, just read the JSON as a JToken
             JToken jToken = JToken.ReadFrom(reader);
 
+            if(jToken.Type == JTokenType.Null)
+            {
+                return NoAuthentication;
+            }
+
             if (jToken.Type != JTokenType.Object)
             {
-                return null;
+                return InvalidAuthentication;
             }
 
             // Then look at the type property:
@@ -51,7 +58,7 @@ namespace CaptainHook.Api
                 OidcAuthenticationDto.Type => new OidcAuthenticationDto(),
                 BasicAuthenticationDto.Type => new BasicAuthenticationDto(),
                 NoAuthenticationDto.Type => new NoAuthenticationDto(),
-                _ => null,
+                _ => InvalidAuthentication
             };
 
             if (item != null)
