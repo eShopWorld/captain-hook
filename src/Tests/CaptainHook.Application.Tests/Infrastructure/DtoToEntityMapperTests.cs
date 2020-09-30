@@ -180,19 +180,14 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 .With(x => x.Selector, "Select")
                 .With(x => x.HttpVerb, "PUT")
                 .With(x => x.Uri, "http://www.test.url")
-                .With(x => x.Authentication, null)
+                .With(x => x.Authentication, new NoAuthenticationDto())
                 .Create();
 
             // Act
             var entity = sut.MapEndpoint(dto, "abc");
 
             // Assert
-            var expectedEntity = new EndpointDto
-            {
-                Selector = "abc",
-                Uri = "http://www.test.url",
-                HttpVerb = "PUT"
-            };
+            var expectedEntity = new EndpointEntity("http://www.test.url", null, "PUT", "abc");
             entity.Should().BeEquivalentTo(expectedEntity);
         }
 
