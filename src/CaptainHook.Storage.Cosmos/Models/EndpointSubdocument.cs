@@ -21,6 +21,7 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// <summary>
         /// Endpoint authentication
         /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public AuthenticationSubdocument Authentication { get; set; }
 
         /// <summary>
