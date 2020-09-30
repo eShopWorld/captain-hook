@@ -102,24 +102,12 @@ namespace CaptainHook.Tests.Json
             result.Should().BeNull();
         }
 
-        [Fact, IsUnit]
-        public void WhenAuthenticationIsNull_ThenItIsDeserializedAsNoAuthentication()
-        {
-            var result = JsonConvert.DeserializeObject<AuthenticationWrapper>("{ authentication: null }", new AuthenticationDtoJsonConverter());
-
-            using (new AssertionScope())
-            {
-                result.Authentication.Should().NotBeNull();
-                result.Authentication.AuthenticationType.Should().Be(NoAuthenticationDto.Type);
-                result.Should().BeOfType<NoAuthenticationDto>();
-            }
-        }
-
         [Theory]
         [InlineData("{ authentication: 0 }")]
         [InlineData("{ authentication: \"invalid\" }")]
         [InlineData("{ authentication: \"\" }")]
         [InlineData("{ authentication: {} }")]
+        [InlineData("{ authentication: null }")]
         [IsUnit]
         public void WhenAuthenticationIsInvalid_ThenItIsDeserializedAsNull(string data)
         {
