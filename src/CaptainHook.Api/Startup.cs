@@ -151,7 +151,8 @@ namespace CaptainHook.Api
                             {
                                 return new[] {
                                     typeof(OidcAuthenticationDto),
-                                    typeof(BasicAuthenticationDto)
+                                    typeof(BasicAuthenticationDto),
+                                    typeof(NoAuthenticationDto)
                                 };
                             }
                             return Enumerable.Empty<Type>();

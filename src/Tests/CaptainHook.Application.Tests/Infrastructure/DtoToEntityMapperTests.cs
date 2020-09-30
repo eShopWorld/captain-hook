@@ -103,6 +103,31 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
         [Fact]
         [IsUnit]
+        public void MapAuthentication_When_NoAuthenticationDtoIsUsed_Then_IsMappedToNull()
+        {
+            // Arrange
+            var dto = new NoAuthenticationDto();
+
+            // Act
+            var entity = sut.MapAuthentication(dto);
+
+            // Assert
+            entity.Should().BeNull();
+        }
+
+        [Fact]
+        [IsUnit]
+        public void MapAuthentication_When_NullIsUsed_Then_IsMappedToNull()
+        {
+            // Act
+            var entity = sut.MapAuthentication(null);
+
+            // Assert
+            entity.Should().BeNull();
+        }
+
+        [Fact]
+        [IsUnit]
         public void MapUriTransform_When_ValidUriTransformDtoIsUsed_Then_IsMappedToUriTransformEntity()
         {
             // Arrange

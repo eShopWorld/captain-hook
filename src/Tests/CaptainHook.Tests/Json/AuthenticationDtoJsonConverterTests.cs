@@ -12,7 +12,7 @@ namespace CaptainHook.Tests.Json
     {
         [Fact]
         [IsUnit]
-        public void WhenAuthenticationIsOIDC_ThenItIsDeserializedProperly()
+        public void WhenAuthenticationTypeIsOIDC_ThenItIsDeserializedProperly()
         {
             string data = @"{
                 ""type"": ""OIDC"",
@@ -41,7 +41,7 @@ namespace CaptainHook.Tests.Json
 
         [Fact]
         [IsUnit]
-        public void WhenAuthenticationIsBasic_ThenItIsDeserializedProperly()
+        public void WhenAuthenticationTypeIsBasic_ThenItIsDeserializedProperly()
         {
             string data = @"{
                 ""type"": ""Basic"",
@@ -59,6 +59,23 @@ namespace CaptainHook.Tests.Json
                 var basicAuth = result as BasicAuthenticationDto;
                 basicAuth.Username.Should().Be("chuck");
                 basicAuth.PasswordKeyName.Should().Be("norris");
+            }
+        }
+
+        [Fact]
+        [IsUnit]
+        public void WhenAuthenticationTypeIsNone_ThenItIsDeserializedProperly()
+        {
+            string data = @"{
+                ""type"": ""None""
+            }";
+
+            var result = JsonConvert.DeserializeObject<AuthenticationDto>(data, new AuthenticationDtoJsonConverter());
+
+            using (new AssertionScope())
+            {
+                result.AuthenticationType.Should().Be(NoAuthenticationDto.Type);
+                result.Should().BeOfType<NoAuthenticationDto>();
             }
         }
 

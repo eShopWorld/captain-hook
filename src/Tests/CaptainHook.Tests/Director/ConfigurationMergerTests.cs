@@ -35,6 +35,8 @@ namespace CaptainHook.Tests.Director
             Scopes = new[] { "scope1" }
         };
 
+        private static readonly AuthenticationConfig NoAuthenticationConfig = new AuthenticationConfig();
+
         private readonly Mock<ISecretProvider> _secretProvider;
         public static IEnumerable<object[]> Data =>
             new List<object[]>
@@ -44,7 +46,10 @@ namespace CaptainHook.Tests.Director
                 new object[] { "PUT", OidcAuthenticationEntity, OidcAuthenticationConfig },
                 new object[] { "POST", BasicAuthenticationEntity, BasicAuthenticationConfig },
                 new object[] { "GET", BasicAuthenticationEntity, BasicAuthenticationConfig },
-                new object[] { "PUT", BasicAuthenticationEntity, BasicAuthenticationConfig }
+                new object[] { "PUT", BasicAuthenticationEntity, BasicAuthenticationConfig },
+                new object[] { "POST", null, NoAuthenticationConfig },
+                new object[] { "GET", null, NoAuthenticationConfig },
+                new object[] { "PUT", null, NoAuthenticationConfig }
             };
 
         private static readonly WebhookRequestRule StatusCodeRequestRule = new WebhookRequestRule

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using CaptainHook.Common.Authentication;
+using CaptainHook.Contract;
 using CaptainHook.Domain.Entities;
 
 namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigurationMapperTests
@@ -28,6 +29,8 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         private static readonly BasicAuthenticationConfig BasicAuthenticationConfig =
             new BasicAuthenticationConfig { Username = "mark", Password = Secret, Type = AuthenticationType.Basic };
 
+        private static readonly AuthenticationConfig NoAuthenticationConfig = new AuthenticationConfig();
+
         public IEnumerator<object[]> GetEnumerator()
         {
             yield return new object[] { "POST", OidcAuthenticationEntity, OidcAuthenticationConfig };
@@ -36,6 +39,9 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             yield return new object[] { "POST", BasicAuthenticationEntity, BasicAuthenticationConfig };
             yield return new object[] { "GET", BasicAuthenticationEntity, BasicAuthenticationConfig };
             yield return new object[] { "PUT", BasicAuthenticationEntity, BasicAuthenticationConfig };
+            yield return new object[] { "POST", null, NoAuthenticationConfig };
+            yield return new object[] { "GET", null, NoAuthenticationConfig };
+            yield return new object[] { "PUT", null, NoAuthenticationConfig };
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

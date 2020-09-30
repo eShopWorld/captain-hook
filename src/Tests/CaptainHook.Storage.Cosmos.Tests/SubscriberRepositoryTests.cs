@@ -50,10 +50,13 @@ namespace CaptainHook.Storage.Cosmos.Tests
             {
                 new object[] { "POST", OidcAuthenticationEntity, OidcAuthenticationSubdocument },
                 new object[] { "POST", BasicAuthenticationEntity, BasicAuthenticationSubdocument },
+                new object[] { "POST", null, null },
                 new object[] { "PUT", OidcAuthenticationEntity, OidcAuthenticationSubdocument },
                 new object[] { "PUT", BasicAuthenticationEntity, BasicAuthenticationSubdocument },
+                new object[] { "PUT", null, null },
                 new object[] { "GET", OidcAuthenticationEntity, OidcAuthenticationSubdocument },
-                new object[] { "GET", BasicAuthenticationEntity, BasicAuthenticationSubdocument }
+                new object[] { "GET", BasicAuthenticationEntity, BasicAuthenticationSubdocument },
+                new object[] { "GET", null, null }
             };
 
         private SubscriberEntity CreateSubscriberEntity(string httpVerb = "POST", AuthenticationEntity authenticationEntity = null, string etag = null)

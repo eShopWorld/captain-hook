@@ -56,6 +56,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             {
                 BasicAuthenticationDto dto => new BasicAuthenticationEntity(dto.Username, dto.PasswordKeyName),
                 OidcAuthenticationDto dto => new OidcAuthenticationEntity(dto.ClientId, dto.ClientSecretKeyName, dto.Uri, dto.Scopes?.ToArray()),
+                NoAuthenticationDto _ => null,
                 _ => null,
             };
         }
