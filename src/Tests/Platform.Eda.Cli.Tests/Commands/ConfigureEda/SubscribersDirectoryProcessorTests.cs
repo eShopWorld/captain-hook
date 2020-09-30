@@ -7,6 +7,7 @@ using CaptainHook.Domain.Results;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Moq;
+using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
@@ -112,7 +113,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             // Arrange
             var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(
                 new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory));
-            
+
             // Act
             var result = subscribersDirectoryProcessor.ProcessDirectory(testFilesDirectoryPath);
 
@@ -193,14 +194,66 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             result.Should().BeEquivalentTo(expected, opt => opt
                 .Excluding(info => info.SelectedMemberInfo.Name == "Authentication")
-                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));   
+                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
 
+        }
+
+
+        [Fact, IsUnit]
+        public void ProcessDirectory_JsonFileWithVars_ReturnsValidObject()
+        {
+            // Arrange
+            var jObject = GetJObjectWithVars();
+
+            // Act
+            var result = SubscribersDirectoryProcessor.GetFileVars(jObject);
+
+            // Assert
+            var expected = new Dictionary<string, Dictionary<string, string>> {
+                                {
+                                    "leviss-url", new Dictionary<string, string>
+                                    {
+                                        {"prod", "https://blah.blah.company.com/Order/Createresponse"},
+                                        {"sand", "https://blah.blah.company.test.com/v1/Order/Createresponse"}
+                                    }
+                                },
+                                {
+                                    "leviss-auth", new Dictionary<string, string>
+                                    {
+                                        {
+                                            "prod", @"{""type"":""Basic"",""username"":""abc"",""passwordKeyName"":""man--something""}"
+                                        },
+                                        {
+                                            "sand", @"{""type"":""Basic"",""username"":""def"",""passwordKeyName"":""man--other""}"
+                                        }
+                                    }
+                                },
+                                {
+                                    "sts-settings", new Dictionary<string, string>
+                                    {
+                                        {
+                                            "prod", @"{""type"":""OIDC"",""scopes"":[""any.valid.scope""]}"
+                                        },
+                                        {
+                                            "sand", @"{""type"":""OIDC"",""scopes"":[""any.valid.scope""]}"
+                                        }
+                                    }
+                                }
+                            };
+
+
+
+
+            result.Should().BeEquivalentTo(expected);
+            jObject.Should().NotContainKey("vars");
         }
 
         private static Dictionary<string, MockFileData> GetOneSampleInputFile()
         {
-            Dictionary<string, MockFileData> mockFiles = new Dictionary<string, MockFileData>();
-            mockFiles.Add("sample1.json", new MockFileData(@"
+            return new Dictionary<string, MockFileData>
+            {
+                {
+                    "sample1.json", new MockFileData(@"
 {
   ""subscriberName"": ""test-sub"",
   ""eventName"": ""test-event"",
@@ -220,8 +273,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
     }
   }
 }
-"));
-            return mockFiles;
+")
+                }
+            };
         }
 
         private static Dictionary<string, MockFileData> GetMultipleMockInputFiles()
@@ -339,6 +393,57 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 
             };
             return mockFiles;
+        }
+
+        private static JObject GetJObjectWithVars()
+        {
+            return JObject.Parse(@"
+{
+  ""vars"": {
+    ""leviss-url"": { 
+      ""prod"": ""https://blah.blah.company.com/Order/Createresponse"",
+      ""sand"": ""https://blah.blah.company.test.com/v1/Order/Createresponse""
+    },
+    ""leviss-auth"": {
+      ""prod"": {
+        ""type"": ""Basic"",
+        ""username"": ""abc"",
+        ""passwordKeyName"": ""man--something""
+      },
+      ""sand"": {
+        ""type"": ""Basic"",
+        ""username"": ""def"",
+        ""passwordKeyName"": ""man--other""
+      }
+    },
+    ""sts-settings"": {     
+      ""prod,sand"": {
+        ""type"": ""OIDC"",
+        ""scopes"": [
+          ""any.valid.scope""
+        ]
+      }
+    }
+  },
+  ""subscriberName"": ""test-sub"",
+  ""eventName"": ""test-event"",
+  ""subscriber"": {
+    ""webhooks"": {
+      ""endpoints"": [
+        {
+          ""uri"": ""https://blah.blah/testing"",
+          ""authentication"": {
+            ""type"": ""Basic"",
+            ""username"": ""test"",
+            ""passwordKeyName"": ""AzureSubscriptionId""
+          },
+          ""httpVerb"": ""post""
+        }
+      ]
+    }
+  }
+}
+");
         }
     }
 }
