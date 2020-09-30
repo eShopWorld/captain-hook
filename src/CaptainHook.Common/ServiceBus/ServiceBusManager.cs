@@ -63,12 +63,16 @@ namespace CaptainHook.Common.ServiceBus
             var subscription = subscriptionsList.SingleOrDefault(s => string.Equals(s.Name, subscriptionName, StringComparison.OrdinalIgnoreCase));
             if (subscription != null) return subscription;
 
-            await topic.Subscriptions
-                .Define(subscriptionName.ToLowerInvariant())
-                .WithMessageLockDurationInSeconds(60)
-                .WithExpiredMessageMovedToDeadLetterSubscription()
-                .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
-                .CreateAsync(cancellationToken);
+            try
+            {
+                await topic.Subscriptions
+                    .Define(subscriptionName.ToLowerInvariant())
+                    .WithMessageLockDurationInSeconds(60)
+                    .WithExpiredMessageMovedToDeadLetterSubscription()
+                    .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
+                    .CreateAsync(cancellationToken);
+            }
+            catch { }
 
             await topic.RefreshAsync(cancellationToken);
             subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
@@ -90,10 +94,14 @@ namespace CaptainHook.Common.ServiceBus
 
             if (topic != null) return topic;
 
-            await serviceBusNamespace.Topics
-                .Define(topicName.ToLowerInvariant())
-                .WithDuplicateMessageDetection(TimeSpan.FromMinutes(10))
-                .CreateAsync(cancellationToken);
+            try
+            {
+                await serviceBusNamespace.Topics
+                    .Define(topicName.ToLowerInvariant())
+                    .WithDuplicateMessageDetection(TimeSpan.FromMinutes(10))
+                    .CreateAsync(cancellationToken);
+            }
+            catch { }
 
             return await _findTopicPolicy.ExecuteAsync(ct => FindTopicAsync(serviceBusNamespace, topicName, ct), cancellationToken);
         }
