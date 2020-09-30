@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using System.Text.RegularExpressions;
 using CaptainHook.Domain.Results;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
@@ -76,36 +75,36 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
         }
 
-        public static Dictionary<string, Dictionary<string, string>> GetFileVars(JObject fileContent)
+        public static Dictionary<string, Dictionary<string, string>> GetFileVars([NotNull] JObject fileContent)
         {
             if (fileContent.ContainsKey("vars"))
             {
-                var varsDictionary = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, JToken>>>(
-                        fileContent["vars"].ToString());
+                var varsDict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, JToken>>>(fileContent["vars"]!.ToString());
 
-                var outputVarsDictionary = new Dictionary<string, Dictionary<string, string>>();
+                var outputVarsDict = new Dictionary<string, Dictionary<string, string>>();
 
-                foreach (var (key1, innerDict) in varsDictionary)
+                foreach (var (propertyKey, innerDict) in varsDict)
                 {
-                    outputVarsDictionary[key1] = new Dictionary<string, string>();
-                    foreach (var (key2, val) in innerDict)
+                    outputVarsDict[propertyKey] = new Dictionary<string, string>();
+                    foreach (var (envKey, val) in innerDict)
                     {
-                        if (key2.Contains(","))
+                        var stringVal = val.Type == JTokenType.String ? val.ToString() : val.ToString(Formatting.None);
+                        if (envKey.Contains(","))
                         {
-                            foreach (var key in key2.Split(','))
+                            foreach (var singleEnv in envKey.Split(','))
                             {
-                                outputVarsDictionary[key1][key] = val.ToString(Formatting.None);
+                                outputVarsDict[propertyKey][singleEnv] = stringVal;
                             }
                         }
                         else // convert to string
                         {
-                            outputVarsDictionary[key1][key2] = val.Type == JTokenType.String ? val.ToString() : val.ToString(Formatting.None);
+                            outputVarsDict[propertyKey][envKey] = stringVal;
                         }
                     }
                 }
 
-               fileContent.Remove("vars");
-               return outputVarsDictionary;
+                fileContent.Remove("vars");
+                return outputVarsDict;
             }
             return new Dictionary<string, Dictionary<string, string>>(); // no vars
         }
