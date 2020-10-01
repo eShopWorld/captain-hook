@@ -4,13 +4,12 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using CaptainHook.Domain.Results;
-using JetBrains.Annotations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 
-namespace Platform.Eda.Cli.Commands.ConfigureEda
+namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public class SubscribersDirectoryProcessor : ISubscribersDirectoryProcessor
     {
@@ -75,7 +74,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
         }
 
-        public static Dictionary<string, Dictionary<string, string>> GetFileVars([NotNull] JObject fileContent)
+        public static Dictionary<string, Dictionary<string, string>> GetFileVars(JObject fileContent)
         {
             if (fileContent.ContainsKey("vars"))
             {

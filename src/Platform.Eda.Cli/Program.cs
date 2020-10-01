@@ -5,6 +5,7 @@ using System.Reflection;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Platform.Eda.Cli.Commands.ConfigureEda;
+using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.GenerateJson;
 using Platform.Eda.Cli.Commands.GeneratePowerShell;
 using Platform.Eda.Cli.Extensions;
