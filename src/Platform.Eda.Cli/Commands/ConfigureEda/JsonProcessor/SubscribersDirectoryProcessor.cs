@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using CaptainHook.Domain.Results;
+using Newtonsoft.Json;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 
@@ -32,8 +33,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
             try
             {
-                var subscriberFiles = _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
-                subscribers.AddRange(subscriberFiles.Select(_subscriberFileParser.ParseFile));
+                var subscriberFiles =
+                    _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
 
                 if (!subscribers.Any())
                 {
