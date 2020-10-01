@@ -45,6 +45,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Platform.Eda.Cli\Platform.Eda.Cli.csproj" />
+    <ProjectReference Include="..\CaptainHook.TestsInfrastructure\CaptainHook.TestsInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>
