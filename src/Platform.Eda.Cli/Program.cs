@@ -83,6 +83,7 @@ namespace Platform.Eda.Cli
             collection.AddHttpClient();
             collection.AddTransient<IFileSystem, FileSystem>();
             collection.AddTransient<IConsoleSubscriberWriter, ConsoleSubscriberWriter>();
+            collection.AddTransient<ISubscriberFileParser, SubscriberFileParser>();
             collection.AddTransient<ISubscribersDirectoryProcessor, SubscribersDirectoryProcessor>();
 
             collection.AddSingleton(console);
