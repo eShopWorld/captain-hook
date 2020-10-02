@@ -5,6 +5,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public interface IJsonVarsParser
     {
-        public Dictionary<string, string> GetFileVars(JObject fileContent, string environmentName);
+        public Dictionary<string, JToken> GetFileVars(JObject fileContent, string environmentName);
     }
 }
