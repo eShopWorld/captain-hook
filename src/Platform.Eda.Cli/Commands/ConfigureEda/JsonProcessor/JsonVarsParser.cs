@@ -8,30 +8,31 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public class JsonVarsParser : IJsonVarsParser
     {
-        public Dictionary<string, Dictionary<string, string>> GetFileVars(JObject fileContent)
+        public Dictionary<string, string> GetFileVars(JObject fileContent, string environmentName)
         {
             if (fileContent.ContainsKey("vars"))
             {
                 var varsDict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, JToken>>>(fileContent["vars"]!.ToString());
 
-                var outputVarsDict = new Dictionary<string, Dictionary<string, string>>();
+                var outputVarsDict = new Dictionary<string, string>();
 
                 foreach (var (propertyKey, innerDict) in varsDict)
                 {
-                    outputVarsDict[propertyKey] = new Dictionary<string, string>();
                     foreach (var (envKey, val) in innerDict)
                     {
                         var stringVal = val.Type == JTokenType.String ? val.ToString() : val.ToString(Formatting.None);
-                        if (envKey.Contains(","))
+                        
+                        if (string.Equals(environmentName, envKey, StringComparison.OrdinalIgnoreCase))
+                        {
+                            outputVarsDict[propertyKey] = stringVal;
+                        }
+                        else if (envKey.Contains(","))
                         {
                             foreach (var singleEnv in envKey.Split(','))
                             {
-                                outputVarsDict[propertyKey][singleEnv] = stringVal;
+                                if (string.Equals(environmentName, singleEnv, StringComparison.OrdinalIgnoreCase))
+                                    outputVarsDict[propertyKey] = stringVal;
                             }
-                        }
-                        else // convert to string
-                        {
-                            outputVarsDict[propertyKey][envKey] = stringVal;
                         }
                     }
                 }
@@ -39,7 +40,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 fileContent.Remove("vars");
                 return outputVarsDict;
             }
-            return new Dictionary<string, Dictionary<string, string>>(); // no vars
+            return new Dictionary<string, string>(); // no vars
         }
     }
 }
