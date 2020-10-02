@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Eshopworld.Tests.Core;
+using FluentAssertions;
 using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Xunit;
@@ -10,19 +11,13 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 {
     public class SubscriberVarsReplacerTests
     {
-        [Fact, IsUnit]
-        public void Test1()
+        [Theory, IsUnit]
+        [InlineData("https://ci-sample.url/api/doSomething")]
+        [InlineData("https://test-sample.url/api/doSomething")]
+        public void ReplaceVars_StringValues_ReplacesCorrectValue(string varValue)
         {
+            // Arrange
             var input = JObject.Parse(@"{
-    ""vars"": {
-        ""retailer-url"": { 
-            ""ci"": ""https://ci-sample.url/api/doSomething"",
-            ""test"": ""https://test-sample.url/api/doSomething"",
-            ""prep"": ""https://prep-sample.url/api/doSomething"",
-            ""sand"": ""https://sand-sample.url/api/doSomething"",
-            ""prod"": ""https://prod-sample.url/api/doSomething""    
-        }
-    },  
     ""eventName"": ""sample.event"",
     ""subscriberName"": ""invoicing"",
     ""subscriber"": {  
@@ -37,11 +32,18 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         }
     }
 }");
-            JsonVarsParser parser = new JsonVarsParser();
-            var vars = parser.GetFileVars(input, "ci");
+
             var subscriberVarsReplacer = new SubscriberVarsReplacer();
-            var returnobJObject = subscriberVarsReplacer.ReplaceVars(input, vars);
-            Assert.True(true);
+            var vars = new Dictionary<string, JToken>
+            {
+                {"retailer-url", JToken.Parse($@"""{varValue}""")}
+            };
+
+            // Act
+            var returnJObject = subscriberVarsReplacer.ReplaceVars(input, vars);
+
+            // Assert
+            returnJObject.SelectToken("$.subscriber.webhooks.endpoints[0].uri")!.ToString().Should().Be(varValue);
         }
     }
 }
