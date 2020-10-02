@@ -33,7 +33,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
     }
 }");
 
-            var subscriberVarsReplacer = new SubscriberTemplateReplacer("vars");
+            var subscriberVarsReplacer = new SubscriberTemplateReplacer(TemplateReplacementType.Vars);
             var vars = new Dictionary<string, JToken>
             {
                 {"retailer-url", JToken.Parse($@"""{varValue}""")}
