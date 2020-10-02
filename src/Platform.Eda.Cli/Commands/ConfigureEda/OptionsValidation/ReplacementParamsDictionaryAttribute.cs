@@ -5,7 +5,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.OptionsValidation
 {
     public class ReplacementParamsDictionaryAttribute : ValidationAttribute
     {
-        private static readonly Regex KeyValueRegex = new Regex("^.+=.+$", RegexOptions.Compiled);
+        private static readonly Regex KeyValueRegex = new Regex("^\\S+=\\S+$", RegexOptions.Compiled);
 
         public ReplacementParamsDictionaryAttribute()
             : base("The value for {0} must be a key and value separated by '='")
