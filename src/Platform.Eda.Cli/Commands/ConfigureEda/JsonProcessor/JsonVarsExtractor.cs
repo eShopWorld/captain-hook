@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using CaptainHook.Domain.Results;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Platform.Eda.Cli.Common;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
-    public class JsonVarsParser : IJsonVarsParser
+    public class JsonVarsExtractor : IJsonVarsExtractor
     {
-        public Dictionary<string, JToken> GetFileVars(JObject fileContent, string environmentName)
+        public OperationResult<Dictionary<string, JToken>> ExtractVars(JObject fileContent, string environmentName)
         {
-            if (!fileContent.ContainsKey("vars")) 
+            if (!fileContent.ContainsKey("vars"))
                 return new Dictionary<string, JToken>(); // no vars
-            
+
+            if (!ConfigureEdaConstants.EnvironmentNames.Contains(environmentName))
+                return new CliExecutionError($"Cannot extract vars environment {environmentName}.");
+
             var varsDict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, JToken>>>(fileContent["vars"]!.ToString());
             var outputVarsDict = new Dictionary<string, JToken>();
 
@@ -30,8 +34,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                         {
                             if (string.Equals(environmentName, singleEnv, StringComparison.OrdinalIgnoreCase))
                                 outputVarsDict[propertyKey] = val;
+                            else if (!ConfigureEdaConstants.EnvironmentNames.Contains(singleEnv))
+                                return new CliExecutionError($"Unsupported environment {singleEnv} while parsing vars.");
                         }
                     }
+                    else if (!ConfigureEdaConstants.EnvironmentNames.Contains(envKey))
+                        return new CliExecutionError($"Unsupported environment {envKey} while parsing vars.");
                 }
             }
 
