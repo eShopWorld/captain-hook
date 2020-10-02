@@ -10,35 +10,33 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
     {
         public Dictionary<string, JToken> GetFileVars(JObject fileContent, string environmentName)
         {
-            if (fileContent.ContainsKey("vars"))
+            if (!fileContent.ContainsKey("vars")) 
+                return new Dictionary<string, JToken>(); // no vars
+            
+            var varsDict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, JToken>>>(fileContent["vars"]!.ToString());
+            var outputVarsDict = new Dictionary<string, JToken>();
+
+            foreach (var (propertyKey, innerDict) in varsDict)
             {
-                var varsDict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, JToken>>>(fileContent["vars"]!.ToString());
-
-                var outputVarsDict = new Dictionary<string, JToken>();
-
-                foreach (var (propertyKey, innerDict) in varsDict)
+                foreach (var (envKey, val) in innerDict)
                 {
-                    foreach (var (envKey, val) in innerDict)
+                    if (string.Equals(environmentName, envKey, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (string.Equals(environmentName, envKey, StringComparison.OrdinalIgnoreCase))
+                        outputVarsDict[propertyKey] = val;
+                    }
+                    else if (envKey.Contains(","))
+                    {
+                        foreach (var singleEnv in envKey.Split(','))
                         {
-                            outputVarsDict[propertyKey] = val;
-                        }
-                        else if (envKey.Contains(","))
-                        {
-                            foreach (var singleEnv in envKey.Split(','))
-                            {
-                                if (string.Equals(environmentName, singleEnv, StringComparison.OrdinalIgnoreCase))
-                                    outputVarsDict[propertyKey] = val;
-                            }
+                            if (string.Equals(environmentName, singleEnv, StringComparison.OrdinalIgnoreCase))
+                                outputVarsDict[propertyKey] = val;
                         }
                     }
                 }
-
-                fileContent.Remove("vars");
-                return outputVarsDict;
             }
-            return new Dictionary<string, JToken>(); // no vars
+
+            fileContent.Remove("vars");
+            return outputVarsDict;
         }
     }
 }
