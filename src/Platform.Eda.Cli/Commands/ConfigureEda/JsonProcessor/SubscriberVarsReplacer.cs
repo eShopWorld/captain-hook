@@ -7,18 +7,19 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public class SubscriberVarsReplacer : ISubscriberVarsReplacer
     {
-        public JObject ReplaceVars(JObject fileContent, Dictionary<string, Dictionary<string, string>> variables)
+        public JObject ReplaceVars(JObject fileContent, Dictionary<string, JToken> variables)
         {
+            StringBuilder sb = new StringBuilder(fileContent.ToString());
             foreach (var (propertyKey, envDictionary) in variables)
             {
-                foreach (var (envKey, value) in envDictionary)
-                {
-                    string variableName = $"vars:{propertyKey}.{envKey}";
-                    var references = fileContent.SelectTokens($"$..[*{variableName}]");
-                }
-
+                var variableName = $"{{vars:{propertyKey}}}";
+                var variableNameWholeValue = $@"""{variableName}""";
+                
+                sb.Replace(envDictionary.Type == JTokenType.String ? variableName : variableNameWholeValue,
+                    envDictionary.ToString());
             }
-            throw new NotImplementedException();
+
+            return JObject.Parse(sb.ToString());
         }
     }
 }
