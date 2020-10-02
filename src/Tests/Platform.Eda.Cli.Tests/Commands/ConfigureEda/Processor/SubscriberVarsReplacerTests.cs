@@ -33,14 +33,14 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
     }
 }");
 
-            var subscriberVarsReplacer = new SubscriberVarsReplacer();
+            var subscriberVarsReplacer = new SubscriberTemplateReplacer("vars");
             var vars = new Dictionary<string, JToken>
             {
                 {"retailer-url", JToken.Parse($@"""{varValue}""")}
             };
 
             // Act
-            var returnJObject = subscriberVarsReplacer.ReplaceVars(input, vars);
+            var returnJObject = subscriberVarsReplacer.Replace(input, vars);
 
             // Assert
             returnJObject.SelectToken("$.subscriber.webhooks.endpoints[0].uri")!.ToString().Should().Be(varValue);
