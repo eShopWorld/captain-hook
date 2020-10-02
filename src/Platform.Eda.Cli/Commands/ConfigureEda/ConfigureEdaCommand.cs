@@ -105,7 +105,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
         private Dictionary<string, string> BuildParametersReplacementDictionary(string[] rawParams)
         {
-            return rawParams.Select(p => p.Split('=')).ToDictionary(items => items[0], items => items[1]);
+            return rawParams?.Select(p => p.Split('=')).ToDictionary(items => items[0], items => items[1]);
         }
 
         private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsoleSubscriberWriter writer,
