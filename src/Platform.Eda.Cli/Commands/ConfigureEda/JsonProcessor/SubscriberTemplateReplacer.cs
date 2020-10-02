@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
@@ -24,13 +23,13 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
         {
             var sb = new StringBuilder(fileContent.ToString());
 
-            foreach (var (propertyKey, envDictionary) in variables)
+            foreach (var (propertyKey, val) in variables)
             {
                 var variableName = $"{{{_replacementPrefix}:{propertyKey}}}";
                 var variableNameWholeValue = $@"""{variableName}""";
                 
-                sb.Replace(envDictionary.Type == JTokenType.String ? variableName : variableNameWholeValue,
-                    envDictionary.ToString());
+                sb.Replace(val.Type == JTokenType.String ? variableName : variableNameWholeValue,
+                    val.ToString());
             }
 
             return JObject.Parse(sb.ToString());
