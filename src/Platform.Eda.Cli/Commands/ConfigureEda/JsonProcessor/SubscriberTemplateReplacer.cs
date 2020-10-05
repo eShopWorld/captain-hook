@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using CaptainHook.Domain.Results;
@@ -16,26 +17,38 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             {TemplateReplacementType.Vars, "vars"}
         };
 
-        public OperationResult<string> Replace(TemplateReplacementType replacementType, string fileContent, Dictionary<string, JToken> variables)
+        public OperationResult<string> Replace(TemplateReplacementType replacementType, string fileContent, Dictionary<string, JToken> variablesDictionary)
         {
+            var sb = new StringBuilder(fileContent);
+
             var replacementPrefix = ReplacementTypeToPrefix[replacementType];
-            var sb = new StringBuilder(fileContent.ToString());
 
-            foreach (var (propertyKey, val) in variables)
+            var regexPattern = $@"{{{replacementPrefix}:[a-zA-Z]+[a-zA-Z0-9-_]+}}";
+            var vars = Regex.Matches(fileContent, regexPattern);
+
+            var tempDictionary = variablesDictionary.ToDictionary(k => $"{{{replacementPrefix}:{k.Key}}}", k => k.Value);
+
+            var unknownVars = vars.Where(x => !tempDictionary.ContainsKey(x.Value)).Select(x => x.Value).ToArray();
+            if (unknownVars.Any())
             {
-                var variableName = $"{{{replacementPrefix}:{propertyKey}}}";
-                var variableNameWholeValue = $@"""{variableName}""";
+                return new CliExecutionError($"Template has an undeclared {replacementType}: {string.Join(',', unknownVars)}");
+            }
 
-                sb.Replace(val.Type == JTokenType.String ? variableName : variableNameWholeValue,
-                    val.ToString());
+            foreach (Match variableMatch in vars)
+            {
+                var value = tempDictionary[variableMatch.Value];
+
+                if (value.Type == JTokenType.String)
+                {
+                    sb = sb.Replace(variableMatch.Value, value.ToString());
+                }
+                else if (value.Type == JTokenType.Object)
+                {
+                    sb = sb.Replace($"\"{variableMatch.Value}\"", value.ToString());
+                }
             }
 
             return sb.ToString();
-        }
-
-        private bool IsSurroundedByQuotes(string variableMatchValue)
-        {
-            throw new NotImplementedException();
         }
     }
 }
