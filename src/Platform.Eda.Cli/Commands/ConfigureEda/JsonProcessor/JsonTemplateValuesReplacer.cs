@@ -8,7 +8,7 @@ using Platform.Eda.Cli.Common;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
-    public class JsonTemplateValuesValuesReplacer : IJsonTemplateValuesReplacer
+    public class JsonTemplateValuesReplacer : IJsonTemplateValuesReplacer
     {
         private static readonly Dictionary<TemplateReplacementType, string> ReplacementTypeToPrefix = new Dictionary<TemplateReplacementType, string>
         {

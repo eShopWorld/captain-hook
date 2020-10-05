@@ -11,13 +11,13 @@ using Xunit;
 
 namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 {
-    public class JsonTemplateValuesValuesReplacerVars
+    public class JsonTemplateValuesReplacerVarsTests
     {
-        private readonly JsonTemplateValuesValuesReplacer _jsonVarsValuesValuesReplacer;
+        private readonly JsonTemplateValuesReplacer _jsonVarsValuesReplacer;
 
-        public JsonTemplateValuesValuesReplacerVars()
+        public JsonTemplateValuesReplacerVarsTests()
         {
-            _jsonVarsValuesValuesReplacer = new JsonTemplateValuesValuesReplacer();
+            _jsonVarsValuesReplacer = new JsonTemplateValuesReplacer();
         }
 
         [Theory, IsUnit]
@@ -48,7 +48,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             };
 
             // Act
-            var returnJObject = _jsonVarsValuesValuesReplacer.Replace(TemplateReplacementType.Vars, input, vars);
+            var returnJObject = _jsonVarsValuesReplacer.Replace(TemplateReplacementType.Vars, input, vars);
 
             // Assert
             returnJObject.Data.Should().Be($@"{{
@@ -66,100 +66,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         }}
     }}
 }}");
-        }
-
-        [Fact, IsUnit]
-        public void Replace_WhenReplacementIsString_ReplacedWithString()
-        {
-            // Arrange
-            var replacements = new Dictionary<string, JToken>
-            {
-                {"evo-host", (JToken) "sandbox.eshopworld.com"}
-            };
-
-            const string source = @"
-                    {
-                      ""eventName"": ""eshopworld.platform.events.oms.ordercancelfailedevent"",
-                      ""subscriberName"": ""retailers"",
-                      ""webhooks"": {
-                        ""selectionRule"": ""$.TenantCode"",
-                        ""payloadTransform"": ""Response"",
-                        ""endpoints"": [
-                          {
-                            ""uri"": ""https://order-transaction-api-{selector}.{params:evo-host}/api/v2.0/WebHook/ClientOrderFailureMethod"",
-                            ""selector"": ""*"",
-                            ""httpVerb"": ""POST""
-                          },
-                        ]
-                      },
-                      ""callbacks"": {
-                        ""selectionRule"": ""$.TenantCode"",
-                        ""endpoints"": [
-                          {
-                            ""uri"": ""https://order-transaction-api-{selector}.{params:evo-host}/api/v2/EdaResponse/ExternalEdaResponse"",
-                            ""selector"": ""*"",
-                            ""httpVerb"": ""POST""
-                          }
-                        ]
-                      },
-                      ""dlqhooks"": {
-                        ""selectionRule"": ""$.TenantCode"",
-                        ""endpoints"": [
-                          {
-                            ""uri"": ""https://order-transaction-api-{selector}.{params:evo-host}/api/v2/DlqRequest/ExternalRequest"",
-                            ""selector"": ""*"",
-                            ""httpVerb"": ""POST""
-                          }
-                        ]
-                      }
-                    }
-            ";
-
-            // Act
-            var result = _jsonVarsValuesValuesReplacer.Replace(TemplateReplacementType.Params, source, replacements);
-
-            // Assert
-            using (new AssertionScope())
-            {
-                result.IsError.Should().BeFalse();
-                result.Data.Should().Be(@"
-                    {
-                      ""eventName"": ""eshopworld.platform.events.oms.ordercancelfailedevent"",
-                      ""subscriberName"": ""retailers"",
-                      ""webhooks"": {
-                        ""selectionRule"": ""$.TenantCode"",
-                        ""payloadTransform"": ""Response"",
-                        ""endpoints"": [
-                          {
-                            ""uri"": ""https://order-transaction-api-{selector}.sandbox.eshopworld.com/api/v2.0/WebHook/ClientOrderFailureMethod"",
-                            ""selector"": ""*"",
-                            ""httpVerb"": ""POST""
-                          },
-                        ]
-                      },
-                      ""callbacks"": {
-                        ""selectionRule"": ""$.TenantCode"",
-                        ""endpoints"": [
-                          {
-                            ""uri"": ""https://order-transaction-api-{selector}.sandbox.eshopworld.com/api/v2/EdaResponse/ExternalEdaResponse"",
-                            ""selector"": ""*"",
-                            ""httpVerb"": ""POST""
-                          }
-                        ]
-                      },
-                      ""dlqhooks"": {
-                        ""selectionRule"": ""$.TenantCode"",
-                        ""endpoints"": [
-                          {
-                            ""uri"": ""https://order-transaction-api-{selector}.sandbox.eshopworld.com/api/v2/DlqRequest/ExternalRequest"",
-                            ""selector"": ""*"",
-                            ""httpVerb"": ""POST""
-                          }
-                        ]
-                      }
-                    }
-            ");
-            }
         }
 
         [Fact, IsUnit]
@@ -213,7 +119,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             ";
 
             // Act
-            var result = _jsonVarsValuesValuesReplacer.Replace(TemplateReplacementType.Vars, source, replacements);
+            var result = _jsonVarsValuesReplacer.Replace(TemplateReplacementType.Vars, source, replacements);
 
             // Assert
             result.IsError.Should().BeFalse();
@@ -244,7 +150,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             ""type"": ""OIDC""}"),
             };
 
-            var result = _jsonVarsValuesValuesReplacer.Replace(TemplateReplacementType.Vars, JObjectWithVars, varsDictionary);
+            var result = _jsonVarsValuesReplacer.Replace(TemplateReplacementType.Vars, JObjectWithVars, varsDictionary);
 
             var expected = new PutSubscriberRequest
             {
