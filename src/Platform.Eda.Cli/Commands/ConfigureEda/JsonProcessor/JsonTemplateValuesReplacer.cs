@@ -16,14 +16,20 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             {TemplateReplacementType.Vars, "vars"}
         };
 
+        private static readonly Dictionary<TemplateReplacementType, Regex> ReplacementTypeToRegex = new Dictionary<TemplateReplacementType, Regex>
+        {
+            {TemplateReplacementType.Params, new Regex($@"{{params:[a-zA-Z]+[a-zA-Z0-9-_]+}}", RegexOptions.Compiled)},
+            {TemplateReplacementType.Vars, new Regex($@"{{vars:[a-zA-Z]+[a-zA-Z0-9-_]+}}", RegexOptions.Compiled)}
+        };
+        
         public OperationResult<string> Replace(TemplateReplacementType replacementType, string fileContent, Dictionary<string, JToken> variablesDictionary)
         {
             var sb = new StringBuilder(fileContent);
 
             var replacementPrefix = ReplacementTypeToPrefix[replacementType];
+            var regexPattern = ReplacementTypeToRegex[replacementType];
 
-            var regexPattern = $@"{{{replacementPrefix}:[a-zA-Z]+[a-zA-Z0-9-_]+}}";
-            var vars = Regex.Matches(fileContent, regexPattern);
+            var vars = regexPattern.Matches(fileContent);
 
             var tempDictionary = variablesDictionary.ToDictionary(k => $"{{{replacementPrefix}:{k.Key}}}", k => k.Value);
 
