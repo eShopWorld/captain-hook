@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
+using Eshopworld.Core;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
@@ -25,13 +26,18 @@ namespace CaptainHook.Common.ServiceBus
         private const int RetryCeilingSeconds = 30;
 
         private readonly IMessageProviderFactory _factory;
+        private readonly IBigBrother _bigBrother;
         private readonly AsyncRetryPolicy<ITopic> _findTopicPolicy;
         private readonly ConfigurationSettings _configurationSettings;
 
-        public ServiceBusManager(IMessageProviderFactory factory, ConfigurationSettings configurationSettings)
+        public ServiceBusManager(
+            IMessageProviderFactory factory,
+            IBigBrother bigBrother,
+            ConfigurationSettings configurationSettings)
         {
-            _factory = factory;
-            _configurationSettings = configurationSettings;
+            _factory = factory ?? throw new ArgumentNullException(nameof(factory));
+            _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
+            _configurationSettings = configurationSettings ?? throw new ArgumentNullException(nameof(factory));
 
             static TimeSpan ExponentialBackoff(int x) => TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, RetryCeilingSeconds));
             
@@ -63,12 +69,19 @@ namespace CaptainHook.Common.ServiceBus
             var subscription = subscriptionsList.SingleOrDefault(s => string.Equals(s.Name, subscriptionName, StringComparison.OrdinalIgnoreCase));
             if (subscription != null) return subscription;
 
-            await topic.Subscriptions
-                .Define(subscriptionName.ToLowerInvariant())
-                .WithMessageLockDurationInSeconds(60)
-                .WithExpiredMessageMovedToDeadLetterSubscription()
-                .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
-                .CreateAsync(cancellationToken);
+            try
+            {
+                await topic.Subscriptions
+                    .Define(subscriptionName.ToLowerInvariant())
+                    .WithMessageLockDurationInSeconds(60)
+                    .WithExpiredMessageMovedToDeadLetterSubscription()
+                    .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
+                    .CreateAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                _bigBrother.Publish(exception.ToExceptionEvent());
+            }
 
             await topic.RefreshAsync(cancellationToken);
             subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
@@ -90,10 +103,17 @@ namespace CaptainHook.Common.ServiceBus
 
             if (topic != null) return topic;
 
-            await serviceBusNamespace.Topics
-                .Define(topicName.ToLowerInvariant())
-                .WithDuplicateMessageDetection(TimeSpan.FromMinutes(10))
-                .CreateAsync(cancellationToken);
+            try
+            {
+                await serviceBusNamespace.Topics
+                    .Define(topicName.ToLowerInvariant())
+                    .WithDuplicateMessageDetection(TimeSpan.FromMinutes(10))
+                    .CreateAsync(cancellationToken);
+            }
+            catch (Exception exception)
+            {
+                _bigBrother.Publish(exception.ToExceptionEvent());
+            }
 
             return await _findTopicPolicy.ExecuteAsync(ct => FindTopicAsync(serviceBusNamespace, topicName, ct), cancellationToken);
         }

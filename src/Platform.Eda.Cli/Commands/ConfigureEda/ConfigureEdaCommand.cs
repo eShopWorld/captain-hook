@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
-using System.IO.Abstractions;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
+using Platform.Eda.Cli.Commands.ConfigureEda.OptionsValidation;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
@@ -54,6 +54,15 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             ShowInHelpText = true)]
         public bool NoDryRun { get; set; }
 
+        /// <summary>
+        /// The environment name.
+        /// </summary>
+        [Option("-p|--params", CommandOptionType.MultipleValue,
+            Description = "The additional configuration parameters",
+            ShowInHelpText = true)]
+        [ReplacementParamsDictionary]
+        public string[] Params { get; set; }
+
         public async Task<int> OnExecuteAsync(IConsoleSubscriberWriter writer)
         {
             if (string.IsNullOrWhiteSpace(Environment))
@@ -62,6 +71,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
 
             writer.WriteSuccess("box", $"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
+
+            var replacements = BuildParametersReplacementDictionary(Params);
 
             var readDirectoryResult = _subscribersDirectoryProcessor.ProcessDirectory(InputFolderPath);
 
@@ -91,6 +102,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             writer.WriteSuccess("Processing finished");
             return 0;
+        }
+
+        private Dictionary<string, string> BuildParametersReplacementDictionary(string[] rawParams)
+        {
+            return rawParams?.Select(p => p.Split('=')).ToDictionary(items => items[0], items => items[1]);
         }
 
         private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsoleSubscriberWriter writer,

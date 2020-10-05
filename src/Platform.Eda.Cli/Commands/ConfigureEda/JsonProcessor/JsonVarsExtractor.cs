@@ -10,6 +10,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
     {
         public OperationResult<Dictionary<string, JToken>> ExtractVars(JObject varsJObject, string environmentName)
         {
+            Dictionary<string, Dictionary<string, JToken>> varsDict;
+
             if (varsJObject == null)
                 return new Dictionary<string, JToken>(); // no vars
 
@@ -17,11 +19,17 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             if (!ConfigureEdaConstants.EnvironmentNames.Contains(environmentName))
                 return new CliExecutionError($"Cannot extract vars for environment {environmentName}.");
 
-            var varsDict = varsJObject.ToObject<Dictionary<string, Dictionary<string, JToken>>>();
+            try
+            {
+                varsDict = varsJObject.ToObject<Dictionary<string, Dictionary<string, JToken>>>();
+            }
+            catch (Exception e)
+            {
+                return new CliExecutionError($"Cannot parse vars {e.Message}.");
+            }
 
             if (varsDict == null)
                 return new CliExecutionError($"Cannot parse vars {varsJObject}.");
-
 
             var outputVarsDict = new Dictionary<string, JToken>();
             foreach (var (propertyKey, innerDict) in varsDict)
