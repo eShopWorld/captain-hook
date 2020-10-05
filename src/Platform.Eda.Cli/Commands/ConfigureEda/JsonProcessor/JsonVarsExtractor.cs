@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using CaptainHook.Domain.Results;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Common;
 
@@ -9,18 +8,19 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public class JsonVarsExtractor : IJsonVarsExtractor
     {
-        public OperationResult<Dictionary<string, JToken>> ExtractVars(JObject fileContent, string environmentName)
+        public OperationResult<Dictionary<string, JToken>> ExtractVars(JObject varsJObject, string environmentName)
         {
-            if (!fileContent.ContainsKey("vars"))
+            if (varsJObject == null)
                 return new Dictionary<string, JToken>(); // no vars
+
 
             if (!ConfigureEdaConstants.EnvironmentNames.Contains(environmentName))
                 return new CliExecutionError($"Cannot extract vars for environment {environmentName}.");
 
-            var varsDict = fileContent["vars"]!.ToObject<Dictionary<string, Dictionary<string, JToken>>>();
+            var varsDict = varsJObject.ToObject<Dictionary<string, Dictionary<string, JToken>>>();
 
             if (varsDict == null)
-                return new CliExecutionError($"Cannot parse vars {fileContent["vars"]}.");
+                return new CliExecutionError($"Cannot parse vars {varsJObject}.");
 
 
             var outputVarsDict = new Dictionary<string, JToken>();
@@ -47,7 +47,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
             }
 
-            fileContent.Remove("vars");
             return outputVarsDict;
         }
     }
