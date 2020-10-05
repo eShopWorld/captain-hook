@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
-    public interface ISubscriberTemplateReplacer
+    public interface IJsonTemplateValuesReplacer
     {
         public OperationResult<string> Replace(TemplateReplacementType replacementType, string fileContent, Dictionary<string, JToken> variablesDictionary);
     }

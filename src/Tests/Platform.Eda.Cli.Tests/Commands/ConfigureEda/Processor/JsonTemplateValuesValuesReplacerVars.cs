@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using CaptainHook.Api.Client.Models;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -13,13 +11,13 @@ using Xunit;
 
 namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 {
-    public class SubscriberVarsReplacerTests
+    public class JsonTemplateValuesValuesReplacerVars
     {
-        private SubscriberTemplateReplacer _subscriberVarsReplacer;
+        private readonly JsonTemplateValuesValuesReplacer _jsonVarsValuesValuesReplacer;
 
-        public SubscriberVarsReplacerTests()
+        public JsonTemplateValuesValuesReplacerVars()
         {
-            _subscriberVarsReplacer = new SubscriberTemplateReplacer();
+            _jsonVarsValuesValuesReplacer = new JsonTemplateValuesValuesReplacer();
         }
 
         [Theory, IsUnit]
@@ -50,7 +48,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             };
 
             // Act
-            var returnJObject = _subscriberVarsReplacer.Replace(TemplateReplacementType.Vars, input, vars);
+            var returnJObject = _jsonVarsValuesValuesReplacer.Replace(TemplateReplacementType.Vars, input, vars);
 
             // Assert
             returnJObject.Data.Should().Be($@"{{
@@ -118,7 +116,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             ";
 
             // Act
-            var result = _subscriberVarsReplacer.Replace(TemplateReplacementType.Params, source, replacements);
+            var result = _jsonVarsValuesValuesReplacer.Replace(TemplateReplacementType.Params, source, replacements);
 
             // Assert
             using (new AssertionScope())
@@ -215,7 +213,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             ";
 
             // Act
-            var result = _subscriberVarsReplacer.Replace(TemplateReplacementType.Vars, source, replacements);
+            var result = _jsonVarsValuesValuesReplacer.Replace(TemplateReplacementType.Vars, source, replacements);
 
             // Assert
             result.IsError.Should().BeFalse();
@@ -246,7 +244,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             ""type"": ""OIDC""}"),
             };
 
-            var result = _subscriberVarsReplacer.Replace(TemplateReplacementType.Vars, JObjectWithVars, varsDictionary);
+            var result = _jsonVarsValuesValuesReplacer.Replace(TemplateReplacementType.Vars, JObjectWithVars, varsDictionary);
 
             var expected = new PutSubscriberRequest
             {

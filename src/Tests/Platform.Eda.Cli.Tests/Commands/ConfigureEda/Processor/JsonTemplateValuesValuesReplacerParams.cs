@@ -2,16 +2,15 @@
 using CaptainHook.Api.Client.Models;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using FluentAssertions.Execution;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Xunit;
 
-namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
+namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 {
-    public class ParamsReplacerTests
+    public class JsonTemplateValuesValuesReplacerParams
     {
         [Fact, IsUnit]
         public void Replace_WhenMissingValueInDictionary_ReturnsError()
@@ -22,7 +21,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 ["scopes"] = "scope1",
             };
 
-            var result = new SubscriberTemplateReplacer().Replace(TemplateReplacementType.Params, JObjectWithParams, paramsDictionary);
+            var result = new JsonTemplateValuesValuesReplacer().Replace(TemplateReplacementType.Params, JObjectWithParams, paramsDictionary);
 
             result.IsError.Should().BeTrue();
         }
@@ -37,7 +36,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 ["scopes"] = "scope1",
             };
 
-            var result = new SubscriberTemplateReplacer().Replace(TemplateReplacementType.Params, JObjectWithParams, paramsDictionary);
+            var result = new JsonTemplateValuesValuesReplacer().Replace(TemplateReplacementType.Params, JObjectWithParams, paramsDictionary);
 
             var expected = new PutSubscriberRequest
             {

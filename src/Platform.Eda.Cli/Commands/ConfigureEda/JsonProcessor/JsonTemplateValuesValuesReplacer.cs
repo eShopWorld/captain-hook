@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,7 +8,7 @@ using Platform.Eda.Cli.Common;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
-    public class SubscriberTemplateReplacer : ISubscriberTemplateReplacer
+    public class JsonTemplateValuesValuesReplacer : IJsonTemplateValuesReplacer
     {
         private static readonly Dictionary<TemplateReplacementType, string> ReplacementTypeToPrefix = new Dictionary<TemplateReplacementType, string>
         {
