@@ -1,38 +1,54 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
+using CaptainHook.Domain.Results;
 using Newtonsoft.Json.Linq;
+using Platform.Eda.Cli.Common;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public class SubscriberTemplateReplacer : ISubscriberTemplateReplacer
     {
-        private readonly string _replacementPrefix;
-
         private static readonly Dictionary<TemplateReplacementType, string> ReplacementTypeToPrefix = new Dictionary<TemplateReplacementType, string>
         {
             {TemplateReplacementType.Params, "params"},
             {TemplateReplacementType.Vars, "vars"}
         };
 
-        public SubscriberTemplateReplacer(TemplateReplacementType replacementType)
+        public OperationResult<string> Replace(TemplateReplacementType replacementType, string fileContent, Dictionary<string, JToken> variablesDictionary)
         {
-            _replacementPrefix = ReplacementTypeToPrefix[replacementType];
-        }
+            var sb = new StringBuilder(fileContent);
 
-        public JObject Replace(JObject fileContent, Dictionary<string, JToken> variables)
-        {
-            var sb = new StringBuilder(fileContent.ToString());
+            var replacementPrefix = ReplacementTypeToPrefix[replacementType];
 
-            foreach (var (propertyKey, val) in variables)
+            var regexPattern = $@"{{{replacementPrefix}:[a-zA-Z]+[a-zA-Z0-9-_]+}}";
+            var vars = Regex.Matches(fileContent, regexPattern);
+
+            var tempDictionary = variablesDictionary.ToDictionary(k => $"{{{replacementPrefix}:{k.Key}}}", k => k.Value);
+
+            var unknownVars = vars.Where(x => !tempDictionary.ContainsKey(x.Value)).Select(x => x.Value).ToArray();
+            if (unknownVars.Any())
             {
-                var variableName = $"{{{_replacementPrefix}:{propertyKey}}}";
-                var variableNameWholeValue = $@"""{variableName}""";
-                
-                sb.Replace(val.Type == JTokenType.String ? variableName : variableNameWholeValue,
-                    val.ToString());
+                return new CliExecutionError($"Template has an undeclared {replacementType}: {string.Join(',', unknownVars)}");
             }
 
-            return JObject.Parse(sb.ToString());
+            foreach (Match variableMatch in vars)
+            {
+                var value = tempDictionary[variableMatch.Value];
+
+                if (value.Type == JTokenType.String)
+                {
+                    sb = sb.Replace(variableMatch.Value, value.ToString());
+                }
+                else if (value.Type == JTokenType.Object)
+                {
+                    sb = sb.Replace($"\"{variableMatch.Value}\"", value.ToString());
+                }
+            }
+
+            return sb.ToString();
         }
     }
 }
