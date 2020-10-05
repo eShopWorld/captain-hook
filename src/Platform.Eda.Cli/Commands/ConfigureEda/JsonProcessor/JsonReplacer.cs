@@ -10,6 +10,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
     {
         public OperationResult<JObject> Replace(JObject source, Dictionary<string, JToken> replacements)
         {
+            // get a token-list representation of the source
             var tokens = GetTokens(source);
 
             try
@@ -28,7 +29,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
         private void ReplaceProperties(JToken token, Dictionary<string, JToken> replacements)
         {
-            if (token.Type == JTokenType.Property && ((JProperty)token).Value.Type == JTokenType.String)
+            if (token.Type == JTokenType.Property && 
+                ((JProperty)token).Value.Type == JTokenType.String)
             {
                 var property = (JProperty)token;
 
@@ -37,11 +39,16 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 {
                     if (value.Contains(replacement.Key, StringComparison.OrdinalIgnoreCase))
                     {
+                        // replaced variable is a string
                         if (replacement.Value.Type == JTokenType.String)
                         {
-                            var replacedValue = value.Replace(replacement.Key, $"{(string)replacement.Value}");
+                            var replacedValue = value.Replace(replacement.Key, 
+                                $"{(string)replacement.Value}");
+
                             property.Value = (JToken)replacedValue;
                         }
+
+                        // replaced variable is a JSON object
                         if (replacement.Value.Type == JTokenType.Object)
                         {
                             property.Value = replacement.Value;
