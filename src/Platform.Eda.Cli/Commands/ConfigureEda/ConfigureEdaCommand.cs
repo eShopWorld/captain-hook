@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CaptainHook.Domain.Results;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
+using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Commands.ConfigureEda.OptionsValidation;
 

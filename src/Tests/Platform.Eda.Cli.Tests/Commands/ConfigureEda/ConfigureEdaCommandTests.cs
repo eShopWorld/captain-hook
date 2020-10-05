@@ -13,6 +13,7 @@ using FluentAssertions;
 using Microsoft.Rest;
 using Moq;
 using Platform.Eda.Cli.Commands.ConfigureEda;
+using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 using Xunit;

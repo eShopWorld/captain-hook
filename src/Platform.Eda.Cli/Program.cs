@@ -5,6 +5,7 @@ using System.Reflection;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Platform.Eda.Cli.Commands.ConfigureEda;
+using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.GenerateJson;
 using Platform.Eda.Cli.Commands.GeneratePowerShell;
 using Platform.Eda.Cli.Extensions;
@@ -82,6 +83,7 @@ namespace Platform.Eda.Cli
             collection.AddHttpClient();
             collection.AddTransient<IFileSystem, FileSystem>();
             collection.AddTransient<IConsoleSubscriberWriter, ConsoleSubscriberWriter>();
+            collection.AddTransient<ISubscriberFileParser, SubscriberFileParser>();
             collection.AddTransient<ISubscribersDirectoryProcessor, SubscribersDirectoryProcessor>();
 
             collection.AddSingleton(console);

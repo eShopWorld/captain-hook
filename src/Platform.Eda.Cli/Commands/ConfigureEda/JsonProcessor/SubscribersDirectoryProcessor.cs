@@ -8,15 +8,17 @@ using Newtonsoft.Json;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 
-namespace Platform.Eda.Cli.Commands.ConfigureEda
+namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public class SubscribersDirectoryProcessor : ISubscribersDirectoryProcessor
     {
         private readonly IFileSystem _fileSystem;
+        private readonly ISubscriberFileParser _subscriberFileParser;
 
-        public SubscribersDirectoryProcessor(IFileSystem fileSystem)
+        public SubscribersDirectoryProcessor(IFileSystem fileSystem, ISubscriberFileParser subscriberFileParser)
         {
             _fileSystem = fileSystem;
+            _subscriberFileParser = subscriberFileParser;
         }
 
         public OperationResult<IEnumerable<PutSubscriberFile>> ProcessDirectory(string inputFolderPath)
@@ -31,8 +33,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             try
             {
-                var subscriberFiles = _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
-                subscribers.AddRange(subscriberFiles.Select(ProcessFile));
+                var subscriberFiles =
+                    _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
 
                 if (!subscribers.Any())
                 {
@@ -45,29 +47,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
 
             return subscribers;
-        }
-
-        private PutSubscriberFile ProcessFile(string fileName)
-        {
-            try
-            {
-                var content = _fileSystem.File.ReadAllText(fileName);
-                var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
-
-                return new PutSubscriberFile
-                {
-                    File = new FileInfo(fileName),
-                    Request = request
-                };
-            }
-            catch (Exception ex)
-            {
-                return new PutSubscriberFile
-                {
-                    File = new FileInfo(fileName),
-                    Error = ex.Message
-                };
-            }
         }
     }
 }
