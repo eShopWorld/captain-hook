@@ -15,11 +15,15 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 return new Dictionary<string, JToken>(); // no vars
 
             if (!ConfigureEdaConstants.EnvironmentNames.Contains(environmentName))
-                return new CliExecutionError($"Cannot extract vars environment {environmentName}.");
+                return new CliExecutionError($"Cannot extract vars for environment {environmentName}.");
 
-            var varsDict = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, JToken>>>(fileContent["vars"]!.ToString());
+            var varsDict = fileContent["vars"]!.ToObject<Dictionary<string, Dictionary<string, JToken>>>();
+
+            if (varsDict == null)
+                return new CliExecutionError($"Cannot parse vars {fileContent["vars"]}.");
+
+
             var outputVarsDict = new Dictionary<string, JToken>();
-
             foreach (var (propertyKey, innerDict) in varsDict)
             {
                 foreach (var (envKey, val) in innerDict)
