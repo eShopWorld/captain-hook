@@ -160,6 +160,24 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             result.IsError.Should().BeTrue();
         }
 
+        [Fact, IsUnit]
+        public void Replace_NonJsonTemplate_SuccessfulReplacement()
+        {
+            var result = _jsonVarsValuesReplacer.Replace("param", "Hi, {param:person}!", new Dictionary<string, JToken>{["person"] = "Captain Hook" });
+            result.Should().BeEquivalentTo(new OperationResult<string>("Hi, Captain Hook!"));
+        }
+
+        [Theory, IsUnit]
+        [InlineData("{param:value")]
+        [InlineData("{param: value")]
+        [InlineData("param:value}")]
+        [InlineData("{param;value}")]
+        public void Replace_MalformedTemplate_NotReplaced(string badTemplate)
+        {
+            var result = _jsonVarsValuesReplacer.Replace("param", $@"{{ ""type"": Hi, {badTemplate} }}", new Dictionary<string, JToken> { ["value"] = "ValidValue" });
+            result.Should().BeEquivalentTo(new OperationResult<string>($@"{{ ""type"": Hi, {badTemplate} }}"));
+        }
+
         private static string SimpleJsonWithVars => @"
 {  
     ""eventName"": ""event"",

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using CaptainHook.Domain.Results;
-using Castle.Core.Internal;
 using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Common;
 
