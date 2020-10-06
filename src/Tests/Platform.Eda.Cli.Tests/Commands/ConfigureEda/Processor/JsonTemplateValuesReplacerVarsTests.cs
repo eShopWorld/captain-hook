@@ -136,6 +136,41 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         }
 
         [Fact, IsUnit]
+        public void Replace_ReplacementIsObjectButTemplateIsValue_ReturnsError()
+        {
+            // Arrange
+            var replacements = new Dictionary<string, JToken>
+            {
+                {"sts-settings", JToken.Parse("{ \"type\": \"OIDC\" } ")},
+            };
+
+            var source = @"
+                    {
+                      ""eventName"": ""eshopworld.platform.events.oms.ordercancelfailedevent"",
+                      ""subscriberName"": ""retailers"",
+                      ""webhooks"": {
+                        ""selectionRule"": ""$.TenantCode"",
+                        ""payloadTransform"": ""Response"",
+                        ""endpoints"": [
+                          {
+                            ""uri"": ""https://order-transaction-api-{selector}.{vars:sts-settings}/api/v2.0/WebHook/ClientOrderFailureMethod"",
+                            ""selector"": ""*"",
+                            ""httpVerb"": ""POST""
+                          },
+                        ]
+                      }
+                    }
+            ";
+
+            // Act
+            var result = _jsonVarsValuesReplacer.Replace(TemplateReplacementType.Vars, source, replacements);
+
+            // Assert
+            result.IsError.Should().BeTrue();
+            result.Error.Message.Should().Be("Vars replacement error. 'sts-settings' is defined as an object but used as value.");
+        }
+
+        [Fact, IsUnit]
         public void Replace_VarsContainingParams_ReturnsValidString()
         {
             var varsDictionary = new Dictionary<string, JToken>
