@@ -84,7 +84,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
         private static readonly string _boxDelimiter = new string('=', 80);
 
-        private static class Colors
+        public static class Colors
         {
             public static readonly Color Red = new Color("\u001b[31m");
             public static readonly Color Green = new Color("\u001b[32m");
@@ -93,7 +93,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             public static readonly Color Reset = new Color("\u001b[0m");
         }
 
-        private class Color
+        public class Color
         {
             private readonly string _value;
 
