@@ -8,16 +8,24 @@ participant Director order 20
 endbox
 boundary ServiceBus order 10
 
-ServiceBus -> Reader : Pick up message from topic
+ServiceBus -> Reader : Pick up message from topic DLQ
 Reader -> ServiceBus : Lock message
 Reader -> EventHandler : Spawn handler
+
 group retry (20s, 30s)
   EventHandler -> Endpoint1 : Dispatch message
 end
   Endpoint1 -> EventHandler : Read response
-group retry (20s, 30s)
-  EventHandler -> Endpoint2 : Dispatch response
+
+group successful case
+
+  group retry (20s, 30s)
+    EventHandler -> Endpoint2 : Dispatch response
+  end
+    EventHandler -> Reader : Acknowledge dispatch
+    Reader -> ServiceBus : Unlock message and remove
+else undeliverable
+   EventHandler -> Reader : Report failed delivery
+   note over Reader : Let the lock expire
 end
-  EventHandler -> Reader : Acknowledge dispatch
-  Reader -> ServiceBus : Unlock message
 @enduml
