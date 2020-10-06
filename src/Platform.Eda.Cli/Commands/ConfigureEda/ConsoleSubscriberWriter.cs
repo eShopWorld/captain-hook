@@ -21,7 +21,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             var files = subscriberFiles?.ToArray();
             if (files == null || !files.Any())
             {
-                _console.WriteLine("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
+                WriteNormal("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
                 return;
             }
 
@@ -42,9 +42,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
         public void WriteNormal(params string[] lines) => WriteInColor(_console.ForegroundColor, lines);
 
-        public void WriteSuccess(params string[] lines) => WriteInColor(ConsoleColor.DarkGreen, lines);
+        public void WriteSuccess(params string[] lines) => WriteInColor(ConsoleColor.DarkGreen, lines.Select(s => $"##[section] {s}").ToArray());
 
-        public void WriteError(params string[] lines) => WriteInColor(ConsoleColor.Red, lines);
+        public void WriteError(params string[] lines) => WriteInColor(ConsoleColor.Red, lines.Select(s => $"##[error] {s}").ToArray());
 
         private void WriteBox(int length) => _console.WriteLine(new string('=', length));
 
