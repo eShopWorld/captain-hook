@@ -50,7 +50,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
                     if (value.Type == JTokenType.String)
                     {
-                        sb.Replace(variableMatch.Value, value.ToString());
+                        sb.Remove(variableMatch.Index, variableMatch.Length);
+                        sb.Insert(variableMatch.Index, value);
                     }
                     else if (value.Type == JTokenType.Object)
                     {
@@ -58,7 +59,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                             return new CliExecutionError(
                                 $"{replacementType} replacement error. '{variableMatch.Groups[1]}' is defined as an object but used as value.");
 
-                        sb.Replace($"\"{variableMatch.Value}\"", value.ToString());
+                        sb.Remove(variableMatch.Index - 1, variableMatch.Length + 2);
+                        sb.Insert(variableMatch.Index - 1, value);
+
                     }
                 }
 

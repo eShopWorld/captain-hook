@@ -224,6 +224,16 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             result.Data.ToLowerInvariant().Replace(" ", "").Should().BeEquivalentTo(serializeObject.ToLowerInvariant().Replace(" ", ""));
         }
 
+        [Fact, IsUnit]
+        public void Replace_UnsupportedTemplateReplacementType_ReturnsError()
+        {
+            var varsDictionary = new Dictionary<string, JToken>();
+            var result = _jsonVarsValuesReplacer.Replace((TemplateReplacementType)4, JObjectWithVars, varsDictionary);
+
+            result.IsError.Should().BeTrue();
+            result.Error.Message.Should().Be("The given key '4' was not present in the dictionary.");
+        }
+
         private static string JObjectWithVars =>
    @"{  
   ""eventName"": ""event"",
