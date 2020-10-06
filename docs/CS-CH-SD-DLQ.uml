@@ -1,0 +1,27 @@
+@startuml
+boundary Endpoint order 50
+box "Captain Hook"
+participant EventHandler order 40
+collections Reader order 30
+participant Director order 20
+endbox
+boundary ServiceBus order 10
+
+ServiceBus -> Reader : Pick up message from topic DLQ
+Reader -> ServiceBus : Lock message
+Reader -> EventHandler : Spawn handler
+
+group retry (20s, 30s)
+  EventHandler -> Endpoint : Dispatch message
+end
+  Endpoint -> EventHandler : Read response
+
+group successful case
+
+    EventHandler -> Reader : Acknowledge dispatch
+    Reader -> ServiceBus : Unlock message and remove
+else undeliverable
+   EventHandler -> Reader : Report failed delivery
+   note over Reader : Let the lock expire
+end
+@enduml

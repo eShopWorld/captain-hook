@@ -104,6 +104,10 @@ Here is a collection of sequence diagrams for the main flows.
 
 ![Sequence Diagram of the message flow with callback](docs/CS-CH-SD-webhook-callback.png)
 
+### Message flow with DLQ
+
+![Sequence Diagram of the message flow with DLQ](docs/CS-CH-SD-DLQ.png)
+
 
 ## Future Work
 * HA for EDA.
