@@ -15,6 +15,7 @@ namespace CaptainHook.Api.Controllers
         /// </summary>
         /// <returns>Returns status code 200</returns>
         [HttpGet]
+        [HttpHead]
         public IActionResult GetProbe()
         {
             return Ok("Healthy");
