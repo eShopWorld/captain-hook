@@ -87,6 +87,7 @@ namespace CaptainHook.Api
             try
             {
                 services.AddApplicationInsightsTelemetry(_instrumentationKey);
+                services.AddApplicationInsightsTelemetryProcessor<TelemetryFilterProcessor>();
 
                 var serviceConfiguration = new ServiceConfigurationOptions();
                 _configuration.GetSection("ServiceConfigurationOptions").Bind(serviceConfiguration);
