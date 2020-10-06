@@ -70,7 +70,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 Environment = "CI";
             }
 
-            writer.WriteSuccess("box", $"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
+            writer.WriteSuccessBox($"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
 
             var replacements = BuildParametersReplacementDictionary(Params);
 
@@ -87,7 +87,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             if (NoDryRun)
             {
-                writer.WriteSuccess("box", "Starting to run configuration against Captain Hook API");
+                writer.WriteSuccessBox("Starting to run configuration against Captain Hook API");
 
                 var apiResults = await ConfigureEdaWithCaptainHook(writer, subscriberFiles);
                 if (apiResults.Any(r => r.IsError))

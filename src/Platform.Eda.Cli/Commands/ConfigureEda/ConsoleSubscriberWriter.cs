@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
@@ -21,7 +20,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             var files = subscriberFiles?.ToArray();
             if (files == null || !files.Any())
             {
-                WriteNormal("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
+                WriteWarning("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
                 return;
             }
 
@@ -40,31 +39,95 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
         }
 
-        public void WriteNormal(params string[] lines) => WriteInColor(_console.ForegroundColor, lines.Select(s => $"\u001b[36m {s}\u001b[0m").ToArray());
-
-        public void WriteSuccess(params string[] lines) => WriteInColor(ConsoleColor.DarkGreen, lines.Select(s => $"\u001b[32m {s}\u001b[0m").ToArray());
-
-        public void WriteError(params string[] lines) => WriteInColor(ConsoleColor.Red, lines.Select(s => $"\u001b[31m {s}\u001b[0m").ToArray());
-
-        private void WriteBox(int length) => _console.WriteLine(new string('=', length));
-
-        private void WriteInColor(ConsoleColor color, params string[] lines)
+        public void WriteNormal(params string[] lines)
         {
-            Action writeBox = null;
+            WriteInColor(Colors.Cyan, lines);
+        }
 
-            if (lines.Length > 1 && string.Equals("box", lines[0], StringComparison.OrdinalIgnoreCase))
+        public void WriteSuccess(params string[] lines)
+        {
+            WriteInColor(Colors.Green, lines);
+        }
+
+        public void WriteWarning(params string[] lines)
+        {
+            WriteInColor(Colors.Yellow, lines);
+        }
+
+        public void WriteError(params string[] lines)
+        {
+            WriteInColor(Colors.Red, lines);
+        }
+
+        public void WriteNormalBox(params string[] lines)
+        {
+            WriteNormal(lines.Prepend(_boxDelimiter).Append(_boxDelimiter).ToArray());
+        }
+
+        public void WriteSuccessBox(params string[] lines)
+        {
+            WriteSuccess(lines.Prepend(_boxDelimiter).Append(_boxDelimiter).ToArray());
+        }
+
+        public void WriteErrorBox(params string[] lines)
+        {
+            WriteError(lines.Prepend(_boxDelimiter).Append(_boxDelimiter).ToArray());
+        }
+
+        private void WriteInColor(Color color, params string[] lines)
+        {
+            foreach (var line in lines)
             {
-                var longestLine = lines.Skip(1).Max(l => l.Length);
-                writeBox = () => WriteBox(longestLine);
+                _console.WriteLine($"{color}{line}{Colors.Reset}");
+            }
+        }
+
+        private static readonly string _boxDelimiter = new string('=', 80);
+
+        private static class Colors
+        {
+            public static readonly Color Red = new Color("\u001b[31m");
+            public static readonly Color Green = new Color("\u001b[32m");
+            public static readonly Color Cyan = new Color("\u001b[36m");
+            public static readonly Color Yellow = new Color("\u001b[33m");
+            public static readonly Color Reset = new Color("\u001b[0m");
+        }
+
+        private class Color
+        {
+            private readonly string _value;
+
+            public Color(string value)
+            {
+                _value = value;
             }
 
-            var line = string.Join(Environment.NewLine, writeBox == null ? lines : lines.Skip(1));
-            //_console.ForegroundColor = color;
-
-            writeBox?.Invoke();
-            _console.WriteLine(line);
-            writeBox?.Invoke();
-            _console.ResetColor();
+            public override string ToString()
+            {
+                return _value;
+            }
         }
+
+
+        //private void WriteBox(int length) => _console.WriteLine(new string('=', length));
+
+        //private void WriteInColor(ConsoleColor color, params string[] lines)
+        //{
+        //    Action writeBox = null;
+
+        //    if (lines.Length > 1 && string.Equals("box", lines[0], StringComparison.OrdinalIgnoreCase))
+        //    {
+        //        var longestLine = lines.Skip(1).Max(l => l.Length);
+        //        writeBox = () => WriteBox(longestLine);
+        //    }
+
+        //    var line = string.Join(Environment.NewLine, writeBox == null ? lines : lines.Skip(1));
+        //    //_console.ForegroundColor = color;
+
+        //    writeBox?.Invoke();
+        //    _console.WriteLine(line);
+        //    writeBox?.Invoke();
+        //    _console.ResetColor();
+        //}
     }
 }
