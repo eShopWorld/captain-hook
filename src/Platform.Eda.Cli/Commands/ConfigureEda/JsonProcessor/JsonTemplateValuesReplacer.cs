@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using CaptainHook.Domain.Results;
+using Castle.Core.Internal;
 using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Common;
 
@@ -11,42 +12,31 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public class JsonTemplateValuesReplacer : IJsonTemplateValuesReplacer
     {
-        private static readonly Dictionary<TemplateReplacementType, string> ReplacementTypeToPrefix = new Dictionary<TemplateReplacementType, string>
-        {
-            {TemplateReplacementType.Params, "params"},
-            {TemplateReplacementType.Vars, "vars"}
-        };
-
-        private static readonly Dictionary<TemplateReplacementType, Regex> ReplacementTypeToRegex = new Dictionary<TemplateReplacementType, Regex>
-        {
-            {TemplateReplacementType.Params, new Regex($@"{{params:([a-zA-Z]+[a-zA-Z0-9-_]+)}}", RegexOptions.Compiled)},
-            {TemplateReplacementType.Vars, new Regex($@"{{vars:([a-zA-Z]+[a-zA-Z0-9-_]+)}}", RegexOptions.Compiled)}
-        };
-
-        public OperationResult<string> Replace(TemplateReplacementType replacementType, string fileContent, Dictionary<string, JToken> variablesDictionary)
+        private static readonly Regex ValidReplacementPrefix = new Regex("^\\w+$", RegexOptions.Compiled);
+        public OperationResult<string> Replace(string replacementPrefix, string fileContent, Dictionary<string, JToken> variablesDictionary)
         {
             try
             {
-                var sb = new StringBuilder(fileContent);
+                if (!ValidReplacementPrefix.IsMatch(replacementPrefix))
+                    return new CliExecutionError($"Invalid replacement prefix '{replacementPrefix}'");
 
-                var replacementPrefix = ReplacementTypeToPrefix[replacementType];
-                var regexPattern = ReplacementTypeToRegex[replacementType];
+                replacementPrefix = replacementPrefix.ToLowerInvariant();
+
+                var regexPattern = new Regex($@"{{{Regex.Escape(replacementPrefix)}:([a-zA-Z]+[a-zA-Z0-9-_]+)}}", RegexOptions.Compiled);
 
                 var vars = regexPattern.Matches(fileContent);
 
-                var tempDictionary =
-                    variablesDictionary.ToDictionary(k => $"{{{replacementPrefix}:{k.Key}}}", k => k.Value);
-
-                var unknownVars = vars.Where(x => !tempDictionary.ContainsKey(x.Value)).Select(x => x.Value).ToArray();
+                var unknownVars = vars.Where(x => !variablesDictionary.ContainsKey(x.Groups[1].Value)).Select(x => x.Groups[1].Value).ToArray();
                 if (unknownVars.Any())
                 {
                     return new CliExecutionError(
-                        $"Template has an undeclared {replacementPrefix}: {string.Join(',', unknownVars)}");
+                        $"Template has undeclared {replacementPrefix}: {string.Join(',', unknownVars)}");
                 }
 
+                var sb = new StringBuilder(fileContent);
                 foreach (var variableMatch in vars.Reverse())
                 {
-                    var value = tempDictionary[variableMatch.Value];
+                    var value = variablesDictionary[variableMatch.Groups[1].Value];
 
                     if (value.Type == JTokenType.String)
                     {
@@ -57,11 +47,10 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                     {
                         if (sb[variableMatch.Index - 1] != '"' || sb[variableMatch.Index + variableMatch.Value.Length] != '"')
                             return new CliExecutionError(
-                                $"{replacementType} replacement error. '{variableMatch.Groups[1]}' is defined as an object but used as value.");
+                                $"{replacementPrefix} replacement error. '{variableMatch.Groups[1].Value}' is defined as an object but used as value.");
 
                         sb.Remove(variableMatch.Index - 1, variableMatch.Length + 2);
                         sb.Insert(variableMatch.Index - 1, value);
-
                     }
                 }
 
