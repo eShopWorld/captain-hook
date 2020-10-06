@@ -6,6 +6,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public interface ISubscribersDirectoryProcessor
     {
-        public OperationResult<IEnumerable<PutSubscriberFile>> ProcessDirectory(string inputFolderPath);
+        public OperationResult<IEnumerable<string>> ProcessDirectory(string inputFolderPath);
     }
 }
