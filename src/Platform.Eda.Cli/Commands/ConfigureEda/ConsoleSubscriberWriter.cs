@@ -40,11 +40,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
         }
 
-        public void WriteNormal(params string[] lines) => WriteInColor(_console.ForegroundColor, lines);
+        public void WriteNormal(params string[] lines) => WriteInColor(_console.ForegroundColor, lines.Select(s => $"\u001b[36m {s}\u001b[0m").ToArray());
 
-        public void WriteSuccess(params string[] lines) => WriteInColor(ConsoleColor.DarkGreen, lines.Select(s => $"##[section] {s}").ToArray());
+        public void WriteSuccess(params string[] lines) => WriteInColor(ConsoleColor.DarkGreen, lines.Select(s => $"\u001b[32m {s}\u001b[0m").ToArray());
 
-        public void WriteError(params string[] lines) => WriteInColor(ConsoleColor.Red, lines.Select(s => $"##[error] {s}").ToArray());
+        public void WriteError(params string[] lines) => WriteInColor(ConsoleColor.Red, lines.Select(s => $"\u001b[31m {s}\u001b[0m").ToArray());
 
         private void WriteBox(int length) => _console.WriteLine(new string('=', length));
 
@@ -59,7 +59,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
 
             var line = string.Join(Environment.NewLine, writeBox == null ? lines : lines.Skip(1));
-            _console.ForegroundColor = color;
+            //_console.ForegroundColor = color;
 
             writeBox?.Invoke();
             _console.WriteLine(line);
