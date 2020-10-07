@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
-using CaptainHook.Api.Client.Models;
 using CaptainHook.Domain.Results;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using Moq;
-using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 using Xunit;
 
-namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
+namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 {
     public class SubscribersDirectoryProcessorTests
     {

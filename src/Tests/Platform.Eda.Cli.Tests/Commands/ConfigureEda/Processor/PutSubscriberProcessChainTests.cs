@@ -1,7 +1,9 @@
-﻿using Eshopworld.Tests.Core;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Kusto.Ingest.Agents;
 using Microsoft.Rest;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -9,18 +11,14 @@ using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Abstractions;
-using System.Threading.Tasks;
 using Xunit;
 
-namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
+namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 {
     public class PutSubscriberProcessChainTests
     {
-        private readonly static CliExecutionError CliExecutionError = new CliExecutionError(string.Empty);
-        private readonly static Dictionary<string, string> EmptyReplacementsDictionary = new Dictionary<string, string>();
+        private static readonly CliExecutionError CliExecutionError = new CliExecutionError(string.Empty);
+        private static readonly Dictionary<string, string> EmptyReplacementsDictionary = new Dictionary<string, string>();
 
         private readonly Mock<IConsoleSubscriberWriter> _consoleSubscriberWriterMock;
         private readonly Mock<ISubscribersDirectoryProcessor> _subscribersDirectoryProcessorMock;
