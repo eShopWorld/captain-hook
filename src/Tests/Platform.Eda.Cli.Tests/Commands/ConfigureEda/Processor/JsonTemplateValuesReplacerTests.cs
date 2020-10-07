@@ -24,17 +24,19 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             // Arrange
             var replacements = new Dictionary<string, JToken>
             {
-                {"sts-settings", JToken.Parse("{ \"type\": \"OIDC\" } ")},
+                {"sts-settings", JToken.Parse(@"{ ""type"": ""OIDC"" }")}
             };
 
             var source = @"{ ""authentication"": ""{vars:sts-settings}"" }";
 
             // Act
             var result = _jsonVarsValuesReplacer.Replace("vars", source, replacements);
-
+            
             // Assert
-            result.Should().BeEquivalentTo(
-                    new OperationResult<string>($@"{{ ""authentication"": {JToken.Parse("{ \"type\": \"OIDC\" } ")} }}"));
+            var expected = new OperationResult<string>(@"{ ""authentication"": {
+  ""type"": ""OIDC""
+} }");
+            result.Should().BeEquivalentTo(expected);
         }
 
         [Fact, IsUnit]
@@ -59,7 +61,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         [Fact, IsUnit]
         public void Replace_VarObjectAndValReplacements_ReturnsValidString()
         {
-            var objValue = JToken.Parse(@"{""clientSecretKeyName"": ""secret-key""}");
+            var objValue = JToken.Parse(@"{""type"": ""OIDC""}");
             var varsDictionary = new Dictionary<string, JToken>
             {
                 ["val-var1"] = "blah.bla",
@@ -68,19 +70,22 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 
             var result = _jsonVarsValuesReplacer.Replace("vars", SimpleJsonWithVars, varsDictionary);
 
-            result.Should().BeEquivalentTo(new OperationResult<string>($@"
-{{  
+            const string expectedString = @"
+{  
     ""eventName"": ""event"",
-    ""objectType"": {objValue},
+    ""objectType"": {
+  ""type"": ""OIDC""
+},
     ""valueType"": ""blah.bla"",
     ""inlineValueType"": ""https://blah.bla/api""
-}}"));
+}";
+            result.Should().BeEquivalentTo(new OperationResult<string>(expectedString));
         }
 
         [Fact, IsUnit]
         public void Replace_MultilevelJsonTemplate_ReturnsValidString()
         {
-            var objValue = JToken.Parse(@"{""clientSecretKeyName"": ""secret-key""}");
+            var objValue = JToken.Parse(@"{""type"": ""OIDC""}");
             var varsDictionary = new Dictionary<string, JToken>
             {
                 ["val-var1"] = "blah.bla",
@@ -97,14 +102,17 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 }";
 
             var result = _jsonVarsValuesReplacer.Replace("vars", json, varsDictionary);
-            var expected = new OperationResult<string>($@"{{
+            const string expectedString = @"{
     ""eventName"": ""event"",
-    ""objectType"": {objValue},
-    ""valueType"": {{
+    ""objectType"": {
+  ""type"": ""OIDC""
+},
+    ""valueType"": {
         ""nestedValue"":""blah.bla""
-    }},
+    },
     ""inlineValueType"": ""blah.bla""
-}}");
+}";
+            var expected = new OperationResult<string>(expectedString);
 
             result.Should().BeEquivalentTo(expected);
         }
@@ -123,11 +131,21 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         }
 
         [Fact, IsUnit]
-        public void Replace_UndeclaredVariableDifferentReplacementType_ReturnsValidString()
+        public void Replace_MultipleUndeclaredVariableSameReplacementType_ReturnsError()
+        {
+            var varsDictionary = new Dictionary<string, JToken>();
+
+            var result = _jsonVarsValuesReplacer.Replace("vars", SimpleJsonWithVars, varsDictionary);
+            var expected = new OperationResult<string>(new CliExecutionError("Template has undeclared vars: obj-var1, val-var1"));
+            result.Should().BeEquivalentTo(expected);
+        }
+
+        [Fact, IsUnit]
+        public void Replace_UndeclaredVariableDifferentReplacementType_ReturnsOriginalString()
         {
             var varsDictionary = new Dictionary<string, JToken>
             {
-                ["val-var1"] = "blah.bla",
+                ["val-var1"] = "blah.bla"
             };
 
             var result = _jsonVarsValuesReplacer.Replace("int", SimpleJsonWithVars, varsDictionary);
@@ -135,16 +153,23 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         }
 
         [Theory, IsUnit]
-        [InlineData("Nothing")]
-        [InlineData("var")]
+        [InlineData("lowercase")]
+        [InlineData("UPPERCASE")]
+        [InlineData("MiXeDcAsE")]
         [InlineData("123")]
-        public void Replace_RandomReplacementTypes_ReturnsFileContentUnchanged(string replacementPrefix)
+        [InlineData("_")]
+        [InlineData("12ab")]
+        [InlineData("ab12")]
+        public void Replace_DifferentReplacementTypes_ReturnsOriginalString(string replacementPrefix)
         {
-            var varsDictionary = new Dictionary<string, JToken>();
-            var result = _jsonVarsValuesReplacer.Replace(replacementPrefix, SimpleJsonWithVars, varsDictionary);
+            var varsDictionary = new Dictionary<string, JToken>
+            {
+                ["strValue"] = "Lo"
+            };
+            var template = $@"{{ ""type"": ""Hi, {{{replacementPrefix}:strValue}}"" }}";
+            var result = _jsonVarsValuesReplacer.Replace(replacementPrefix, template, varsDictionary);
 
-            result.IsError.Should().BeFalse();
-            result.Data.Should().Be(SimpleJsonWithVars);
+            result.Should().BeEquivalentTo(new OperationResult<string>(@"{ ""type"": ""Hi, Lo"" }"));
         }
 
         [Theory, IsUnit]
@@ -152,6 +177,8 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         [InlineData(" ")]
         [InlineData("")]
         [InlineData(null)]
+        [InlineData("$ab")]
+        [InlineData("*t")]
         public void Replace_InvalidReplacementTypes_ReturnsError(string replacementPrefix)
         {
             var varsDictionary = new Dictionary<string, JToken>();
@@ -172,10 +199,20 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         [InlineData("{param: value")]
         [InlineData("param:value}")]
         [InlineData("{param;value}")]
-        public void Replace_MalformedTemplate_NotReplaced(string badTemplate)
+        [InlineData("{param:va lue}")]
+        public void Replace_MalformedVariableReplacement_ReturnsOriginalString(string variableTemplate)
         {
-            var result = _jsonVarsValuesReplacer.Replace("param", $@"{{ ""type"": Hi, {badTemplate} }}", new Dictionary<string, JToken> { ["value"] = "ValidValue" });
-            result.Should().BeEquivalentTo(new OperationResult<string>($@"{{ ""type"": Hi, {badTemplate} }}"));
+            var result = _jsonVarsValuesReplacer.Replace("param", $@"{{ ""type"": Hi, {variableTemplate} }}", new Dictionary<string, JToken> { ["value"] = "ValidValue" });
+            result.Should().BeEquivalentTo(new OperationResult<string>($@"{{ ""type"": Hi, {variableTemplate} }}"));
+        }
+
+        [Fact, IsUnit]
+        public void Replace_ObjectAtBoundary_ReturnsError()
+        {
+            var result = _jsonVarsValuesReplacer.Replace("param", "{param:value}", 
+                new Dictionary<string, JToken> { ["value"] = JToken.Parse(@"{""prop"": ""val""}") });
+            result.Should().BeEquivalentTo(
+                new OperationResult<string>(new CliExecutionError("Invalid template at param usage '{param:value}'.")));
         }
 
         private static string SimpleJsonWithVars => @"
@@ -185,7 +222,5 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
     ""valueType"": ""{vars:val-var1}"",
     ""inlineValueType"": ""https://{vars:val-var1}/api""
 }";
-
-
     }
 }
