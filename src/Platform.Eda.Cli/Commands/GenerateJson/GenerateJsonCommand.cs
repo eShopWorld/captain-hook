@@ -81,7 +81,7 @@ namespace Platform.Eda.Cli.Commands.GenerateJson
 
             if (!fileSystem.File.Exists(sourceFile))
             {
-                console.EmitWarning(GetType(), app.Options, $"Cannot open {InputFilePath}");
+                console.WriteWarning($"Cannot open {InputFilePath}");
 
                 return Task.FromResult(1);
             }

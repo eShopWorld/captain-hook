@@ -50,7 +50,7 @@ namespace Platform.Eda.Cli.Commands.GeneratePowerShell
 
             if (result != ConfigDirectoryProcessor.Result.Valid)
             {
-                console.EmitWarning(GetType(), app.Options, result.Message);
+                console.WriteWarning(result.Message);
                 return Task.FromResult(1);
             }
 
