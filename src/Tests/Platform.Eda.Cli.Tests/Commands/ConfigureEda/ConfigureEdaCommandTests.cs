@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
@@ -36,9 +36,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _apiConsumer = new Mock<IApiConsumer>();
             _mockSubscribersDirectoryProcessor = new Mock<ISubscribersDirectoryProcessor>();
 
-            _configureEdaCommand = new ConfigureEdaCommand(
-                _mockSubscribersDirectoryProcessor.Object,
-                env => _apiConsumer.Object)
+            _configureEdaCommand = new ConfigureEdaCommand(Mock.Of<IPutSubscriberProcessChain>())
             {
                 InputFolderPath = MockCurrentDirectory,
                 NoDryRun = true
@@ -372,4 +370,4 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             await Task.CompletedTask;
         }
     }
-}
+}*/
