@@ -62,10 +62,10 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
 
             var replacements = BuildParametersReplacementDictionary(Params);
-            await _putSubscriberProcessChain.ProcessAsync(InputFolderPath, Environment, replacements, NoDryRun);
+            var result = await _putSubscriberProcessChain.ProcessAsync(InputFolderPath, Environment, replacements, NoDryRun);
 
             writer.WriteSuccess("Processing finished");
-            return 0;
+            return result;
         }
 
         private Dictionary<string, string> BuildParametersReplacementDictionary(string[] rawParams)
