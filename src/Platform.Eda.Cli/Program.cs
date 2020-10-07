@@ -15,14 +15,14 @@ namespace Platform.Eda.Cli
     /// <summary>
     /// Dotnet CLI extension entry point.
     /// </summary>
-    [Command(Name = "ch", Description = "CaptainHook CLI")]
+    [Command(Name = "ch", Description = "Platform.Eda CLI")]
     [Subcommand(typeof(GenerateJsonCommand))]
     [Subcommand(typeof(GeneratePowerShellCommand))]
     [Subcommand(typeof(ConfigureEdaCommand))]
     [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
     public class Program
     {
-        private static IConsole console;
+        private static IConsole _console;
 
         /// <summary>
         /// Gets the version of the assembly of the class calling this
@@ -46,8 +46,8 @@ namespace Platform.Eda.Cli
                 commandParsed = result.SelectedCommand;
             });
 
-            console = app.GetService<IConsole>();
-            
+            _console = app.GetService<IConsole>();
+
             app.Conventions
                 .UseDefaultConventions()
                 .UseConstructorInjection(SetupServices());
@@ -57,20 +57,20 @@ namespace Platform.Eda.Cli
                 int returnCode;
                 if ((returnCode = app.Execute(args)) != 0)
                 {
-                    console.EmitWarning(
-                        commandParsed?.GetType() ?? app.GetType(),
-                        commandParsed?.Options,
-                        $"Command returned non zero code {returnCode}.");
+                    _console.EmitWarning(
+                        $"Command returned non zero code {returnCode}.",
+                        commandParsed?.Name ?? app.Name,
+                        commandParsed?.Options.ToConsoleString());
                 }
 
                 return returnCode;
             }
             catch (Exception exception)
             {
-                console.EmitException(
+                _console.EmitException(
                     exception,
-                    commandParsed?.GetType() ?? app.GetType(),
-                    commandParsed?.Options);
+                    commandParsed?.Name ?? app.Name,
+                    commandParsed?.Options.ToConsoleString());
 
                 return -1;
             }
@@ -86,7 +86,7 @@ namespace Platform.Eda.Cli
             collection.AddTransient<ISubscriberFileParser, SubscriberFileParser>();
             collection.AddTransient<ISubscribersDirectoryProcessor, SubscribersDirectoryProcessor>();
 
-            collection.AddSingleton(console);
+            collection.AddSingleton(_console);
             collection.AddSingleton<BuildCaptainHookProxyDelegate>(serviceProvider =>
             {
                 var clientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();

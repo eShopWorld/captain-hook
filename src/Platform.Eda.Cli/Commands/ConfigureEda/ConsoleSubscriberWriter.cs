@@ -39,29 +39,5 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 }
             }
         }
-
-        public static class Colors
-        {
-            public static readonly Color Red = new Color("\u001b[31m");
-            public static readonly Color Green = new Color("\u001b[32m");
-            public static readonly Color Cyan = new Color("\u001b[36m");
-            public static readonly Color Yellow = new Color("\u001b[33m");
-            public static readonly Color Reset = new Color("\u001b[0m");
-        }
-
-        public class Color
-        {
-            private readonly string _value;
-
-            public Color(string value)
-            {
-                _value = value;
-            }
-
-            public override string ToString()
-            {
-                return _value;
-            }
-        }
     }
 }
