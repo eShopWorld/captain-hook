@@ -184,7 +184,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             var varsDictionary = new Dictionary<string, JToken>();
             var result = _jsonVarsValuesReplacer.Replace(replacementPrefix, SimpleJsonWithVars, varsDictionary);
 
-            result.IsError.Should().BeTrue();
+            result.Should().BeEquivalentTo(new OperationResult<string>(new CliExecutionError($"Invalid replacement prefix '{replacementPrefix}'")));
         }
 
         [Fact, IsUnit]
