@@ -13,6 +13,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
         /// <param name="replacementParams">The replacement parameters</param>
         /// <param name="noDryRun">Whether to perform a dry run or not</param>
         /// <returns>Error code</returns>
-        Task<int> Process(string inputFolderPath, string env, Dictionary<string, string> replacementParams, bool noDryRun);
+        Task<int> ProcessAsync(string inputFolderPath, string env, Dictionary<string, string> replacementParams, bool noDryRun);
     }
 }
