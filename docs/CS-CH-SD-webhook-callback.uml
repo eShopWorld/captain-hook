@@ -1,10 +1,9 @@
 @startuml
-boundary Endpoint2 order 60
-boundary Endpoint1 order 50
+boundary "Callback Endpoint" order 60
+boundary Endpoint order 50
 box "Captain Hook"
 participant EventHandler order 40
 collections Reader order 30
-participant Director order 20
 endbox
 boundary ServiceBus order 10
 
@@ -12,15 +11,20 @@ ServiceBus -> Reader : Pick up message from topic
 Reader -> ServiceBus : Lock message
 Reader -> EventHandler : Spawn handler
 
+hnote over EventHandler : Acquire auth
+
 group retry (20s, 30s)
-  EventHandler -> Endpoint1 : Dispatch message
+  EventHandler -> Endpoint : Dispatch message
+  Endpoint -> EventHandler : Read response
 end
-  Endpoint1 -> EventHandler : Read response
 
 group successful case
 
+  hnote over EventHandler : Acquire auth
+
   group retry (20s, 30s)
-    EventHandler -> Endpoint2 : Dispatch response
+    EventHandler -> "Callback Endpoint" : Dispatch response
+    "Callback Endpoint"-> EventHandler : Read response
   end
     EventHandler -> Reader : Acknowledge dispatch
     Reader -> ServiceBus : Unlock message and remove
