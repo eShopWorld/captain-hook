@@ -7,7 +7,7 @@ using Moq;
 using Platform.Eda.Cli.Extensions;
 using Xunit;
 
-namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
+namespace Platform.Eda.Cli.Tests.Extensions
 {
     public class IConsoleExtensionsTests
     {
