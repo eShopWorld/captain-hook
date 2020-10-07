@@ -30,20 +30,17 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             }
 
             var subscribers = new List<PutSubscriberFile>();
+
             try
             {
-                var subscriberFiles = _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
+                var subscriberFiles =
+                    _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
 
-                if (!subscriberFiles.Any())
-                {
-                    return new CliExecutionError($"No files have been found in '{sourceFolderPath}'");
-                }
-
-                foreach (var fileName in subscriberFiles)
-                {
-                    var fileResult = ProcessFile(fileName);
-                    subscribers.Add(fileResult);
-                }
+                // TODO: Part of next PR
+                //if (!subscribers.Any())
+                //{
+                //    return new CliExecutionError($"No files have been found in '{sourceFolderPath}'");
+                //}
             }
             catch (Exception e)
             {
@@ -51,29 +48,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             }
 
             return subscribers;
-        }
-
-        private PutSubscriberFile ProcessFile(string fileName)
-        {
-            try
-            {
-                var content = _fileSystem.File.ReadAllText(fileName);
-                var request = JsonConvert.DeserializeObject<PutSubscriberRequest>(content);
-
-                return new PutSubscriberFile
-                {
-                    File = new FileInfo(fileName),
-                    Request = request
-                };
-            }
-            catch (Exception ex)
-            {
-                return new PutSubscriberFile
-                {
-                    File = new FileInfo(fileName),
-                    Error = ex.Message
-                };
-            }
         }
     }
 }

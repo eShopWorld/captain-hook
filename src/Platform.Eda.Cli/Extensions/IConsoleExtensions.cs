@@ -22,30 +22,6 @@ namespace Platform.Eda.Cli.Extensions
             public static readonly Color Reset = new Color("\u001b[0m");
         }
 
-        /// <summary>
-        /// emit warning to console
-        /// </summary>
-        /// <param name="console">extension instance</param>
-        /// <param name="warning">warning message</param>
-        /// <param name="commandName">name of the command</param>
-        /// <param name="args">application options</param>
-        public static void EmitWarning(this IConsole console, string warning, string commandName, string args)
-        {
-            console.WriteWarningBox($"WARNING: {warning}", $"Command: '{commandName}'", "Arguments:", args);
-        }
-
-        /// <summary>
-        /// emit error to console and BigBrother
-        /// </summary>
-        /// <param name="console">console instance</param>
-        /// <param name="exception">exception</param>
-        /// <param name="commandName">command type</param>
-        /// <param name="args">command arguments</param>
-        public static void EmitException(this IConsole console, Exception exception, string commandName, string args)
-        {
-            console.WriteErrorBox($"EXCEPTION: {exception.GetType().FullName}", exception.Message, $"Command: '{commandName}'", "Arguments:", args);
-        }
-
         public static void WriteNormal(this IConsole console, params string[] lines)
         {
             console.Out.WriteInColor(Colors.Cyan, lines);

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Eshopworld.Tests.Core;
 using McMaster.Extensions.CommandLineUtils;
@@ -32,15 +31,6 @@ namespace Platform.Eda.Cli.Tests.Extensions
             mockConsole.Setup(c => c.Out).Returns(_outWriter.Object);
             mockConsole.Setup(c => c.Error).Returns(_errorWriter.Object);
             _console = mockConsole.Object;
-        }
-
-        [Fact, IsUnit]
-        public void ConsoleWriteError_DifferentStrings_OutputsRedText7Times()
-        {
-            _console.EmitException(new Exception("test exception"), "commandName", "command options");
-
-            _outWriter.Verify(writer => writer.WriteLine(It.IsAny<string>()), Times.Never);
-            _errorWriter.Verify(writer => writer.WriteLine(It.IsAny<string>()), Times.Exactly(7)); 
         }
 
         [Theory, IsUnit]

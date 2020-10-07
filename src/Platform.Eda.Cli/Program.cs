@@ -57,19 +57,21 @@ namespace Platform.Eda.Cli
                 int returnCode;
                 if ((returnCode = app.Execute(args)) != 0)
                 {
-                    _console.EmitWarning(
-                        $"Command returned non zero code {returnCode}.",
-                        commandParsed?.Name ?? app.Name,
-                        commandParsed?.Options.ToConsoleString());
+                    _console.WriteWarningBox(
+                        $"WARNING: Command returned non zero code {returnCode}.", 
+                        $"Command: '{commandParsed?.Name ?? app.Description}'", 
+                        "Arguments:", commandParsed?.Options.ToConsoleString());
                 }
 
                 return returnCode;
             }
             catch (Exception exception)
             {
-                _console.EmitException(
-                    exception,
-                    commandParsed?.Name ?? app.Name,
+                _console.WriteErrorBox(
+                    $"EXCEPTION: {exception.GetType().FullName}", 
+                    exception.Message, 
+                    $"Command: '{commandParsed?.Name ?? app.Description}'", 
+                    "Arguments:", 
                     commandParsed?.Options.ToConsoleString());
 
                 return -1;
