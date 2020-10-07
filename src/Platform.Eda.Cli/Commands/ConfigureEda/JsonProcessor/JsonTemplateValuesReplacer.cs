@@ -16,12 +16,10 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
         {
             try
             {
-                if (!ValidReplacementPrefix.IsMatch(replacementPrefix))
+                if (string.IsNullOrEmpty(replacementPrefix) || !ValidReplacementPrefix.IsMatch(replacementPrefix))
                     return new CliExecutionError($"Invalid replacement prefix '{replacementPrefix}'");
 
-                replacementPrefix = replacementPrefix.ToLowerInvariant();
-
-                var regexPattern = new Regex($@"{{{Regex.Escape(replacementPrefix)}:([a-zA-Z]+[a-zA-Z0-9-_]+)}}", RegexOptions.Compiled);
+                var regexPattern = new Regex($@"{{{Regex.Escape(replacementPrefix)}:([\w-]+)}}", RegexOptions.IgnoreCase & RegexOptions.Compiled);
 
                 var vars = regexPattern.Matches(fileContent);
 
@@ -29,7 +27,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 if (unknownVars.Any())
                 {
                     return new CliExecutionError(
-                        $"Template has undeclared {replacementPrefix}: {string.Join(',', unknownVars)}");
+                        $"Template has undeclared {replacementPrefix}: {string.Join(", ", unknownVars.Distinct())}");
                 }
 
                 var sb = new StringBuilder(fileContent);
@@ -44,12 +42,24 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                     }
                     else if (value.Type == JTokenType.Object)
                     {
-                        if (sb[variableMatch.Index - 1] != '"' || sb[variableMatch.Index + variableMatch.Value.Length] != '"')
-                            return new CliExecutionError(
-                                $"{replacementPrefix} replacement error. '{variableMatch.Groups[1].Value}' is defined as an object but used as value.");
+                        var replacementStartIndex = variableMatch.Index - 1;
+                        var replacementEndIndex = variableMatch.Index + variableMatch.Value.Length;
 
-                        sb.Remove(variableMatch.Index - 1, variableMatch.Length + 2);
-                        sb.Insert(variableMatch.Index - 1, value);
+                        if (replacementStartIndex >= 0 && sb.Length > replacementStartIndex &&
+                            replacementEndIndex >= 0 && sb.Length > replacementEndIndex) // string bounds
+                        {
+                            if (sb[replacementStartIndex] != '"' || sb[replacementEndIndex] != '"')
+                                return new CliExecutionError(
+                                    $"{replacementPrefix} replacement error. '{variableMatch.Groups[1].Value}' is defined as an object but used as value.");
+
+                            sb.Remove(replacementStartIndex, variableMatch.Length + 2); 
+                            sb.Insert(replacementStartIndex, value);
+                        }
+                        else
+                        {
+                            // Error is indices not in string bounds
+                            return new CliExecutionError($@"Invalid template at {replacementPrefix} usage '{variableMatch.Value}'.");
+                        }
                     }
                 }
 
