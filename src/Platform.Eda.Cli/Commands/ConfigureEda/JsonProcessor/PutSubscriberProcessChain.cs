@@ -9,6 +9,7 @@ using Castle.Core.Internal;
 using Microsoft.Rest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
@@ -55,7 +56,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var parseFileResult = _subscriberFileParser.ParseFile(subscriberFilePath);
                 if (parseFileResult.IsError)
                 {
-                    _writer.WriteError(readDirectoryResult.Error.Message);
+                    _writer.WriteError(parseFileResult.Error.Message);
                     putSubscriberFiles.Add(new PutSubscriberFile
                     {
                         Error = parseFileResult.Error.Message,
@@ -65,6 +66,14 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
 
                 var parsedFile = parseFileResult.Data;
+
+                // Step 1.1 - validate file
+                var validationResult = await new FileStructureValidator().ValidateAsync(parsedFile);
+                if (! validationResult.IsValid)
+                {
+                    var errors = validationResult.Errors.Select((failure, i) => $"{i + 1}. {failure.ErrorMessage}").ToArray();
+                    _writer.WriteError(errors);
+                }
 
                 // Step 2 - Extract vars dictionary
                 JObject varsJObject = null;
