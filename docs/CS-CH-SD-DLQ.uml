@@ -3,7 +3,6 @@ boundary Endpoint order 50
 box "Captain Hook"
 participant EventHandler order 40
 collections Reader order 30
-participant Director order 20
 endbox
 boundary ServiceBus order 10
 
@@ -11,10 +10,12 @@ ServiceBus -> Reader : Pick up message from topic DLQ
 Reader -> ServiceBus : Lock message
 Reader -> EventHandler : Spawn handler
 
+hnote over EventHandler : Acquire auth
+
 group retry (20s, 30s)
   EventHandler -> Endpoint : Dispatch message
-end
   Endpoint -> EventHandler : Read response
+end
 
 group successful case
 
