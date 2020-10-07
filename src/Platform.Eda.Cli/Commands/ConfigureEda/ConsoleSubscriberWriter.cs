@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
+using Platform.Eda.Cli.Extensions;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
@@ -20,7 +21,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             var files = subscriberFiles?.ToArray();
             if (files == null || !files.Any())
             {
-                WriteWarning("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
+                _console.WriteWarning("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
                 return;
             }
 
@@ -30,59 +31,14 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 var fileRelativePath = Path.GetRelativePath(sourceFolderPath, file.File.FullName);
                 if (file.IsError)
                 {
-                    WriteError($"File '{fileRelativePath}' has been found, but will be skipped due to error: {file.Error}.");
+                    _console.WriteError($"File '{fileRelativePath}' has been found, but will be skipped due to error: {file.Error}.");
                 }
                 else
                 {
-                    WriteNormal($"File '{fileRelativePath}' has been found");
+                    _console.WriteNormal($"File '{fileRelativePath}' has been found");
                 }
             }
         }
-
-        public void WriteNormal(params string[] lines)
-        {
-            WriteInColor(Colors.Cyan, lines);
-        }
-
-        public void WriteSuccess(params string[] lines)
-        {
-            WriteInColor(Colors.Green, lines);
-        }
-
-        public void WriteWarning(params string[] lines)
-        {
-            WriteInColor(Colors.Yellow, lines);
-        }
-
-        public void WriteError(params string[] lines)
-        {
-            WriteInColor(Colors.Red, lines);
-        }
-
-        public void WriteNormalBox(params string[] lines)
-        {
-            WriteNormal(lines.Prepend(_boxDelimiter).Append(_boxDelimiter).ToArray());
-        }
-
-        public void WriteSuccessBox(params string[] lines)
-        {
-            WriteSuccess(lines.Prepend(_boxDelimiter).Append(_boxDelimiter).ToArray());
-        }
-
-        public void WriteErrorBox(params string[] lines)
-        {
-            WriteError(lines.Prepend(_boxDelimiter).Append(_boxDelimiter).ToArray());
-        }
-
-        private void WriteInColor(Color color, params string[] lines)
-        {
-            foreach (var line in lines)
-            {
-                _console.WriteLine($"{color}{line}{Colors.Reset}");
-            }
-        }
-
-        private static readonly string _boxDelimiter = new string('=', 80);
 
         public static class Colors
         {
@@ -107,27 +63,5 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 return _value;
             }
         }
-
-
-        //private void WriteBox(int length) => _console.WriteLine(new string('=', length));
-
-        //private void WriteInColor(ConsoleColor color, params string[] lines)
-        //{
-        //    Action writeBox = null;
-
-        //    if (lines.Length > 1 && string.Equals("box", lines[0], StringComparison.OrdinalIgnoreCase))
-        //    {
-        //        var longestLine = lines.Skip(1).Max(l => l.Length);
-        //        writeBox = () => WriteBox(longestLine);
-        //    }
-
-        //    var line = string.Join(Environment.NewLine, writeBox == null ? lines : lines.Skip(1));
-        //    //_console.ForegroundColor = color;
-
-        //    writeBox?.Invoke();
-        //    _console.WriteLine(line);
-        //    writeBox?.Invoke();
-        //    _console.ResetColor();
-        //}
     }
 }

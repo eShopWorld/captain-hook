@@ -1,14 +1,126 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Eshopworld.Tests.Core;
 using McMaster.Extensions.CommandLineUtils;
 using Moq;
 using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
+using Platform.Eda.Cli.Extensions;
 using Xunit;
 
 namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 {
+    public class IConsoleExtensionsTests
+    {
+        public static IEnumerable<object[]> WriteTextTests = new List<object[]>
+        {
+            new object[] { "" },
+            new object[] { "Error Text" },
+            new object[] { "Very long text $$$$$$$$$$$$$$$$$$$$$ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" +
+                           "$$$$$$$$$ $$$$$$$$$$$$$$$$$$$$ $$$$$$$$$$$$ $$$$$$$$$$$$$$ $$$$$$$$$$$$$$$$$$$$$$$" }
+        };
+
+        private readonly Mock<TextWriter> _outWriter;
+        private readonly Mock<TextWriter> _errorWriter;
+        private readonly IConsole _console;
+
+        public IConsoleExtensionsTests()
+        {
+            _outWriter = new Mock<TextWriter>(MockBehavior.Default);
+            _errorWriter = new Mock<TextWriter>(MockBehavior.Default);
+
+            var mockConsole = new Mock<IConsole>();
+            mockConsole.Setup(c => c.Out).Returns(_outWriter.Object);
+            mockConsole.Setup(c => c.Error).Returns(_errorWriter.Object);
+            _console = mockConsole.Object;
+        }
+
+        [Fact, IsUnit]
+        public void ConsoleWriteError_DifferentStrings_OutputsRedText()
+        {
+            var commandOptions = new List<CommandOption>
+            {
+                new CommandOption("--test-option", CommandOptionType.NoValue)
+            };
+
+            _console.EmitException(new Exception("test exception"), typeof(ConsoleSubscriberWriterTests), commandOptions);
+
+            _outWriter.Verify(writer => writer.WriteLine(It.IsAny<string>()), Times.Never);
+            _errorWriter.Verify(writer => writer.WriteLine(It.IsAny<string>()), Times.Once);
+        }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(WriteTextTests))]
+        public void WriteNormal_DifferentStrings_OutputsDefaultForegroundColor(string outputString)
+        {
+            _console.WriteNormal(outputString);
+
+            _outWriter.Verify(writer => writer.WriteLine(FormatDefaultText(outputString)), Times.Once);
+        }
+
+        [Theory, IsUnit]
+        [InlineData(null)]
+        public void WriteNormal_WhenStringNull_OutputsEmptyLine(string outputString)
+        {
+            _console.WriteNormal(outputString);
+
+            _outWriter.Verify(writer => writer.WriteLine(FormatDefaultText(outputString)), Times.Once);
+        }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(WriteTextTests))]
+        public void WriteError_DifferentStrings_OutputsRedText(string outputString)
+        {
+            _console.WriteError(outputString);
+
+            _outWriter.Verify(writer => writer.WriteLine(FormatRedText(outputString)), Times.Once);
+        }
+
+        [Theory, IsUnit]
+        [InlineData(null)]
+        public void WriteError_WhenStringNull_OutputsEmptyLine(string outputString)
+        {
+            _console.WriteError(outputString);
+
+            _outWriter.Verify(writer => writer.WriteLine(FormatRedText(outputString)), Times.Once);
+        }
+
+        [Theory, IsUnit]
+        [MemberData(nameof(WriteTextTests))]
+        public void WriteSuccess_DifferentStrings_OutputsGreenText(string outputString)
+        {
+            _console.WriteSuccess(outputString);
+
+            _outWriter.Verify(writer => writer.WriteLine(FormatGreenText(outputString)), Times.Once);
+        }
+
+        [Theory, IsUnit]
+        [InlineData(null)]
+        public void WriteSuccess_WhenStringNull_OutputsEmptyLine(string outputString)
+        {
+            _console.WriteSuccess(outputString);
+
+            _outWriter.Verify(writer => writer.WriteLine(FormatGreenText(outputString)), Times.Once);
+        }
+
+        [Fact, IsUnit]
+        public void WriteNormalBox_SingleValue_OutputsBoxedText()
+        {
+            _console.WriteNormalBox("Test");
+
+            _outWriter.Verify(writer => writer.WriteLine(FormatDefaultText(new string('=', 80))), Times.Exactly(2));
+            _outWriter.Verify(writer => writer.WriteLine(FormatDefaultText("Test")), Times.Once);
+        }
+
+
+
+        private static string FormatDefaultText(string outputString) => $"{ConsoleSubscriberWriter.Colors.Cyan}{outputString}{ConsoleSubscriberWriter.Colors.Reset}";
+        private static string FormatGreenText(string outputString) => $"{ConsoleSubscriberWriter.Colors.Green}{outputString}{ConsoleSubscriberWriter.Colors.Reset}";
+        private static string FormatRedText(string outputString) => $"{ConsoleSubscriberWriter.Colors.Red}{outputString}{ConsoleSubscriberWriter.Colors.Reset}";
+        private static string FormatYellowText(string outputString) => $"{ConsoleSubscriberWriter.Colors.Yellow}{outputString}{ConsoleSubscriberWriter.Colors.Reset}";
+    }
+
     public class ConsoleSubscriberWriterTests
     {
         private readonly ConsoleSubscriberWriter _consoleSubscriberWriter;
@@ -92,13 +204,15 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             },
         };
 
+        private Mock<IConsole> _mockConsole;
+
         public ConsoleSubscriberWriterTests()
         {
             _streamWriter = new Mock<TextWriter>(MockBehavior.Default);
 
-            var mockConsole = new Mock<IConsole>();
-            mockConsole.Setup(c => c.Out).Returns(_streamWriter.Object);
-            _consoleSubscriberWriter = new ConsoleSubscriberWriter(mockConsole.Object);
+            _mockConsole = new Mock<IConsole>();
+            _mockConsole.Setup(c => c.Out).Returns(_streamWriter.Object);
+            _consoleSubscriberWriter = new ConsoleSubscriberWriter(_mockConsole.Object);
         }
 
         private static string FormatDefaultText(string outputString) => $"{ConsoleSubscriberWriter.Colors.Cyan}{outputString}{ConsoleSubscriberWriter.Colors.Reset}";
@@ -106,68 +220,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         private static string FormatRedText(string outputString) => $"{ConsoleSubscriberWriter.Colors.Red}{outputString}{ConsoleSubscriberWriter.Colors.Reset}";
         private static string FormatYellowText(string outputString) => $"{ConsoleSubscriberWriter.Colors.Yellow}{outputString}{ConsoleSubscriberWriter.Colors.Reset}";
 
-        [Theory, IsUnit]
-        [MemberData(nameof(WriteTextTests))]
-        public void WriteNormal_DifferentStrings_OutputsDefaultForegroundColor(string outputString)
-        {
-            _consoleSubscriberWriter.WriteNormal(outputString);
-
-            _streamWriter.Verify(writer => writer.WriteLine(FormatDefaultText(outputString)), Times.Once);
-        }
-
-        [Theory, IsUnit]
-        [InlineData(null)]
-        public void WriteNormal_WhenStringNull_OutputsEmptyLine(string outputString)
-        {
-            _consoleSubscriberWriter.WriteNormal(outputString);
-
-            _streamWriter.Verify(writer => writer.WriteLine(FormatDefaultText(outputString)), Times.Once);
-        }
-
-        [Theory, IsUnit]
-        [MemberData(nameof(WriteTextTests))]
-        public void WriteError_DifferentStrings_OutputsRedText(string outputString)
-        {
-            _consoleSubscriberWriter.WriteError(outputString);
-
-            _streamWriter.Verify(writer => writer.WriteLine(FormatRedText(outputString)), Times.Once);
-        }
-
-        [Theory, IsUnit]
-        [InlineData(null)]
-        public void WriteError_WhenStringNull_OutputsEmptyLine(string outputString)
-        {
-            _consoleSubscriberWriter.WriteError(outputString);
-
-            _streamWriter.Verify(writer => writer.WriteLine(FormatRedText(outputString)), Times.Once);
-        }
-
-        [Theory, IsUnit]
-        [MemberData(nameof(WriteTextTests))]
-        public void WriteSuccess_DifferentStrings_OutputsGreenText(string outputString)
-        {
-            _consoleSubscriberWriter.WriteSuccess(outputString);
-
-            _streamWriter.Verify(writer => writer.WriteLine(FormatGreenText(outputString)), Times.Once);
-        }
-
-        [Theory, IsUnit]
-        [InlineData(null)]
-        public void WriteSuccess_WhenStringNull_OutputsEmptyLine(string outputString)
-        {
-            _consoleSubscriberWriter.WriteSuccess(outputString);
-
-            _streamWriter.Verify(writer => writer.WriteLine(FormatGreenText(outputString)), Times.Once);
-        }
-
-        [Fact, IsUnit]
-        public void WriteNormalBox_SingleValue_OutputsBoxedText()
-        {
-            _consoleSubscriberWriter.WriteNormalBox("Test");
-
-            _streamWriter.Verify(writer => writer.WriteLine(FormatDefaultText(new string('=', 80))), Times.Exactly(2));
-            _streamWriter.Verify(writer => writer.WriteLine(FormatDefaultText("Test")), Times.Once);
-        }
 
         [Theory, IsUnit]
         [MemberData(nameof(TestOutputValidSubscribers))]
