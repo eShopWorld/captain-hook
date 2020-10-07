@@ -46,7 +46,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
         public async Task<int> ProcessAsync(string inputFolderPath, string env, Dictionary<string, string> replacementParams, bool noDryRun)
         {
-            _console.WriteSuccess("box", $"Reading files from folder: '{inputFolderPath}' to be run against {env} environment");
+            _console.WriteSuccessBox($"Reading files from folder: '{inputFolderPath}' to be run against {env} environment");
             var readDirectoryResult = _subscribersDirectoryProcessor.ProcessDirectory(inputFolderPath);
 
             if (readDirectoryResult.IsError)
@@ -149,7 +149,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
             if (noDryRun)
             {
-                _console.WriteSuccess("box", "Starting to run configuration against Captain Hook API");
+                _console.WriteSuccessBox("Starting to run configuration against Captain Hook API");
 
                 var apiResults = await ConfigureEdaWithCaptainHook(_writer, inputFolderPath, env, putSubscriberFiles);
                 if (apiResults.Any(r => r.IsError))
