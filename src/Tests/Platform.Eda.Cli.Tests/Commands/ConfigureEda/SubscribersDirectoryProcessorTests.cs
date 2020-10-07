@@ -18,18 +18,14 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
 {
     public class SubscribersDirectoryProcessorTests
     {
-        // TODO (Nikhil): Enable tests after refactoring is done
-        /* 
 
-        private const string MockCurrentDirectory = @"Z:\Sample\";
+        private const string MockDirectoryPath = @"Z:\Sample\";
         private readonly SubscribersDirectoryProcessor _subscribersDirectoryProcessor;
-        private readonly Mock<ISubscriberFileParser> _mockSubscriberFileParser;
 
         public SubscribersDirectoryProcessorTests()
         {
-            var mockFs = new MockFileSystem(GetOneSampleInputFile(), MockCurrentDirectory);
-            _mockSubscriberFileParser = new Mock<ISubscriberFileParser>();
-            _subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(mockFs, _mockSubscriberFileParser.Object);
+            var mockFs = new MockFileSystem(GetOneSampleInputFile(), MockDirectoryPath);
+            _subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(mockFs);
         }
 
         [Theory, IsUnit]
@@ -51,71 +47,51 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         }
 
         [Fact, IsUnit]
-        public void ProcessDirectory_WithValidFile_ReturnsValidObject()
+        public void ProcessDirectory_EmptyDirectory_ReturnsError()
         {
             // Arrange
-            var parsedSubFile = new PutSubscriberFile
-            {
-                Request = new PutSubscriberRequest
-                {
-                    SubscriberName = "test-sub",
-                    EventName = "test-event"
-                }
-            };
-
-            _mockSubscriberFileParser.Setup(parser => parser.ParseFile(It.IsAny<string>()))
-                .Returns(parsedSubFile);
+            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(new Dictionary<string, MockFileData>(), MockDirectoryPath));
 
             // Act
-            var result = _subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
-            
-            // Assert
-            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(
-                new[]
-                {
-                    parsedSubFile
-                });
-
-            result.Should().BeEquivalentTo(expected, opt => opt
-                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(CaptainHookContractSubscriberDto))
-                .Excluding(info => info.SelectedMemberInfo.MemberType == typeof(FileInfoBase)));
-
-        }
-        
-        [Fact, IsUnit]
-        public void ProcessDirectory_WithMultipleValidFiles_FileParserIsCalledForAll()
-        {
-            var mockFileSystem = new MockFileSystem(GetMultipleMockInputFiles(), MockCurrentDirectory);
-            var mockSubscriberFileParser = new Mock<ISubscriberFileParser>();
-            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(mockFileSystem, mockSubscriberFileParser.Object);
-
-            mockSubscriberFileParser.Setup(parser => parser.ParseFile(It.IsAny<string>()))
-                .Returns(new PutSubscriberFile());
-
-            // Act
-            var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
-
-            // Assert
-            mockSubscriberFileParser.Verify(parser => parser.ParseFile(Path.Combine(MockCurrentDirectory, "sample1.json")), Times.Once);
-            mockSubscriberFileParser.Verify(parser => parser.ParseFile(Path.Combine(MockCurrentDirectory, "subdir\\sample2.json")), Times.Once);
-            result.IsError.Should().BeFalse();
-        }
-
-        [Fact, IsUnit]
-        public void ProcessDirectory_EmptyDirectory_ReturnsValidObject()
-        {
-            // Arrange
-            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(
-                new MockFileSystem(new Dictionary<string, MockFileData>(), MockCurrentDirectory), Mock.Of<ISubscriberFileParser>());
-
-            // Act
-            var result = subscribersDirectoryProcessor.ProcessDirectory(MockCurrentDirectory);
+            var result = subscribersDirectoryProcessor.ProcessDirectory(MockDirectoryPath);
 
             // Assert
             var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(new CliExecutionError("No files have been found in 'Z:\\Sample\\'"));
-
             result.Should().BeEquivalentTo(expected);
+        }
 
+        [Fact, IsUnit]
+        public void ProcessDirectory_WithSingleFile_ReturnsValidPaths()
+        {
+            // Act
+            var result = _subscribersDirectoryProcessor.ProcessDirectory(MockDirectoryPath);
+
+            // Assert
+            var expected = new List<string>
+            {
+                Path.Combine(MockDirectoryPath, "sample1.json")
+            };
+
+            result.Should().BeEquivalentTo(new OperationResult<IEnumerable<string>>(expected));
+
+        }
+
+        [Fact, IsUnit]
+        public void ProcessDirectory_WithMultipleNestedFiles_ReturnsAllFiles()
+        {
+            var mockFileSystem = new MockFileSystem(GetMultipleMockInputFiles(), MockDirectoryPath);
+            var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(mockFileSystem);
+
+            // Act
+            var result = subscribersDirectoryProcessor.ProcessDirectory(MockDirectoryPath);
+
+            // Assert
+            var expectedList = new List<string>
+            {
+                Path.Combine(MockDirectoryPath, "sample1.json"),
+                Path.Combine(MockDirectoryPath, "subdir\\sample2.json")
+            };
+            result.Should().BeEquivalentTo(new OperationResult<IEnumerable<string>>(expectedList));
         }
 
         private static Dictionary<string, MockFileData> GetOneSampleInputFile()
@@ -201,7 +177,5 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             };
             return mockFiles;
         }
-        */
-
     }
 }
