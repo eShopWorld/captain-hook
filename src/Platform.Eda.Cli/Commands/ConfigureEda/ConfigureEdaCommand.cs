@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.OptionsValidation;
+using Platform.Eda.Cli.Extensions;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
@@ -54,7 +55,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         [ReplacementParamsDictionary]
         public string[] Params { get; set; }
 
-        public async Task<int> OnExecuteAsync(IConsoleSubscriberWriter writer)
+        public async Task<int> OnExecuteAsync(IConsole console)
         {
             if (string.IsNullOrWhiteSpace(Environment))
             {
@@ -64,7 +65,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             var replacements = BuildParametersReplacementDictionary(Params);
             await _putSubscriberProcessChain.ProcessAsync(InputFolderPath, Environment, replacements, NoDryRun);
 
-            writer.WriteSuccess("Processing finished");
+            console.WriteSuccess("Processing finished");
             return 0;
         }
 

@@ -1,7 +1,10 @@
-﻿using Eshopworld.Tests.Core;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
-using Kusto.Ingest.Agents;
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -9,10 +12,6 @@ using Platform.Eda.Cli.Commands.ConfigureEda;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Abstractions;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
@@ -23,6 +22,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         private readonly static Dictionary<string, string> EmptyReplacementsDictionary = new Dictionary<string, string>();
 
         private readonly Mock<IConsoleSubscriberWriter> _consoleSubscriberWriterMock;
+        private readonly Mock<IConsole> _consoleMock;
         private readonly Mock<ISubscribersDirectoryProcessor> _subscribersDirectoryProcessorMock;
         private readonly Mock<ISubscriberFileParser> _subscriberFileParserMock;
         private readonly Mock<IJsonVarsExtractor> _jsonVarsExtractorMock;
@@ -80,8 +80,13 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 return _apiConsumerMock.Object;
             }
 
+            _consoleMock = new Mock<IConsole>();
+            _consoleMock.Setup(c => c.Out).Returns(Mock.Of<TextWriter>());
+            _consoleMock.Setup(c => c.Error).Returns(Mock.Of<TextWriter>());
+
             _sut = new PutSubscriberProcessChain(
                 _consoleSubscriberWriterMock.Object,
+                _consoleMock.Object,
                 _subscribersDirectoryProcessorMock.Object,
                 _subscriberFileParserMock.Object,
                 _jsonVarsExtractorMock.Object,
@@ -103,9 +108,8 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             var result = await _sut.ProcessAsync(invalidFolder, environment, EmptyReplacementsDictionary, true);
 
             // Assert
-            using(new AssertionScope())
+            using (new AssertionScope())
             _subscribersDirectoryProcessorMock.Verify(x => x.ProcessDirectory(invalidFolder), Times.Once);
-            _consoleSubscriberWriterMock.Verify(x => x.WriteError(CliExecutionError.Message), Times.Once);
             result.Should().Be(1);
         }
 
@@ -152,10 +156,8 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             using (new AssertionScope())
             _subscriberFileParserMock.Verify(x => x.ParseFile("file1.json"), Times.Once);
             _subscriberFileParserMock.Verify(x => x.ParseFile("file2.json"), Times.Once);
-            _consoleSubscriberWriterMock.Verify(x => x.WriteError(CliExecutionError.Message), Times.Once);
             _consoleSubscriberWriterMock.Verify(x => x.OutputSubscribers(It.IsAny<IEnumerable<PutSubscriberFile>>(), "a folder"), Times.Once);
             result.Should().Be(0);
         }
-
     }
 }
