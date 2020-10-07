@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -22,17 +23,20 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
         private readonly IConsoleSubscriberWriter _writer;
         private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
 
-        public PutSubscriberProcessChain(IConsoleSubscriberWriter writer,
-            ISubscribersDirectoryProcessor subscribersDirectoryProcessor, ISubscriberFileParser subscriberFileParser,
-            IJsonVarsExtractor jsonVarsExtractor, IJsonTemplateValuesReplacer subscriberTemplateReplacer,
+        public PutSubscriberProcessChain(
+            IConsoleSubscriberWriter writer,
+            ISubscribersDirectoryProcessor subscribersDirectoryProcessor,
+            ISubscriberFileParser subscriberFileParser,
+            IJsonVarsExtractor jsonVarsExtractor,
+            IJsonTemplateValuesReplacer subscriberTemplateReplacer,
             BuildCaptainHookProxyDelegate captainHookBuilder)
         {
-            _writer = writer;
-            _subscribersDirectoryProcessor = subscribersDirectoryProcessor;
-            _subscriberFileParser = subscriberFileParser;
-            _jsonVarsExtractor = jsonVarsExtractor;
-            _jsonTemplateValuesReplacer = subscriberTemplateReplacer;
-            _captainHookBuilder = captainHookBuilder;
+            _writer = writer ?? throw new ArgumentNullException(nameof(writer));
+            _subscribersDirectoryProcessor = subscribersDirectoryProcessor ?? throw new ArgumentNullException(nameof(subscribersDirectoryProcessor));
+            _subscriberFileParser = subscriberFileParser ?? throw new ArgumentNullException(nameof(subscriberFileParser));
+            _jsonVarsExtractor = jsonVarsExtractor ?? throw new ArgumentNullException(nameof(jsonVarsExtractor));
+            _jsonTemplateValuesReplacer = subscriberTemplateReplacer ?? throw new ArgumentNullException(nameof(subscriberTemplateReplacer));
+            _captainHookBuilder = captainHookBuilder ?? throw new ArgumentNullException(nameof(captainHookBuilder));
         }
 
         public async Task<int> Process(string inputFolderPath, string env, Dictionary<string, string> replacementParams, bool noDryRun)
