@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CaptainHook.Domain.Results;
+using Castle.Core.Internal;
 using Microsoft.Rest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -86,13 +87,15 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
 
                 // Step 3 - Replace vars and params
-                var paramsDictionary = new Dictionary<string, JToken>(
-                    replacementParams.Select(kv => new KeyValuePair<string, JToken>(kv.Key, kv.Value)));
-
                 var template = parsedFile.ToString();
-
                 template = _jsonTemplateValuesReplacer.Replace("vars", template, vars);
-                template = _jsonTemplateValuesReplacer.Replace("params", template, paramsDictionary);
+
+                if (!replacementParams.IsNullOrEmpty())
+                {
+                    var paramsDictionary = new Dictionary<string, JToken>(
+                        replacementParams.Select(kv => new KeyValuePair<string, JToken>(kv.Key, kv.Value)));
+                    template = _jsonTemplateValuesReplacer.Replace("params", template, paramsDictionary);
+                }
 
                 // Step 4 - Create PutSubscriberFile object for further processing
                 putSubscriberFiles.Add(new PutSubscriberFile
