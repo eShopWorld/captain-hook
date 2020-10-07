@@ -1,0 +1,35 @@
+@startuml
+boundary "Callback Endpoint" order 60
+boundary Endpoint order 50
+box "Captain Hook"
+participant EventHandler order 40
+collections Reader order 30
+endbox
+boundary ServiceBus order 10
+
+ServiceBus -> Reader : Pick up message from topic
+Reader -> ServiceBus : Lock message
+Reader -> EventHandler : Spawn handler
+
+hnote over EventHandler : Acquire auth
+
+group retry (20s, 30s)
+  EventHandler -> Endpoint : Dispatch message
+  Endpoint -> EventHandler : Read response
+end
+
+group successful case
+
+  hnote over EventHandler : Acquire auth
+
+  group retry (20s, 30s)
+    EventHandler -> "Callback Endpoint" : Dispatch response
+    "Callback Endpoint"-> EventHandler : Read response
+  end
+    EventHandler -> Reader : Acknowledge dispatch
+    Reader -> ServiceBus : Unlock message and remove
+else undeliverable
+   EventHandler -> Reader : Report failed delivery
+   note over Reader : Let the lock expire
+end
+@enduml
