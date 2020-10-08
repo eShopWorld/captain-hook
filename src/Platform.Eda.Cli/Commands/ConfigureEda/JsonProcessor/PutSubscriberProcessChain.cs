@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CaptainHook.Domain.Results;
 using Castle.Core.Internal;
+using FluentValidation.Results;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
 using Newtonsoft.Json;
@@ -110,11 +111,13 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                     continue;
                 }
 
-                // Step 2.1 - validate vars
-                var varsValidationResult = await new FileVariablesValidator(extractVarsResult.Data).ValidateAsync(parsedFile);
-                if (!varsValidationResult.IsValid)
+                // Step 2.1 - validate vars and params
+                var varsValidationResult = await new FileReplacementsValidator(extractVarsResult.Data).ValidateAsync(parsedFile);
+                var paramsValidationResult = await new FileReplacementsValidator(replacementParams ?? new Dictionary<string, string>()).ValidateAsync(parsedFile);
+                var replacementValidationResult = new ValidationResult(varsValidationResult.Errors.Concat(paramsValidationResult.Errors));
+                if (!replacementValidationResult.IsValid)
                 {
-                    _console.WriteValidationResult("JSON file processing", varsValidationResult);
+                    _console.WriteValidationResult("JSON file processing", replacementValidationResult);
                     continue;
                 }
 

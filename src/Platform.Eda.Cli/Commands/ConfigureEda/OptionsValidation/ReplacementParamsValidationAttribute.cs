@@ -3,11 +3,11 @@ using System.Text.RegularExpressions;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.OptionsValidation
 {
-    public class ReplacementParamsDictionaryAttribute : ValidationAttribute
+    public class ReplacementParamsValidationAttribute : ValidationAttribute
     {
         private static readonly Regex KeyValueRegex = new Regex("^\\S+=\\S+$", RegexOptions.Compiled);
 
-        public ReplacementParamsDictionaryAttribute()
+        public ReplacementParamsValidationAttribute()
             : base("The value for {0} must be a key and value separated by '='")
         {
         }
