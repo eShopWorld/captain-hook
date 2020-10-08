@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Net.Mime;
 using System.Threading.Tasks;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -73,6 +74,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 
             var mockConsole = new Mock<IConsole>();
             mockConsole.Setup(c => c.Error).Returns(_errorWriter.Object);
+            mockConsole.Setup(c => c.Out).Returns(Mock.Of<TextWriter>());
 
             _subscribersDirectoryProcessorMock = new Mock<ISubscribersDirectoryProcessor>();
             _subscriberFileParserMock = new Mock<ISubscriberFileParser>();
