@@ -11,6 +11,7 @@ using Microsoft.Rest;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Commands.ConfigureEda.OptionsValidation;
+using Platform.Eda.Cli.Extensions;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
@@ -63,14 +64,14 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         [ReplacementParamsDictionary]
         public string[] Params { get; set; }
 
-        public async Task<int> OnExecuteAsync(IConsoleSubscriberWriter writer)
+        public async Task<int> OnExecuteAsync(IConsoleSubscriberWriter writer, IConsole console)
         {
             if (string.IsNullOrWhiteSpace(Environment))
             {
                 Environment = "CI";
             }
 
-            writer.WriteSuccess("box", $"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
+            console.WriteSuccessBox($"Reading files from folder: '{InputFolderPath}' to be run against {Environment} environment");
 
             var replacements = BuildParametersReplacementDictionary(Params);
 
@@ -78,7 +79,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             if (readDirectoryResult.IsError)
             {
-                writer.WriteError(readDirectoryResult.Error.Message);
+                console.WriteError(readDirectoryResult.Error.Message);
                 return 1;
             }
 
@@ -87,9 +88,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
 
             if (NoDryRun)
             {
-                writer.WriteSuccess("box", "Starting to run configuration against Captain Hook API");
+                console.WriteSuccessBox("Starting to run configuration against Captain Hook API");
 
-                var apiResults = await ConfigureEdaWithCaptainHook(writer, subscriberFiles);
+                var apiResults = await ConfigureEdaWithCaptainHook(writer, console, subscriberFiles);
                 if (apiResults.Any(r => r.IsError))
                 {
                     return 2;
@@ -97,10 +98,10 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
             else
             {
-                writer.WriteSuccess("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
+                console.WriteSuccess("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
             }
 
-            writer.WriteSuccess("Processing finished");
+            console.WriteSuccess("Processing finished");
             return 0;
         }
 
@@ -109,7 +110,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             return rawParams?.Select(p => p.Split('=')).ToDictionary(items => items[0], items => items[1]);
         }
 
-        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsoleSubscriberWriter writer,
+        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(
+            IConsoleSubscriberWriter writer,
+            IConsole console,
             IEnumerable<PutSubscriberFile> subscriberFiles)
         {
             var api = _captainHookBuilder(Environment);
@@ -124,7 +127,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                 var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
                 if (apiResultResponse.IsError)
                 {
-                    writer.WriteError($"Error when processing '{fileRelativePath}' for event '{apiResult.Request.EventName}'," +
+                    console.WriteError($"Error when processing '{fileRelativePath}' for event '{apiResult.Request.EventName}'," +
                         $" subscriber '{apiResult.Request.SubscriberName}'. Error details: ", apiResultResponse.Error.Message);
                 }
                 else
@@ -136,7 +139,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
                         _ => $"unknown result (HTTP Status {apiResult.Response.Data.Response.StatusCode:D})"
                     };
 
-                    writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
+                    console.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
                                        $"subscriber '{apiResult.Request.SubscriberName}' has been {operationDescription}.");
                 }
             }
