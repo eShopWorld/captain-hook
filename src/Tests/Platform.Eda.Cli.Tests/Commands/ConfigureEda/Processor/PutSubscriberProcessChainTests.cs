@@ -139,7 +139,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
                 .Returns(new List<string> { "file1.json", "file2.json" });
             _subscriberFileParserMock
                 .Setup(x => x.ParseFile("file1.json"))
-                .Returns(ValidSubscriberFileJson);
+                .Returns(JObject.FromObject(ValidSubscriberFileJson));
             _subscriberFileParserMock
                 .Setup(x => x.ParseFile("file2.json"))
                 .Returns(CliExecutionError);
@@ -179,7 +179,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
                 .Returns(new List<string> { "file1.json" });
             _subscriberFileParserMock
                 .Setup(x => x.ParseFile("file1.json"))
-                .Returns(ValidSubscriberFileJson);
+                .Returns(JObject.FromObject(ValidSubscriberFileJson));
             _jsonVarsExtractorMock
                 .Setup(x => x.ExtractVars(It.IsAny<JObject>(), It.IsAny<string>()))
                 .Returns(CliExecutionError);
@@ -206,7 +206,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
                 .Returns(new List<string> { "file1.json", "file2.json" });
 
             _subscriberFileParserMock.Setup(x => x.ParseFile("file1.json"))
-                .Returns(ValidSubscriberFileJson);
+                .Returns(JObject.FromObject(ValidSubscriberFileJson));
 
             _subscriberFileParserMock.Setup(x => x.ParseFile("file2.json"))
                 .Returns(CliExecutionError);
@@ -259,12 +259,10 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
                 ["subname"] = "subscriber1"
             }, false);
 
-
             // Assert
             result.Should().Be(0);
 
             // Verify Output messages
-
             VerifyWrite(_outWriter, "Reading files from folder: 'a folder' to be run against CI environment");
             VerifyWrite(_outWriter, "Processing file: '..\\file1.json'");
             VerifyWrite(_outWriter, "Processing file: '..\\file2.json'");
