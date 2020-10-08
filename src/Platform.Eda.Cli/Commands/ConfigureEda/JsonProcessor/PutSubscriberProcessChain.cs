@@ -109,6 +109,14 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                     continue;
                 }
 
+                // Step 2.1 - validate vars
+                var varsValidationResult = await new FileVariablesValidator(extractVarsResult.Data).ValidateAsync(parsedFile);
+                if (!varsValidationResult.IsValid)
+                {
+                    _console.WriteValidationResult("JSON file processing", varsValidationResult);
+                    continue;
+                }
+
                 // Step 3 - Replace vars and params
                 var template = parsedFile.ToString();
                 var templateReplaceResult = _jsonTemplateValuesReplacer.Replace("vars", template, extractVarsResult.Data);
