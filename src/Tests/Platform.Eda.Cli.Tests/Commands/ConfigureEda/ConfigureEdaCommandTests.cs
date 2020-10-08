@@ -53,7 +53,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             SetupDirectoryProcessorAndApiConsumer(files);
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console);
 
             // Assert
             OutputShouldContainFileNames(files);
@@ -69,7 +69,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             SetupDirectoryProcessorAndApiConsumer(files);
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console);
 
             // Assert
             OutputShouldContainFileNames(files);
@@ -88,7 +88,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             SetupDirectoryProcessorAndApiConsumer(files);
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console);
 
             // Assert
             OutputShouldContainFileNames(files);
@@ -106,7 +106,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 .Returns(() => new OperationResult<IEnumerable<PutSubscriberFile>>(new CliExecutionError("Error text")));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console);
 
             // Assert
             Output.Should().Contain("Error text");
@@ -122,7 +122,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             _configureEdaCommand.InputFolderPath = null;
 
             // Act - Assert;
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console));
         }
 
         [Fact, IsUnit]
@@ -136,7 +136,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 .Returns(AsyncEnumerableException(files));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console);
 
             // Assert;
             OutputShouldContainFileNames(files);
@@ -157,7 +157,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 .Returns(AsyncEnumerableMixed(files));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console);
 
             // Assert
             _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(files), Times.Once);
@@ -178,7 +178,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             SetupDirectoryProcessorAndApiConsumer(files);
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console);
 
             // Assert
             _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(files), Times.Once);
@@ -196,7 +196,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             SetupDirectoryProcessorAndApiConsumer(files);
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console);
 
             // Assert
             _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()), Times.Never);
@@ -237,7 +237,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 .Returns(AsyncEnumerableResponse(new PutSubscriberFile[0]));
 
             // Act
-            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(_mockConsoleSubscriberWriter, Console);
 
             // Assert
             _apiConsumer.Verify(apiConsumer => apiConsumer.CallApiAsync(

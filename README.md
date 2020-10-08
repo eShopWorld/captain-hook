@@ -96,6 +96,19 @@ Note that _StatusUri_ is reserved for future use and will not have a value at pr
 
 1. We ensure that message processing are guaranteed. This is important to note that this guarantee exists only after the message has been published to the topic. As such when you "Publish" to the topic this is a synchronous call in BigBrother such that if an exception is thrown while trying to connect to the ServiceBus Topic we will rethrow that exception back up to the caller. Here you will need to handle this, with perhaps, a retry mechanim but at least logging it to Application Insights.
 
+## Sequence diagrams
+
+Here is a collection of sequence diagrams for the main flows.
+
+### Message flow with callback
+
+![Sequence Diagram of the message flow with callback](docs/CS-CH-SD-webhook-callback.png)
+
+### Message flow with DLQ
+
+![Sequence Diagram of the message flow with DLQ](docs/CS-CH-SD-DLQ.png)
+
+
 ## Future Work
 * HA for EDA.
 * Domain Event Versioning.
