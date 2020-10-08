@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -36,6 +36,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         [Option("-e|--env",
             Description = "The environment name: (CI, TEST, PREP, SAND, PROD). Default: CI",
             ShowInHelpText = true)]
+        [EnvironmentValidation]
         public string Environment { get; set; }
 
         /// <summary>
@@ -52,7 +53,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         [Option("-p|--params", CommandOptionType.MultipleValue,
             Description = "The additional configuration parameters",
             ShowInHelpText = true)]
-        [ReplacementParamsDictionary]
+        [ReplacementParamsValidation]
         public string[] Params { get; set; }
 
         public async Task<int> OnExecuteAsync(IConsole console)
