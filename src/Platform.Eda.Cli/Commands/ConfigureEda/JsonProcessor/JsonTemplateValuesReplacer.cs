@@ -19,7 +19,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 if (string.IsNullOrEmpty(replacementPrefix) || !ValidReplacementPrefix.IsMatch(replacementPrefix))
                     return new CliExecutionError($"Invalid replacement prefix '{replacementPrefix}'");
 
-                var regexPattern = new Regex($@"{{{Regex.Escape(replacementPrefix)}:([\w-]+)}}", RegexOptions.IgnoreCase & RegexOptions.Compiled);
+                var regexPattern = new Regex($@"{{{Regex.Escape(replacementPrefix)}:([\w-]+)}}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
                 var vars = regexPattern.Matches(fileContent);
 

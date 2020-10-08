@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using NotImplementedException = System.NotImplementedException;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
@@ -11,7 +9,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         {
             public static bool Contains(string env)
             {
-                return ValidEnvironmentNames.Contains(env);
+                return ValidEnvironmentNames.Contains(env, StringComparer.OrdinalIgnoreCase);
             }
 
             public const string Ci = "ci";
