@@ -82,7 +82,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(_jsonObjectFile);
 
             // Assert
-            result.ShouldHaveAnyValidationError().WithErrorMessage("File must declare variable 'uri'.");
+            result.ShouldHaveAnyValidationError().WithErrorMessage("File must declare variable 'uri' for the requested environment.");
         }
 
         [Fact, IsUnit]
@@ -97,9 +97,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
 
             // Assert
             result.ShouldHaveAnyValidationError()
-                .WithErrorMessage("File must declare variable 'uri'.")
-                .WithErrorMessage("File must declare variable 'path'.")
-                .WithErrorMessage("File must declare variable 'sts-settings'.");
+                .WithErrorMessage("File must declare variable 'uri' for the requested environment.")
+                .WithErrorMessage("File must declare variable 'path' for the requested environment.")
+                .WithErrorMessage("File must declare variable 'sts-settings' for the requested environment.");
         }
 
         [Fact, IsUnit]
