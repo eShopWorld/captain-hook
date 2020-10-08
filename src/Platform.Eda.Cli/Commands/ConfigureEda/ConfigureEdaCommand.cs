@@ -63,15 +63,16 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             }
 
             var replacements = BuildParametersReplacementDictionary(Params);
-            await _putSubscriberProcessChain.ProcessAsync(InputFolderPath, Environment, replacements, NoDryRun);
+            var result = await _putSubscriberProcessChain.ProcessAsync(InputFolderPath, Environment, replacements, NoDryRun);
 
             console.WriteSuccess("Processing finished");
-            return 0;
+            return result;
         }
 
         private Dictionary<string, string> BuildParametersReplacementDictionary(string[] rawParams)
         {
             return rawParams?.Select(p => p.Split('=')).ToDictionary(items => items[0], items => items[1]);
         }
+
     }
 }

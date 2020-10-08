@@ -22,12 +22,10 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
         private readonly ISubscriberFileParser _subscriberFileParser;
         private readonly IJsonVarsExtractor _jsonVarsExtractor;
         private readonly IJsonTemplateValuesReplacer _jsonTemplateValuesReplacer;
-        private readonly IConsoleSubscriberWriter _writer;
         private readonly IConsole _console;
         private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
 
         public PutSubscriberProcessChain(
-            IConsoleSubscriberWriter writer,
             IConsole console,
             ISubscribersDirectoryProcessor subscribersDirectoryProcessor,
             ISubscriberFileParser subscriberFileParser,
@@ -35,8 +33,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             IJsonTemplateValuesReplacer subscriberTemplateReplacer,
             BuildCaptainHookProxyDelegate captainHookBuilder)
         {
-            _writer = writer ?? throw new ArgumentNullException(nameof(writer));
-            _console = console?? throw new ArgumentNullException(nameof(console));
+            _console = console ?? throw new ArgumentNullException(nameof(console));
             _subscribersDirectoryProcessor = subscribersDirectoryProcessor ?? throw new ArgumentNullException(nameof(subscribersDirectoryProcessor));
             _subscriberFileParser = subscriberFileParser ?? throw new ArgumentNullException(nameof(subscriberFileParser));
             _jsonVarsExtractor = jsonVarsExtractor ?? throw new ArgumentNullException(nameof(jsonVarsExtractor));
@@ -46,7 +43,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
         public async Task<int> ProcessAsync(string inputFolderPath, string env, Dictionary<string, string> replacementParams, bool noDryRun)
         {
-            _console.WriteSuccessBox($"Reading files from folder: '{inputFolderPath}' to be run against {env} environment");
+            _console.WriteSuccessBox("box", $"Reading files from folder: '{inputFolderPath}' to be run against {env} environment");
             var readDirectoryResult = _subscribersDirectoryProcessor.ProcessDirectory(inputFolderPath);
 
             if (readDirectoryResult.IsError)
@@ -145,14 +142,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
             }
 
-            // Output files 
-            _writer.OutputSubscribers(putSubscriberFiles, inputFolderPath);
-
             if (noDryRun)
             {
-                _console.WriteSuccessBox("Starting to run configuration against Captain Hook API");
+                _console.WriteSuccess("box", "Starting to run configuration against Captain Hook API");
 
-                var apiResults = await ConfigureEdaWithCaptainHook(_writer, inputFolderPath, env, putSubscriberFiles);
+                var apiResults = await ConfigureEdaWithCaptainHook(_console, inputFolderPath, env, putSubscriberFiles);
                 if (apiResults.Any(r => r.IsError))
                 {
                     return 2;
@@ -166,7 +160,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             return 0;
         }
 
-        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsoleSubscriberWriter writer,
+        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsole writer,
             string inputFolderPath, string env, IEnumerable<PutSubscriberFile> subscriberFiles)
         {
             var api = _captainHookBuilder(env);
