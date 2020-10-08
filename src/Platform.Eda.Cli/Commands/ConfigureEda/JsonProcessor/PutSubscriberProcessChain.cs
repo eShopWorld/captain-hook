@@ -43,7 +43,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
         public async Task<int> ProcessAsync(string inputFolderPath, string env, Dictionary<string, string> replacementParams, bool noDryRun)
         {
-            _console.WriteSuccessBox("box", $"Reading files from folder: '{inputFolderPath}' to be run against {env} environment");
+            _console.WriteSuccessBox($"Reading files from folder: '{inputFolderPath}' to be run against {env} environment");
             var readDirectoryResult = _subscribersDirectoryProcessor.ProcessDirectory(inputFolderPath);
 
             if (readDirectoryResult.IsError)
@@ -58,6 +58,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             foreach (var subscriberFilePath in subscriberFilePaths)
             {
                 // Step 1 - Read file
+                var fileRelativePath = Path.GetRelativePath(inputFolderPath, subscriberFilePath);
+                _console.WriteNormal($"Processing file: '{fileRelativePath}'");
+
                 var parseFileResult = _subscriberFileParser.ParseFile(subscriberFilePath);
                 if (parseFileResult.IsError)
                 {
@@ -85,6 +88,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 JObject varsJObject = null;
                 if (parsedFile.ContainsKey("vars"))
                 {
+                    _console.WriteNormal("Extracting variables");
                     varsJObject = (JObject)parsedFile["vars"];
                     parsedFile.Remove("vars");
                 }
@@ -102,25 +106,13 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
 
                 // Step 3 - Replace vars and params
+                var variablesDictionary = extractVarsResult.Data;
                 var template = parsedFile.ToString();
-                var templateReplaceResult = _jsonTemplateValuesReplacer.Replace("vars", template, extractVarsResult.Data);
-                if (templateReplaceResult.IsError)
-                {
-                    _console.WriteError(templateReplaceResult.Error.Message);
-                    putSubscriberFiles.Add(new PutSubscriberFile
-                    {
-                        Error = templateReplaceResult.Error.Message,
-                        File = new FileInfo(subscriberFilePath)
-                    });
-                    continue;
-                }
 
-
-                if (!replacementParams.IsNullOrEmpty())
+                if (variablesDictionary.Count > 0)
                 {
-                    var paramsDictionary = new Dictionary<string, JToken>(
-                        replacementParams.Select(kv => new KeyValuePair<string, JToken>(kv.Key, kv.Value)));
-                    templateReplaceResult = _jsonTemplateValuesReplacer.Replace("params", templateReplaceResult.Data, paramsDictionary);
+                    _console.WriteNormal("Replacing vars in template");
+                    var templateReplaceResult = _jsonTemplateValuesReplacer.Replace("vars", template, extractVarsResult.Data);
                     if (templateReplaceResult.IsError)
                     {
                         _console.WriteError(templateReplaceResult.Error.Message);
@@ -131,12 +123,35 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                         });
                         continue;
                     }
+                    template = templateReplaceResult.Data;
+                }
+
+                if (!replacementParams.IsNullOrEmpty())
+                {
+                    _console.WriteNormal("Replacing params in template");
+
+                    var paramsDictionary = new Dictionary<string, JToken>(
+                        replacementParams.Select(kv => new KeyValuePair<string, JToken>(kv.Key, kv.Value)));
+                    var templateReplaceResult = _jsonTemplateValuesReplacer.Replace("params", template, paramsDictionary);
+                    if (templateReplaceResult.IsError)
+                    {
+                        _console.WriteError(templateReplaceResult.Error.Message);
+                        putSubscriberFiles.Add(new PutSubscriberFile
+                        {
+                            Error = templateReplaceResult.Error.Message,
+                            File = new FileInfo(subscriberFilePath)
+                        });
+                        continue;
+                    }
+
+                    template = templateReplaceResult.Data;
                 }
 
                 // Step 4 - Create PutSubscriberFile object for further processing
+                _console.WriteNormal("File successfully parsed");
                 putSubscriberFiles.Add(new PutSubscriberFile
                 {
-                    Request = JsonConvert.DeserializeObject<PutSubscriberRequest>(templateReplaceResult.Data),
+                    Request = JsonConvert.DeserializeObject<PutSubscriberRequest>(template),
                     File = new FileInfo(subscriberFilePath)
                 });
 
@@ -144,7 +159,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
             if (noDryRun)
             {
-                _console.WriteSuccess("box", "Starting to run configuration against Captain Hook API");
+                _console.WriteSuccess("Starting to run configuration against Captain Hook API");
 
                 var apiResults = await ConfigureEdaWithCaptainHook(_console, inputFolderPath, env, putSubscriberFiles);
                 if (apiResults.Any(r => r.IsError))
@@ -180,7 +195,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
                 else
                 {
-                    string operationDescription = apiResult?.Response?.Data?.Response?.StatusCode switch
+                    var operationDescription = apiResult?.Response?.Data?.Response?.StatusCode switch
                     {
                         HttpStatusCode.Created => "created",
                         HttpStatusCode.Accepted => "updated",
