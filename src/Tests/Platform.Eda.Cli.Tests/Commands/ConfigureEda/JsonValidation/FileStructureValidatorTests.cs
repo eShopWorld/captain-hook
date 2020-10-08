@@ -1,4 +1,6 @@
-﻿using Eshopworld.Tests.Core;
+﻿using System.Linq;
+using Eshopworld.Tests.Core;
+using FluentAssertions;
 using FluentValidation.TestHelper;
 using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation;
@@ -177,6 +179,34 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
 
             // Assert
             result.ShouldHaveValidationErrorFor("subscriber.webhooks.endpoints").WithErrorMessage("'subscriber.webhooks.endpoints' must have endpoints which are objects only");
+        }
+
+        [Fact, IsUnit]
+        public void Validate_EmptyObject_ValidationErrorsForTopLevelProperties()
+        {
+            // Arrange
+            var jsonObject = JObject.Parse(@"{}");
+
+            // Act
+            var result = validator.TestValidate(jsonObject);
+
+            // Assert
+            result.Errors.Select(e => e.PropertyName).Should()
+                .BeEquivalentTo("subscriberName", "eventName", "subscriber");
+        }
+
+        [Fact, IsUnit]
+        public void Validate_EmptySubscriberObject_ValidationErrorsForTopLevelPropertiesAndSubscriberChildren()
+        {
+            // Arrange
+            var jsonObject = JObject.Parse(@"{ ""subscriber"": {} }");
+
+            // Act
+            var result = validator.TestValidate(jsonObject);
+
+            // Assert
+            result.Errors.Select(e => e.PropertyName).Should()
+                .BeEquivalentTo("subscriberName", "eventName", "subscriber.webhooks", "subscriber.webhooks.endpoints");
         }
     }
 }
