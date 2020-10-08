@@ -63,8 +63,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
             foreach (var subscriberFilePath in subscriberFilePaths)
             {
-                _console.WriteNormal($"File '{Path.GetRelativePath(inputFolderPath, subscriberFilePath)}' has been found");
-
                 // Step 1 - Read file
                 var fileRelativePath = Path.GetRelativePath(inputFolderPath, subscriberFilePath);
                 _console.WriteNormal($"Processing file: '{fileRelativePath}'");
@@ -210,11 +208,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
                 else
                 {
-                    var operationDescription = apiResult?.Response?.Data?.Response?.StatusCode switch
+                    var operationDescription = apiResult.Response?.Data?.Response?.StatusCode switch
                     {
                         HttpStatusCode.Created => "created",
                         HttpStatusCode.Accepted => "updated",
-                        _ => $"unknown result (HTTP Status {apiResult?.Response?.Data?.Response?.StatusCode:D})"
+                        _ => $"unknown result (HTTP Status {apiResult.Response?.Data?.Response?.StatusCode:D})"
                     };
 
                     writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
