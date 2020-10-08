@@ -85,9 +85,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var validationResult = await new FileStructureValidator().ValidateAsync(parsedFile);
                 if (!validationResult.IsValid)
                 {
-                    var errors = validationResult.Errors.Select((failure, i) => $"{i + 1}. {failure.ErrorMessage}");
-                    var validationMessages = new[] { "Some validation errors have been found" }.Concat(errors).ToArray();
-                    _console.WriteError(validationMessages);
+                    _console.WriteValidationResult("JSON file processing", validationResult);
+                    continue;                    
                 }
 
                 // Step 2 - Extract vars dictionary

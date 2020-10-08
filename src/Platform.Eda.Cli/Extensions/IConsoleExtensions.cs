@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using FluentValidation.Results;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace Platform.Eda.Cli.Extensions
@@ -60,6 +61,12 @@ namespace Platform.Eda.Cli.Extensions
         public static void WriteErrorBox(this IConsole console, params string[] lines)
         {
             console.WriteError(lines.Prepend(BoxDelimiter).Append(BoxDelimiter).ToArray());
+        }
+
+        public static void WriteValidationResult(this IConsole console, string stageName, ValidationResult validationResult)
+        {
+            var failures = validationResult.Errors.Select((failure, i) => $"{i + 1}. {failure.ErrorMessage}").ToArray();
+            console.WriteErrorBox(failures.Prepend($"Validation errors at {stageName} - failures:").ToArray());
         }
 
         private static void WriteInColor(this TextWriter writer, Color color, params string[] lines)
