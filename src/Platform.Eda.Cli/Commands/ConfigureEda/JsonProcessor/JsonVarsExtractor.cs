@@ -17,7 +17,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
 
             if (!ConfigureEdaConstants.EnvironmentNames.Contains(environmentName))
-                return new CliExecutionError($"Cannot extract vars for environment '{environmentName}'.");
+                return new CliExecutionError($"Cannot extract vars for environment {environmentName}.");
 
             try
             {
@@ -25,11 +25,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             }
             catch (Exception e)
             {
-                return new CliExecutionError($"Cannot parse vars. {e.Message}.");
+                return new CliExecutionError($"Cannot parse vars {e.Message}.");
             }
 
             if (varsDict == null)
-                return new CliExecutionError($"Cannot parse vars from {varsJObject}.");
+                return new CliExecutionError($"Cannot parse vars {varsJObject}.");
 
             var outputVarsDict = new Dictionary<string, JToken>();
             foreach (var (propertyKey, innerDict) in varsDict)
@@ -47,11 +47,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                             if (string.Equals(environmentName, singleEnv, StringComparison.OrdinalIgnoreCase))
                                 outputVarsDict[propertyKey] = val;
                             else if (!ConfigureEdaConstants.EnvironmentNames.Contains(singleEnv))
-                                return new CliExecutionError($"Unsupported environment '{singleEnv}' while parsing vars.");
+                                return new CliExecutionError($"Unsupported environment {singleEnv} while parsing vars.");
                         }
                     }
                     else if (!ConfigureEdaConstants.EnvironmentNames.Contains(envKey))
-                        return new CliExecutionError($"Unsupported environment '{envKey}' while parsing vars.");
+                        return new CliExecutionError($"Unsupported environment {envKey} while parsing vars.");
                 }
             }
 
