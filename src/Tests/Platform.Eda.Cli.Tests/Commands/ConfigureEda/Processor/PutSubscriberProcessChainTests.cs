@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
 using Moq;
 using Newtonsoft.Json.Linq;
@@ -12,15 +13,15 @@ using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 {
     public class PutSubscriberProcessChainTests
     {
-        private static readonly CliExecutionError CliExecutionError = new CliExecutionError(string.Empty);
+        private static readonly CliExecutionError CliExecutionError = new CliExecutionError("CLI Error");
         private static readonly Dictionary<string, string> EmptyReplacementsDictionary = new Dictionary<string, string>();
 
-        private readonly Mock<IConsoleSubscriberWriter> _consoleSubscriberWriterMock;
         private readonly Mock<ISubscribersDirectoryProcessor> _subscribersDirectoryProcessorMock;
         private readonly Mock<ISubscriberFileParser> _subscriberFileParserMock;
         private readonly Mock<IJsonVarsExtractor> _jsonVarsExtractorMock;
@@ -63,10 +64,21 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             }}");
 
         private readonly PutSubscriberProcessChain _sut;
+        private readonly Mock<TextWriter> _outWriter;
+        private readonly Mock<TextWriter> _errorWriter;
+        private readonly IConsole _console;
 
-        public PutSubscriberProcessChainTests()
+        public PutSubscriberProcessChainTests(ITestOutputHelper output)
         {
-            _consoleSubscriberWriterMock = new Mock<IConsoleSubscriberWriter>();
+        
+            _outWriter = new Mock<TextWriter>(MockBehavior.Default);
+            _errorWriter = new Mock<TextWriter>(MockBehavior.Default);
+
+            var mockConsole = new Mock<IConsole>();
+            mockConsole.Setup(c => c.Out).Returns(_outWriter.Object);
+            mockConsole.Setup(c => c.Error).Returns(_errorWriter.Object);
+            _console = mockConsole.Object;
+
             _subscribersDirectoryProcessorMock = new Mock<ISubscribersDirectoryProcessor>();
             _subscriberFileParserMock = new Mock<ISubscriberFileParser>();
             _jsonVarsExtractorMock = new Mock<IJsonVarsExtractor>();
@@ -79,7 +91,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             }
 
             _sut = new PutSubscriberProcessChain(
-                _consoleSubscriberWriterMock.Object,
+                mockConsole.Object,
                 _subscribersDirectoryProcessorMock.Object,
                 _subscriberFileParserMock.Object,
                 _jsonVarsExtractorMock.Object,
@@ -103,7 +115,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             // Assert
             using(new AssertionScope())
             _subscribersDirectoryProcessorMock.Verify(x => x.ProcessDirectory(invalidFolder), Times.Once);
-            _consoleSubscriberWriterMock.Verify(x => x.WriteError(CliExecutionError.Message), Times.Once);
+            _errorWriter.Verify(x => x.WriteLine(It.Is<string>(s=>s.Contains(CliExecutionError.Message))), Times.Once);
             result.Should().Be(1);
         }
 
@@ -150,8 +162,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             using (new AssertionScope())
             _subscriberFileParserMock.Verify(x => x.ParseFile("file1.json"), Times.Once);
             _subscriberFileParserMock.Verify(x => x.ParseFile("file2.json"), Times.Once);
-            _consoleSubscriberWriterMock.Verify(x => x.WriteError(CliExecutionError.Message), Times.Once);
-            _consoleSubscriberWriterMock.Verify(x => x.OutputSubscribers(It.IsAny<IEnumerable<PutSubscriberFile>>(), "a folder"), Times.Once);
+            _errorWriter.Verify(x => x.WriteLine(It.Is<string>(s=>s.Contains(CliExecutionError.Message))), Times.Once);
             result.Should().Be(0);
         }
 

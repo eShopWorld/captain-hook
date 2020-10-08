@@ -6,10 +6,12 @@ using System.Net;
 using System.Threading.Tasks;
 using CaptainHook.Domain.Results;
 using Castle.Core.Internal;
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
+using Platform.Eda.Cli.Extensions;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
@@ -19,11 +21,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
         private readonly ISubscriberFileParser _subscriberFileParser;
         private readonly IJsonVarsExtractor _jsonVarsExtractor;
         private readonly IJsonTemplateValuesReplacer _jsonTemplateValuesReplacer;
-        private readonly IConsoleSubscriberWriter _writer;
+        private readonly IConsole _writer;
         private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
 
         public PutSubscriberProcessChain(
-            IConsoleSubscriberWriter writer,
+            IConsole writer,
             ISubscribersDirectoryProcessor subscribersDirectoryProcessor,
             ISubscriberFileParser subscriberFileParser,
             IJsonVarsExtractor jsonVarsExtractor,
@@ -40,7 +42,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
         public async Task<int> ProcessAsync(string inputFolderPath, string env, Dictionary<string, string> replacementParams, bool noDryRun)
         {
-            _writer.WriteSuccess("box", $"Reading files from folder: '{inputFolderPath}' to be run against {env} environment");
+            _writer.WriteSuccessBox("box", $"Reading files from folder: '{inputFolderPath}' to be run against {env} environment");
             var readDirectoryResult = _subscribersDirectoryProcessor.ProcessDirectory(inputFolderPath);
 
             if (readDirectoryResult.IsError)
@@ -130,9 +132,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
             }
 
-            // Output files 
-            _writer.OutputSubscribers(putSubscriberFiles, inputFolderPath);
-
             if (noDryRun)
             {
                 _writer.WriteSuccess("box", "Starting to run configuration against Captain Hook API");
@@ -151,7 +150,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             return 0;
         }
 
-        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsoleSubscriberWriter writer,
+        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsole writer,
             string inputFolderPath, string env, IEnumerable<PutSubscriberFile> subscriberFiles)
         {
             var api = _captainHookBuilder(env);

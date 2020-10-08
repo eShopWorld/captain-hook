@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO.Abstractions.TestingHelpers;
 using System.Threading.Tasks;
 using CaptainHook.Cli.Tests;
 using Eshopworld.Tests.Core;
@@ -17,12 +16,10 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         internal const string MockCurrentDirectory = @"Z:\Sample\";
         private readonly ConfigureEdaCommand _configureEdaCommand;
         private readonly Mock<IPutSubscriberProcessChain> _mockPutSubscriberProcessChain;
-        private readonly ConsoleSubscriberWriter _consoleSubscriberWriter;
 
         public ConfigureEdaCommandTests(ITestOutputHelper output) : base(output)
         {
             _mockPutSubscriberProcessChain = new Mock<IPutSubscriberProcessChain>();
-            _consoleSubscriberWriter = new ConsoleSubscriberWriter(Console);
             _configureEdaCommand = new ConfigureEdaCommand(_mockPutSubscriberProcessChain.Object)
             {
                 InputFolderPath = MockCurrentDirectory,
@@ -41,10 +38,10 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 .ReturnsAsync(0);
 
 
-            var result = await _configureEdaCommand.OnExecuteAsync(_consoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(Console);
             
             result.Should().Be(0);
-            Output.SplitLines().Should().Contain("Processing finished");
+            Output.Should().Match("*Processing finished*");
         }
 
         public static IEnumerable<object[]> ParamsTestData = new List<object[]>
@@ -63,10 +60,10 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 .ReturnsAsync(0);
             _configureEdaCommand.Params = param;
 
-            var result = await _configureEdaCommand.OnExecuteAsync(_consoleSubscriberWriter);
+            var result = await _configureEdaCommand.OnExecuteAsync(Console);
 
             result.Should().Be(0);
-            Output.SplitLines().Should().Contain("Processing finished");
+            Output.Should().Match("*Processing finished*");
         }
     }
 }

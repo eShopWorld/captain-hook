@@ -55,7 +55,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         [ReplacementParamsDictionary]
         public string[] Params { get; set; }
 
-        public async Task<int> OnExecuteAsync(IConsoleSubscriberWriter writer, IConsole console)
+        public async Task<int> OnExecuteAsync(IConsole console)
         {
             if (string.IsNullOrWhiteSpace(Environment))
             {
@@ -65,7 +65,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             var replacements = BuildParametersReplacementDictionary(Params);
             var result = await _putSubscriberProcessChain.ProcessAsync(InputFolderPath, Environment, replacements, NoDryRun);
 
-            writer.WriteSuccess("Processing finished");
+            console.WriteSuccess("Processing finished");
             return result;
         }
 
