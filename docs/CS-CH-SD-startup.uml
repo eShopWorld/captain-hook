@@ -9,21 +9,32 @@ endbox
 boundary KeyVault order 30
 database "Cosmos DB" order 20
 
-KeyVault -> Director : read config
-"Cosmos DB" -> Director : read config
+Director -> KeyVault : read config
+Director -> "Cosmos DB" : read config
 
 note over Director : merge config
 
-loop for all subscribers config
+loop all subscribers config
+  
+  alt config removed
 
-  Director --> Reader : destroy old or changed reader
-  Reader --> ServiceBus : remove subscription
+    Director --> Reader : destroy reader
+    Reader --> ServiceBus : create subscription
 
-  Director --> Reader : create new reader
-  Reader --> ServiceBus : create subscription
+  else config changed
+  
+    Director --> Reader : create reader with new config
+    Reader --> ServiceBus : remove subscription
 
-  Director --> Reader : create new DLQ reader
-  Reader --> ServiceBus : create DLQ subscription
+    Director --> Reader : destroy reader with old config
+    Reader --> ServiceBus : create subscription
+
+  else config added
+
+    Director --> Reader : create reader with new config
+    Reader --> ServiceBus : create subscription
+
+  end
 
 end
 @enduml
