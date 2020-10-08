@@ -96,7 +96,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 {
                     _console.WriteNormal("Extracting variables");
                     varsJObject = (JObject)parsedFile["vars"];
-                    parsedFile.Remove("vars");
                 }
 
                 var extractVarsResult = _jsonVarsExtractor.ExtractVars(varsJObject, env);

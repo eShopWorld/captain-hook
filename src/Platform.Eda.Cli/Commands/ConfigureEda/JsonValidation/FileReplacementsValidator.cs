@@ -9,8 +9,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation
 {
     public class FileReplacementsValidator : AbstractValidator<JObject>
     {
-        private readonly static Regex VariablesRegex = new Regex("{vars:([^{}:]+)}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private readonly static Regex ParametersRegex = new Regex("{params:([^{}:]+)}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex VariablesRegex = new Regex("{vars:([^{}:]+)}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex ParametersRegex = new Regex("{params:([^{}:]+)}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        
         private readonly Dictionary<string, JToken> _variables;
         private readonly Dictionary<string, string> _parameters;
 
@@ -36,7 +37,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation
 
         private static string UndeclaredVariableMessage(JObject fileObject, string variableName)
         {
-            return $"File must declare variable '{variableName}'.";
+            return $"File must declare variable '{variableName}' for the requested environment.";
         }
 
         private static string UndeclaredParameterMessage(JObject fileObject, string parameterName)
