@@ -4,10 +4,21 @@ boundary ServiceBus order 60
 box "Captain Hook"
   collections Reader order 50
   participant Director order 40
+  participant API order 35
 endbox
 
 boundary KeyVault order 30
 database "Cosmos DB" order 20
+
+actor User order 10
+
+alt User triggered
+  User -> API : config refresh
+  API -> Director : config reload 
+else SF app restart
+  note over Director : reload config
+end
+
 
 Director -> KeyVault : read config
 Director -> "Cosmos DB" : read config
@@ -18,7 +29,7 @@ loop all subscribers config
   
   alt config removed
 
-    Director --> Reader : destroy reader
+    Director --> Reader : create reader
     Reader --> ServiceBus : create subscription
 
   else config changed
@@ -27,7 +38,7 @@ loop all subscribers config
     Reader --> ServiceBus : remove subscription
 
     Director --> Reader : destroy reader with old config
-    Reader --> ServiceBus : create subscription
+    Reader --> ServiceBus : destroy subscription
 
   else config added
 
