@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace Platform.Eda.Cli.Commands.ConfigureEda
 {
@@ -8,7 +9,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         {
             public static bool Contains(string env)
             {
-                return ValidEnvironmentNames.Contains(env);
+                return ValidEnvironmentNames.Contains(env, StringComparer.OrdinalIgnoreCase);
             }
 
             public const string Ci = "ci";

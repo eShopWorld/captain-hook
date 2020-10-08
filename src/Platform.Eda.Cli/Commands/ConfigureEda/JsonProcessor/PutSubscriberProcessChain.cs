@@ -25,14 +25,14 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
         private readonly BuildCaptainHookProxyDelegate _captainHookBuilder;
 
         public PutSubscriberProcessChain(
-            IConsole writer,
+            IConsole console,
             ISubscribersDirectoryProcessor subscribersDirectoryProcessor,
             ISubscriberFileParser subscriberFileParser,
             IJsonVarsExtractor jsonVarsExtractor,
             IJsonTemplateValuesReplacer subscriberTemplateReplacer,
             BuildCaptainHookProxyDelegate captainHookBuilder)
         {
-            _console = writer ?? throw new ArgumentNullException(nameof(writer));
+            _console = console ?? throw new ArgumentNullException(nameof(console));
             _subscribersDirectoryProcessor = subscribersDirectoryProcessor ?? throw new ArgumentNullException(nameof(subscribersDirectoryProcessor));
             _subscriberFileParser = subscriberFileParser ?? throw new ArgumentNullException(nameof(subscriberFileParser));
             _jsonVarsExtractor = jsonVarsExtractor ?? throw new ArgumentNullException(nameof(jsonVarsExtractor));
