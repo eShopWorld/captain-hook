@@ -44,6 +44,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
         public async Task<int> ProcessAsync(string inputFolderPath, string env, Dictionary<string, string> replacementParams, bool noDryRun)
         {
             _console.WriteSuccessBox("box", $"Reading files from folder: '{inputFolderPath}' to be run against {env} environment");
+
             var readDirectoryResult = _subscribersDirectoryProcessor.ProcessDirectory(inputFolderPath);
 
             if (readDirectoryResult.IsError)
@@ -52,11 +53,19 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 return 1;
             }
 
+            if (readDirectoryResult.Data == null || !readDirectoryResult.Data.Any())
+            {
+                _console.WriteWarning("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
+                return 1;
+            }
+
             var subscriberFilePaths = readDirectoryResult.Data;
             var putSubscriberFiles = new List<PutSubscriberFile>();
 
             foreach (var subscriberFilePath in subscriberFilePaths)
             {
+                _console.WriteNormal($"File '{Path.GetRelativePath(inputFolderPath, subscriberFilePath)}' has been found");
+
                 // Step 1 - Read file
                 var parseFileResult = _subscriberFileParser.ParseFile(subscriberFilePath);
                 if (parseFileResult.IsError)
