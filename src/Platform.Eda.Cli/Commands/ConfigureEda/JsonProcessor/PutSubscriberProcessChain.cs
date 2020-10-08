@@ -86,7 +86,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 if (!validationResult.IsValid)
                 {
                     _console.WriteValidationResult("JSON file processing", validationResult);
-                    continue;                    
+                    continue;
                 }
 
                 // Step 2 - Extract vars dictionary
