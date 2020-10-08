@@ -28,6 +28,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         private readonly Mock<IJsonTemplateValuesReplacer> _jsonTemplateValuesReplacerMock;
         private readonly Mock<IApiConsumer> _apiConsumerMock;
 
+        private readonly PutSubscriberProcessChain _sut;
+        private readonly Mock<TextWriter> _errorWriter;
+
         private static readonly string _validSubscriberRequestContent = @"
               ""eventName"": ""eshopworld.platform.events.oms.lineitemcancelsucceededevent"",
               ""subscriberName"": ""invoicing"",
@@ -63,21 +66,13 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
               {_validSubscriberRequestContent}
             }}");
 
-        private readonly PutSubscriberProcessChain _sut;
-        private readonly Mock<TextWriter> _outWriter;
-        private readonly Mock<TextWriter> _errorWriter;
-        private readonly IConsole _console;
-
         public PutSubscriberProcessChainTests(ITestOutputHelper output)
         {
         
-            _outWriter = new Mock<TextWriter>(MockBehavior.Default);
             _errorWriter = new Mock<TextWriter>(MockBehavior.Default);
 
             var mockConsole = new Mock<IConsole>();
-            mockConsole.Setup(c => c.Out).Returns(_outWriter.Object);
             mockConsole.Setup(c => c.Error).Returns(_errorWriter.Object);
-            _console = mockConsole.Object;
 
             _subscribersDirectoryProcessorMock = new Mock<ISubscribersDirectoryProcessor>();
             _subscriberFileParserMock = new Mock<ISubscriberFileParser>();
