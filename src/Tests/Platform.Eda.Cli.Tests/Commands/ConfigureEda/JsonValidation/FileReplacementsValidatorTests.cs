@@ -15,36 +15,54 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             ""eventName"": ""eshopworld.someeventname"",
             ""subscriberName"": ""retailers"",
             ""webhooks"": {
-            ""selectionRule"": ""$.TenantCode"",
-            ""payloadTransform"": ""Response"",
-            ""endpoints"": [
-                {
-                ""uri"": ""{vars:uri}{params:evo-host}{vars:path}/api/v2.0/WebHook/ClientOrderFailureMethod"",
-                ""selector"": ""*"",
-                ""authentication"": ""{vars:sts-settings}"",
-                ""httpVerb"": ""POST""
-                },
-            ]
+                ""selectionRule"": ""$.TenantCode"",
+                ""payloadTransform"": ""Response"",
+                ""endpoints"": [
+                    {
+                        ""uri"": ""{vars:uri}{params:evo-host}{vars:path}/api/v2.0/WebHook/ClientOrderFailureMethod"",
+                        ""selector"": ""*"",
+                        ""authentication"": ""{vars:sts-settings}"",
+                        ""httpVerb"": ""POST""
+                    },
+                ]
             },
             ""callbacks"": {
-            ""selectionRule"": ""$.TenantCode"",
-            ""endpoints"": [
-                {
-                ""uri"": ""{vars:uri}{params:evo-host}{vars:path}/api/v2/EdaResponse/ExternalEdaResponse"",
-                ""selector"": ""*"",
-                ""httpVerb"": ""POST""
-                }
-            ]
+                ""selectionRule"": ""$.TenantCode"",
+                ""endpoints"": [
+                    {
+                        ""uri"": ""{vars:uri}{params:evo-host}{vars:path}/api/v2/EdaResponse/ExternalEdaResponse"",
+                        ""selector"": ""*"",
+                        ""httpVerb"": ""POST""
+                    }
+                ]
             },
             ""dlqhooks"": {
-            ""selectionRule"": ""$.TenantCode"",
-            ""endpoints"": [
-                {
-                ""uri"": ""{vars:uri}{params:evo-host}/api/v2/DlqRequest/ExternalRequest"",
-                ""selector"": ""*"",
-                ""httpVerb"": ""POST""
-                }
-            ]
+                ""selectionRule"": ""$.TenantCode"",
+                ""endpoints"": [
+                    {
+                        ""uri"": ""{vars:uri}{params:evo-host}/api/v2/DlqRequest/ExternalRequest"",
+                        ""selector"": ""*"",
+                        ""httpVerb"": ""POST""
+                    }
+                ]
+            }
+        }");
+
+        private readonly JObject _jsonObjectFileMalformedVarsAndParams = JObject.Parse(@"
+        {
+            ""eventName"": ""eshopworld.someeventname"",
+            ""subscriberName"": ""retailers"",
+            ""webhooks"": {
+                ""selectionRule"": ""$.TenantCode"",
+                ""payloadTransform"": ""Response"",
+                ""endpoints"": [
+                    {
+                        ""uri"": ""{vars:}{params:}/api/v2.0/WebHook/ClientOrderFailureMethod"",
+                        ""selector"": ""*"",
+                        ""authentication"": ""{vars:sts-settings}"",
+                        ""httpVerb"": ""POST""
+                    },
+                ]
             }
         }");
 
@@ -82,7 +100,25 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(_jsonObjectFile);
 
             // Assert
-            result.ShouldHaveAnyValidationError().WithErrorMessage("File must declare variable 'uri'.");
+            result.ShouldHaveAnyValidationError().WithErrorMessage("File must declare variable 'uri' for the requested environment.");
+        }
+
+        [Fact, IsUnit]
+        public void Validate_When_VariableIsMalformed_Then_ErrorIsReturned()
+        {
+            // Arrange
+            var replacements = new Dictionary<string, JToken>()
+            {
+                {  "path", JToken.Parse("\"thepath\"") },
+                {  "sts-settings", JToken.Parse("{ \"type\": \"None\" }") },
+            };
+            var validator = new FileReplacementsValidator(replacements);
+
+            // Act
+            var result = validator.TestValidate(_jsonObjectFileMalformedVarsAndParams);
+
+            // Assert
+            result.ShouldHaveAnyValidationError().WithErrorMessage("'Variable' must not be empty.");
         }
 
         [Fact, IsUnit]
@@ -97,9 +133,9 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
 
             // Assert
             result.ShouldHaveAnyValidationError()
-                .WithErrorMessage("File must declare variable 'uri'.")
-                .WithErrorMessage("File must declare variable 'path'.")
-                .WithErrorMessage("File must declare variable 'sts-settings'.");
+                .WithErrorMessage("File must declare variable 'uri' for the requested environment.")
+                .WithErrorMessage("File must declare variable 'path' for the requested environment.")
+                .WithErrorMessage("File must declare variable 'sts-settings' for the requested environment.");
         }
 
         [Fact, IsUnit]
@@ -131,6 +167,20 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
 
             // Assert
             result.ShouldHaveAnyValidationError().WithErrorMessage("CLI run must provide parameter 'evo-host'.");
+        }
+
+        [Fact, IsUnit]
+        public void Validate_When_ParameterIsMalformed_Then_ErrorIsReturned()
+        {
+            // Arrange
+            var replacements = new Dictionary<string, string>();
+            var validator = new FileReplacementsValidator(replacements);
+
+            // Act
+            var result = validator.TestValidate(_jsonObjectFileMalformedVarsAndParams);
+
+            // Assert
+            result.ShouldHaveAnyValidationError().WithErrorMessage("'Parameter' must not be empty.");
         }
     }
 }
