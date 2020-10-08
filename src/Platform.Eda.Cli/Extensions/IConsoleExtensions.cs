@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
 
 namespace Platform.Eda.Cli.Extensions
@@ -11,35 +11,78 @@ namespace Platform.Eda.Cli.Extensions
     // ReSharper disable once InconsistentNaming
     public static class IConsoleExtensions
     {
-        /// <summary>
-        /// emit warning to console and BigBrother
-        /// </summary>
-        /// <param name="console">extension instance</param>
-        /// <param name="command">command type</param>
-        /// <param name="args">application options</param>
-        /// <param name="warning">warning message</param>
-        public static void EmitWarning(this IConsole console, Type command, List<CommandOption> args, string warning)
+        private static readonly string BoxDelimiter = new string('=', 80);
+
+        public static class Colors
         {
-            var argsMessage = string.IsNullOrWhiteSpace(args.ToConsoleString()) ? string.Empty : $",Arguments '{args.ToConsoleString()}'";
-            console.EmitMessage(console.Out, $"WARNING - Command {command}{argsMessage} - {warning}");
+            public static readonly Color Red = new Color("\u001b[31m");
+            public static readonly Color Green = new Color("\u001b[32m");
+            public static readonly Color Cyan = new Color("\u001b[36m");
+            public static readonly Color Yellow = new Color("\u001b[33m");
+            public static readonly Color Reset = new Color("\u001b[0m");
         }
 
-        internal static void EmitMessage(this IConsole _, TextWriter textWriter, string text)
+        public static void WriteNormal(this IConsole console, params string[] lines)
         {
-            textWriter.WriteLine(text);
+            console.Out.WriteInColor(Colors.Cyan, lines);
         }
 
-        /// <summary>
-        /// emit error to console and BigBrother
-        /// </summary>
-        /// <param name="console">console instance</param>
-        /// <param name="exception">exception</param>
-        /// <param name="command">command type</param>
-        /// <param name="args">command arguments</param>
-        public static void EmitException(this IConsole console, Exception exception, Type command, List<CommandOption> args)
+        public static void WriteSuccess(this IConsole console, params string[] lines)
         {
-            var argsMessage = string.IsNullOrWhiteSpace(args.ToConsoleString()) ? string.Empty : $", Arguments '{args.ToConsoleString()}'";
-            console.EmitMessage(console.Error, $"ERROR - Command {command}{argsMessage} - {exception.GetType().FullName} - {exception.Message}");
+            console.Out.WriteInColor(Colors.Green, lines);
+        }
+
+        public static void WriteWarning(this IConsole console, params string[] lines)
+        {
+            console.Out.WriteInColor(Colors.Yellow, lines);
+        }
+
+        public static void WriteError(this IConsole console, params string[] lines)
+        {
+            console.Error.WriteInColor(Colors.Red, lines);
+        }
+
+        public static void WriteNormalBox(this IConsole console, params string[] lines)
+        {
+            console.WriteNormal(lines.Prepend(BoxDelimiter).Append(BoxDelimiter).ToArray());
+        }
+
+        public static void WriteSuccessBox(this IConsole console, params string[] lines)
+        {
+            console.WriteSuccess(lines.Prepend(BoxDelimiter).Append(BoxDelimiter).ToArray());
+        }
+
+        public static void WriteWarningBox(this IConsole console, params string[] lines)
+        {
+            console.WriteWarning(lines.Prepend(BoxDelimiter).Append(BoxDelimiter).ToArray());
+        }
+
+        public static void WriteErrorBox(this IConsole console, params string[] lines)
+        {
+            console.WriteError(lines.Prepend(BoxDelimiter).Append(BoxDelimiter).ToArray());
+        }
+
+        private static void WriteInColor(this TextWriter writer, Color color, params string[] lines)
+        {
+            foreach (var line in lines)
+            {
+                writer.WriteLine($"{color}{line}{Colors.Reset}");
+            }
+        }
+
+        public class Color
+        {
+            private readonly string _value;
+
+            public Color(string value)
+            {
+                _value = value;
+            }
+
+            public override string ToString()
+            {
+                return _value;
+            }
         }
     }
 }

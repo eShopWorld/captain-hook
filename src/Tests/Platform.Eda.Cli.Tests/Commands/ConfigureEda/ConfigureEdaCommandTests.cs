@@ -19,7 +19,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
         private readonly Mock<IPutSubscriberProcessChain> _mockPutSubscriberProcessChain;
         private readonly ConsoleSubscriberWriter _consoleSubscriberWriter;
 
-
         public ConfigureEdaCommandTests(ITestOutputHelper output) : base(output)
         {
             _mockPutSubscriberProcessChain = new Mock<IPutSubscriberProcessChain>();
@@ -41,12 +40,12 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                         It.IsAny<Dictionary<string, string>>(), _configureEdaCommand.NoDryRun))
                 .ReturnsAsync(0);
 
+
             var result = await _configureEdaCommand.OnExecuteAsync(_consoleSubscriberWriter);
             
             result.Should().Be(0);
             Output.SplitLines().Should().Contain("Processing finished");
         }
-
 
         public static IEnumerable<object[]> ParamsTestData = new List<object[]>
         {
