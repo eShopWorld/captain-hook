@@ -10,6 +10,7 @@ using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Rest;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation;
 using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Extensions;
 
@@ -70,6 +71,15 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
 
                 var parsedFile = parseFileResult.Data;
+
+                // Step 1.1 - validate file
+                var validationResult = await new FileStructureValidator().ValidateAsync(parsedFile);
+                if (!validationResult.IsValid)
+                {
+                    var errors = validationResult.Errors.Select((failure, i) => $"{i + 1}. {failure.ErrorMessage}");
+                    var validationMessages = new[] { "Some validation errors have been found" }.Concat(errors).ToArray();
+                    _console.WriteError(validationMessages);
+                }
 
                 // Step 2 - Extract vars dictionary
                 JObject varsJObject = null;
