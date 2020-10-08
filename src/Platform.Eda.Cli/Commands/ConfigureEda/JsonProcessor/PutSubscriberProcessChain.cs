@@ -52,11 +52,19 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 return 1;
             }
 
+            if (readDirectoryResult.Data == null || !readDirectoryResult.Data.Any())
+            {
+                _console.WriteWarning("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
+                return 1;
+            }
+
             var subscriberFilePaths = readDirectoryResult.Data;
             var putSubscriberFiles = new List<PutSubscriberFile>();
 
             foreach (var subscriberFilePath in subscriberFilePaths)
             {
+                _console.WriteNormal($"File '{Path.GetRelativePath(inputFolderPath, subscriberFilePath)}' has been found");
+
                 // Step 1 - Read file
                 var fileRelativePath = Path.GetRelativePath(inputFolderPath, subscriberFilePath);
                 _console.WriteNormal($"Processing file: '{fileRelativePath}'");
@@ -79,9 +87,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var validationResult = await new FileStructureValidator().ValidateAsync(parsedFile);
                 if (!validationResult.IsValid)
                 {
-                    var errors = validationResult.Errors.Select((failure, i) => $"{i + 1}. {failure.ErrorMessage}");
-                    var validationMessages = new[] { "Some validation errors have been found" }.Concat(errors).ToArray();
-                    _console.WriteError(validationMessages);
+                    _console.WriteValidationResult("JSON file processing", validationResult);
+                    continue;
                 }
 
                 // Step 2 - Extract vars dictionary
@@ -102,6 +109,14 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                         Error = extractVarsResult.Error.Message,
                         File = new FileInfo(subscriberFilePath)
                     });
+                    continue;
+                }
+
+                // Step 2.1 - validate vars
+                var varsValidationResult = await new FileVariablesValidator(extractVarsResult.Data).ValidateAsync(parsedFile);
+                if (!varsValidationResult.IsValid)
+                {
+                    _console.WriteValidationResult("JSON file processing", varsValidationResult);
                     continue;
                 }
 
