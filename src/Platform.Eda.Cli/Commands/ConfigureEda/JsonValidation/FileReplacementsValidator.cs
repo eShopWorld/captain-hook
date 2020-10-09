@@ -9,8 +9,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation
 {
     public class FileReplacementsValidator : AbstractValidator<JObject>
     {
-        private static readonly Regex VariablesRegex = new Regex("{vars:([^{}:]+)}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private static readonly Regex ParametersRegex = new Regex("{params:([^{}:]+)}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex VariablesRegex = new Regex("{vars:([^{}:]*)}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex ParametersRegex = new Regex("{params:([^{}:]*)}", RegexOptions.IgnoreCase | RegexOptions.Compiled);
         
         private readonly Dictionary<string, JToken> _variables;
         private readonly Dictionary<string, string> _parameters;
@@ -20,8 +20,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation
             _variables = variables;
 
             RuleForEach(x => GetUsedReplacements(x, VariablesRegex).Distinct())
+                .NotEmpty()
                 .Must(HaveVariableDeclared)
-                .WithName("Variables")
+                .WithName("Variable")
                 .WithMessage(UndeclaredVariableMessage);
         }
 
@@ -30,8 +31,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation
             _parameters = parameters;
 
             RuleForEach(x => GetUsedReplacements(x, ParametersRegex).Distinct())
+                .NotEmpty()
                 .Must(HaveParameterDeclared)
-                .WithName("Parameters")
+                .WithName("Parameter")
                 .WithMessage(UndeclaredParameterMessage);
         }
 
