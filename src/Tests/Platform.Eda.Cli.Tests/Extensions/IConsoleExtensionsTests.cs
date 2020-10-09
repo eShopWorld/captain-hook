@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Eshopworld.Tests.Core;
 using McMaster.Extensions.CommandLineUtils;
@@ -92,8 +93,8 @@ namespace Platform.Eda.Cli.Tests.Extensions
         {
             _console.WriteNormalBox("Test");
 
-            _outWriter.Verify(writer => writer.WriteLine(FormatDefaultText(new string('=', 80))), Times.Exactly(2));
-            _outWriter.Verify(writer => writer.WriteLine(FormatDefaultText("Test")), Times.Once);
+            _outWriter.Verify(writer => writer.WriteLine(FormatDefaultText(
+                $"{new string('=', 80)}{Environment.NewLine}Test{Environment.NewLine}{new string('=', 80)}")), Times.Once);
         }
 
         private static string FormatDefaultText(string outputString) => $"{IConsoleExtensions.Colors.Cyan}{outputString}{IConsoleExtensions.Colors.Reset}";

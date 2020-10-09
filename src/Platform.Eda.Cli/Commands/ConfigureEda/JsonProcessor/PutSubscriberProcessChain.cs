@@ -86,7 +86,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var validationResult = await new FileStructureValidator().ValidateAsync(parsedFile);
                 if (!validationResult.IsValid)
                 {
-                    _console.WriteValidationResult("JSON file processing", validationResult);
+                    _console.WriteValidationResult("JSON file validation", validationResult);
                     continue;
                 }
 
@@ -116,7 +116,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var replacementValidationResult = new ValidationResult(varsValidationResult.Errors.Concat(paramsValidationResult.Errors));
                 if (!replacementValidationResult.IsValid)
                 {
-                    _console.WriteValidationResult("JSON file processing", replacementValidationResult);
+                    _console.WriteValidationResult("vars and params validation", replacementValidationResult);
                     continue;
                 }
 
