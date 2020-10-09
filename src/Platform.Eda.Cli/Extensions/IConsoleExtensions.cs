@@ -40,7 +40,7 @@ namespace Platform.Eda.Cli.Extensions
 
         public static void WriteError(this IConsole console, params string[] lines)
         {
-            console.Error.WriteInColor(Colors.Red, lines);
+            console.Out.WriteInColor(Colors.Red, lines);
         }
 
         public static void WriteNormalBox(this IConsole console, params string[] lines)
@@ -71,8 +71,10 @@ namespace Platform.Eda.Cli.Extensions
 
         private static void WriteInColor(this TextWriter writer, Color color, params string[] lines)
         {
-            var singleMessage = string.Join(Environment.NewLine, lines);
-            writer.WriteLine($"{color}{singleMessage}{Colors.Reset}");
+            foreach (var line in lines)
+            {
+                writer.WriteLine($"{color}{line}{Colors.Reset}");
+            }
         }
 
         public class Color
