@@ -6,7 +6,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.OptionsValidation
     public class DirectoryExistsValidationAttribute : ValidationAttribute
     {
         public DirectoryExistsValidationAttribute()
-            : base("Directory '{0}' doesn't exist.")
+            : base("Directory '{0}' either does not exist, or it is not accessible.")
         {
         }
 
