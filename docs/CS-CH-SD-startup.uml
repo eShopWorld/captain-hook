@@ -1,0 +1,49 @@
+@startuml
+boundary ServiceBus order 60
+
+box "Captain Hook"
+  collections Reader order 50
+  participant Director order 40
+  participant API order 35
+endbox
+
+boundary KeyVault order 30
+database "Cosmos DB" order 20
+
+actor User order 10
+
+alt User triggered
+  User -> API : config refresh
+  API -> Director : config reload 
+else SF app restart
+  note over Director : reload config
+end
+
+
+Director -> KeyVault : read config
+Director -> "Cosmos DB" : read config
+
+note over Director : merge config
+
+loop all subscribers config
+  
+  alt config removed
+
+    Director --> Reader : destroy reader
+    Reader --> ServiceBus : destroy subscription
+
+  else config changed
+  
+    Director --> Reader : create reader with new config
+
+    Director --> Reader : destroy reader with old config
+
+  else config added
+
+    Director --> Reader : create reader with new config
+    Reader --> ServiceBus : create subscription
+
+  end
+
+end
+@enduml

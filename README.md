@@ -108,6 +108,9 @@ Here is a collection of sequence diagrams for the main flows.
 
 ![Sequence Diagram of the message flow with DLQ](docs/CS-CH-SD-DLQ.png)
 
+### Captain Hook startup flow
+
+![Sequence Diagram Captain Hook startup flow](docs/CS-CH-SD-startup.png)
 
 ## Future Work
 * HA for EDA.
