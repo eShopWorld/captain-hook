@@ -22,7 +22,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriberName").WithErrorMessage("'subscriberName' is required");
+            result.ShouldHaveValidationErrorFor("subscriberName").WithErrorMessage("File must contain property 'subscriberName'");
         }
 
         [Fact, IsUnit]
@@ -35,7 +35,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriberName").WithErrorMessage("'subscriberName' must be a string");
+            result.ShouldHaveValidationErrorFor("subscriberName").WithErrorMessage("File property 'subscriberName' must be a string");
         }
 
         [Fact, IsUnit]
@@ -48,7 +48,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriberName").WithErrorMessage("'subscriberName' cannot be empty");
+            result.ShouldHaveValidationErrorFor("subscriberName").WithErrorMessage("File property 'subscriberName' cannot be empty");
         }
 
         [Fact, IsUnit]
@@ -61,7 +61,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("eventName").WithErrorMessage("'eventName' is required");
+            result.ShouldHaveValidationErrorFor("eventName").WithErrorMessage("File must contain property 'eventName'");
         }
 
         [Fact, IsUnit]
@@ -74,7 +74,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("eventName").WithErrorMessage("'eventName' cannot be empty");
+            result.ShouldHaveValidationErrorFor("eventName").WithErrorMessage("File property 'eventName' cannot be empty");
         }
 
         [Fact, IsUnit]
@@ -87,7 +87,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("eventName").WithErrorMessage("'eventName' must be a string");
+            result.ShouldHaveValidationErrorFor("eventName").WithErrorMessage("File property 'eventName' must be a string");
         }
 
         [Fact, IsUnit]
@@ -100,7 +100,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriber").WithErrorMessage("'subscriber' is required");
+            result.ShouldHaveValidationErrorFor("subscriber").WithErrorMessage("File must contain property 'subscriber'");
         }
 
         [Fact, IsUnit]
@@ -113,7 +113,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriber").WithErrorMessage("'subscriber' must be an object");
+            result.ShouldHaveValidationErrorFor("subscriber").WithErrorMessage("File property 'subscriber' must be an object");
         }
 
         [Fact, IsUnit]
@@ -126,7 +126,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriber").WithErrorMessage("'subscriber' must be an object");
+            result.ShouldHaveValidationErrorFor("subscriber").WithErrorMessage("File property 'subscriber' must be an object");
         }
 
         [Fact, IsUnit]
@@ -139,7 +139,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriber.webhooks").WithErrorMessage("'subscriber' must contain 'webhooks'");
+            result.ShouldHaveValidationErrorFor("subscriber.webhooks").WithErrorMessage("File property 'subscriber' must contain property 'webhooks'");
         }
 
         [Fact, IsUnit]
@@ -152,7 +152,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriber.webhooks.endpoints").WithErrorMessage("'subscriber.webhooks' must contain 'endpoints'");
+            result.ShouldHaveValidationErrorFor("subscriber.webhooks.endpoints").WithErrorMessage("File property 'subscriber.webhooks' must contain property 'endpoints'");
         }
 
         [Fact, IsUnit]
@@ -165,7 +165,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriber.webhooks.endpoints").WithErrorMessage("'subscriber.webhooks.endpoints' must have at least a single endpoint");
+            result.ShouldHaveValidationErrorFor("subscriber.webhooks.endpoints").WithErrorMessage("File property 'subscriber.webhooks.endpoints' must have at least a single endpoint");
         }
 
         [Fact, IsUnit]
@@ -178,7 +178,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(jsonObject);
 
             // Assert
-            result.ShouldHaveValidationErrorFor("subscriber.webhooks.endpoints").WithErrorMessage("'subscriber.webhooks.endpoints' must have endpoints which are objects only");
+            result.ShouldHaveValidationErrorFor("subscriber.webhooks.endpoints").WithErrorMessage("File property 'subscriber.webhooks.endpoints' must have endpoints which are objects only");
         }
 
         [Fact, IsUnit]
