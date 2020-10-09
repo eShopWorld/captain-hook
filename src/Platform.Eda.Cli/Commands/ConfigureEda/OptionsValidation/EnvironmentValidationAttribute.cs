@@ -18,7 +18,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.OptionsValidation
             if (value is string s && (AllowedEnvironments.Contains(s, StringComparer.Ordinal) || string.IsNullOrEmpty(s)))
             {
                 return ValidationResult.Success;
-                
             }
 
             var message = string.Format(ErrorMessageString, value);
