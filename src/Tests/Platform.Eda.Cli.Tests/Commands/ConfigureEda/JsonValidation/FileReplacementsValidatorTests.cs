@@ -118,7 +118,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(_jsonObjectFileMalformedVarsAndParams);
 
             // Assert
-            result.ShouldHaveAnyValidationError().WithErrorMessage("'Variable' must not be empty.");
+            result.ShouldHaveAnyValidationError().WithErrorMessage("All variables must have valid names.");
         }
 
         [Fact, IsUnit]
@@ -180,7 +180,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.JsonValidation
             var result = validator.TestValidate(_jsonObjectFileMalformedVarsAndParams);
 
             // Assert
-            result.ShouldHaveAnyValidationError().WithErrorMessage("'Parameter' must not be empty.");
+            result.ShouldHaveAnyValidationError().WithErrorMessage("All parameters must have valid names.");
         }
     }
 }

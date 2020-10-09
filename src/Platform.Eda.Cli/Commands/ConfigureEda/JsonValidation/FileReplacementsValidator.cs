@@ -20,7 +20,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation
             _variables = variables;
 
             RuleForEach(x => GetUsedReplacements(x, VariablesRegex).Distinct())
+                .Cascade(CascadeMode.Stop)
                 .NotEmpty()
+                .WithMessage("All variables must have valid names.")
                 .Must(HaveVariableDeclared)
                 .WithName("Variable")
                 .WithMessage(UndeclaredVariableMessage);
@@ -31,7 +33,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonValidation
             _parameters = parameters;
 
             RuleForEach(x => GetUsedReplacements(x, ParametersRegex).Distinct())
+                .Cascade(CascadeMode.Stop)
                 .NotEmpty()
+                .WithMessage("All parameters must have valid names.")
                 .Must(HaveParameterDeclared)
                 .WithName("Parameter")
                 .WithMessage(UndeclaredParameterMessage);
