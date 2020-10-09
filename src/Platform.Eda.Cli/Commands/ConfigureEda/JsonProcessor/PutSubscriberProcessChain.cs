@@ -66,7 +66,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             {
                 // Step 1 - Read file
                 var fileRelativePath = Path.GetRelativePath(inputFolderPath, subscriberFilePath);
-                _console.WriteNormal($"Processing file: '{fileRelativePath}'");
+                _console.WriteNormal(string.Empty, $"Processing file: '{fileRelativePath}'");
 
                 var parseFileResult = _subscriberFileParser.ParseFile(subscriberFilePath);
                 if (parseFileResult.IsError)
@@ -169,7 +169,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                     Request = JsonConvert.DeserializeObject<PutSubscriberRequest>(template),
                     File = new FileInfo(subscriberFilePath)
                 });
-
             }
 
             if (noDryRun)
