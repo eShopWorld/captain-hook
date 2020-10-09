@@ -112,6 +112,9 @@ Here is a collection of sequence diagrams for the main flows.
 
 ![Sequence Diagram Captain Hook startup flow](docs/CS-CH-SD-startup.png)
 
+### User-added subscriber flow
+![Sequence Diagram Captain Hook startup flow](docs/CS-CH-SD-user-subscriber.png)
+
 ## Future Work
 * HA for EDA.
 * Domain Event Versioning.

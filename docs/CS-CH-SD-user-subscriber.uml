@@ -1,0 +1,32 @@
+@startuml
+boundary ServiceBus order 60
+
+box "Captain Hook"
+  collections Reader order 50
+  participant Director order 40
+  participant API order 35
+endbox
+
+database "Cosmos DB" order 20
+
+actor User order 10
+
+User -> API : upsert subscriber
+
+note over API : detect\nscope\nof changes
+
+alt create
+  API -> Director : create
+  Director -> Reader : create reader
+  Reader --> ServiceBus : create subscription
+  API -> "Cosmos DB" : create entry
+else update
+  API -> Director : create
+  Director -> Reader : create reader
+  API -> Director : delete
+  Director -> Reader : destroy reader
+  API -> "Cosmos DB" : update entry
+end
+
+API -> User : get result
+@enduml
