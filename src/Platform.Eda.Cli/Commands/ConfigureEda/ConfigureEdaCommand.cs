@@ -28,6 +28,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         [Option("-i|--input",
             Description = "The path to the folder containing JSON files to process. Can be absolute or relative",
             ShowInHelpText = true)]
+        [DirectoryExistsValidation]
         public string InputFolderPath { get; set; }
 
         /// <summary>
