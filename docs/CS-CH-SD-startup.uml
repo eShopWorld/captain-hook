@@ -29,16 +29,14 @@ loop all subscribers config
   
   alt config removed
 
-    Director --> Reader : create reader
-    Reader --> ServiceBus : create subscription
+    Director --> Reader : destroy reader
+    Reader --> ServiceBus : destroy subscription
 
   else config changed
   
     Director --> Reader : create reader with new config
-    Reader --> ServiceBus : remove subscription
 
     Director --> Reader : destroy reader with old config
-    Reader --> ServiceBus : destroy subscription
 
   else config added
 
