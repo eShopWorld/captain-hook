@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Eshopworld.Tests.Core;
 using McMaster.Extensions.CommandLineUtils;
@@ -19,17 +20,14 @@ namespace Platform.Eda.Cli.Tests.Extensions
         };
 
         private readonly Mock<TextWriter> _outWriter;
-        private readonly Mock<TextWriter> _errorWriter;
         private readonly IConsole _console;
 
         public IConsoleExtensionsTests()
         {
             _outWriter = new Mock<TextWriter>(MockBehavior.Default);
-            _errorWriter = new Mock<TextWriter>(MockBehavior.Default);
 
             var mockConsole = new Mock<IConsole>();
             mockConsole.Setup(c => c.Out).Returns(_outWriter.Object);
-            mockConsole.Setup(c => c.Error).Returns(_errorWriter.Object);
             _console = mockConsole.Object;
         }
 
@@ -57,7 +55,7 @@ namespace Platform.Eda.Cli.Tests.Extensions
         {
             _console.WriteError(outputString);
 
-            _errorWriter.Verify(writer => writer.WriteLine(FormatErrorText(outputString)), Times.Once);
+            _outWriter.Verify(writer => writer.WriteLine(FormatErrorText(outputString)), Times.Once);
         }
 
         [Theory, IsUnit]
@@ -66,7 +64,7 @@ namespace Platform.Eda.Cli.Tests.Extensions
         {
             _console.WriteError(outputString);
 
-            _errorWriter.Verify(writer => writer.WriteLine(FormatErrorText(outputString)), Times.Once);
+            _outWriter.Verify(writer => writer.WriteLine(FormatErrorText(outputString)), Times.Once);
         }
 
         [Theory, IsUnit]
@@ -94,6 +92,7 @@ namespace Platform.Eda.Cli.Tests.Extensions
 
             _outWriter.Verify(writer => writer.WriteLine(FormatDefaultText(new string('=', 80))), Times.Exactly(2));
             _outWriter.Verify(writer => writer.WriteLine(FormatDefaultText("Test")), Times.Once);
+
         }
 
         private static string FormatDefaultText(string outputString) => $"{IConsoleExtensions.Colors.Cyan}{outputString}{IConsoleExtensions.Colors.Reset}";

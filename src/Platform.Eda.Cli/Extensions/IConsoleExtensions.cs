@@ -40,7 +40,7 @@ namespace Platform.Eda.Cli.Extensions
 
         public static void WriteError(this IConsole console, params string[] lines)
         {
-            console.Error.WriteInColor(Colors.Red, lines);
+            console.Out.WriteInColor(Colors.Red, lines);
         }
 
         public static void WriteNormalBox(this IConsole console, params string[] lines)
@@ -66,7 +66,7 @@ namespace Platform.Eda.Cli.Extensions
         public static void WriteValidationResult(this IConsole console, string stageName, ValidationResult validationResult)
         {
             var failures = validationResult.Errors.Select((failure, i) => $"{i + 1}. {failure.ErrorMessage}").ToArray();
-            console.WriteErrorBox(failures.Prepend($"Validation errors at {stageName} - failures:").ToArray());
+            console.WriteErrorBox(failures.Prepend($"Validation errors during {stageName} - failures:").ToArray());
         }
 
         private static void WriteInColor(this TextWriter writer, Color color, params string[] lines)

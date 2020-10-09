@@ -28,7 +28,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         private readonly Mock<IApiConsumer> _apiConsumerMock;
 
         private readonly PutSubscriberProcessChain _sut;
-        private readonly Mock<TextWriter> _errorWriter;
         private readonly Mock<TextWriter> _outWriter;
 
         private static readonly string _validSubscriberRequestContent = @"
@@ -79,12 +78,8 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 
         public PutSubscriberProcessChainTests()
         {
-
-            _errorWriter = new Mock<TextWriter>(MockBehavior.Default);
             _outWriter = new Mock<TextWriter>(MockBehavior.Default);
-
             var mockConsole = new Mock<IConsole>();
-            mockConsole.Setup(c => c.Error).Returns(_errorWriter.Object);
             mockConsole.Setup(c => c.Out).Returns(_outWriter.Object);
 
             _subscribersDirectoryProcessorMock = new Mock<ISubscribersDirectoryProcessor>();
@@ -124,7 +119,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             using (new AssertionScope())
             {
                 _subscribersDirectoryProcessorMock.Verify(x => x.ProcessDirectory(invalidFolder), Times.Once);
-                VerifyWrite(_errorWriter, CliExecutionError.Message);
+                VerifyWrite(_outWriter, CliExecutionError.Message);
                 result.Should().Be(1);
             }
         }
@@ -163,7 +158,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             {
                 _subscriberFileParserMock.Verify(x => x.ParseFile("file1.json"), Times.Once);
                 _subscriberFileParserMock.Verify(x => x.ParseFile("file2.json"), Times.Once);
-                VerifyWrite(_errorWriter, CliExecutionError.Message);
+                VerifyWrite(_outWriter, CliExecutionError.Message);
                 result.Should().Be(0);
             }
         }
@@ -189,7 +184,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 
             // Assert
             VerifyWrite(_outWriter, "Extracting variables");
-            VerifyWrite(_errorWriter, CliExecutionError.Message);
+            VerifyWrite(_outWriter, CliExecutionError.Message);
 
             _jsonTemplateValuesReplacerMock.VerifyNoOtherCalls();
             _apiConsumerMock.VerifyNoOtherCalls();
