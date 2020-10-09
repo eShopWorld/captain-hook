@@ -61,11 +61,8 @@ namespace Platform.Eda.Cli
                     var messages = new[]
                     {
                         $"WARNING: Command returned non zero code {returnCode}.",
-                        $"Command: '{commandParsed?.Name ?? app.Description}'",
-                        "Arguments:"
-                    }.Concat(commandParsed?.Options.ToConsoleStrings()).ToArray();
-
-                    _console.WriteWarningBox(messages);
+                    }.Concat(commandParsed?.ToConsoleStrings());
+                    _console.WriteWarningBox(messages.ToArray());
                 }
 
                 return returnCode;
@@ -76,11 +73,9 @@ namespace Platform.Eda.Cli
                 {
                     $"EXCEPTION: {exception.GetType().FullName}",
                     exception.Message,
-                    $"Command: '{commandParsed?.Name ?? app.Description}'",
-                    "Arguments:"
-                }.Concat(commandParsed?.Options.ToConsoleStrings()).ToArray();
+                }.Concat(commandParsed?.ToConsoleStrings());
+                _console.WriteWarningBox(messages.ToArray());
 
-                _console.WriteWarningBox(messages);
                 return -1;
             }
         }
