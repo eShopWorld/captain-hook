@@ -111,7 +111,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                     continue;
                 }
 
-                if (environmentsResult.Data.Any() && !environmentsResult.Data.Contains(env.ToLower()))
+                if (environmentsResult.Data.Any() && !environmentsResult.Data.Contains(env?.ToLower()))
                 {
                     _console.WriteNormal($"File skipped due to lack of variables defined for environment `{env}'");
                     continue;
