@@ -22,7 +22,7 @@ namespace Platform.Eda.Cli.Extensions
 
             var valueToPrint = option.OptionType switch
             {
-                CommandOptionType.NoValue => (option.HasValue() ? "is SET" : "is NOT SET"),
+                CommandOptionType.NoValue => (option.HasValue() ? "is SET" : "is UNSET"),
                 CommandOptionType.SingleOrNoValue => (option.HasValue() ? $"'{JoinValues()}'" : "is NOT SET"),
                 _ => $"'{JoinValues()}'"
             };
