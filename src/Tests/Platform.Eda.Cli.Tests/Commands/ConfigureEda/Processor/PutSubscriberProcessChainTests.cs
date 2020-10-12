@@ -88,18 +88,13 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             _jsonTemplateValuesReplacerMock = new Mock<IJsonTemplateValuesReplacer>();
             _apiConsumerMock = new Mock<IApiConsumer>();
 
-            IApiConsumer captainHookBuilder(string env)
-            {
-                return _apiConsumerMock.Object;
-            }
-
             _sut = new PutSubscriberProcessChain(
                 mockConsole.Object,
                 _subscribersDirectoryProcessorMock.Object,
                 _subscriberFileParserMock.Object,
                 _jsonVarsExtractorMock.Object,
                 _jsonTemplateValuesReplacerMock.Object,
-                captainHookBuilder);
+                (_)=> _apiConsumerMock.Object);
         }
 
         [ClassData(typeof(ValidEnvironmentNames))]
@@ -144,7 +139,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             _jsonTemplateValuesReplacerMock
                 .Setup(x => x.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, JToken>>()))
                 .Returns(ValidSubscriberRequest);
-
 
             _apiConsumerMock
                 .Setup(x => x.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()))
@@ -220,6 +214,33 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 
             // Assert
             _apiConsumerMock.Verify(x => x.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()), Times.Exactly(timesApiConsumerIsCalled));
+        }
+
+        [Fact, IsUnit]
+        public async Task ProcessAsync_OnValidationFailure_ReturnsOne()
+        {
+            // Arrange
+            _subscribersDirectoryProcessorMock
+                .Setup(x => x.ProcessDirectory(It.IsAny<string>()))
+                .Returns(new List<string> { "file1.json", "file2.json" });
+            _subscriberFileParserMock
+                .Setup(x => x.ParseFile("file1.json"))
+                .Returns(JObject.FromObject(ValidSubscriberFileJson));
+            _subscriberFileParserMock
+                .Setup(x => x.ParseFile("file2.json"))
+                .Returns(JObject.FromObject(ValidSubscriberFileJson));
+            _jsonVarsExtractorMock
+                .Setup(x => x.ExtractVars(It.IsAny<JObject>(), It.IsAny<string>()))
+                .Returns(new Dictionary<string, JToken>());
+            _jsonTemplateValuesReplacerMock
+                .Setup(x => x.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, JToken>>()))
+                .Returns(ValidSubscriberRequest);
+
+            // Act
+            var result = await _sut.ProcessAsync("a folder", "CI", EmptyReplacementsDictionary, false);
+
+            // Assert
+            result.Should().Be(1);
         }
 
         [Fact, IsUnit]
