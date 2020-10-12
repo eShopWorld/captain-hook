@@ -98,6 +98,25 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                     varsJObject = (JObject)parsedFile["vars"];
                 }
 
+                // Step 2.0 - silently ignore file if it's not defined for current environment
+                var environmentsResult = new EnvironmentNamesExtractor().Find(varsJObject);
+                if (environmentsResult.IsError)
+                {
+                    _console.WriteError(environmentsResult.Error.Message);
+                    putSubscriberFiles.Add(new PutSubscriberFile
+                    {
+                        Error = environmentsResult.Error.Message,
+                        File = new FileInfo(subscriberFilePath)
+                    });
+                    continue;
+                }
+
+                if (environmentsResult.Data.Any() && !environmentsResult.Data.Contains(env.ToLower()))
+                {
+                    _console.WriteNormal($"File skipped due to lack of variables defined for environment `{env}'");
+                    continue;
+                }
+
                 var extractVarsResult = _jsonVarsExtractor.ExtractVars(varsJObject, env);
                 if (extractVarsResult.IsError)
                 {
