@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using McMaster.Extensions.CommandLineUtils;
@@ -57,22 +58,23 @@ namespace Platform.Eda.Cli
                 int returnCode;
                 if ((returnCode = app.Execute(args)) != 0)
                 {
-                    _console.WriteWarningBox(
-                        $"WARNING: Command returned non zero code {returnCode}.", 
-                        $"Command: '{commandParsed?.Name ?? app.Description}'", 
-                        "Arguments:", commandParsed?.Options.ToConsoleString());
+                    var messages = new[]
+                    {
+                        $"WARNING: Command returned non zero code {returnCode}.",
+                    }.Concat(commandParsed?.ToConsoleStrings());
+                    _console.WriteWarningBox(messages.ToArray());
                 }
 
                 return returnCode;
             }
             catch (Exception exception)
             {
-                _console.WriteErrorBox(
-                    $"EXCEPTION: {exception.GetType().FullName}", 
-                    exception.Message, 
-                    $"Command: '{commandParsed?.Name ?? app.Description}'", 
-                    "Arguments:", 
-                    commandParsed?.Options.ToConsoleString());
+                var messages = new[]
+                {
+                    $"EXCEPTION: {exception.GetType().FullName}",
+                    exception.Message,
+                }.Concat(commandParsed?.ToConsoleStrings());
+                _console.WriteWarningBox(messages.ToArray());
 
                 return -1;
             }

@@ -75,6 +75,5 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
         {
             return rawParams?.Select(p => p.Split('=')).ToDictionary(items => items[0], items => items[1]);
         }
-
     }
 }
