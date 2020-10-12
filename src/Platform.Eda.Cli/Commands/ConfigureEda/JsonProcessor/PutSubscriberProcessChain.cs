@@ -99,7 +99,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
 
                 // Step 2.0 - silently ignore file if it's not defined for current environment
-                var environmentsResult = new EnvironmentNamesExtractor().Find(varsJObject);
+                var environmentsResult = EnvironmentNamesExtractor.FindInVars(varsJObject);
                 if (environmentsResult.IsError)
                 {
                     _console.WriteError(environmentsResult.Error.Message);

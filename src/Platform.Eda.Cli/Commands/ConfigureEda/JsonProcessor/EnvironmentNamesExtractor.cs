@@ -9,7 +9,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 {
     public class EnvironmentNamesExtractor
     {
-        public OperationResult<IEnumerable<string>> Find(JObject varsJObject)
+        public static OperationResult<IEnumerable<string>> FindInVars(JObject varsJObject)
         {
             if (varsJObject == null)
                 return new HashSet<string>();
@@ -32,7 +32,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             var unknownNames = environmentNames.Where(name => !ConfigureEdaConstants.EnvironmentNames.Contains(name)).ToList();
             if (unknownNames.Any())
             {
-                return new CliExecutionError($"File contains unknown envs names: {string.Join(',', unknownNames)}");
+                return new CliExecutionError($"File contains unknown envs names: '{string.Join(',', unknownNames)}'.");
             }
 
             return environmentNames;
