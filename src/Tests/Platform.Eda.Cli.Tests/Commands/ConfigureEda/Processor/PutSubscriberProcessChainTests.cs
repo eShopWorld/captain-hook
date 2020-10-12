@@ -94,7 +94,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
                 _subscriberFileParserMock.Object,
                 _jsonVarsExtractorMock.Object,
                 _jsonTemplateValuesReplacerMock.Object,
-                (env)=> _apiConsumerMock.Object);
+                (_)=> _apiConsumerMock.Object);
         }
 
         [ClassData(typeof(ValidEnvironmentNames))]
@@ -139,7 +139,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             _jsonTemplateValuesReplacerMock
                 .Setup(x => x.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, JToken>>()))
                 .Returns(ValidSubscriberRequest);
-
 
             _apiConsumerMock
                 .Setup(x => x.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()))
@@ -218,7 +217,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         }
 
         [Fact, IsUnit]
-        public async Task ProcessAsync_OnValidationFailure_ReturnsValue1()
+        public async Task ProcessAsync_OnValidationFailure_ReturnsOne()
         {
             // Arrange
             _subscribersDirectoryProcessorMock
@@ -243,7 +242,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             // Assert
             result.Should().Be(1);
         }
-
 
         [Fact, IsUnit]
         public async Task ProcessAsync_ValidFiles_OutputMessages()
