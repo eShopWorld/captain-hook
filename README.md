@@ -96,6 +96,25 @@ Note that _StatusUri_ is reserved for future use and will not have a value at pr
 
 1. We ensure that message processing are guaranteed. This is important to note that this guarantee exists only after the message has been published to the topic. As such when you "Publish" to the topic this is a synchronous call in BigBrother such that if an exception is thrown while trying to connect to the ServiceBus Topic we will rethrow that exception back up to the caller. Here you will need to handle this, with perhaps, a retry mechanim but at least logging it to Application Insights.
 
+## Topology diagram
+
+![Captain Hook topology diagram](docs/CS-CH-topology.png)
+
+### Components
+
+| Component | Description |
+|---|---|
+| Captain Hook | It is an implementation of the webhook dispatcher within EDA. It comprises of a few components closely working together: Captain Hook Api, Director Service, Reader Services and Handler Actors. They all live within a Service Fabric instance. |
+| Captain Hook Api | It is a component of Captain Hook hosted in Service Fabric. It exposes a REST API and allows clients to interact with Captain Hook. It allows to add/update/remove subscriber configuration as well as reload the configuration. It translates the requests from clients and communicates with Director Service to execute them. |
+| Director Service | The entry-point components of Captain Hook hosted in Service Fabric. Reads configuration and creates Reader Service per each subscriber. Also creates the first batch (10) of Handler Actors. Any request to add/remove/update readers is handled by Director Service. Communicates with Key Vault and Cosmos DB in order to retrieve events and subscribers configuration. |
+| Reader Service | It is a component of Captain Hook hosted in Service Fabric which focuses on a subscriber. It receives subscriber configuration from Director Service and instantiates a connection with Service Bus. Creates a receiver to Service Bus Topic Subscriber and picks messages for processing. It passes the messages along with the relevant configuration to a Handler Actor. |
+| Handler Actors | Handler Actor is a component of Captian Hook hosted in service Fabric which focuses on message processing. A new actor is created for each message to be processed. The message itself along with configuration is received by the actor and then analysed. Based on the provided configuration the webhook/callback/dlq request is generated and executed. |
+| Key Vault | Stores Captain Hook configuration and subscribers configuration (old format). |
+| Cosmos DB | Stores subscribers configuration (new format). |
+| Service Bus | The message bus with the pub/sub model. Topics represent events and subscribers represent listeners. Captain Hook can have more than one subscriber to a particular topic which it manages. The default subscriber is named captain-hook and is most commonly used. |
+| Security Token Service (STS) | Provides bearer tokens for Captain Hook to include in headers of the outgoing requests. Used only for OIDC security (other types are supported as well). Servers can be internal or external. |
+| Endpoints | The target locations for Captain Hook. They identify endpoints which need to be notified about the occurrence of a specific message/event. Endpoints might require authentication (None, Basic, OIDC) and are expected to be idempotent. |
+
 ## Sequence diagrams
 
 Here is a collection of sequence diagrams for the main flows.
