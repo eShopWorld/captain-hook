@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CaptainHook.Domain.Entities.Comparers;
 using CaptainHook.Domain.Errors;
@@ -32,6 +33,11 @@ namespace CaptainHook.Domain.Entities
         /// Payload Transformation
         /// </summary>
         public string PayloadTransform { get; private set; }
+
+        /// <summary>
+        /// Retry sleep durations to use for request retry logic
+        /// </summary>
+        public TimeSpan[] RetrySleepDurations { get; set; }
 
         /// <summary>
         /// Type of entity
