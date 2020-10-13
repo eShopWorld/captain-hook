@@ -117,6 +117,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 if (!replacementValidationResult.IsValid)
                 {
                     _console.WriteValidationResult("vars and params validation", replacementValidationResult);
+                    putSubscriberFiles.Add(new PutSubscriberFile
+                    {
+                        Error = string.Join(", ", replacementValidationResult.Errors),
+                        File = new FileInfo(subscriberFilePath)
+                    });
                     continue;
                 }
 
@@ -184,6 +189,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             else
             {
                 _console.WriteSuccess("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
+                return putSubscriberFiles.Any(file => file.IsError) ? 1 : 0;
             }
 
             return 0;
