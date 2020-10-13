@@ -111,7 +111,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.Once);
-            _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(ExpectedWebHookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockHttpSender.Verify(x => x.SendAsync(It.Is<SendRequest>(request => request.Uri == new Uri(ExpectedWebHookUri)), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         /// <summary>
@@ -132,8 +132,19 @@ namespace CaptainHook.Tests.Web.WebHooks
             var messageDelivery = await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.Once);
-            _mockHttpSender.Verify(x => x.SendAsync(messageData.SubscriberConfig.HttpMethod, It.Is<Uri>(uri => uri.AbsoluteUri.StartsWith(messageData.SubscriberConfig.Uri)), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mockHttpSender.Verify(x => x.SendAsync(messageData.SubscriberConfig.Callback.HttpMethod, It.Is<Uri>(uri => uri.AbsoluteUri.StartsWith(messageData.SubscriberConfig.Callback.Uri)), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            _mockHttpSender.Verify(x => x.SendAsync(
+                    It.Is<SendRequest>(r =>
+                        r.HttpMethod == HttpMethod.Post &&
+                        r.Uri == new Uri(ExpectedWebHookUri)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+            _mockHttpSender.Verify(x => x.SendAsync(
+                    It.Is<SendRequest>(r =>
+                        r.HttpMethod == HttpMethod.Put &&
+                        r.Uri == new Uri(ExpectedCallbackUri)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
             Assert.True(messageDelivery);
         }
 
@@ -157,7 +168,12 @@ namespace CaptainHook.Tests.Web.WebHooks
 
             _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.Once);
 
-            _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Put, new Uri(ExpectedCallbackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
+            _mockHttpSender.Verify(x => x.SendAsync(
+                    It.Is<SendRequest>(r =>
+                        r.HttpMethod == HttpMethod.Put &&
+                        r.Uri == new Uri(ExpectedCallbackUri)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
             Assert.False(messageDelivery);
         }
 
@@ -181,9 +197,18 @@ namespace CaptainHook.Tests.Web.WebHooks
 
             _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.Once);
 
-            _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(ExpectedWebHookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Put, new Uri(ExpectedCallbackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Never);
-
+            _mockHttpSender.Verify(x => x.SendAsync(
+                    It.Is<SendRequest>(r =>
+                        r.HttpMethod == HttpMethod.Post &&
+                        r.Uri == new Uri(ExpectedWebHookUri)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+            _mockHttpSender.Verify(x => x.SendAsync(
+                    It.Is<SendRequest>(r =>
+                        r.HttpMethod == HttpMethod.Put &&
+                        r.Uri == new Uri(ExpectedCallbackUri)),
+                    It.IsAny<CancellationToken>()),
+                Times.Never);
             Assert.False(messageDelivery);
         }
 
@@ -207,8 +232,19 @@ namespace CaptainHook.Tests.Web.WebHooks
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.AtMostOnce);
-            _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(expectedMultiWebhookUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
-            _mockHttpSender.Verify(x => x.SendAsync(HttpMethod.Post, new Uri(ExpectedCallbackUri), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            _mockHttpSender.Verify(x => x.SendAsync(
+                    It.Is<SendRequest>(r =>
+                        r.HttpMethod == HttpMethod.Post &&
+                        r.Uri == new Uri(expectedMultiWebhookUri)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+            _mockHttpSender.Verify(x => x.SendAsync(
+                    It.Is<SendRequest>(r =>
+                        r.HttpMethod == HttpMethod.Post &&
+                        r.Uri == new Uri(ExpectedCallbackUri)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         /// <summary>
@@ -274,8 +310,11 @@ namespace CaptainHook.Tests.Web.WebHooks
                 response.Content = responseContent;
 
             return _mockHttpSender
-                .Setup(x => x.SendAsync(httpMethod, new Uri(uri), It.IsAny<WebHookHeaders>(),
-                    It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.SendAsync(
+                    It.Is<SendRequest>(r =>
+                        r.HttpMethod == httpMethod &&
+                        r.Uri == new Uri(uri)),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(response);
         }
 

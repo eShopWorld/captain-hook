@@ -179,7 +179,7 @@ namespace CaptainHook.Tests.Web.WebHooks
 
             var httpSender = new Mock<IHttpSender>();
             httpSender
-                .Setup(x => x.SendAsync(It.IsAny<HttpMethod>(), It.IsAny<Uri>(), It.IsAny<WebHookHeaders>(), It.IsAny<string>(), It.IsAny<TimeSpan>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.SendAsync(It.IsAny<SendRequest>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new HttpResponseMessage(HttpStatusCode.InternalServerError))
                 .Verifiable();
 
