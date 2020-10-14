@@ -70,5 +70,31 @@ namespace CaptainHook.EventHandlerActor.Tests
             messageResponse.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
             _mockHttp.GetMatchCount(request).Should().Be(2);
         }
+
+        [Fact, IsUnit]
+        public async Task SendAsync_InvalidResponseButNoRetries_HappensOnce()
+        {
+            // Arrange
+            var request = _mockHttp.When("https://eshop.abc")
+                .Respond(HttpStatusCode.InternalServerError);
+
+            _factoryMock.Setup(f => f.Get(new Uri("https://eshop.abc"), default))
+                .Returns(new HttpClient(_mockHttp));
+
+            // Act
+            var subject = new HttpSender(_factoryMock.Object);
+            var messageResponse = await subject.SendAsync(
+                new SendRequest(
+                    HttpMethod.Get,
+                    new Uri("https://eshop.abc"),
+                    new WebHookHeaders(),
+                    string.Empty,
+                    new TimeSpan[0]));
+
+            // Assert
+            using var _ = new AssertionScope();
+            messageResponse.StatusCode.Should().Be(HttpStatusCode.InternalServerError);
+            _mockHttp.GetMatchCount(request).Should().Be(1);
+        }
     }
 }
