@@ -17,6 +17,9 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private UriTransformEntity _webhooksUriTransformEntity;
         private UriTransformEntity _callbacksUriTransformEntity;
         private UriTransformEntity _dlqhooksTransformEntity;
+        private TimeSpan[] _webhookRetryDurations;
+        private TimeSpan[] _callbackRetryDurations;
+        private TimeSpan[] _dlqhooksRetryDurations;
         private readonly List<EndpointEntity> _webhooks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _callbacks = new List<EndpointEntity>();
         private readonly List<EndpointEntity> _dlqhooks = new List<EndpointEntity>();
@@ -87,6 +90,24 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
+        public SubscriberBuilder WithWebhookRetrySleepDurations(params TimeSpan[] durations)
+        {
+            _webhookRetryDurations = durations;
+            return this;
+        }
+
+        public SubscriberBuilder WithCallbackRetrySleepDurations(params TimeSpan[] durations)
+        {
+            _callbackRetryDurations = durations;
+            return this;
+        }
+
+        public SubscriberBuilder WithDlqhooksRetrySleepDurations(params TimeSpan[] durations)
+        {
+            _dlqhooksRetryDurations = durations;
+            return this;
+        }
+
         public SubscriberBuilder WithWebhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null)
         {
             var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, null);
@@ -112,11 +133,14 @@ namespace CaptainHook.TestsInfrastructure.Builders
         {
             var subscriber = new SubscriberEntity(_name, _event, _etag);
 
-            return subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity, _webhookPayloadTransform))
-                .Then(_ => subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.Callbacks, _callbackSelectionRule, _callbacks, _callbacksUriTransformEntity)))
-                .Then(_ => subscriber.SetHooks(new WebhooksEntity(WebhooksEntityType.DlqHooks, _dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity, _dlqhookPayloadTransform)))
+            return subscriber.SetHooks(
+                    new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity, _webhookPayloadTransform, _webhookRetryDurations))
+                .Then(_ => subscriber.SetHooks(
+                    new WebhooksEntity(WebhooksEntityType.Callbacks, _callbackSelectionRule, _callbacks, _callbacksUriTransformEntity, null, _callbackRetryDurations)))
+                .Then(_ => subscriber.SetHooks(
+                    new WebhooksEntity(WebhooksEntityType.DlqHooks, _dlqhooksSelectionRule, _dlqhooks, _dlqhooksTransformEntity, _dlqhookPayloadTransform, _dlqhooksRetryDurations)))
                 .Match(
-                    error => throw new ArgumentException(error.Message), 
+                    error => throw new ArgumentException(error.Message),
                     s => s
                 );
         }
