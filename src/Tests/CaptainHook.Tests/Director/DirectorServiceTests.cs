@@ -53,23 +53,10 @@ namespace CaptainHook.Tests.Director
                     [SubscriberConfiguration.Key(_defaultSubscriberConfig.EventType, _defaultSubscriberConfig.SubscriberName)] = RefreshReaderResult.Success
                 });
 
-            var createRequest = new CreateReader { Subscriber = _defaultSubscriberConfig };
+            var createRequest = new UpdateReader { Subscriber = _defaultSubscriberConfig };
             var result = await _directorService.ApplyReaderChange(createRequest);
 
             result.Should().Be(ReaderChangeResult.Success);
-        }
-
-        [Fact, IsUnit]
-        public async Task CreateReader_When_ReaderAlreadyExistsForThatConfiguration_Then_ReaderAlreadyExistIsReturned()
-        {
-            var desiredReader = new DesiredReaderDefinition(_defaultSubscriberConfig);
-            _fabricClientMock.Setup(x => x.GetServiceUriListAsync())
-                .ReturnsAsync(new List<string> { desiredReader.ServiceNameWithSuffix });
-
-            var createRequest = new CreateReader { Subscriber = _defaultSubscriberConfig };
-            var result = await _directorService.ApplyReaderChange(createRequest);
-
-            result.Should().Be(ReaderChangeResult.ReaderAlreadyExist);
         }
 
         [Fact, IsUnit]
@@ -103,18 +90,6 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact, IsUnit]
-        public async Task UpdateReader_When_ReaderDoesNotExist_Then_ReaderDoesNotExistIsReturned()
-        {
-            _fabricClientMock.Setup(x => x.GetServiceUriListAsync())
-                .ReturnsAsync(new List<string> { ServiceNaming.EventReaderServiceFullUri("testevent", "other-reader") });
-
-            var updateRequest = new UpdateReader { Subscriber = _defaultSubscriberConfig };
-            var result = await _directorService.ApplyReaderChange(updateRequest);
-
-            result.Should().Be(ReaderChangeResult.ReaderDoesNotExist);
-        }
-
-        [Fact, IsUnit]
         public async Task CreateReader_When_CreationFails_Then_CreateFailedErrorIsReturned()
         {
             _fabricClientMock
@@ -127,7 +102,7 @@ namespace CaptainHook.Tests.Director
                     [SubscriberConfiguration.Key(_defaultSubscriberConfig.EventType, _defaultSubscriberConfig.SubscriberName)] = RefreshReaderResult.CreateFailed
                 });
 
-            var createRequest = new CreateReader { Subscriber = _defaultSubscriberConfig };
+            var createRequest = new UpdateReader { Subscriber = _defaultSubscriberConfig };
             var result = await _directorService.ApplyReaderChange(createRequest);
 
             result.Should().Be(ReaderChangeResult.CreateFailed);
