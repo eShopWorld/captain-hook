@@ -81,7 +81,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 subscriberConfiguration.EventType.Should().Be("event");
                 subscriberConfiguration.Uri.Should().Be("https://blah-blah.eshopworld.com/webhook/");
                 subscriberConfiguration.HttpMethod.Should().Be(new HttpMethod(httpVerb));
-                
+
                 subscriberConfiguration.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
             }
         }
@@ -104,7 +104,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 subscriberConfiguration.Should().NotBeNull();
                 subscriberConfiguration.SubscriberName.Should().Be("captain-hook");
                 subscriberConfiguration.EventType.Should().Be("event");
-                
+
                 subscriberConfiguration.Callback.Uri.Should().Be("https://blah-blah.eshopworld.com/webhook/");
                 subscriberConfiguration.Callback.HttpVerb.Should().Be(httpVerb);
                 subscriberConfiguration.Callback.AuthenticationConfig.Should().BeValidConfiguration(expectedAuthenticationConfig);
@@ -367,7 +367,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                     .ContainEquivalentOf(StatusCodeRequestRule).And
                     .HaveCount(3);
                 subscriberConfiguration.Callback.Uri.Should().BeNull();
-                
+
                 var rule = subscriberConfiguration.Callback.WebhookRequestRules.SingleOrDefault(x => x.Destination?.RuleAction == RuleAction.RouteAndReplace);
                 rule.Should().NotBeNull();
                 rule.Routes.Should().HaveCount(2);
@@ -566,7 +566,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         public async Task WhenNoSelectionRule_MapsFromFirstEndpoint(string httpVerb, AuthenticationEntity authentication, AuthenticationConfig expectedAuthenticationConfig)
         {
             // Arrange
-            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { {"selector", "$.Test" }});
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
@@ -598,13 +598,47 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             }
         }
 
+        [Fact, IsUnit]
+        public async Task WhenWebhooksAndCallbacksHaveDefinedRetrySleepDurations_MapsRetrySleepDurations()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(
+                new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var subscriber = new SubscriberBuilder()
+               .WithWebhooksSelectionRule("$.TenantCode")
+               .WithWebhookRetrySleepDurations(TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22))
+               .WithWebhooksUriTransform(uriTransform)
+               .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+               .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
+               .WithCallbacksSelectionRule("$.TenantCode")
+               .WithCallbacksUriTransform(uriTransform)
+               .WithCallbackRetrySleepDurations(TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44))
+               .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+               .WithCallback("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
+               .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+
+                var subscriberConfiguration = result.Data;
+
+                subscriberConfiguration.RetrySleepDurations.Should().BeEquivalentTo(new[] {TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22)});
+                subscriberConfiguration.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] {TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44)});
+            }
+        }
+
         [Fact]
         [IsUnit]
         public async Task WhenInvalidSecretKey_ReturnsError()
         {
             // Arrange
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { { "selector", "$.Test" } });
-            var authentication = new OidcAuthenticationEntity("client-id", "invalid-secret-key-name", "uri", new string[]{ });
+            var authentication = new OidcAuthenticationEntity("client-id", "invalid-secret-key-name", "uri", new string[] { });
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", "POST", null, authentication)
@@ -680,8 +714,8 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
 
             // Assert
-            using(new AssertionScope())
-            result.IsError.Should().BeFalse();
+            using (new AssertionScope())
+                result.IsError.Should().BeFalse();
             result.Data.WebhookRequestRules.Should().HaveCount(1);
             result.Data.WebhookRequestRules.Single().Should().BeEquivalentTo(RequestRule);
             result.Data.Callback.WebhookRequestRules.Should().HaveCount(2);
