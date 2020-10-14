@@ -166,7 +166,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 AuthenticationConfig = authenticationResult.Data
             };
 
-            return SetRetrySleepDurationIfOverriden(config, webhooksEntity);
+            return SetRetrySleepDurationIfOverridden(config, webhooksEntity);
         }
 
         private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
@@ -200,10 +200,10 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 },
             };
 
-            return SetRetrySleepDurationIfOverriden(config, webhooksEntity);
+            return SetRetrySleepDurationIfOverridden(config, webhooksEntity);
         }
 
-        private static OperationResult<WebhookConfig> SetRetrySleepDurationIfOverriden(WebhookConfig config, WebhooksEntity webhooksEntity)
+        private static OperationResult<WebhookConfig> SetRetrySleepDurationIfOverridden(WebhookConfig config, WebhooksEntity webhooksEntity)
         {
             if (webhooksEntity.RetrySleepDurations != null)
             {
