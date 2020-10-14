@@ -201,7 +201,8 @@ namespace CaptainHook.Common.Configuration
                 ContentType = webhookConfig.ContentType,
                 Timeout = webhookConfig.Timeout,
                 AuthenticationConfig = webhookConfig.AuthenticationConfig,
-                WebhookRequestRules = webhookConfig.WebhookRequestRules
+                WebhookRequestRules = webhookConfig.WebhookRequestRules,
+                RetrySleepDurations = webhookConfig.RetrySleepDurations,
             };
         }
 
