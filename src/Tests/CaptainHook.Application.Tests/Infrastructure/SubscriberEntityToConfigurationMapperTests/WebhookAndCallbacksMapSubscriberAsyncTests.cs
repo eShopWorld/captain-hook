@@ -603,15 +603,12 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         {
             const string httpVerb = "PUT";
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
-            var uriTransform = new UriTransformEntity(
-                new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
 
             var subscriber = new SubscriberBuilder()
-               .WithWebhooksSelectionRule("$.TenantCode")
                .WithWebhookRetrySleepDurations(TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22))
                .WithWebhooksUriTransform(uriTransform)
                .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
-               .WithCallbacksSelectionRule("$.TenantCode")
                .WithCallbacksUriTransform(uriTransform)
                .WithCallbackRetrySleepDurations(TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44))
                .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
@@ -622,11 +619,8 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-
-                var subscriberConfiguration = result.Data;
-
-                subscriberConfiguration.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
-                subscriberConfiguration.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44) });
+                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
+                result.Data.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44) });
             }
         }
 
@@ -635,14 +629,11 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         {
             const string httpVerb = "PUT";
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
-            var uriTransform = new UriTransformEntity(
-                new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
 
             var subscriber = new SubscriberBuilder()
-               .WithWebhooksSelectionRule("$.TenantCode")
                .WithWebhooksUriTransform(uriTransform)
                .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
-               .WithCallbacksSelectionRule("$.TenantCode")
                .WithCallbacksUriTransform(uriTransform)
                .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
                .Create();
@@ -652,11 +643,8 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-
-                var subscriberConfiguration = result.Data;
-
-                subscriberConfiguration.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
-                subscriberConfiguration.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                result.Data.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
             }
         }
 
@@ -665,8 +653,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         {
             const string httpVerb = "PUT";
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
-            var uriTransform = new UriTransformEntity(
-                new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
 
             var subscriber = new SubscriberBuilder()
                .WithWebhooksSelectionRule("$.TenantCode")
@@ -686,11 +673,8 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-
-                var subscriberConfiguration = result.Data;
-
-                subscriberConfiguration.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
-                subscriberConfiguration.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44) });
+                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
+                result.Data.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44) });
             }
         }
 
@@ -699,8 +683,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         {
             const string httpVerb = "PUT";
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
-            var uriTransform = new UriTransformEntity(
-                new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
 
             var subscriber = new SubscriberBuilder()
                .WithWebhooksSelectionRule("$.TenantCode")
@@ -718,11 +701,8 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-
-                var subscriberConfiguration = result.Data;
-
-                subscriberConfiguration.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
-                subscriberConfiguration.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                result.Data.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
             }
         }
 
