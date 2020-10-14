@@ -28,10 +28,10 @@ namespace CaptainHook.Application.Handlers.Subscribers
                         {
                             return await _entityToConfigurationMapper.MapToDlqAsync(requestedEntity)
                                 .Then<SubscriberConfiguration, IEnumerable<ReaderChangeBase>>(
-                                    dlq => new ReaderChangeBase[] { new CreateReader { Subscriber = sc }, new CreateReader { Subscriber = dlq } });
+                                    dlq => new ReaderChangeBase[] { new UpdateReader { Subscriber = sc }, new UpdateReader { Subscriber = dlq } });
                         }
 
-                        return new[] { new CreateReader { Subscriber = sc } };
+                        return new[] { new UpdateReader { Subscriber = sc } };
                     });
             }
 
@@ -42,7 +42,7 @@ namespace CaptainHook.Application.Handlers.Subscribers
                     {
                         return await _entityToConfigurationMapper.MapToDlqAsync(requestedEntity)
                             .Then<SubscriberConfiguration, IEnumerable<ReaderChangeBase>>(
-                                dlq => new ReaderChangeBase[] { new UpdateReader { Subscriber = sc }, new CreateReader { Subscriber = dlq } });
+                                dlq => new ReaderChangeBase[] { new UpdateReader { Subscriber = sc }, new UpdateReader { Subscriber = dlq } });
                     }
 
                     if (existingEntity.HasDlqHooks && !requestedEntity.HasDlqHooks)

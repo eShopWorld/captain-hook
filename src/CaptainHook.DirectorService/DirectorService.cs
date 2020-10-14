@@ -236,14 +236,6 @@ namespace CaptainHook.DirectorService
                         ReaderChangeInfo changeInfo;
                         switch (readerChange)
                         {
-                            case CreateReader _:
-                                {
-                                    if (existingReader.IsValid)
-                                        return ReaderChangeResult.ReaderAlreadyExist;
-
-                                    changeInfo = ReaderChangeInfo.ToBeCreated(desiredReader);
-                                    break;
-                                }
                             case DeleteReader _:
                                 {
                                     if (!existingReader.IsValid)
@@ -254,9 +246,6 @@ namespace CaptainHook.DirectorService
                                 }
                             case UpdateReader _:
                                 {
-                                    if (!existingReader.IsValid)
-                                        return ReaderChangeResult.ReaderDoesNotExist;
-
                                     var noChanges = desiredReader.IsUnchanged(existingReader);
                                     if (noChanges)
                                         return ReaderChangeResult.NoChangeNeeded;
@@ -305,7 +294,7 @@ namespace CaptainHook.DirectorService
             {
                 var key = SubscriberConfiguration.Key(readerChange.Subscriber.EventType, readerChange.Subscriber.SubscriberName);
 
-                if (readerChange is CreateReader || readerChange is UpdateReader)
+                if (readerChange is UpdateReader)
                     _subscriberConfigurations[key] = readerChange.Subscriber;
                 else if (readerChange is DeleteReader)
                     _subscriberConfigurations.Remove(key);
