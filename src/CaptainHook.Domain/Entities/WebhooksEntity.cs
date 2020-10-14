@@ -83,7 +83,7 @@ namespace CaptainHook.Domain.Entities
             return this;
         }
 
-        public WebhooksEntity SetRetrySleepDurationTransform(TimeSpan[] retrySleepDurations)
+        public WebhooksEntity SetRetrySleepDurations(TimeSpan[] retrySleepDurations)
         {
             RetrySleepDurations = retrySleepDurations;
             return this;
@@ -127,7 +127,7 @@ namespace CaptainHook.Domain.Entities
             SetSelectionRule(webhooks.SelectionRule);
             SetUriTransform(webhooks.UriTransform);
             SetPayloadTransform(webhooks.PayloadTransform);
-            SetRetrySleepDurationTransform(webhooks.RetrySleepDurations);
+            SetRetrySleepDurations(webhooks.RetrySleepDurations);
             Endpoints.Clear();
             foreach (var endpoint in webhooks.Endpoints)
             {

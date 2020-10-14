@@ -469,9 +469,11 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
 
             // Assert
             using (new AssertionScope())
+            {
                 result.IsError.Should().BeFalse();
-            result.Data.WebhookRequestRules.Should().HaveCount(1);
-            result.Data.WebhookRequestRules.Single().Should().BeEquivalentTo(RequestRule);
+                result.Data.WebhookRequestRules.Should().HaveCount(1);
+                result.Data.WebhookRequestRules.Single().Should().BeEquivalentTo(RequestRule);
+            }
         }
     }
 }
