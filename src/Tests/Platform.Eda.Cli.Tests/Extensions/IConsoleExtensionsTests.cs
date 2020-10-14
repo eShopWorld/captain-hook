@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Eshopworld.Tests.Core;
 using McMaster.Extensions.CommandLineUtils;
@@ -95,7 +94,7 @@ namespace Platform.Eda.Cli.Tests.Extensions
 
         }
 
-        private static string FormatDefaultText(string outputString) => $"{IConsoleExtensions.Colors.Cyan}{outputString}{IConsoleExtensions.Colors.Reset}";
+        private static string FormatDefaultText(string outputString) => $"{IConsoleExtensions.Colors.Default}{outputString}{IConsoleExtensions.Colors.Reset}";
         private static string FormatSuccessText(string outputString) => $"{IConsoleExtensions.Colors.Green}{outputString}{IConsoleExtensions.Colors.Reset}";
         private static string FormatErrorText(string outputString) => $"{IConsoleExtensions.Colors.Red}{outputString}{IConsoleExtensions.Colors.Reset}";
         private static string FormatWarningText(string outputString) => $"{IConsoleExtensions.Colors.Yellow}{outputString}{IConsoleExtensions.Colors.Reset}";

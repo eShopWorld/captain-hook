@@ -66,12 +66,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             {
                 // Step 1 - Read file
                 var fileRelativePath = Path.GetRelativePath(inputFolderPath, subscriberFilePath);
-                _console.WriteNormal(string.Empty, $"Processing file: '{fileRelativePath}'");
 
                 var parseFileResult = _subscriberFileParser.ParseFile(subscriberFilePath);
                 if (parseFileResult.IsError)
                 {
-                    _console.WriteError(parseFileResult.Error.Message);
+                    _console.WriteErrorWithFileName(fileRelativePath, parseFileResult.Error.Message);
                     putSubscriberFiles.Add(new PutSubscriberFile
                     {
                         Error = parseFileResult.Error.Message,
@@ -86,23 +85,16 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var validationResult = await new FileStructureValidator().ValidateAsync(parsedFile);
                 if (!validationResult.IsValid)
                 {
-                    _console.WriteValidationResult("JSON file validation", validationResult);
+                    _console.WriteValidationResultWithFileName(fileRelativePath,"JSON file validation", validationResult);
                     continue;
                 }
 
-                // Step 2 - Extract vars dictionary
-                JObject varsJObject = null;
-                if (parsedFile.ContainsKey("vars"))
-                {
-                    _console.WriteNormal("Extracting variables");
-                    varsJObject = (JObject)parsedFile["vars"];
-                }
-
                 // Step 2.0 - silently ignore file if it's not defined for current environment
+                var varsJObject = (JObject)parsedFile["vars"];
                 var environmentsResult = EnvironmentNamesExtractor.FindInVars(varsJObject);
                 if (environmentsResult.IsError)
                 {
-                    _console.WriteError(environmentsResult.Error.Message);
+                    _console.WriteErrorWithFileName(fileRelativePath, environmentsResult.Error.Message);
                     putSubscriberFiles.Add(new PutSubscriberFile
                     {
                         Error = environmentsResult.Error.Message,
@@ -113,14 +105,15 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
                 if (environmentsResult.Data.Any() && !environmentsResult.Data.Contains(env?.ToLower()))
                 {
-                    _console.WriteNormal($"File skipped due to lack of variables defined for environment `{env}'");
+                    _console.WriteSkippedWithFileName(fileRelativePath);
                     continue;
                 }
 
+                // Step 2 - Extract vars dictionary
                 var extractVarsResult = _jsonVarsExtractor.ExtractVars(varsJObject, env);
                 if (extractVarsResult.IsError)
                 {
-                    _console.WriteError(extractVarsResult.Error.Message);
+                    _console.WriteErrorWithFileName(fileRelativePath, extractVarsResult.Error.Message);
                     putSubscriberFiles.Add(new PutSubscriberFile
                     {
                         Error = extractVarsResult.Error.Message,
@@ -135,7 +128,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var replacementValidationResult = new ValidationResult(varsValidationResult.Errors.Concat(paramsValidationResult.Errors));
                 if (!replacementValidationResult.IsValid)
                 {
-                    _console.WriteValidationResult("vars and params validation", replacementValidationResult);
+                    _console.WriteValidationResultWithFileName(fileRelativePath, "vars and params validation", replacementValidationResult);
                     putSubscriberFiles.Add(new PutSubscriberFile
                     {
                         Error = string.Join(", ", replacementValidationResult.Errors),
@@ -150,11 +143,10 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
                 if (variablesDictionary.Count > 0)
                 {
-                    _console.WriteNormal("Replacing vars in template");
                     var templateReplaceResult = _jsonTemplateValuesReplacer.Replace("vars", template, extractVarsResult.Data);
                     if (templateReplaceResult.IsError)
                     {
-                        _console.WriteError(templateReplaceResult.Error.Message);
+                        _console.WriteErrorWithFileName(fileRelativePath, templateReplaceResult.Error.Message);
                         putSubscriberFiles.Add(new PutSubscriberFile
                         {
                             Error = templateReplaceResult.Error.Message,
@@ -167,14 +159,12 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
                 if (!replacementParams.IsNullOrEmpty())
                 {
-                    _console.WriteNormal("Replacing params in template");
-
                     var paramsDictionary = new Dictionary<string, JToken>(
-                        replacementParams.Select(kv => new KeyValuePair<string, JToken>(kv.Key, kv.Value)));
+                        replacementParams!.Select(kv => new KeyValuePair<string, JToken>(kv.Key, kv.Value)));
                     var templateReplaceResult = _jsonTemplateValuesReplacer.Replace("params", template, paramsDictionary);
                     if (templateReplaceResult.IsError)
                     {
-                        _console.WriteError(templateReplaceResult.Error.Message);
+                        _console.WriteErrorWithFileName(fileRelativePath, templateReplaceResult.Error.Message);
                         putSubscriberFiles.Add(new PutSubscriberFile
                         {
                             Error = templateReplaceResult.Error.Message,
@@ -187,7 +177,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
 
                 // Step 4 - Create PutSubscriberFile object for further processing
-                _console.WriteNormal("File successfully parsed");
+                _console.WriteNormalWithFileName(fileRelativePath);
                 putSubscriberFiles.Add(new PutSubscriberFile
                 {
                     Request = JsonConvert.DeserializeObject<PutSubscriberRequest>(template),
@@ -197,7 +187,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
             if (noDryRun)
             {
-                _console.WriteSuccess("Starting to run configuration against Captain Hook API");
+                _console.WriteNormalBox("Starting to run configuration against Captain Hook API");
 
                 var apiResults = await ConfigureEdaWithCaptainHook(_console, inputFolderPath, env, putSubscriberFiles);
                 if (apiResults.Any(r => r.IsError))
@@ -207,7 +197,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             }
             else
             {
-                _console.WriteSuccess("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
+                _console.WriteNormalBox("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
                 return putSubscriberFiles.Any(file => file.IsError) ? 1 : 0;
             }
 
@@ -241,7 +231,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                         _ => $"unknown result (HTTP Status {apiResult.Response?.Data?.Response?.StatusCode:D})"
                     };
 
-                    writer.WriteNormal($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
+                    writer.WriteNormalWithFileName($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
                                        $"subscriber '{apiResult.Request.SubscriberName}' has been {operationDescription}.");
                 }
             }
