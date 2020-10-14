@@ -71,9 +71,10 @@ namespace Platform.Eda.Cli
             {
                 var messages = new[]
                 {
-                    $"EXCEPTION: {exception.GetType().FullName}",
-                    exception.Message,
-                }.Concat(commandParsed?.ToConsoleStrings());
+                    $"EXCEPTION: {exception.GetType().FullName}"
+                }
+                    .Concat(exception.InnerExceptions().Select(x => x.Message))
+                    .Concat(commandParsed?.ToConsoleStrings());
                 _console.WriteWarningBox(messages.ToArray());
 
                 return -1;
