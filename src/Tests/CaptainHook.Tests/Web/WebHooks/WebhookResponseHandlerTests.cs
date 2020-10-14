@@ -111,7 +111,12 @@ namespace CaptainHook.Tests.Web.WebHooks
             await webhookResponseHandler.CallAsync(messageData, new Dictionary<string, object>(), _cancellationToken);
 
             _mockAuthHandlerFactory.Verify(e => e.GetAsync(messageData.SubscriberConfig, _cancellationToken), Times.Once);
-            _mockHttpSender.Verify(x => x.SendAsync(It.Is<SendRequest>(request => request.Uri == new Uri(ExpectedWebHookUri)), It.IsAny<CancellationToken>()), Times.Once);
+            _mockHttpSender.Verify(x => x.SendAsync(
+                    It.Is<SendRequest>(request =>
+                        request.HttpMethod == HttpMethod.Post &&
+                        request.Uri == new Uri(ExpectedWebHookUri)),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
         }
 
         /// <summary>
