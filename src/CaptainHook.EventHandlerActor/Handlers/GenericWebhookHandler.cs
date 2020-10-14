@@ -78,7 +78,9 @@ namespace CaptainHook.EventHandlerActor.Handlers
 
                 await AddAuthenticationHeaderAsync(cancellationToken, authenticationConfig, headers);
 
-                var response = await HttpSender.SendAsync(httpMethod, uri, headers, payload, config.Timeout, cancellationToken);
+                var response = await HttpSender.SendAsync(
+                    new SendRequest(httpMethod, uri, headers, payload, config.RetrySleepDurations, config.Timeout),
+                    cancellationToken);
 
                 await _requestLogger.LogAsync(response, messageData, payload, uri, httpMethod, headers, config);
 

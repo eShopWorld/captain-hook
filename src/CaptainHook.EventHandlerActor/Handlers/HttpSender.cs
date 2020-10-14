@@ -36,20 +36,20 @@ namespace CaptainHook.EventHandlerActor.Handlers
             return await httpClient.RequestClientCredentialsTokenAsync(request, cancellationToken);
         }
 
-        public async Task<HttpResponseMessage> SendAsync(HttpMethod httpMethod, Uri uri, WebHookHeaders headers, string payload, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+        public async Task<HttpResponseMessage> SendAsync(SendRequest sendRequest, CancellationToken cancellationToken = default)
         {
-            var httpClient = _httpClientFactory.Get(uri, timeout);
+            var httpClient = _httpClientFactory.Get(sendRequest.Uri, sendRequest.Timeout);
 
             return await RetryRequest(() =>
             {
-                var request = new HttpRequestMessage(httpMethod, uri);
+                var request = new HttpRequestMessage(sendRequest.HttpMethod, sendRequest.Uri);
 
-                if (httpMethod != HttpMethod.Get)
+                if (sendRequest.HttpMethod != HttpMethod.Get)
                 {
-                    request.Content = new StringContent(payload, Encoding.UTF8, headers.ContentHeaders[Constants.Headers.ContentType]);
+                    request.Content = new StringContent(sendRequest.Payload, Encoding.UTF8, sendRequest.Headers.ContentHeaders[Constants.Headers.ContentType]);
                 }
 
-                foreach (var key in headers.RequestHeaders.Keys)
+                foreach (var key in sendRequest.Headers.RequestHeaders.Keys)
                 {
                     //todo is this the correct thing to do when there is a CorrelationVector with multiple Children.
                     if (request.Headers.Contains(key))
@@ -57,7 +57,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                         request.Headers.Remove(key);
                     }
 
-                    request.Headers.Add(key, headers.RequestHeaders[key]);
+                    request.Headers.Add(key, sendRequest.Headers.RequestHeaders[key]);
                 }
 
                 return httpClient.SendAsync(request, cancellationToken);

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
 using Newtonsoft.Json;
@@ -44,12 +45,10 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
             headers.AddRequestHeader("client_id", OidcAuthenticationConfig.ClientId);
             headers.AddRequestHeader("client_secret", OidcAuthenticationConfig.ClientSecret);
 
+            var defaultRetrySleepDurations = new WebhookConfig().RetrySleepDurations;
             var authProviderResponse = await HttpSender.SendAsync(
-                HttpMethod.Post,
-                new Uri(OidcAuthenticationConfig.Uri),
-                headers,
-                string.Empty,
-                cancellationToken: cancellationToken);
+                new SendRequest(HttpMethod.Post, new Uri(OidcAuthenticationConfig.Uri), headers, string.Empty, defaultRetrySleepDurations),
+                cancellationToken);
 
             if (authProviderResponse.StatusCode != HttpStatusCode.Created || authProviderResponse.Content == null)
             {

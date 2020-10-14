@@ -13,10 +13,13 @@ namespace CaptainHook.Common.Configuration
     /// </summary>
     public class WebhookConfig
     {
+        private static readonly TimeSpan[] DefaultRetrySleepDurations = { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) };
+
         public WebhookConfig()
         {
             AuthenticationConfig = new AuthenticationConfig();
             WebhookRequestRules = new List<WebhookRequestRule>();
+            RetrySleepDurations = DefaultRetrySleepDurations;
         }
 
         /// <summary>
@@ -82,6 +85,12 @@ namespace CaptainHook.Common.Configuration
         /// </summary>
         [JsonProperty(Order = 6)]
         public TimeSpan Timeout { get; set; } = new TimeSpan(0, 0, 100);
+
+        /// <summary>
+        /// Retry sleep durations to use for request retry logic
+        /// </summary>
+        [JsonProperty(Order = 7)]
+        public TimeSpan[] RetrySleepDurations { get; set; }
 
         /// <summary>
         /// type of transformation to perform onto payload
