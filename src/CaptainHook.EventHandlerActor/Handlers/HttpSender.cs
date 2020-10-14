@@ -1,8 +1,8 @@
 using CaptainHook.Common;
 using IdentityModel.Client;
-using Microsoft.Azure.Management.Graph.RBAC.Fluent.Models;
 using Polly;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -40,7 +40,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         {
             var httpClient = _httpClientFactory.Get(sendRequest.Uri, sendRequest.Timeout);
 
-            return await RetryRequest(() =>
+            return await RetryRequest(sendRequest.RetrySleepDurations, () =>
             {
                 var request = new HttpRequestMessage(sendRequest.HttpMethod, sendRequest.Uri);
 
@@ -68,20 +68,17 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <summary>
         /// Executes the supplied func with reties and reports on it if something goes wrong ideally to BigBrother
         /// </summary>
+        /// <param name="sleepDurations"></param>
         /// <param name="makeTheCall"></param>
         /// <returns></returns>
         private static async Task<HttpResponseMessage> RetryRequest(
-            Func<Task<HttpResponseMessage>> makeTheCall)
+            IEnumerable<TimeSpan> sleepDurations, Func<Task<HttpResponseMessage>> makeTheCall)
         {
             //todo the retry status codes need to be customisable from the webhook config api
             return await Policy
                 .HandleResult<HttpResponseMessage>(message => message.IsDeliveryFailure())
-                .WaitAndRetryAsync(new[]
-                {
-                    //todo config this + jitter
-                    TimeSpan.FromSeconds(20),
-                    TimeSpan.FromSeconds(30)
-                }).ExecuteAsync(makeTheCall.Invoke);
+                .WaitAndRetryAsync(sleepDurations)
+                .ExecuteAsync(makeTheCall.Invoke);
         }
     }
 }
