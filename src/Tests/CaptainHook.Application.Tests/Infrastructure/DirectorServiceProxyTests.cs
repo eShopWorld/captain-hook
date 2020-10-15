@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.DirectorService;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;
+using CaptainHook.Common;
 using CaptainHook.Domain.Errors;
 using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Tests.Core;
@@ -26,6 +28,18 @@ namespace CaptainHook.Application.Tests.Infrastructure
 
             result.IsError.Should().BeFalse();
             result.Data.Should().NotBeNull();
+        }
+
+        [Fact, IsUnit]
+        public async Task When_ReaderDoesNotExist_Then_ErrorIsReturned()
+        {
+            _directorServiceMock.Setup(x => x.ApplyReaderChange(It.IsAny<ReaderChangeBase>()))
+                .ReturnsAsync(ReaderChangeResult.ReaderDoesNotExist);
+
+            var result = await Proxy.CallDirectorServiceAsync(new DeleteReader(new SubscriberConfigurationBuilder().Create()));
+
+            result.IsError.Should().BeTrue();
+            result.Error.Should().BeOfType<ReaderDoesNotExistError>();
         }
 
         [Fact, IsUnit]

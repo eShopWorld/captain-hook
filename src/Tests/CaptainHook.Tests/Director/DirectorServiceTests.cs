@@ -42,7 +42,7 @@ namespace CaptainHook.Tests.Director
         }
 
         [Fact, IsUnit]
-        public async Task CreateReader_When_ReaderDoesNotExist_Then_ReaderIsCreated()
+        public async Task UpdateReader_When_ReaderDoesNotExist_Then_ReaderIsCreated()
         {
             _fabricClientMock.Setup(x => x.GetServiceUriListAsync())
                 .ReturnsAsync(new List<string> { ServiceNaming.EventReaderServiceFullUri("testevent", "other-reader") });
@@ -146,7 +146,6 @@ namespace CaptainHook.Tests.Director
 
             result.Should().Be(ReaderChangeResult.DeleteFailed);
         }
-
 
         [Fact, IsUnit]
         public async Task DeleteReader_When_ReaderExists_Then_ReaderIsDeleted()
