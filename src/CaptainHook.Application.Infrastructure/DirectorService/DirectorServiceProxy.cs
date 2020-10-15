@@ -26,7 +26,6 @@ namespace CaptainHook.Application.Infrastructure.DirectorService
                 ReaderChangeResult.CreateFailed => new ReaderCreateError(request.Subscriber.EventType, request.Subscriber.SubscriberName),
                 ReaderChangeResult.DeleteFailed => new ReaderDeleteError(request.Subscriber.EventType, request.Subscriber.SubscriberName),
                 ReaderChangeResult.DirectorIsBusy => new DirectorServiceIsBusyError(),
-                ReaderChangeResult.ReaderAlreadyExist => new ReaderAlreadyExistsError(request.Subscriber.EventType, request.Subscriber.SubscriberName),
                 ReaderChangeResult.ReaderDoesNotExist => new ReaderDoesNotExistError(request.Subscriber.EventType, request.Subscriber.SubscriberName),
                 _ => new BusinessError("Director Service returned unknown result.")
             };
