@@ -12,11 +12,6 @@ namespace Platform.Eda.Cli.Extensions
     public static class IConsoleExtensions
     {
         private static readonly string BoxDelimiter = new string('=', 80);
-        private const int IndentSize = 5;
-        
-        private const string Ok = "Ok";
-        private const string Skip = "Skip";
-        private const string Error = "Error";
 
         public static class Colors
         {
@@ -32,12 +27,6 @@ namespace Platform.Eda.Cli.Extensions
             console.Out.WriteInColor(Colors.Default, lines);
         }
 
-        public static void WriteNormalWithFileName(this IConsole console, string fileName, params string[] lines)
-        {
-            lines = PrepareIndentedStrings(Ok, fileName, lines);
-            WriteNormal(console, lines);
-        }
-
         public static void WriteSuccess(this IConsole console, params string[] lines)
         {
             console.Out.WriteInColor(Colors.Green, lines);
@@ -48,23 +37,9 @@ namespace Platform.Eda.Cli.Extensions
             console.Out.WriteInColor(Colors.Yellow, lines);
         }
 
-        public static void WriteSkippedWithFileName(this IConsole console, string fileName, params string[] lines)
-        {
-            lines = PrepareIndentedStrings(Skip, fileName, lines);
-
-            WriteWarning(console, lines);
-        }
-
         public static void WriteError(this IConsole console, params string[] lines)
         {
             console.Out.WriteInColor(Colors.Red, lines);
-        }
-
-        public static void WriteErrorWithFileName(this IConsole console, string fileName, params string[] lines)
-        {
-            lines = PrepareIndentedStrings(Error, fileName, lines);
-
-            WriteError(console, lines);
         }
 
         public static void WriteNormalBox(this IConsole console, params string[] lines)
@@ -87,28 +62,12 @@ namespace Platform.Eda.Cli.Extensions
             console.WriteError(lines.Prepend(BoxDelimiter).Append(BoxDelimiter).ToArray());
         }
 
-        public static void WriteValidationResultWithFileName(this IConsole console, string fileName, string stageName, ValidationResult validationResult)
-        {
-            var failures = validationResult.Errors.Select((failure, i) => $"{i + 1}. {failure.ErrorMessage}").ToArray();
-            console.WriteErrorWithFileName(fileName, failures.Prepend($"Validation errors during {stageName} - failures:").ToArray());
-        }
-
         private static void WriteInColor(this TextWriter writer, Color color, params string[] lines)
         {
             foreach (var line in lines)
             {
                 writer.WriteLine($"{color}{line}{Colors.Reset}");
             }
-        }
-
-        private static string[] PrepareIndentedStrings(string result, string fileName, string[] lines)
-        {
-            var header = $"{result,-IndentSize} > {fileName}";
-            lines = lines
-                .Select(line => $"{string.Empty,-IndentSize} | {line}")
-                .Prepend(header)
-                .ToArray();
-            return lines;
         }
 
         public class Color
