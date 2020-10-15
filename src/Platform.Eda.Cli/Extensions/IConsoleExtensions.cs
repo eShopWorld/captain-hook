@@ -13,6 +13,10 @@ namespace Platform.Eda.Cli.Extensions
     {
         private static readonly string BoxDelimiter = new string('=', 80);
         private const int IndentSize = 5;
+        
+        private const string Ok = "Ok";
+        private const string Skip = "Skip";
+        private const string Error = "Error";
 
         public static class Colors
         {
@@ -30,9 +34,7 @@ namespace Platform.Eda.Cli.Extensions
 
         public static void WriteNormalWithFileName(this IConsole console, string fileName, params string[] lines)
         {
-            const string ok = "Ok";
-            lines = PrepareIndentedStrings(ok, fileName, lines);
-
+            lines = PrepareIndentedStrings(Ok, fileName, lines);
             WriteNormal(console, lines);
         }
 
@@ -48,8 +50,7 @@ namespace Platform.Eda.Cli.Extensions
 
         public static void WriteSkippedWithFileName(this IConsole console, string fileName, params string[] lines)
         {
-            const string skip = "Skip";
-            lines = PrepareIndentedStrings(skip, fileName, lines);
+            lines = PrepareIndentedStrings(Skip, fileName, lines);
 
             WriteWarning(console, lines);
         }
@@ -61,8 +62,7 @@ namespace Platform.Eda.Cli.Extensions
 
         public static void WriteErrorWithFileName(this IConsole console, string fileName, params string[] lines)
         {
-            const string error = "Error";
-            lines = PrepareIndentedStrings(error, fileName, lines);
+            lines = PrepareIndentedStrings(Error, fileName, lines);
 
             WriteError(console, lines);
         }
@@ -101,14 +101,12 @@ namespace Platform.Eda.Cli.Extensions
             }
         }
 
-        private static string MakeHeader(string result, string file) =>
-            $"{result,-IndentSize} > {file}";
-
         private static string[] PrepareIndentedStrings(string result, string fileName, string[] lines)
         {
+            var header = $"{result,-IndentSize} > {fileName}";
             lines = lines
                 .Select(line => $"{string.Empty,-IndentSize} | {line}")
-                .Prepend(MakeHeader(result, fileName))
+                .Prepend(header)
                 .ToArray();
             return lines;
         }
