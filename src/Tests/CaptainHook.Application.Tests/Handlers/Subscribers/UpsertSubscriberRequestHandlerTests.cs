@@ -59,7 +59,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.IsAny<SubscriberId>()))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _requestsGeneratorMock.Setup(r => r.DefineChangesAsync(It.IsAny<SubscriberEntity>(), It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new[] { new CreateReader() });
+                .ReturnsAsync(new[] { new UpdateReader() });
             _directorServiceProxyMock.Setup(r => r.CallDirectorServiceAsync(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
@@ -88,7 +88,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(subscriberEntity);
             _requestsGeneratorMock.Setup(r => r.DefineChangesAsync(It.IsAny<SubscriberEntity>(), It.IsAny<SubscriberEntity>()))
-               .ReturnsAsync(new[] { new CreateReader() });
+               .ReturnsAsync(new[] { new UpdateReader() });
             _directorServiceProxyMock.Setup(r => r.CallDirectorServiceAsync(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.Setup(r => r.UpdateSubscriberAsync(It.IsAny<SubscriberEntity>()))
@@ -131,8 +131,8 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _requestsGeneratorMock.Setup(r => r.DefineChangesAsync(It.IsAny<SubscriberEntity>(), It.IsAny<SubscriberEntity>()))
-               .ReturnsAsync(new[] { new CreateReader() });
-            _directorServiceProxyMock.Setup(r => r.CallDirectorServiceAsync(It.IsAny<CreateReader>()))
+               .ReturnsAsync(new[] { new UpdateReader() });
+            _directorServiceProxyMock.Setup(r => r.CallDirectorServiceAsync(It.IsAny<UpdateReader>()))
                 .ReturnsAsync(new DirectorServiceIsBusyError());
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
@@ -142,13 +142,13 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         }
 
         [Fact, IsUnit]
-        public async Task When_DirectorServiceFailsToCreateReaderAsync_Then_OperationFails()
+        public async Task When_DirectorServiceFailsToUpdateReaderAsync_Then_OperationFails()
         {
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _requestsGeneratorMock.Setup(r => r.DefineChangesAsync(It.IsAny<SubscriberEntity>(), It.IsAny<SubscriberEntity>()))
-               .ReturnsAsync(new[] { new CreateReader() });
-            _directorServiceProxyMock.Setup(r => r.CallDirectorServiceAsync(It.IsAny<CreateReader>()))
+               .ReturnsAsync(new[] { new UpdateReader() });
+            _directorServiceProxyMock.Setup(r => r.CallDirectorServiceAsync(It.IsAny<UpdateReader>()))
                 .ReturnsAsync(new ReaderCreateError("subscriber", "event"));
 
             var result = await _handler.Handle(_testRequest, CancellationToken.None);
@@ -163,7 +163,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             _repositoryMock.Setup(r => r.GetSubscriberAsync(It.Is<SubscriberId>(id => id.Equals(new SubscriberId("event", "subscriber")))))
                 .ReturnsAsync(new EntityNotFoundError("subscriber", "key"));
             _requestsGeneratorMock.Setup(r => r.DefineChangesAsync(It.IsAny<SubscriberEntity>(), It.IsAny<SubscriberEntity>()))
-               .ReturnsAsync(new[] { new CreateReader() });
+               .ReturnsAsync(new[] { new UpdateReader() });
             _directorServiceProxyMock.Setup(r => r.CallDirectorServiceAsync(It.IsAny<ReaderChangeBase>()))
                 .ReturnsAsync(new SubscriberConfiguration());
             _repositoryMock.Setup(r => r.AddSubscriberAsync(It.IsAny<SubscriberEntity>()))
