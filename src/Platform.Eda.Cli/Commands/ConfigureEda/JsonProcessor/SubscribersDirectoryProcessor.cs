@@ -30,11 +30,6 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var subscriberFiles =
                     _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
 
-                if (!subscriberFiles.Any())
-                {
-                    return new CliExecutionError($"No files have been found in '{sourceFolderPath}'");
-                }
-
                 return subscriberFiles;
             }
             catch (Exception e)
