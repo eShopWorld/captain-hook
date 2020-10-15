@@ -189,7 +189,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             {
                 _console.WriteNormalBox("Starting to run configuration against Captain Hook API");
 
-                var apiResults = await ConfigureEdaWithCaptainHook(_console, inputFolderPath, env, putSubscriberFiles);
+                var apiResults = await ConfigureEdaWithCaptainHook(inputFolderPath, env, putSubscriberFiles);
                 if (apiResults.Any(r => r.IsError))
                 {
                     return 2;
@@ -204,8 +204,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             return 0;
         }
 
-        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(IConsole writer,
-            string inputFolderPath, string env, IEnumerable<PutSubscriberFile> subscriberFiles)
+        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(string inputFolderPath, string env, IEnumerable<PutSubscriberFile> subscriberFiles)
         {
             var api = _captainHookBuilder(env);
             var apiResults = new List<OperationResult<HttpOperationResponse>>();
@@ -219,8 +218,9 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
                 if (apiResultResponse.IsError)
                 {
-                    writer.WriteError($"Error when processing '{fileRelativePath}' for event '{apiResult.Request.EventName}'," +
-                                      $" subscriber '{apiResult.Request.SubscriberName}'. Error details: ", apiResultResponse.Error.Message);
+                    _console.WriteErrorWithFileName(
+                        $"Event: '{apiResult.Request.EventName}', Subscriber: '{apiResult.Request.SubscriberName}', File: {fileRelativePath}.",
+                        apiResultResponse.Error.Message.Split(Environment.NewLine));
                 }
                 else
                 {
@@ -231,8 +231,8 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                         _ => $"unknown result (HTTP Status {apiResult.Response?.Data?.Response?.StatusCode:D})"
                     };
 
-                    writer.WriteNormalWithFileName($"File '{fileRelativePath}' has been processed successfully. Event '{apiResult.Request.EventName}', " +
-                                       $"subscriber '{apiResult.Request.SubscriberName}' has been {operationDescription}.");
+                    _console.WriteNormalWithFileName(
+                        $"{operationDescription} Event '{apiResult.Request.EventName}', Subscriber: '{apiResult.Request.SubscriberName}', File: {fileRelativePath}.");
                 }
             }
 

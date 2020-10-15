@@ -31,10 +31,7 @@ namespace Platform.Eda.Cli.Extensions
         public static void WriteNormalWithFileName(this IConsole console, string fileName, params string[] lines)
         {
             const string ok = "Ok";
-            lines = lines
-                .Select(line => $"{string.Empty,-IndentSize} > {line}")
-                .Prepend(MakeHeader(ok, fileName))
-                .ToArray();
+            lines = PrepareIndentedStrings(ok, fileName, lines);
 
             WriteNormal(console, lines);
         }
@@ -52,10 +49,7 @@ namespace Platform.Eda.Cli.Extensions
         public static void WriteSkippedWithFileName(this IConsole console, string fileName, params string[] lines)
         {
             const string skip = "Skip";
-            lines = lines
-                .Select(line => $"{string.Empty,-IndentSize} | {line}")
-                .Prepend(MakeHeader(skip, fileName))
-                .ToArray();
+            lines = PrepareIndentedStrings(skip, fileName, lines);
 
             WriteWarning(console, lines);
         }
@@ -68,10 +62,7 @@ namespace Platform.Eda.Cli.Extensions
         public static void WriteErrorWithFileName(this IConsole console, string fileName, params string[] lines)
         {
             const string error = "Error";
-            lines = lines
-                .Select(line => $"{string.Empty,-IndentSize} | {line}")
-                .Prepend(MakeHeader(error, fileName))
-                .ToArray();
+            lines = PrepareIndentedStrings(error, fileName, lines);
 
             WriteError(console, lines);
         }
@@ -112,6 +103,15 @@ namespace Platform.Eda.Cli.Extensions
 
         private static string MakeHeader(string result, string file) =>
             $"{result,-IndentSize} > {file}";
+
+        private static string[] PrepareIndentedStrings(string result, string fileName, string[] lines)
+        {
+            lines = lines
+                .Select(line => $"{string.Empty,-IndentSize} | {line}")
+                .Prepend(MakeHeader(result, fileName))
+                .ToArray();
+            return lines;
+        }
 
         public class Color
         {
