@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
@@ -34,7 +36,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://blah-blah.eshopworld.com/dlq/", httpVerb, "*", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithHttpVerb(httpVerb)
@@ -69,7 +71,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://blah-{orderCode}.eshopworld.com/dlq/", httpVerb, null, authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
@@ -114,7 +116,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
@@ -165,7 +167,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "bSelector", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
@@ -216,7 +218,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
@@ -264,7 +266,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .WithDlqhook("https://blah-{selector}.eshopworld.com/dlq/", httpVerb, "*", authentication)
                 .Create();
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             var dlqConfig = new SubscriberConfigurationBuilder()
                 .WithUri(null).WithoutAuthentication()
@@ -295,6 +297,98 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             }
         }
 
+        [Fact, IsUnit]
+        public async Task WhenSingleDlqhookHaveDefinedRetrySleepDurations_MapsRetrySleepDurations()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication)
+                .WithDlqhook("https://blah-blah.eshopworld.com/dlq/", httpVerb, "*", authentication)
+                .WithDlqhooksUriTransform(uriTransform)
+                .WithDlqhooksRetrySleepDurations(TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22))
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenSingleDlqhookHaveNotDefinedRetrySleepDurations_MapsDefaultRetrySleepDurations()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication)
+                .WithDlqhook("https://blah-blah.eshopworld.com/dlq/", httpVerb, "*", authentication)
+                .WithDlqhooksUriTransform(uriTransform)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenMultipleDlqhooksHaveDefinedRetrySleepDurations_MapsRetrySleepDurations()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithDlqhooksSelectionRule("$.TenantCode")
+                .WithDlqhooksUriTransform(uriTransform)
+                .WithDlqhooksRetrySleepDurations(TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22))
+                .WithDlqhook("https://order-{selector}.eshopworld.com/dlq/", httpVerb, null, authentication)
+                .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenMultipleDlqhooksHaveNotDefinedRetrySleepDurations_MapsDefaultRetrySleepDurations()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithDlqhooksSelectionRule("$.TenantCode")
+                .WithDlqhooksUriTransform(uriTransform)
+                .WithDlqhook("https://order-{selector}.eshopworld.com/dlq/", httpVerb, null, authentication)
+                .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+            }
+        }
+
         [Fact]
         [IsUnit]
         public async Task WhenInvalidSecretKey_ReturnsError()
@@ -310,7 +404,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             _secretProviderMock.Setup(x => x.GetSecretValueAsync("invalid-secret-key-name"))
                 .Throws(new System.Exception());
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             using (new AssertionScope())
             {
@@ -334,7 +428,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             _secretProviderMock.Setup(x => x.GetSecretValueAsync("password-key-name"))
                 .Throws(new System.Exception());
 
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             using (new AssertionScope())
             {
@@ -371,13 +465,15 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 .Create();
 
             // Act
-            var result = await new Application.Infrastructure.Mappers.SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
 
             // Assert
             using (new AssertionScope())
+            {
                 result.IsError.Should().BeFalse();
-            result.Data.WebhookRequestRules.Should().HaveCount(1);
-            result.Data.WebhookRequestRules.Single().Should().BeEquivalentTo(RequestRule);
+                result.Data.WebhookRequestRules.Should().HaveCount(1);
+                result.Data.WebhookRequestRules.Single().Should().BeEquivalentTo(RequestRule);
+            }
         }
     }
 }
