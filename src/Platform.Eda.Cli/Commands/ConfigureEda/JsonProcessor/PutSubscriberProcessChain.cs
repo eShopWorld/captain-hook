@@ -62,7 +62,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
             if (readDirectoryResult.Data == null || !readDirectoryResult.Data.Any())
             {
                 _console.WriteWarning("No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
-                return 1;
+                return 0;
             }
 
             var subscriberFilePaths = readDirectoryResult.Data;

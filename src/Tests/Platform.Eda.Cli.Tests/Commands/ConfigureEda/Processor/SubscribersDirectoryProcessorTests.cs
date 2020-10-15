@@ -6,7 +6,6 @@ using CaptainHook.Domain.Results;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor;
-using Platform.Eda.Cli.Commands.ConfigureEda.Models;
 using Platform.Eda.Cli.Common;
 using Xunit;
 
@@ -43,7 +42,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
         }
 
         [Fact, IsUnit]
-        public void ProcessDirectory_EmptyDirectory_ReturnsError()
+        public void ProcessDirectory_EmptyDirectory_ReturnsEmptyListOfFiles()
         {
             // Arrange
             var subscribersDirectoryProcessor = new SubscribersDirectoryProcessor(new MockFileSystem(new Dictionary<string, MockFileData>(), MockDirectoryPath));
@@ -52,7 +51,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             var result = subscribersDirectoryProcessor.ProcessDirectory(MockDirectoryPath);
 
             // Assert
-            var expected = new OperationResult<IEnumerable<PutSubscriberFile>>(new CliExecutionError("No files have been found in 'Z:\\Sample\\'"));
+            var expected = new OperationResult<IEnumerable<string>>(new List<string>());
             result.Should().BeEquivalentTo(expected);
         }
 

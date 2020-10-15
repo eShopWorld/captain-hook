@@ -121,6 +121,28 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 
         [ClassData(typeof(ValidEnvironmentNames))]
         [Theory, IsUnit]
+        public async Task ProcessAsync_When_NoFilesFound_Then_ReturnsZero(string environment)
+        {
+            // Arrange
+            _subscribersDirectoryProcessorMock
+                .Setup(x => x.ProcessDirectory(It.IsAny<string>()))
+                .Returns(new List<string>());
+
+            // Act
+            var result = await _sut.ProcessAsync("a folder", environment, EmptyReplacementsDictionary, true);
+
+            // Assert
+            using (new AssertionScope())
+            {
+                _subscribersDirectoryProcessorMock.Verify(x => x.ProcessDirectory("a folder"), Times.Once);
+                VerifyWrite(_outWriter, "No subscriber files have been found in the folder. Ensure you used the correct folder and the relevant files have the .json extensions.");
+                result.Should().Be(0);
+            }
+        }
+
+
+        [ClassData(typeof(ValidEnvironmentNames))]
+        [Theory, IsUnit]
         public async Task ProcessAsync_WhenOneFileIsNotValidJson_Then_FileIsSkipped(string environment)
         {
             // Arrange
