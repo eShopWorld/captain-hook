@@ -78,7 +78,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
         {
             var result = await Generator.DefineChangesAsync(SubscriberWithoutDlq, null);
 
-            result.Data.Single().Should().BeOfType<CreateReader>().Which.Subscriber.Name.Should().Be("without-dlq");
+            result.Data.Single().Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("without-dlq");
         }
 
         [Fact, IsUnit]
@@ -87,8 +87,8 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
             var result = await Generator.DefineChangesAsync(SubscriberWithDlq, null);
 
             var array = result.Data.ToArray();
-            array[0].Should().BeOfType<CreateReader>().Which.Subscriber.Name.Should().Be("with-dlq");
-            array[1].Should().BeOfType<CreateReader>().Which.Subscriber.Name.Should().Be("dlq");
+            array[0].Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("with-dlq");
+            array[1].Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("dlq");
         }
 
         [Fact, IsUnit]
@@ -106,7 +106,7 @@ namespace CaptainHook.Application.Tests.Handlers.Subscribers
 
             var array = result.Data.ToArray();
             array[0].Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("with-dlq");
-            array[1].Should().BeOfType<CreateReader>().Which.Subscriber.Name.Should().Be("dlq");
+            array[1].Should().BeOfType<UpdateReader>().Which.Subscriber.Name.Should().Be("dlq");
         }
 
         [Fact, IsUnit]

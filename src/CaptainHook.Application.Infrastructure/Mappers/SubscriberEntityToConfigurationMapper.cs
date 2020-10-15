@@ -140,7 +140,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         private WebhookConfig AddPayloadTransformRule(WebhookConfig webhookConfig, string payloadTransform, WebhooksEntityType entityType)
         {
-            if(entityType != WebhooksEntityType.Callbacks)
+            if (entityType != WebhooksEntityType.Callbacks)
             {
                 webhookConfig.WebhookRequestRules.Add(PayloadTransformRule(payloadTransform));
             }
@@ -157,7 +157,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 return authenticationResult.Error;
             }
 
-            return new WebhookConfig
+            var config = new WebhookConfig
             {
                 Name = name,
                 EventType = eventType,
@@ -165,6 +165,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 HttpVerb = webhooksEntity?.Endpoints?.FirstOrDefault()?.HttpVerb,
                 AuthenticationConfig = authenticationResult.Data
             };
+
+            return SetRetrySleepDurationIfOverridden(config, webhooksEntity);
         }
 
         private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
@@ -183,7 +185,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 return routesResult.Error;
             }
 
-            return new WebhookConfig
+            var config = new WebhookConfig
             {
                 Name = name,
                 EventType = eventType,
@@ -195,8 +197,20 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                         Destination = new ParserLocation { RuleAction = RuleAction.RouteAndReplace },
                         Routes = routesResult.Data.ToList()
                     }
-                }
+                },
             };
+
+            return SetRetrySleepDurationIfOverridden(config, webhooksEntity);
+        }
+
+        private static OperationResult<WebhookConfig> SetRetrySleepDurationIfOverridden(WebhookConfig config, WebhooksEntity webhooksEntity)
+        {
+            if (webhooksEntity.RetrySleepDurations != null)
+            {
+                config.RetrySleepDurations = webhooksEntity.RetrySleepDurations;
+            }
+
+            return config;
         }
 
         private async Task<OperationResult<IEnumerable<WebhookConfigRoute>>> MapWebhooksToRoutesAsync(WebhooksEntity webhooks)

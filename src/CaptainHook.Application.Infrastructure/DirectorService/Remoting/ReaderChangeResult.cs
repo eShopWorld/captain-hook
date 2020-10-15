@@ -7,7 +7,6 @@
         DirectorIsBusy,
         CreateFailed,
         DeleteFailed,
-        ReaderAlreadyExist,
         ReaderDoesNotExist,
         NoChangeNeeded
     }
