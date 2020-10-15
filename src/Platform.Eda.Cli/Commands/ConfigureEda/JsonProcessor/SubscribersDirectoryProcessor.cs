@@ -27,19 +27,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
             try
             {
-                var subscriberFiles =
-                    _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
-
-                if (!subscriberFiles.Any())
-                {
-                    return new CliExecutionError($"No files have been found in '{sourceFolderPath}'");
-                }
-
-                return subscriberFiles;
+                return _fileSystem.Directory.GetFiles(sourceFolderPath, "*.json", SearchOption.AllDirectories);
             }
             catch (Exception e)
             {
-                return new CliExecutionError(e.ToString());
+                return new CliExecutionError(e.Message);
             }
         }
     }
