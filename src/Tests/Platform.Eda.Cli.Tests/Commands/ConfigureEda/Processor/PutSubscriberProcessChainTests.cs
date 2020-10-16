@@ -199,7 +199,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             await _sut.ProcessAsync("a folder", environment, EmptyReplacementsDictionary, false);
 
             // Assert
-            VerifyWrite(_outWriter, "Extracting variables");
+            VerifyWrite(_outWriter, "Error > ..\\file1.json");
             VerifyWrite(_outWriter, CliExecutionError.Message);
 
             _jsonTemplateValuesReplacerMock.VerifyNoOtherCalls();
@@ -302,12 +302,8 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
 
             // Verify Output messages
             VerifyWrite(_outWriter, "Reading files from folder: 'a folder' to be run against CI environment");
-            VerifyWrite(_outWriter, "Processing file: '..\\file1.json'");
-            VerifyWrite(_outWriter, "Processing file: '..\\file2.json'");
-            VerifyWrite(_outWriter, "Extracting variables", Times.Exactly(2));
-            VerifyWrite(_outWriter, "Replacing vars in template", Times.Exactly(2));
-            VerifyWrite(_outWriter, "Replacing params in template", Times.Exactly(2));
-            VerifyWrite(_outWriter, "File successfully parsed", Times.Exactly(2));
+            VerifyWrite(_outWriter, "Ok    > ..\\file1.json");
+            VerifyWrite(_outWriter, "Ok    > ..\\file2.json");
             VerifyWrite(_outWriter, "By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
         }
 
