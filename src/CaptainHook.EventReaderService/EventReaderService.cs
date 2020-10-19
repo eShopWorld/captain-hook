@@ -43,6 +43,7 @@ namespace CaptainHook.EventReaderService
         private readonly IBigBrother _bigBrother;
         private readonly IServiceBusManager _serviceBusManager;
         private readonly IActorProxyFactory _proxyFactory;
+        private readonly IMessageLockDurationCalculator _messageLockDurationCalculator;
         private readonly ConfigurationSettings _settings;
         private EventReaderInitData _initData;
 
@@ -75,18 +76,21 @@ namespace CaptainHook.EventReaderService
         /// <param name="bigBrother"></param>
         /// <param name="serviceBusManager"></param>
         /// <param name="proxyFactory"></param>
+        /// <param name="messageLockDurationCalculator"></param>
         /// <param name="settings"></param>
         public EventReaderService(
             StatefulServiceContext context,
             IBigBrother bigBrother,
             IServiceBusManager serviceBusManager,
             IActorProxyFactory proxyFactory,
+            IMessageLockDurationCalculator messageLockDurationCalculator,
             ConfigurationSettings settings)
             : base(context)
         {
             _bigBrother = bigBrother;
             _serviceBusManager = serviceBusManager;
             _proxyFactory = proxyFactory;
+            _messageLockDurationCalculator = messageLockDurationCalculator;
             _settings = settings;
             ParseOutInitData(context.InitializationData);
         }
@@ -99,6 +103,7 @@ namespace CaptainHook.EventReaderService
         /// <param name="bigBrother"></param>
         /// <param name="serviceBusManager"></param>
         /// <param name="proxyFactory"></param>
+        /// <param name="messageLockDurationCalculator"></param>
         /// <param name="settings"></param>
         public EventReaderService(
             StatefulServiceContext context,
@@ -106,12 +111,14 @@ namespace CaptainHook.EventReaderService
             IBigBrother bigBrother,
             IServiceBusManager serviceBusManager,
             IActorProxyFactory proxyFactory,
+            IMessageLockDurationCalculator messageLockDurationCalculator,
             ConfigurationSettings settings)
             : base(context, reliableStateManagerReplica)
         {
             _bigBrother = bigBrother;
             _serviceBusManager = serviceBusManager;
             _proxyFactory = proxyFactory;
+            _messageLockDurationCalculator = messageLockDurationCalculator;
             _settings = settings;
             ParseOutInitData(context.InitializationData);
         }
@@ -194,11 +201,25 @@ namespace CaptainHook.EventReaderService
         /// </summary>
         internal int InFlightMessageCount => HandlerCount - _freeHandlers.Count;
 
+        internal int CalculateMessageLock()
+        {
+            var routesDurations = _initData.SubscriberConfiguration.WebhookRequestRules
+                                .FirstOrDefault(x => x.Routes.Any())?
+                                .Routes?
+                                .Select(x => x.RetrySleepDurations);
+                
+            var durations = routesDurations ?? new List<TimeSpan[]> { _initData.SubscriberConfiguration.RetrySleepDurations };
+
+            return durations.Max(d => _messageLockDurationCalculator.CalculateAsSeconds(_initData.SubscriberConfiguration.Timeout, d));
+        }
+
         private async Task SetupServiceBusAsync(CancellationToken cancellationToken)
         {
             ServicePointManager.DefaultConnectionLimit = 100;
 
-            await _serviceBusManager.CreateTopicAndSubscriptionAsync(_initData.SubscriptionName, _initData.EventType, _initData.MaxDeliveryCount, cancellationToken);
+            //_messageLockDurationCalculator
+            var messageLockDurationInSeconds = CalculateMessageLock();
+            await _serviceBusManager.CreateTopicAndSubscriptionAsync(_initData.SubscriptionName, _initData.EventType, _initData.MaxDeliveryCount, messageLockDurationInSeconds, cancellationToken);
             
             var messageReceiver = _serviceBusManager.CreateMessageReceiver(_settings.ServiceBusConnectionString, _initData.EventType, _initData.SubscriptionName, _initData.DlqMode != null);
 

@@ -9,7 +9,9 @@ using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceBus;
 using CaptainHook.Common.ServiceModels;
+using CaptainHook.EventReaderService;
 using CaptainHook.Interfaces;
+using CaptainHook.TestsInfrastructure.Builders;
 using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
@@ -80,7 +82,7 @@ namespace CaptainHook.Tests.Services.Reliable
 
             var mockServiceBusManager = new Mock<IServiceBusManager>();
             mockServiceBusManager
-                .Setup(s => s.CreateTopicAndSubscriptionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()));
+                .Setup(s => s.CreateTopicAndSubscriptionAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()));
             mockServiceBusManager
                 .Setup(s => s.CreateMessageReceiver(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()))
                 .Returns(_mockMessageProvider.Object);
@@ -102,6 +104,7 @@ namespace CaptainHook.Tests.Services.Reliable
                 _mockedBigBrother,
                 mockServiceBusManager.Object,
                 mockActorProxyFactory ?? _mockActorProxyFactory,
+                new MessageLockDurationCalculator(), 
                 _config);
         }
 
@@ -252,6 +255,7 @@ namespace CaptainHook.Tests.Services.Reliable
                     _mockedBigBrother,
                     mockServiceBusManager.Object,
                     _mockActorProxyFactory,
+                    new MessageLockDurationCalculator(), 
                     _config);
 
             var replicaSet = new MockStatefulServiceReplicaSet<EventReaderService.EventReaderService>(Factory, (context, dictionary) => new MockReliableStateManager(dictionary));
@@ -287,6 +291,51 @@ namespace CaptainHook.Tests.Services.Reliable
             replicaSet.Primary.ReplicaId.Should().NotBe(oldPrimaryReplicaId);
 
             CheckInFlightMessagesOnPrimary();
+        }
+
+        [Fact]
+        [IsUnit]
+        public void CalculateMessageLockWithSingleWebhookReturnsCorrectValue()
+        {
+            var subscriberConfiguration = new SubscriberConfigurationBuilder()
+                .WithHttpTimeout(TimeSpan.FromSeconds(20))
+                .Create();
+            var context = CustomMockStatefulServiceContextFactory.Create(
+                ServiceNaming.EventReaderServiceType,
+                ServiceNaming.EventReaderServiceFullUri("test.type", "subA"),
+                EventReaderInitData.FromSubscriberConfiguration(subscriberConfiguration).ToByteArray(),
+                replicaId: (new Random(int.MaxValue)).Next());
+
+            var mockServiceBusManager = CreateMockServiceBusManager("test.type", 1);
+            var service = CreateService(mockServiceBusManager, context: context);
+            var messageLock = service.CalculateMessageLock();
+            messageLock.Should().Be(115);
+        }
+
+        [Fact]
+        [IsUnit]
+        public void CalculateMessageLockWithMultipleWebhooksReturnsCorrectValue()
+        {
+            var subscriberConfiguration = new SubscriberConfigurationBuilder()
+                .WithHttpTimeout(TimeSpan.FromSeconds(20))
+                .AddWebhookRequestRule(rule => rule
+                    .AddRoute(route => route
+                        .WithUri("https://blah-{orderCode}.eshopworld.com/1/")
+                        .WithRetrySleepDurations(new []{TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(20) }))
+                    .AddRoute(route => route
+                        .WithUri("https://blah-{orderCode}.eshopworld.com/2/")
+                        .WithRetrySleepDurations(new[] { TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(40) })))
+                .Create();
+            var context = CustomMockStatefulServiceContextFactory.Create(
+                ServiceNaming.EventReaderServiceType,
+                ServiceNaming.EventReaderServiceFullUri("test.type", "subA"),
+                EventReaderInitData.FromSubscriberConfiguration(subscriberConfiguration).ToByteArray(),
+                replicaId: (new Random(int.MaxValue)).Next());
+
+            var mockServiceBusManager = CreateMockServiceBusManager("test.type", 1);
+            var service = CreateService(mockServiceBusManager, context: context);
+            var messageLock = service.CalculateMessageLock();
+            messageLock.Should().Be(135);
         }
 
         private static IList<Message> CreateMessage(string eventName)

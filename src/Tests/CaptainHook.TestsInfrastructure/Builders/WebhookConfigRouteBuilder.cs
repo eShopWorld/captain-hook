@@ -1,4 +1,5 @@
-﻿using CaptainHook.Common.Authentication;
+﻿using System;
+using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
 
 namespace CaptainHook.TestsInfrastructure.Builders
@@ -8,6 +9,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _selector;
         private string _uri;
         private string _httpVerb = "POST";
+        private TimeSpan[] _retrySleepDurations;
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig();
 
         public WebhookConfigRouteBuilder WithSelector(string selector)
@@ -19,6 +21,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public WebhookConfigRouteBuilder WithUri(string uri)
         {
             _uri = uri;
+            return this;
+        }
+
+        public WebhookConfigRouteBuilder WithRetrySleepDurations(TimeSpan[] retrySleepDurations)
+        {
+            _retrySleepDurations = retrySleepDurations;
             return this;
         }
 
@@ -77,8 +85,13 @@ namespace CaptainHook.TestsInfrastructure.Builders
                 Selector = _selector,
                 Uri = _uri,
                 AuthenticationConfig = _authenticationConfig,
-                HttpVerb = _httpVerb
+                HttpVerb = _httpVerb,
             };
+
+            if (_retrySleepDurations != null)
+            {
+                route.RetrySleepDurations = _retrySleepDurations;
+            }
 
             return route;
         }

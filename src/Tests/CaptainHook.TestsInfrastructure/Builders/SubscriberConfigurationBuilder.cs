@@ -16,6 +16,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _httpVerb = "POST";
         private WebhookConfig _callback;
         private bool _asDlq;
+        private TimeSpan? _httpTimeout;
 
         private readonly List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
         
@@ -35,6 +36,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberConfigurationBuilder WithName(string name)
         {
             _name = name;
+            return this;
+        }
+
+        public SubscriberConfigurationBuilder WithHttpTimeout(TimeSpan httpTimeout)
+        {
+            _httpTimeout = httpTimeout;
             return this;
         }
 
@@ -160,6 +167,11 @@ namespace CaptainHook.TestsInfrastructure.Builders
                 WebhookRequestRules = _webhookRequestRules,
                 DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode : (SubscriberDlqMode?)null
             };
+
+            if (_httpTimeout.HasValue)
+            {
+                subscriber.Timeout = _httpTimeout.Value;
+            }
 
             return subscriber;
         }
