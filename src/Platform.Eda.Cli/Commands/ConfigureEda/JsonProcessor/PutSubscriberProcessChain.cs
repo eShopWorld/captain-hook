@@ -91,7 +91,7 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 var validationResult = await new FileStructureValidator().ValidateAsync(parsedFile);
                 if (!validationResult.IsValid)
                 {
-                    WriteValidationResultWithFileName(fileRelativePath,"JSON file validation", validationResult);
+                    WriteValidationResultWithFileName(fileRelativePath, "JSON file validation", validationResult);
                     continue;
                 }
 
@@ -183,7 +183,11 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
                 }
 
                 // Step 4 - Create PutSubscriberFile object for further processing
-                WriteNormalWithFileName(fileRelativePath);
+                if (!noDryRun) // output File Ok only on dry run
+                {
+                    WriteNormalWithFileName(fileRelativePath);
+                }
+
                 putSubscriberFiles.Add(new PutSubscriberFile
                 {
                     Request = JsonConvert.DeserializeObject<PutSubscriberRequest>(template),
