@@ -993,5 +993,47 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             }
         }
 
+        [Fact, IsUnit]
+        public async Task WhenSingleWebhookHasDefinedMaxDeliveryCount_MapsMaxDeliveryCount()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var subscriber = new SubscriberBuilder()
+                .WithWebhooksUriTransform(uriTransform)
+                .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithWebhooksMaxDeliveryCount(20)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.MaxDeliveryCount.Should().Be(20);
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenSingleWebhookHasNotDefinedMaxDeliveryCount_MapsDefaultMaxDeliveryCount()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var subscriber = new SubscriberBuilder()
+                .WithWebhooksUriTransform(uriTransform)
+                .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.MaxDeliveryCount.Should().Be(10);
+            }
+        }
     }
 }

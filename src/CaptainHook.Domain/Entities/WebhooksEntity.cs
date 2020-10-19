@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CaptainHook.Domain.Entities.Comparers;
 using CaptainHook.Domain.Errors;
@@ -35,6 +34,11 @@ namespace CaptainHook.Domain.Entities
         public string PayloadTransform { get; private set; }
 
         /// <summary>
+        /// Max delivery count for webhooks
+        /// </summary>
+        public int? MaxDeliveryCount { get; private set; }
+
+        /// <summary>
         /// Type of entity
         /// </summary>
         public WebhooksEntityType Type { get; }
@@ -54,15 +58,16 @@ namespace CaptainHook.Domain.Entities
             Type = type;
         }
 
-        public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints) : this(type, selectionRule, endpoints, null) { }
+        public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints) : this(type, selectionRule, endpoints, null, null) { }
 
         public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints, UriTransformEntity uriTransform,
-            string payloadTransform = null) : this(type)
+            string payloadTransform = null, int? maxDeliveryCount = null) : this(type)
         {
             SelectionRule = selectionRule;
             Endpoints = endpoints?.ToList();
             UriTransform = uriTransform;
             PayloadTransform = (type == WebhooksEntityType.Callbacks) ? null : (payloadTransform ?? "$");
+            MaxDeliveryCount = (type == WebhooksEntityType.Webhooks) ? maxDeliveryCount : null;
         }
 
         public WebhooksEntity SetSelectionRule(string selectionRule)
@@ -110,11 +115,20 @@ namespace CaptainHook.Domain.Entities
             }
         }
 
+        public void SetMaxDeliveryCount(int? maxDeliveryCount)
+        {
+            if (Type == WebhooksEntityType.Webhooks)
+            {
+                MaxDeliveryCount = maxDeliveryCount;
+            }
+        }
+
         public OperationResult<WebhooksEntity> SetHooks(WebhooksEntity webhooks, SubscriberEntity subscriberEntity = null)
         {
             SetSelectionRule(webhooks.SelectionRule);
             SetUriTransform(webhooks.UriTransform);
             SetPayloadTransform(webhooks.PayloadTransform);
+            SetMaxDeliveryCount(webhooks.MaxDeliveryCount);
             Endpoints.Clear();
             foreach (var endpoint in webhooks.Endpoints)
             {
