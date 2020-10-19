@@ -13,6 +13,7 @@ namespace CaptainHook.Common.ServiceModels
         public string EventType { get; set; }
         public string SubscriberName { get; set; }
         public SubscriberDlqMode? DlqMode { get; set; }
+        public int MaxDeliveryCount { get; set; }
 
         /// <summary>
         /// source subscription for DLQ receiver
@@ -25,9 +26,9 @@ namespace CaptainHook.Common.ServiceModels
 
         public TimeSpan? HeartBeatInterval { get; set; }
 
-        private static JsonIgnoreAttributeIgnorerContractResolver jsonIgnoreAttributeIgnorerContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
+        private static readonly JsonIgnoreAttributeIgnorerContractResolver JsonIgnoreAttributeIgnorerContractResolver = new JsonIgnoreAttributeIgnorerContractResolver();
 
-        private static AuthenticationConfigConverter authenticationConfigConverter = new AuthenticationConfigConverter();
+        private static readonly AuthenticationConfigConverter AuthenticationConfigConverter = new AuthenticationConfigConverter();
 
         public static EventReaderInitData FromSubscriberConfiguration(SubscriberConfiguration subscriberConfiguration)
         {
@@ -38,14 +39,15 @@ namespace CaptainHook.Common.ServiceModels
                 EventType = subscriberConfiguration.EventType,
                 DlqMode = subscriberConfiguration.DLQMode,
                 SourceSubscription = subscriberConfiguration.DLQMode != null ? subscriberConfiguration.SourceSubscriptionName : null,
-                HeartBeatInterval = TimeSpan.TryParse(subscriberConfiguration.HeartBeatInterval, out var heartBeatInterval) ? heartBeatInterval : (TimeSpan?)null
+                HeartBeatInterval = TimeSpan.TryParse(subscriberConfiguration.HeartBeatInterval, out var heartBeatInterval) ? heartBeatInterval : (TimeSpan?)null,
+                MaxDeliveryCount = subscriberConfiguration.MaxDeliveryCount
             };
         }
 
         public byte[] ToByteArray()
         {
             var settings = new JsonSerializerSettings();
-            settings.ContractResolver = jsonIgnoreAttributeIgnorerContractResolver;
+            settings.ContractResolver = JsonIgnoreAttributeIgnorerContractResolver;
             var stringValue = JsonConvert.SerializeObject(this, settings);
             var byteArray = Encoding.UTF8.GetBytes(stringValue);
             return byteArray;
@@ -55,8 +57,8 @@ namespace CaptainHook.Common.ServiceModels
         {
             var content = Encoding.UTF8.GetString(buffer);
             var settings = new JsonSerializerSettings();
-            settings.ContractResolver = jsonIgnoreAttributeIgnorerContractResolver;
-            settings.Converters.Add(authenticationConfigConverter);
+            settings.ContractResolver = JsonIgnoreAttributeIgnorerContractResolver;
+            settings.Converters.Add(AuthenticationConfigConverter);
             return JsonConvert.DeserializeObject<EventReaderInitData>(content, settings);
         }
     }
