@@ -184,65 +184,58 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda.JsonProcessor
 
                 // Step 4 - Create PutSubscriberFile object for further processing
                 WriteNormalWithFileName(fileRelativePath);
-                putSubscriberFiles.Add(new PutSubscriberFile
+                var putSubscriberFile = new PutSubscriberFile
                 {
                     Request = JsonConvert.DeserializeObject<PutSubscriberRequest>(template),
                     File = new FileInfo(subscriberFilePath)
-                });
-            }
+                };
 
-            if (noDryRun)
-            {
-                _console.WriteNormalBox("Starting to run configuration against Captain Hook API");
-
-                var apiResults = await ConfigureEdaWithCaptainHook(inputFolderPath, env, putSubscriberFiles);
-                if (apiResults.Any(r => r.IsError))
+                if (noDryRun)
                 {
-                    return 2;
-                }
-            }
-            else
-            {
-                _console.WriteNormalBox("By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
-                return putSubscriberFiles.Any(file => file.IsError) ? 1 : 0;
-            }
-
-            return 0;
-        }
-
-        private async Task<List<OperationResult<HttpOperationResponse>>> ConfigureEdaWithCaptainHook(string inputFolderPath, string env, IEnumerable<PutSubscriberFile> subscriberFiles)
-        {
-            var api = _captainHookBuilder(env);
-            var apiResults = new List<OperationResult<HttpOperationResponse>>();
-
-            var sourceFolderPath = Path.GetFullPath(inputFolderPath);
-            await foreach (var apiResult in api.CallApiAsync(subscriberFiles.Where(f => !f.IsError)))
-            {
-                var apiResultResponse = apiResult.Response;
-                apiResults.Add(apiResultResponse);
-
-                var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
-                if (apiResultResponse.IsError)
-                {
-                    WriteErrorWithFileName(
-                        $"Event: '{apiResult.Request.EventName}', Subscriber: '{apiResult.Request.SubscriberName}', File: {fileRelativePath}.",
-                        apiResultResponse.Error.Message.Split(Environment.NewLine));
+                    var apiResult = await ConfigureEdaWithCaptainHook(inputFolderPath, env, putSubscriberFile);
+                    putSubscriberFile.Error = apiResult.Error?.Message;
+                    putSubscriberFiles.Add(putSubscriberFile);
                 }
                 else
                 {
-                    var operationDescription = apiResult.Response?.Data?.Response?.StatusCode switch
-                    {
-                        HttpStatusCode.Created => "created",
-                        HttpStatusCode.Accepted => "updated",
-                        _ => $"unknown result (HTTP Status {apiResult.Response?.Data?.Response?.StatusCode:D})"
-                    };
-
-                    WriteNormalWithFileName(
-                        $"{operationDescription} Event '{apiResult.Request.EventName}', Subscriber: '{apiResult.Request.SubscriberName}', File: {fileRelativePath}.");
+                    putSubscriberFiles.Add(putSubscriberFile);
                 }
             }
 
-            return apiResults;
+            return putSubscriberFiles.Count(r => r.IsError);
+        }
+
+        private async Task<OperationResult<HttpOperationResponse>> ConfigureEdaWithCaptainHook(string inputFolderPath, string env, PutSubscriberFile subscriberFile)
+        {
+            var api = _captainHookBuilder(env);
+
+            var sourceFolderPath = Path.GetFullPath(inputFolderPath);
+
+            var apiResult = await api.CallApiAsync(subscriberFile);
+             
+            var apiResultResponse = apiResult.Response;
+
+            var fileRelativePath = Path.GetRelativePath(sourceFolderPath, apiResult.File.FullName);
+            if (apiResultResponse.IsError)
+            {
+                WriteErrorWithFileName(
+                    $"Event: '{apiResult.Request.EventName}', Subscriber: '{apiResult.Request.SubscriberName}', File: {fileRelativePath}.",
+                    apiResultResponse.Error.Message.Split(Environment.NewLine));
+            }
+            else
+            {
+                var operationDescription = apiResult.Response?.Data?.Response?.StatusCode switch
+                {
+                    HttpStatusCode.Created => "created",
+                    HttpStatusCode.Accepted => "updated",
+                    _ => $"unknown result (HTTP Status {apiResult.Response?.Data?.Response?.StatusCode:D})"
+                };
+
+                WriteNormalWithFileName(
+                    $"{operationDescription} Event '{apiResult.Request.EventName}', Subscriber: '{apiResult.Request.SubscriberName}', File: {fileRelativePath}.");
+            }
+
+            return apiResult.Response;
         }
 
         public void WriteSkippedWithFileName(string fileName, params string[] lines)

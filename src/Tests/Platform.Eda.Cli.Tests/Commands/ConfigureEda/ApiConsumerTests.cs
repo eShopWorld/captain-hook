@@ -60,25 +60,19 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     It.IsAny<Dictionary<string, List<string>>>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(_positiveResponse);
-            var files = new[]
+            var file = new PutSubscriberFile
             {
-                new PutSubscriberFile
-                {
-                    File = _fileInfo,
-                    Request = new PutSubscriberRequest()
-                }
+                File = _fileInfo,
+                Request = new PutSubscriberRequest()
             };
 
             // Act
-            var results = await GetAll(_apiConsumer.CallApiAsync(files));
+            var result = await _apiConsumer.CallApiAsync(file);
 
             // Assert
-            var expected = new[]
-            {
-                new ApiOperationResult { File = _fileInfo, Request = new PutSubscriberRequest(), Response = _positiveResponse }
-            };
+            var expected = new ApiOperationResult { File = _fileInfo, Request = new PutSubscriberRequest(), Response = _positiveResponse };
 
-            results.Should().BeEquivalentTo(expected);
+            result.Should().BeEquivalentTo(expected);
         }
 
         [Fact, IsUnit]
@@ -108,7 +102,11 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             };
 
             // Act
-            var results = await GetAll(_apiConsumer.CallApiAsync(files));
+            var results = new List<ApiOperationResult>();
+            foreach (var file in files)
+            {
+                results.Add(await _apiConsumer.CallApiAsync(file));
+            }
 
             // Assert
             var expected = new[]
@@ -148,7 +146,11 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
             };
 
             // Act
-            var results = await GetAll(_apiConsumer.CallApiAsync(files));
+            var results = new List<ApiOperationResult>();
+            foreach (var file in files)
+            {
+                results.Add(await _apiConsumer.CallApiAsync(file));
+            }
 
             // Assert
             var expected = new[]
@@ -172,17 +174,15 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(_negativeResponse) //1st call for 2nd file
                 .ReturnsAsync(_negativeResponse); //2nd call for 2nd file
-            var files = new[]
+            
+            var file = new PutSubscriberFile
             {
-                new PutSubscriberFile
-                {
-                    File = _fileInfo,
-                    Request = new PutSubscriberRequest()
-                }
+                File = _fileInfo,
+                Request = new PutSubscriberRequest()
             };
 
             // Act
-            var _ = await GetAll(_apiConsumer.CallApiAsync(files));
+            var _ = await _apiConsumer.CallApiAsync(file);
 
             // Assert
             _apiClientMock.Verify(s => s.PutSuscriberWithHttpMessagesAsync(
@@ -191,17 +191,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda
                 It.IsAny<CaptainHookContractSubscriberDto>(),
                 It.IsAny<Dictionary<string, List<string>>>(),
                 It.IsAny<CancellationToken>()), Times.Exactly(2));
-        }
-
-        private static async Task<IEnumerable<T>> GetAll<T>(IAsyncEnumerable<T> enumerable)
-        {
-            var list = new List<T>();
-            await foreach (var item in enumerable)
-            {
-                list.Add(item);
-            }
-
-            return list;
         }
     }
 }

@@ -59,36 +59,33 @@ namespace Platform.Eda.Cli.Commands.ConfigureEda
             _putRequestRetryPolicy = RetryUntilStatus(ValidResponseCodes);
         }
 
-        public async IAsyncEnumerable<ApiOperationResult> CallApiAsync(IEnumerable<PutSubscriberFile> files)
+        public async Task<ApiOperationResult> CallApiAsync(PutSubscriberFile file)
         {
-            foreach (var file in files)
-            {
-                var request = file.Request;
-                var response = await _putRequestRetryPolicy.ExecuteAsync(async () =>
-                    await _captainHookClient.PutSuscriberWithHttpMessagesAsync(
-                        request.EventName,
-                        request.SubscriberName,
-                        request.Subscriber));
+            var request = file.Request;
+            var response = await _putRequestRetryPolicy.ExecuteAsync(async () =>
+                await _captainHookClient.PutSuscriberWithHttpMessagesAsync(
+                    request.EventName,
+                    request.SubscriberName,
+                    request.Subscriber));
 
-                var lastResponseValid = ValidResponseCodes.Contains(response.Response.StatusCode);
-                if (lastResponseValid)
+            var lastResponseValid = ValidResponseCodes.Contains(response.Response.StatusCode);
+            if (lastResponseValid)
+            {
+                return new ApiOperationResult
                 {
-                    yield return new ApiOperationResult
-                    {
-                        Request = file.Request,
-                        File = file.File,
-                        Response = response
-                    };
-                }
-                else
+                    Request = file.Request,
+                    File = file.File,
+                    Response = response
+                };
+            }
+            else
+            {
+                return new ApiOperationResult
                 {
-                    yield return new ApiOperationResult
-                    {
-                        Request = file.Request,
-                        File = file.File,
-                        Response = await BuildExecutionErrorAsync(response.Response)
-                    };
-                }
+                    Request = file.Request,
+                    File = file.File,
+                    Response = await BuildExecutionErrorAsync(response.Response)
+                };
             }
         }
 

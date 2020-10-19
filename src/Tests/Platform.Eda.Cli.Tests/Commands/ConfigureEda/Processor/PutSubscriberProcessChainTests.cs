@@ -65,17 +65,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
               {_validSubscriberRequestContent}
             }}");
 
-        private static async IAsyncEnumerable<ApiOperationResult> EmptyAsyncEnumerable()
-        {
-            yield return new ApiOperationResult
-            {
-                File = new FileInfo("file1.json"),
-                Request = new PutSubscriberRequest(),
-                Response = new HttpOperationResponse()
-            };
-            await Task.CompletedTask;
-        }
-
         public PutSubscriberProcessChainTests()
         {
             _outWriter = new Mock<TextWriter>(MockBehavior.Default);
@@ -157,17 +146,30 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
                 .Returns(CliExecutionError);
             _jsonVarsExtractorMock
                 .Setup(x => x.ExtractVars(It.IsAny<JObject>(), It.IsAny<string>()))
-                .Returns(new Dictionary<string, JToken>());
+                .Returns(new Dictionary<string, JToken>()
+                {
+                    { "invoicing-url", JToken.Parse("\"a\"") }
+                });
             _jsonTemplateValuesReplacerMock
                 .Setup(x => x.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, JToken>>()))
                 .Returns(ValidSubscriberRequest);
 
             _apiConsumerMock
-                .Setup(x => x.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()))
-                .Returns(EmptyAsyncEnumerable());
+                .Setup(x => x.CallApiAsync(It.IsAny<PutSubscriberFile>()))
+                .ReturnsAsync(new ApiOperationResult
+                {
+                    File = new FileInfo("file1.json"),
+                    Request = new PutSubscriberRequest(),
+                    Response = new HttpOperationResponse()
+                });
+
+            var replacementParams = new Dictionary<string, string>()
+            {
+                { "subname", "value" }
+            };
 
             // Act
-            var result = await _sut.ProcessAsync("a folder", environment, EmptyReplacementsDictionary, true);
+            var result = await _sut.ProcessAsync("a folder", environment, replacementParams, true);
 
             // Assert
             using (new AssertionScope())
@@ -175,7 +177,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
                 _subscriberFileParserMock.Verify(x => x.ParseFile("file1.json"), Times.Once);
                 _subscriberFileParserMock.Verify(x => x.ParseFile("file2.json"), Times.Once);
                 VerifyWrite(_outWriter, CliExecutionError.Message);
-                result.Should().Be(0);
+                result.Should().Be(1);
             }
         }
 
@@ -223,19 +225,32 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
                 .Returns(CliExecutionError);
 
             _jsonVarsExtractorMock.Setup(x => x.ExtractVars(It.IsAny<JObject>(), It.IsAny<string>()))
-                .Returns(new Dictionary<string, JToken>());
+                .Returns(new Dictionary<string, JToken>()
+                {
+                    ["invoicing-url"] = "a"
+                });
 
             _jsonTemplateValuesReplacerMock.Setup(x => x.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, JToken>>()))
                 .Returns(ValidSubscriberRequest);
 
-            _apiConsumerMock.Setup(x => x.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()))
-                .Returns(EmptyAsyncEnumerable());
+            _apiConsumerMock.Setup(x => x.CallApiAsync(It.IsAny<PutSubscriberFile>()))
+                .ReturnsAsync(new ApiOperationResult
+                {
+                    File = new FileInfo("file1.json"),
+                    Request = new PutSubscriberRequest(),
+                    Response = new HttpOperationResponse()
+                });
+
+            var replacementParams = new Dictionary<string, string>()
+            {
+                ["subname"] = "a"
+            };
 
             // Act
-            await _sut.ProcessAsync("a folder", environment, EmptyReplacementsDictionary, noDryRun);
+            await _sut.ProcessAsync("a folder", environment, replacementParams, noDryRun);
 
             // Assert
-            _apiConsumerMock.Verify(x => x.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()), Times.Exactly(timesApiConsumerIsCalled));
+            _apiConsumerMock.Verify(x => x.CallApiAsync(It.IsAny<PutSubscriberFile>()), Times.Exactly(timesApiConsumerIsCalled));
         }
 
         [Fact, IsUnit]
@@ -262,7 +277,7 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             var result = await _sut.ProcessAsync("a folder", "CI", EmptyReplacementsDictionary, false);
 
             // Assert
-            result.Should().Be(1);
+            result.Should().Be(2);
         }
 
         [Fact, IsUnit]
@@ -288,8 +303,13 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             _jsonTemplateValuesReplacerMock.Setup(x => x.Replace(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, JToken>>()))
                 .Returns(ValidSubscriberRequest);
 
-            _apiConsumerMock.Setup(x => x.CallApiAsync(It.IsAny<IEnumerable<PutSubscriberFile>>()))
-                .Returns(EmptyAsyncEnumerable());
+            _apiConsumerMock.Setup(x => x.CallApiAsync(It.IsAny<PutSubscriberFile>()))
+                .ReturnsAsync(new ApiOperationResult
+                {
+                    File = new FileInfo("file1.json"),
+                    Request = new PutSubscriberRequest(),
+                    Response = new HttpOperationResponse()
+                });
 
             // Act
             var result = await _sut.ProcessAsync("a folder", environment, new Dictionary<string, string>()
@@ -304,7 +324,6 @@ namespace Platform.Eda.Cli.Tests.Commands.ConfigureEda.Processor
             VerifyWrite(_outWriter, "Reading files from folder: 'a folder' to be run against CI environment");
             VerifyWrite(_outWriter, "Ok    > ..\\file1.json");
             VerifyWrite(_outWriter, "Ok    > ..\\file2.json");
-            VerifyWrite(_outWriter, "By default the CLI runs in 'dry-run' mode. If you want to run the configuration against Captain Hook API use the '--no-dry-run' switch");
         }
 
         private static void VerifyWrite(Mock<TextWriter> mockWriter, string text, Times times)
