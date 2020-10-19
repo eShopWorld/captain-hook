@@ -39,12 +39,18 @@ namespace CaptainHook.Domain.Entities
         /// </summary>
         public string Selector { get; }
 
-        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector, SubscriberEntity subscriber = null)
+        /// <summary>
+        /// Retry sleep durations to use for request retry logic
+        /// </summary>
+        public TimeSpan[] RetrySleepDurations { get; private set; }
+
+        public EndpointEntity(string uri, AuthenticationEntity authentication, string httpVerb, string selector, TimeSpan[] retrySleepDurations = null, SubscriberEntity subscriber = null)
         {
             Uri = uri;
             Authentication = authentication;
             HttpVerb = httpVerb;
             Selector = selector ?? DefaultEndpointSelector;
+            RetrySleepDurations = retrySleepDurations;
 
             SetParentSubscriber(subscriber);
         }
@@ -54,6 +60,12 @@ namespace CaptainHook.Domain.Entities
         public EndpointEntity SetParentSubscriber(SubscriberEntity subscriber)
         {
             ParentSubscriber = subscriber;
+            return this;
+        }
+
+        public EndpointEntity SetRetrySleepDurations(TimeSpan[] retrySleepDurations)
+        {
+            RetrySleepDurations = retrySleepDurations;
             return this;
         }
     }

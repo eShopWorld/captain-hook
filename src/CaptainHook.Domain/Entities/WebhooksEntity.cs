@@ -35,11 +35,6 @@ namespace CaptainHook.Domain.Entities
         public string PayloadTransform { get; private set; }
 
         /// <summary>
-        /// Retry sleep durations to use for request retry logic
-        /// </summary>
-        public TimeSpan[] RetrySleepDurations { get; private set; }
-
-        /// <summary>
         /// Type of entity
         /// </summary>
         public WebhooksEntityType Type { get; }
@@ -62,13 +57,12 @@ namespace CaptainHook.Domain.Entities
         public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints) : this(type, selectionRule, endpoints, null) { }
 
         public WebhooksEntity(WebhooksEntityType type, string selectionRule, IEnumerable<EndpointEntity> endpoints, UriTransformEntity uriTransform,
-            string payloadTransform = null, TimeSpan[] retrySleepDurations = null) : this(type)
+            string payloadTransform = null) : this(type)
         {
             SelectionRule = selectionRule;
             Endpoints = endpoints?.ToList();
             UriTransform = uriTransform;
             PayloadTransform = (type == WebhooksEntityType.Callbacks) ? null : (payloadTransform ?? "$");
-            RetrySleepDurations = retrySleepDurations;
         }
 
         public WebhooksEntity SetSelectionRule(string selectionRule)
@@ -83,19 +77,13 @@ namespace CaptainHook.Domain.Entities
             return this;
         }
 
-        public WebhooksEntity SetRetrySleepDurations(TimeSpan[] retrySleepDurations)
-        {
-            RetrySleepDurations = retrySleepDurations;
-            return this;
-        }
-
         public OperationResult<WebhooksEntity> SetEndpoint(EndpointEntity endpoint)
         {
             var extendedEndpointsCollection = Endpoints
                 .Except(new[] { endpoint }, SelectorEndpointEntityEqualityComparer)
                 .Concat(new[] { endpoint });
 
-            var endpointsEntityForValidation = new WebhooksEntity(Type, SelectionRule, extendedEndpointsCollection, UriTransform, PayloadTransform, RetrySleepDurations);
+            var endpointsEntityForValidation = new WebhooksEntity(Type, SelectionRule, extendedEndpointsCollection, UriTransform, PayloadTransform);
 
             var validationResult = WebhooksValidator.Validate(endpointsEntityForValidation);
 
@@ -127,7 +115,6 @@ namespace CaptainHook.Domain.Entities
             SetSelectionRule(webhooks.SelectionRule);
             SetUriTransform(webhooks.UriTransform);
             SetPayloadTransform(webhooks.PayloadTransform);
-            SetRetrySleepDurations(webhooks.RetrySleepDurations);
             Endpoints.Clear();
             foreach (var endpoint in webhooks.Endpoints)
             {

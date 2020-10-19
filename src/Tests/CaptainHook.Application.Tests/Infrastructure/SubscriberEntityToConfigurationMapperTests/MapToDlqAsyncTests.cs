@@ -304,11 +304,11 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
 
+            var retrySleepDurations = new [] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) };
             var subscriber = new SubscriberBuilder()
                 .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication)
-                .WithDlqhook("https://blah-blah.eshopworld.com/dlq/", httpVerb, "*", authentication)
+                .WithDlqhook("https://blah-blah.eshopworld.com/dlq/", httpVerb, "*", authentication, retrySleepDurations)
                 .WithDlqhooksUriTransform(uriTransform)
-                .WithDlqhooksRetrySleepDurations(TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22))
                 .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
@@ -316,7 +316,12 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
+                result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .RetrySleepDurations.Should().BeEquivalentTo(retrySleepDurations);
             }
         }
 
@@ -348,13 +353,16 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             const string httpVerb = "PUT";
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var retrySleepDurations1 = new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) };
+            var retrySleepDurations2 = new[] { TimeSpan.FromSeconds(12), TimeSpan.FromSeconds(23) };
+
             var subscriber = new SubscriberBuilder()
                 .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
                 .WithDlqhooksSelectionRule("$.TenantCode")
                 .WithDlqhooksUriTransform(uriTransform)
-                .WithDlqhooksRetrySleepDurations(TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22))
-                .WithDlqhook("https://order-{selector}.eshopworld.com/dlq/", httpVerb, null, authentication)
-                .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
+                .WithDlqhook("https://order-{selector}.eshopworld.com/dlq/", httpVerb, null, authentication, retrySleepDurations1)
+                .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication, retrySleepDurations2)
                 .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
@@ -362,7 +370,12 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
+                var routes = result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                routes[0].RetrySleepDurations.Should().BeEquivalentTo(retrySleepDurations1);
+                routes[1].RetrySleepDurations.Should().BeEquivalentTo(retrySleepDurations2);
             }
         }
 
