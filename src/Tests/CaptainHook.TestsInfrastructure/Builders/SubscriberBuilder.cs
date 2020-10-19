@@ -87,23 +87,23 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        public SubscriberBuilder WithWebhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null, TimeSpan[] retrySleepDurations = null)
+        public SubscriberBuilder WithWebhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null, TimeSpan[] retrySleepDurations = null, TimeSpan? timeout = null)
         {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, retrySleepDurations);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, retrySleepDurations, timeout);
             _webhooks.Add(endpoint);
             return this;
         }
 
-        public SubscriberBuilder WithCallback(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null, TimeSpan[] retrySleepDurations = null)
+        public SubscriberBuilder WithCallback(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null, TimeSpan[] retrySleepDurations = null, TimeSpan? timeout = null)
         {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, retrySleepDurations);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, retrySleepDurations, timeout);
             _callbacks.Add(endpoint);
             return this;
         }
 
-        public SubscriberBuilder WithDlqhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null, TimeSpan[] retrySleepDurations = null)
+        public SubscriberBuilder WithDlqhook(string uri, string httpVerb, string selector, AuthenticationEntity authentication = null, TimeSpan[] retrySleepDurations = null, TimeSpan? timeout = null)
         {
-            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, retrySleepDurations);
+            var endpoint = new EndpointEntity(uri, authentication, httpVerb, selector, retrySleepDurations, timeout);
             _dlqhooks.Add(endpoint);
             return this;
         }
