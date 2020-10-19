@@ -239,6 +239,11 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 route.RetrySleepDurations = endpoint.RetrySleepDurations;
             }
 
+            if (endpoint.Timeout.HasValue)
+            {
+                route.Timeout = endpoint.Timeout.Value;
+            }
+
             return route;
         }
 

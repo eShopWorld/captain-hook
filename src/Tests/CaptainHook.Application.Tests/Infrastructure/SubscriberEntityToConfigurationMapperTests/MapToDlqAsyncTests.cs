@@ -343,7 +343,12 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
             }
         }
 
@@ -398,7 +403,12 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                var routes = result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                routes[0].RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                routes[1].RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
             }
         }
 
@@ -486,6 +496,121 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 result.IsError.Should().BeFalse();
                 result.Data.WebhookRequestRules.Should().HaveCount(1);
                 result.Data.WebhookRequestRules.Single().Should().BeEquivalentTo(RequestRule);
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenSingleDlqhookHaveDefinedTimeout_MapsTimeout()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var timeout = TimeSpan.FromSeconds(11);
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication)
+                .WithDlqhook("https://blah-blah.eshopworld.com/dlq/", httpVerb, "*", authentication, timeout: timeout)
+                .WithDlqhooksUriTransform(uriTransform)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .Timeout.Should().Be(timeout);
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenSingleDlqhookHaveNotDefinedTimeout_MapsDefaultTimeout()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-blah.eshopworld.com/webhook/", httpVerb, "*", authentication)
+                .WithDlqhook("https://blah-blah.eshopworld.com/dlq/", httpVerb, "*", authentication)
+                .WithDlqhooksUriTransform(uriTransform)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .Timeout.Should().Be(TimeSpan.FromSeconds(100));
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenMultipleDlqhooksHaveDefinedTimeout_MapsTimeout()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var timeout1 = TimeSpan.FromSeconds(11);
+            var timeout2 = TimeSpan.FromSeconds(12);
+
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithDlqhooksSelectionRule("$.TenantCode")
+                .WithDlqhooksUriTransform(uriTransform)
+                .WithDlqhook("https://order-{selector}.eshopworld.com/dlq/", httpVerb, null, authentication, timeout: timeout1)
+                .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication, timeout: timeout2)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                var routes = result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                routes[0].Timeout.Should().Be(timeout1);
+                routes[1].Timeout.Should().Be(timeout2);
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenMultipleDlqhooksHaveNotDefinedTimeout_MapsDefaultTimeout()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://blah-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithDlqhooksSelectionRule("$.TenantCode")
+                .WithDlqhooksUriTransform(uriTransform)
+                .WithDlqhook("https://order-{selector}.eshopworld.com/dlq/", httpVerb, null, authentication)
+                .WithDlqhook("https://payments-{selector}.eshopworld.com/dlq/", httpVerb, "aSelector", authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToDlqAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                var routes = result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                routes[0].Timeout.Should().Be(TimeSpan.FromSeconds(100));
+                routes[1].Timeout.Should().Be(TimeSpan.FromSeconds(100));
             }
         }
     }

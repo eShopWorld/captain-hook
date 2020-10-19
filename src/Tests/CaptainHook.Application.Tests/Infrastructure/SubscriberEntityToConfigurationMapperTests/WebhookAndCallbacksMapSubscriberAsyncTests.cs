@@ -654,8 +654,18 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
-                result.Data.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                result.Data.Callback
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
             }
         }
 
@@ -724,8 +734,19 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
-                result.Data.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                var webhookRoutes = result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                webhookRoutes[0].RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                webhookRoutes[1].RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                var callbackRoutes = result.Data
+                    .Callback
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                callbackRoutes[0].RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
+                callbackRoutes[1].RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) });
             }
         }
 
@@ -819,5 +840,158 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
                 result.Data.Callback.WebhookRequestRules.Should().HaveCount(2);
             }
         }
+
+        [Fact, IsUnit]
+        public async Task WhenSingleWebhookAndSingleCallbackHaveNotDefinedTimeout_MapsDefaultTimeout()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var subscriber = new SubscriberBuilder()
+                .WithWebhooksUriTransform(uriTransform)
+                .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithCallbacksUriTransform(uriTransform)
+                .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .Timeout.Should().Be(TimeSpan.FromSeconds(100));
+                result.Data.Callback
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .Timeout.Should().Be(TimeSpan.FromSeconds(100));
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenManyWebhooksAndManyCallbacksHaveNotDefinedTimeout_MapsDefaultTimeout()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var subscriber = new SubscriberBuilder()
+               .WithWebhooksSelectionRule("$.TenantCode")
+               .WithWebhooksUriTransform(uriTransform)
+               .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+               .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
+               .WithCallbacksSelectionRule("$.TenantCode")
+               .WithCallbacksUriTransform(uriTransform)
+               .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+               .WithCallback("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
+               .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                var webhookRoutes = result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                webhookRoutes[0].Timeout.Should().Be(TimeSpan.FromSeconds(100));
+                webhookRoutes[1].Timeout.Should().Be(TimeSpan.FromSeconds(100));
+                var callbackRoutes = result.Data
+                    .Callback
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                callbackRoutes[0].Timeout.Should().Be(TimeSpan.FromSeconds(100));
+                callbackRoutes[1].Timeout.Should().Be(TimeSpan.FromSeconds(100));
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenSingleWebhookAndSingleCallbackHaveDefinedTimeout_MapsTimeout()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var webhooksTimeout = TimeSpan.FromSeconds(11);
+            var callbacksTimeout = TimeSpan.FromSeconds(33);
+
+            var subscriber = new SubscriberBuilder()
+               .WithWebhooksUriTransform(uriTransform)
+               .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, timeout: webhooksTimeout)
+               .WithCallbacksUriTransform(uriTransform)
+               .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, timeout: callbacksTimeout)
+               .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .Timeout.Should().Be(webhooksTimeout);
+                result.Data.Callback
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .Timeout.Should().Be(callbacksTimeout);
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenManyWebhooksAndManyCallbacksHaveDefinedTimeout_MapsTimeout()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
+
+            var webhooksTimeout = TimeSpan.FromSeconds(11);
+            var callbacksTimeout = TimeSpan.FromSeconds(12);
+
+            var subscriber = new SubscriberBuilder()
+               .WithWebhooksSelectionRule("$.TenantCode")
+               .WithWebhooksUriTransform(uriTransform)
+               .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, timeout: webhooksTimeout)
+               .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication, timeout: webhooksTimeout)
+               .WithCallbacksSelectionRule("$.TenantCode")
+               .WithCallbacksUriTransform(uriTransform)
+               .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, timeout: callbacksTimeout)
+               .WithCallback("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication, timeout: callbacksTimeout)
+               .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                var webhookRoutes = result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                webhookRoutes[0].Timeout.Should().Be(webhooksTimeout);
+                webhookRoutes[1].Timeout.Should().Be(webhooksTimeout);
+                var callbackRoutes = result.Data
+                    .Callback
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                callbackRoutes[0].Timeout.Should().Be(callbacksTimeout);
+                callbackRoutes[1].Timeout.Should().Be(callbacksTimeout);
+            }
+        }
+
     }
 }
