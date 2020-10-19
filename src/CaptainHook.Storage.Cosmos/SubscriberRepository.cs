@@ -300,7 +300,7 @@ namespace CaptainHook.Storage.Cosmos
         private EndpointEntity Map(EndpointSubdocument endpointSubdocument, SubscriberEntity subscriberEntity)
         {
             var authentication = MapToAuthenticationEntity(endpointSubdocument.Authentication);
-            return new EndpointEntity(endpointSubdocument.Uri, authentication, endpointSubdocument.HttpVerb, endpointSubdocument.Selector, subscriberEntity);
+            return new EndpointEntity(endpointSubdocument.Uri, authentication, endpointSubdocument.HttpVerb, endpointSubdocument.Selector, null, subscriberEntity);
         }
 
         private UriTransformEntity Map(UriTransformSubdocument uriTransformSubdocument)

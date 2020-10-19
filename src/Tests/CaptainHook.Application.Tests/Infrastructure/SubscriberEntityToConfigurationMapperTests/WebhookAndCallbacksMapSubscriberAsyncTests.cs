@@ -605,13 +605,14 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
 
+            var webhooksRetrySleepDurations = new[] {TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22)};
+            var callbacksRetrySleepDuration = new[] {TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44)};
+
             var subscriber = new SubscriberBuilder()
-               .WithWebhookRetrySleepDurations(TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22))
                .WithWebhooksUriTransform(uriTransform)
-               .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+               .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, webhooksRetrySleepDurations)
                .WithCallbacksUriTransform(uriTransform)
-               .WithCallbackRetrySleepDurations(TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44))
-               .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
+               .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, callbacksRetrySleepDuration)
                .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
@@ -619,8 +620,18 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
-                result.Data.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44) });
+                result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .RetrySleepDurations.Should().BeEquivalentTo(webhooksRetrySleepDurations);
+                result.Data.Callback
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes
+                    .First()
+                    .RetrySleepDurations.Should().BeEquivalentTo(callbacksRetrySleepDuration);
             }
         }
 
@@ -655,17 +666,18 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
             var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
 
+            var webhooksRetrySleepDurations = new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) };
+            var callbacksRetrySleepDurations = new[] { TimeSpan.FromSeconds(12), TimeSpan.FromSeconds(23) };
+
             var subscriber = new SubscriberBuilder()
                .WithWebhooksSelectionRule("$.TenantCode")
-               .WithWebhookRetrySleepDurations(TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22))
                .WithWebhooksUriTransform(uriTransform)
-               .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
-               .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
+               .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, webhooksRetrySleepDurations)
+               .WithWebhook("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication, webhooksRetrySleepDurations)
                .WithCallbacksSelectionRule("$.TenantCode")
                .WithCallbacksUriTransform(uriTransform)
-               .WithCallbackRetrySleepDurations(TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44))
-               .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
-               .WithCallback("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication)
+               .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, callbacksRetrySleepDurations)
+               .WithCallback("https://payments-{selector}.eshopworld.com/webhook/", httpVerb, "aSelector", authentication, callbacksRetrySleepDurations)
                .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
@@ -673,8 +685,19 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) });
-                result.Data.Callback.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(33), TimeSpan.FromSeconds(44) });
+                var webhookRoutes = result.Data
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                webhookRoutes[0].RetrySleepDurations.Should().BeEquivalentTo(webhooksRetrySleepDurations);
+                webhookRoutes[1].RetrySleepDurations.Should().BeEquivalentTo(webhooksRetrySleepDurations);
+                var callbackRoutes = result.Data
+                    .Callback
+                    .WebhookRequestRules
+                    .Single(x => x.Routes.Any())
+                    .Routes;
+                callbackRoutes[0].RetrySleepDurations.Should().BeEquivalentTo(callbacksRetrySleepDurations);
+                callbackRoutes[1].RetrySleepDurations.Should().BeEquivalentTo(callbacksRetrySleepDurations);
             }
         }
 

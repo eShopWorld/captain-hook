@@ -1,4 +1,5 @@
-﻿using CaptainHook.Domain.Entities;
+﻿using System;
+using CaptainHook.Domain.Entities;
 
 namespace CaptainHook.TestsInfrastructure.Builders
 {
@@ -9,6 +10,8 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _selector;
 
         private string _httpVerb;
+
+        private TimeSpan[] _retrySleepDurations;
 
         private AuthenticationEntity _authentication;
 
@@ -36,9 +39,15 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
+        public EndpointBuilder WithRetrySleepDurations(TimeSpan[] retrySleepDurations)
+        {
+            _retrySleepDurations = retrySleepDurations;
+            return this;
+        }
+
         public EndpointEntity Create()
         {
-            return new EndpointEntity(_uri, _authentication, _httpVerb, _selector);
+            return new EndpointEntity(_uri, _authentication, _httpVerb, _selector, _retrySleepDurations);
         }
     }
 }

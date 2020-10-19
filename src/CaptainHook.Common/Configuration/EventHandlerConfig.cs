@@ -125,7 +125,7 @@ namespace CaptainHook.Common.Configuration
         /// Creates a key used to index the subscriber configurations.
         /// </summary>
         /// <param name="typeName">The full name of the type of the message.</param>
-        /// <param name="subscriberName">The optional name of the subsciber.</param>
+        /// <param name="subscriberName">The optional name of the subscriber.</param>
         /// <returns></returns>
         public static string Key(string typeName, string subscriberName)
             => $"{typeName};{subscriberName}".ToLowerInvariant();

@@ -157,7 +157,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 return authenticationResult.Error;
             }
 
-            var config = new WebhookConfig
+            return new WebhookConfig
             {
                 Name = name,
                 EventType = eventType,
@@ -165,8 +165,6 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 HttpVerb = webhooksEntity?.Endpoints?.FirstOrDefault()?.HttpVerb,
                 AuthenticationConfig = authenticationResult.Data
             };
-
-            return SetRetrySleepDurationIfOverridden(config, webhooksEntity);
         }
 
         private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
@@ -200,16 +198,6 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 },
             };
 
-            return SetRetrySleepDurationIfOverridden(config, webhooksEntity);
-        }
-
-        private static OperationResult<WebhookConfig> SetRetrySleepDurationIfOverridden(WebhookConfig config, WebhooksEntity webhooksEntity)
-        {
-            if (webhooksEntity.RetrySleepDurations != null)
-            {
-                config.RetrySleepDurations = webhooksEntity.RetrySleepDurations;
-            }
-
             return config;
         }
 
@@ -238,13 +226,20 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 return authenticationResult.Error;
             }
 
-            return new WebhookConfigRoute
+            var route = new WebhookConfigRoute
             {
                 Uri = endpoint.Uri,
                 HttpVerb = endpoint.HttpVerb,
                 Selector = endpoint.Selector ?? "*",
                 AuthenticationConfig = authenticationResult.Data
             };
+
+            if (endpoint.RetrySleepDurations != null)
+            {
+                route.RetrySleepDurations = endpoint.RetrySleepDurations;
+            }
+
+            return route;
         }
 
         private async Task<OperationResult<AuthenticationConfig>> MapAuthenticationAsync(AuthenticationEntity authenticationEntity)
