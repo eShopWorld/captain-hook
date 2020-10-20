@@ -46,10 +46,10 @@ namespace CaptainHook.Common.ServiceBus
                 .WaitAndRetryForeverAsync(ExponentialBackoff);
         }
 
-        public async Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, int maxDeliveryCount, CancellationToken cancellationToken)
+        public async Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, int maxDeliveryCount, int messageLockDurationInSeconds, CancellationToken cancellationToken)
         {
             var topic = await CreateTopicIfNotExistsAsync(TypeExtensions.GetEntityName(topicName), cancellationToken);
-            await CreateSubscriptionIfNotExistsAsync(topic, subscriptionName, maxDeliveryCount, cancellationToken);
+            await CreateSubscriptionIfNotExistsAsync(topic, subscriptionName, maxDeliveryCount, messageLockDurationInSeconds, cancellationToken);
         }
 
         public async Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
@@ -64,17 +64,26 @@ namespace CaptainHook.Common.ServiceBus
 
         private async Task<ISubscription> CreateSubscriptionIfNotExistsAsync(ITopic topic, string subscriptionName,
             int maxDeliveryCount,
+            int messageLockDurationInSeconds,
             CancellationToken cancellationToken)
         {
             var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
             var subscription = subscriptionsList.SingleOrDefault(s => string.Equals(s.Name, subscriptionName, StringComparison.OrdinalIgnoreCase));
-            if (subscription != null) return subscription;
+            if (subscription != null)
+            {
+                await subscription.Update()
+                    .WithMessageLockDurationInSeconds(messageLockDurationInSeconds)
+                    .WithMessageMovedToDeadLetterQueueOnMaxDeliveryCount(maxDeliveryCount)
+                    .ApplyAsync(cancellationToken);
+
+                return subscription;
+            }
 
             try
             {
                 await topic.Subscriptions
                     .Define(subscriptionName.ToLowerInvariant())
-                    .WithMessageLockDurationInSeconds(60)
+                    .WithMessageLockDurationInSeconds(messageLockDurationInSeconds)
                     .WithExpiredMessageMovedToDeadLetterSubscription()
                     .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(maxDeliveryCount)
                     .CreateAsync(cancellationToken);

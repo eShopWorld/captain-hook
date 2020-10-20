@@ -3,8 +3,6 @@ using System.Linq;
 using CaptainHook.EventReaderService;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
-using FluentAssertions.Primitives;
-using Kusto.Cloud.Platform.Utils;
 using Xunit;
 
 namespace CaptainHook.Tests.Services.Reliable
