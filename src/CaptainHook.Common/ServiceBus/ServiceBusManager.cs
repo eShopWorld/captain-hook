@@ -69,7 +69,15 @@ namespace CaptainHook.Common.ServiceBus
         {
             var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
             var subscription = subscriptionsList.SingleOrDefault(s => string.Equals(s.Name, subscriptionName, StringComparison.OrdinalIgnoreCase));
-            if (subscription != null) return subscription;
+            if (subscription != null)
+            {
+                await subscription.Update()
+                    .WithMessageLockDurationInSeconds(messageLockDurationInSeconds)
+                    .WithMessageMovedToDeadLetterQueueOnMaxDeliveryCount(maxDeliveryCount)
+                    .ApplyAsync(cancellationToken);
+
+                return subscription;
+            }
 
             try
             {
