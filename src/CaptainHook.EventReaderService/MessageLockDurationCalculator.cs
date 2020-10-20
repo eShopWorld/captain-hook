@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CaptainHook.EventReaderService
 {
     public class MessageLockDurationCalculator : IMessageLockDurationCalculator
     {
         private static readonly TimeSpan TimeAllowance = TimeSpan.FromSeconds(5);
+
+        // this is a Service Bus limit
+        private const int MaxAllowedMessageLockDurationInSeconds = 300;
 
         public int CalculateAsSeconds(TimeSpan httpTimeout, TimeSpan[] retrySleepDurations)
         {
@@ -21,7 +22,9 @@ namespace CaptainHook.EventReaderService
                 retrySleepDurations.Sum(x => x.TotalSeconds) +
                 TimeAllowance.TotalSeconds;
 
-            return result > 300 ? 300 : (int)result;
+            return result > MaxAllowedMessageLockDurationInSeconds ? 
+                MaxAllowedMessageLockDurationInSeconds : 
+                (int)result;
         }
     }
 }
