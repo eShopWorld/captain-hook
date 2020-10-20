@@ -30,6 +30,7 @@ namespace CaptainHook.EventReaderService
                 builder.RegisterInstance(configurationSettings).SingleInstance();
                 builder.RegisterType<MessageProviderFactory>().As<IMessageProviderFactory>().SingleInstance();
                 builder.RegisterType<ServiceBusManager>().As<IServiceBusManager>();
+                builder.RegisterType<MessageLockDurationCalculator>().As<IMessageLockDurationCalculator>().SingleInstance();
 
                 //SF Deps
                 builder.Register<IActorProxyFactory>(_ => new ActorProxyFactory());
@@ -37,7 +38,7 @@ namespace CaptainHook.EventReaderService
                 builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
                 builder.RegisterStatefulService<EventReaderService>(ServiceNaming.EventReaderServiceType);
 
-                using (var container = builder.Build())
+                using (builder.Build())
                 {
                     ServiceEventSource.Current.ServiceTypeRegistered(Process.GetCurrentProcess().Id, ServiceNaming.EventReaderServiceType);
                     await Task.Delay(Timeout.Infinite);
