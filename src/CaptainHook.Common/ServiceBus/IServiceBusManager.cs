@@ -15,10 +15,10 @@ namespace CaptainHook.Common.ServiceBus
         /// </summary>
         /// <param name="subscriptionName"></param>
         /// <param name="topicName"></param>
+        /// <param name="maxDeliveryCount"></param>
         /// <param name="cancellationToken"></param>
-        /// <param name="createTopicIfNotExists"></param>
         /// <returns></returns>
-        Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, CancellationToken cancellationToken);
+        Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, int maxDeliveryCount, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates a message receiver to the service bus namespace

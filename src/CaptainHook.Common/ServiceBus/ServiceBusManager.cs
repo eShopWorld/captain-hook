@@ -46,10 +46,10 @@ namespace CaptainHook.Common.ServiceBus
                 .WaitAndRetryForeverAsync(ExponentialBackoff);
         }
 
-        public async Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, CancellationToken cancellationToken)
+        public async Task CreateTopicAndSubscriptionAsync(string subscriptionName, string topicName, int maxDeliveryCount, CancellationToken cancellationToken)
         {
             var topic = await CreateTopicIfNotExistsAsync(TypeExtensions.GetEntityName(topicName), cancellationToken);
-            await CreateSubscriptionIfNotExistsAsync(topic, subscriptionName, cancellationToken);
+            await CreateSubscriptionIfNotExistsAsync(topic, subscriptionName, maxDeliveryCount, cancellationToken);
         }
 
         public async Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
@@ -63,6 +63,7 @@ namespace CaptainHook.Common.ServiceBus
         }
 
         private async Task<ISubscription> CreateSubscriptionIfNotExistsAsync(ITopic topic, string subscriptionName,
+            int maxDeliveryCount,
             CancellationToken cancellationToken)
         {
             var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
@@ -75,7 +76,7 @@ namespace CaptainHook.Common.ServiceBus
                     .Define(subscriptionName.ToLowerInvariant())
                     .WithMessageLockDurationInSeconds(60)
                     .WithExpiredMessageMovedToDeadLetterSubscription()
-                    .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(10)
+                    .WithMessageMovedToDeadLetterSubscriptionOnMaxDeliveryCount(maxDeliveryCount)
                     .CreateAsync(cancellationToken);
             }
             catch (Exception exception)
