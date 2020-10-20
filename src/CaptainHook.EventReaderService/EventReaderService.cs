@@ -215,7 +215,6 @@ namespace CaptainHook.EventReaderService
         {
             ServicePointManager.DefaultConnectionLimit = 100;
 
-            //_messageLockDurationCalculator
             var messageLockDurationInSeconds = CalculateMessageLock();
             await _serviceBusManager.CreateTopicAndSubscriptionAsync(_initData.SubscriptionName, _initData.EventType, _initData.MaxDeliveryCount, messageLockDurationInSeconds, cancellationToken);
             
