@@ -14,6 +14,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _dlqhooksSelectionRule;
         private string _webhookPayloadTransform = "$";
         private string _dlqhookPayloadTransform = "$";
+        private int? _webhookMaxDeliveryCount = null;
         private UriTransformEntity _webhooksUriTransformEntity;
         private UriTransformEntity _callbacksUriTransformEntity;
         private UriTransformEntity _dlqhooksTransformEntity;
@@ -36,6 +37,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public SubscriberBuilder WithEtag(string etag)
         {
             _etag = etag;
+            return this;
+        }
+
+        public SubscriberBuilder WithWebhooksMaxDeliveryCount(int maxDeliveryCount)
+        {
+            _webhookMaxDeliveryCount = maxDeliveryCount;
             return this;
         }
 
@@ -113,7 +120,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
             var subscriber = new SubscriberEntity(_name, _event, _etag);
 
             return subscriber.SetHooks(
-                    new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity, _webhookPayloadTransform))
+                    new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity, _webhookPayloadTransform, _webhookMaxDeliveryCount))
                 .Then(_ => subscriber.SetHooks(
                     new WebhooksEntity(WebhooksEntityType.Callbacks, _callbackSelectionRule, _callbacks, _callbacksUriTransformEntity, null)))
                 .Then(_ => subscriber.SetHooks(

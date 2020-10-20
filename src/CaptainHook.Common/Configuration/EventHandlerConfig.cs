@@ -13,6 +13,7 @@ namespace CaptainHook.Common.Configuration
     /// </summary>
     public class WebhookConfig
     {
+        private const int DefaultMaxDeliveryCount = 10;
         private static readonly TimeSpan[] DefaultRetrySleepDurations = { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) };
 
         public WebhookConfig()
@@ -20,6 +21,7 @@ namespace CaptainHook.Common.Configuration
             AuthenticationConfig = new AuthenticationConfig();
             WebhookRequestRules = new List<WebhookRequestRule>();
             RetrySleepDurations = DefaultRetrySleepDurations;
+            MaxDeliveryCount = DefaultMaxDeliveryCount;
         }
 
         /// <summary>
@@ -91,6 +93,12 @@ namespace CaptainHook.Common.Configuration
         /// </summary>
         [JsonProperty(Order = 7)]
         public TimeSpan[] RetrySleepDurations { get; set; }
+
+        /// <summary>
+        /// Retry sleep durations to use for request retry logic
+        /// </summary>
+        [JsonProperty(Order = 8)]
+        public int MaxDeliveryCount { get; set; }
 
         /// <summary>
         /// type of transformation to perform onto payload
@@ -203,6 +211,7 @@ namespace CaptainHook.Common.Configuration
                 AuthenticationConfig = webhookConfig.AuthenticationConfig,
                 WebhookRequestRules = webhookConfig.WebhookRequestRules,
                 RetrySleepDurations = webhookConfig.RetrySleepDurations,
+                MaxDeliveryCount =  webhookConfig.MaxDeliveryCount
             };
         }
 

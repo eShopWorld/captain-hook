@@ -157,7 +157,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 return authenticationResult.Error;
             }
 
-            return new WebhookConfig
+            var config = new WebhookConfig
             {
                 Name = name,
                 EventType = eventType,
@@ -165,6 +165,13 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 HttpVerb = webhooksEntity?.Endpoints?.FirstOrDefault()?.HttpVerb,
                 AuthenticationConfig = authenticationResult.Data
             };
+
+            if (webhooksEntity.Type == WebhooksEntityType.Webhooks && webhooksEntity.MaxDeliveryCount.HasValue)
+            {
+                config.MaxDeliveryCount = webhooksEntity.MaxDeliveryCount.Value;
+            }
+
+            return config;
         }
 
         private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
@@ -197,6 +204,11 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                     }
                 },
             };
+
+            if (webhooksEntity.Type == WebhooksEntityType.Webhooks && webhooksEntity.MaxDeliveryCount.HasValue)
+            {
+                config.MaxDeliveryCount = webhooksEntity.MaxDeliveryCount.Value;
+            }
 
             return config;
         }
