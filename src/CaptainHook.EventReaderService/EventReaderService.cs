@@ -203,14 +203,12 @@ namespace CaptainHook.EventReaderService
 
         internal int CalculateMessageLock()
         {
-            var routesDurations = _initData.SubscriberConfiguration.WebhookRequestRules
+            var messageLockDurationFromRoutes = _initData.SubscriberConfiguration.WebhookRequestRules
                                 .FirstOrDefault(x => x.Routes.Any())?
                                 .Routes?
-                                .Select(x => x.RetrySleepDurations);
+                                .Max(x => _messageLockDurationCalculator.CalculateAsSeconds(x.Timeout, x.RetrySleepDurations));
                 
-            var durations = routesDurations ?? new List<TimeSpan[]> { _initData.SubscriberConfiguration.RetrySleepDurations };
-
-            return durations.Max(d => _messageLockDurationCalculator.CalculateAsSeconds(_initData.SubscriberConfiguration.Timeout, d));
+            return messageLockDurationFromRoutes ?? _messageLockDurationCalculator.CalculateAsSeconds(_initData.SubscriberConfiguration.Timeout, _initData.SubscriberConfiguration.RetrySleepDurations);
         }
 
         private async Task SetupServiceBusAsync(CancellationToken cancellationToken)
