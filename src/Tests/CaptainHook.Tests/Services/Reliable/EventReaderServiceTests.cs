@@ -317,12 +317,13 @@ namespace CaptainHook.Tests.Services.Reliable
         public void CalculateMessageLockWithMultipleWebhooksReturnsCorrectValue()
         {
             var subscriberConfiguration = new SubscriberConfigurationBuilder()
-                .WithHttpTimeout(TimeSpan.FromSeconds(20))
                 .AddWebhookRequestRule(rule => rule
                     .AddRoute(route => route
+                        .WithHttpTimeout(TimeSpan.FromSeconds(20))
                         .WithUri("https://blah-{orderCode}.eshopworld.com/1/")
                         .WithRetrySleepDurations(new []{TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(20) }))
                     .AddRoute(route => route
+                        .WithHttpTimeout(TimeSpan.FromSeconds(20))
                         .WithUri("https://blah-{orderCode}.eshopworld.com/2/")
                         .WithRetrySleepDurations(new[] { TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(40) })))
                 .Create();

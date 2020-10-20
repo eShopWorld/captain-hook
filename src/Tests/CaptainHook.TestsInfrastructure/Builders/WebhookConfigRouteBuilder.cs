@@ -10,6 +10,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private string _uri;
         private string _httpVerb = "POST";
         private TimeSpan[] _retrySleepDurations;
+        private TimeSpan? _httpTimeout;
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig();
 
         public WebhookConfigRouteBuilder WithSelector(string selector)
@@ -21,6 +22,12 @@ namespace CaptainHook.TestsInfrastructure.Builders
         public WebhookConfigRouteBuilder WithUri(string uri)
         {
             _uri = uri;
+            return this;
+        }
+
+        public WebhookConfigRouteBuilder WithHttpTimeout(TimeSpan httpTimeout)
+        {
+            _httpTimeout = httpTimeout;
             return this;
         }
 
@@ -91,6 +98,11 @@ namespace CaptainHook.TestsInfrastructure.Builders
             if (_retrySleepDurations != null)
             {
                 route.RetrySleepDurations = _retrySleepDurations;
+            }
+
+            if (_httpTimeout.HasValue)
+            {
+                route.Timeout = _httpTimeout.Value;
             }
 
             return route;
