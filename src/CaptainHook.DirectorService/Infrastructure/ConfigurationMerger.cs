@@ -33,8 +33,10 @@ namespace CaptainHook.DirectorService.Infrastructure
         {
             var onlyInKv = subscribersFromKeyVault
                 .Where(kvSubscriber => !subscribersFromCosmos.Any(cosmosSubscriber =>
-                    kvSubscriber.EventType.Equals(cosmosSubscriber.ParentEvent.Name, StringComparison.InvariantCultureIgnoreCase)
-                    && kvSubscriber.SubscriberName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase)));
+                    kvSubscriber.EventType.Equals(cosmosSubscriber.ParentEvent.Name, StringComparison.InvariantCultureIgnoreCase) && 
+                    (kvSubscriber.SubscriberName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase) ||
+                     (!string.IsNullOrEmpty(kvSubscriber.SourceSubscriptionName) && kvSubscriber.SourceSubscriptionName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase)))
+                ));
 
             async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapCosmosEntries()
             {
