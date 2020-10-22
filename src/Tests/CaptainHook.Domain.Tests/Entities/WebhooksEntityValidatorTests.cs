@@ -179,7 +179,7 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [ClassData(typeof(WebhooksAndCallbacks))]
+        [ClassData(typeof(WebhooksCallbacksDlqHooks))]
         public void Validate_WebhookWithAllTokensInUriTransform_SucceedsValidation(WebhooksEntityType type)
         {
             // Arrange
