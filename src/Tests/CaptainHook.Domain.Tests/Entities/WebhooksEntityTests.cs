@@ -30,7 +30,7 @@ namespace CaptainHook.Domain.Tests.Entities
             var result = entity.SetEndpoint(endpoint);
 
             // Assert
-            using(new AssertionScope())
+            using var _ = new AssertionScope();
             result.IsError.Should().BeTrue();
             result.Error.Failures.Should().HaveCount(1);
             result.Error.Failures.First().As<ValidationFailure>().Message.Should()

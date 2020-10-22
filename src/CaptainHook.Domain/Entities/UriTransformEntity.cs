@@ -17,7 +17,7 @@ namespace CaptainHook.Domain.Entities
         {
             var caseInsensitiveDictionary = new Dictionary<string, string>(
                 replace ?? EmptyReplacementsDictionary,
-                StringComparer.InvariantCultureIgnoreCase);
+                StringComparer.OrdinalIgnoreCase);
             Replace = new ReadOnlyDictionary<string, string>(caseInsensitiveDictionary);
         }
     }
