@@ -122,9 +122,24 @@ namespace CaptainHook.Tests.Director
         {
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("testevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "*", BasicAuthenticationEntity).Create(),
-                new SubscriberBuilder().WithEvent("testevent.completed").WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST", "*", BasicAuthenticationEntity).Create(),
-                new SubscriberBuilder().WithEvent("testevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "*", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder()
+                    .WithEvent("testevent")
+                    .WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "*", BasicAuthenticationEntity)
+                    .WithCallback("https://cosmos.eshopworld.com/callback/", "POST", "*", BasicAuthenticationEntity)
+                    .Create(),
+                new SubscriberBuilder()
+                    .WithEvent("testevent.completed")
+                    .WithWebhook("https://cosmos.eshopworld.com/testevent-completed/", "POST", "*", BasicAuthenticationEntity)
+                    .WithCallback("https://cosmos.eshopworld.com/callback/", "POST", "*", BasicAuthenticationEntity)
+                    .WithDlqhook("https://cosmos.eshopworld.com/dlq/", "POST", "*", BasicAuthenticationEntity)
+                    .Create(),
+                new SubscriberBuilder()
+                    .WithEvent("testevent")
+                    .WithName("subscriber1")
+                    .WithWebhook("https://cosmos.eshopworld.com/testevent2/", "POST", "*", BasicAuthenticationEntity)
+                    .WithCallback("https://cosmos.eshopworld.com/callback/", "POST", "*", BasicAuthenticationEntity)
+                    .WithDlqhook("https://cosmos.eshopworld.com/dlq/", "POST", "*", BasicAuthenticationEntity)
+                    .Create(),
             };
 
             var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object));
@@ -132,10 +147,12 @@ namespace CaptainHook.Tests.Director
 
             using (new AssertionScope())
             {
-                result.Data.Should().HaveCount(3);
+                result.Data.Should().HaveCount(5);
                 result.Data.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "captain-hook");
-                result.Data.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "subscriber1");
                 result.Data.Should().Contain(x => x.EventType == "testevent.completed" && x.SubscriberName == "captain-hook");
+                result.Data.Should().Contain(x => x.EventType == "testevent.completed" && x.SubscriberName == "captain-hook-DLQ");
+                result.Data.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "subscriber1");
+                result.Data.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "subscriber1-DLQ");
             }
         }
 
@@ -145,13 +162,19 @@ namespace CaptainHook.Tests.Director
             var kvSubscribers = new[]
             {
                 new SubscriberConfigurationBuilder().WithType("testEVENT").WithCallback().Create(),
+                new SubscriberConfigurationBuilder().WithType("testEVENT").CreateAsDlq(),
+
                 new SubscriberConfigurationBuilder().WithType("testevent").WithSubscriberName("subscriber1").Create(),
                 new SubscriberConfigurationBuilder().WithType("testevent.completed").Create(),
             };
 
             var cosmosSubscribers = new[]
             {
-                new SubscriberBuilder().WithEvent("TESTevent").WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "*", BasicAuthenticationEntity).Create(),
+                new SubscriberBuilder().WithEvent("TESTevent")
+                    .WithWebhook("https://cosmos.eshopworld.com/testevent/", "POST", "*", BasicAuthenticationEntity)
+                    .WithDlqhook("https://cosmos.eshopworld.com/dlq/", "POST", "*", BasicAuthenticationEntity)
+                    .Create(),
+                
                 new SubscriberBuilder().WithEvent("newtestevent.completed").WithWebhook("https://cosmos.eshopworld.com/newtestevent-completed/", "POST", "*", BasicAuthenticationEntity).Create(),
                 new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "*", BasicAuthenticationEntity).Create(),
             };
@@ -161,9 +184,10 @@ namespace CaptainHook.Tests.Director
 
             using (new AssertionScope())
             {
-                result.Data.Should().HaveCount(5);
+                result.Data.Should().HaveCount(6);
 
                 result.Data.Should().Contain(x => x.EventType == "TESTevent" && x.SubscriberName == "captain-hook" && x.Uri == "https://cosmos.eshopworld.com/testevent/");
+                result.Data.Should().Contain(x => x.EventType == "TESTevent" && x.SubscriberName == "captain-hook-DLQ" && x.Uri == "https://cosmos.eshopworld.com/dlq/");
 
                 result.Data.Should().Contain(x => x.EventType == "testevent" && x.SubscriberName == "subscriber1" && x.Uri == "https://blah.blah.eshopworld.com");
                 result.Data.Should().Contain(x => x.EventType == "testevent.completed" && x.SubscriberName == "captain-hook" && x.Uri == "https://blah.blah.eshopworld.com");
