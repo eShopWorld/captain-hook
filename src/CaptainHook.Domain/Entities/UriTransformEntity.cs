@@ -11,7 +11,7 @@ namespace CaptainHook.Domain.Entities
         /// <summary>
         /// A list of replacements
         /// </summary>
-        public IReadOnlyDictionary<string, string> Replace { get; }
+        public IDictionary<string, string> Replace { get; }
 
         public UriTransformEntity(IDictionary<string, string> replace)
         {
