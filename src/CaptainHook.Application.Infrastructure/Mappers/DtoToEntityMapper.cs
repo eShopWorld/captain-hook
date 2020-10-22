@@ -19,7 +19,13 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         public EndpointEntity MapEndpoint(EndpointDto endpointDto, string selector = null)
         {
             var authenticationEntity = MapAuthentication(endpointDto.Authentication);
-            var endpoint = new EndpointEntity(endpointDto.Uri, authenticationEntity, endpointDto.HttpVerb, selector ?? endpointDto.Selector);
+            var endpoint = new EndpointEntity(
+                endpointDto.Uri,
+                authenticationEntity,
+                endpointDto.HttpVerb,
+                selector ?? endpointDto.Selector,
+                endpointDto.RetrySleepDurations,
+                endpointDto.Timeout);
 
             return endpoint;
         }
