@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
@@ -28,5 +29,17 @@ namespace CaptainHook.Storage.Cosmos.Models
         /// Endpoint HTTP verb
         /// </summary>
         public string HttpVerb { get; set; }
+
+        /// <summary>
+        /// Http Timeout
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public TimeSpan? Timeout { get; set; }
+
+        /// <summary>
+        /// Retry sleep durations
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public TimeSpan[] RetrySleepDurations { get; set; }
     }
 }

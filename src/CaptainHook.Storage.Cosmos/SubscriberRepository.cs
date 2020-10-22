@@ -257,7 +257,9 @@ namespace CaptainHook.Storage.Cosmos
                 Selector = endpointEntity.Selector,
                 HttpVerb = endpointEntity.HttpVerb,
                 Uri = endpointEntity.Uri,
-                Authentication = MapToAuthenticationSubdocument(endpointEntity.Authentication)
+                Authentication = MapToAuthenticationSubdocument(endpointEntity.Authentication),
+                Timeout = endpointEntity.Timeout,
+                RetrySleepDurations = endpointEntity.RetrySleepDurations
             };
         }
 
