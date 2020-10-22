@@ -14,4 +14,16 @@ namespace CaptainHook.Domain.Tests.Entities
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
+
+    public class WebhooksCallbacksDlqHooks : IEnumerable<object[]>
+    {
+        public IEnumerator<object[]> GetEnumerator()
+        {
+            yield return new object[] { WebhooksEntityType.Webhooks };
+            yield return new object[] { WebhooksEntityType.Callbacks };
+            yield return new object[] { WebhooksEntityType.DlqHooks };
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
 }
