@@ -177,8 +177,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
         private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
         {
             var replacements = new Dictionary<string, string>(
-                webhooksEntity.UriTransform?.Replace ?? EmptyReplacementsDictionary, 
-                StringComparer.InvariantCultureIgnoreCase);
+                webhooksEntity.UriTransform?.Replace ?? EmptyReplacementsDictionary);
 
             if (!string.IsNullOrEmpty(webhooksEntity.SelectionRule))
             {

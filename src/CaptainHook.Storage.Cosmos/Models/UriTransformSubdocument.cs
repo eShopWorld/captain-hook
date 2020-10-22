@@ -1,19 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Newtonsoft.Json;
 
 namespace CaptainHook.Storage.Cosmos.Models
 {
     public class UriTransformSubdocument
     {
+        private static readonly Dictionary<string, string> EmptyReplacementsDictionary = new Dictionary<string, string>();
+
         public UriTransformSubdocument(IDictionary<string, string> replace)
         {
-            Replace = new ReadOnlyDictionary<string, string>(replace ?? 
-                new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase));
+            Replace = new ReadOnlyDictionary<string, string>(replace ?? EmptyReplacementsDictionary);
         }
         
-        [JsonConverter(typeof(CaseInsensitiveDictionaryConverter))]
         public IDictionary<string, string> Replace { get; }
     }
 }

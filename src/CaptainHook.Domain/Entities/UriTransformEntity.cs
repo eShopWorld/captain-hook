@@ -6,6 +6,8 @@ namespace CaptainHook.Domain.Entities
 {
     public class UriTransformEntity
     {
+        private static readonly Dictionary<string, string> EmptyReplacementsDictionary = new Dictionary<string, string>();
+
         /// <summary>
         /// A list of replacements
         /// </summary>
@@ -13,8 +15,10 @@ namespace CaptainHook.Domain.Entities
 
         public UriTransformEntity(IDictionary<string, string> replace)
         {
-            Replace = new ReadOnlyDictionary<string, string>(replace ?? 
-                new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase));
+            var caseInsensitiveDictionary = new Dictionary<string, string>(
+                replace ?? EmptyReplacementsDictionary,
+                StringComparer.InvariantCultureIgnoreCase);
+            Replace = new ReadOnlyDictionary<string, string>(caseInsensitiveDictionary);
         }
     }
 }
