@@ -1,4 +1,5 @@
-﻿using CaptainHook.Application.Infrastructure.Mappers;
+using System;
+using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.TestsInfrastructure.Builders;
 using FluentAssertions.Execution;
 using CaptainHook.Domain.Entities;
@@ -168,6 +169,31 @@ namespace CaptainHook.Application.Tests.Infrastructure
                 entity.Selector.Should().Be("Select");
                 entity.Uri.Should().Be("http://www.test.url");
                 entity.HttpVerb.Should().Be(httpVerb);
+                entity.Timeout.Should().BeNull();
+                entity.RetrySleepDurations.Should().BeNull();
+            }
+        }
+
+        [Fact]
+        [IsUnit]
+        public void MapEndpoint_When_TimeoutAndRetriesProvided_Then_AreMappedToEndpointEntity()
+        {
+            // Arrange
+            var dto = new EndpointDtoBuilder()
+                .With(x => x.HttpVerb, "PUT")
+                .With(x => x.Uri, "http://www.test.url")
+                .With(x => x.Timeout, TimeSpan.FromSeconds(10))
+                .With(x => x.RetrySleepDurations, new[] { TimeSpan.FromSeconds(1) })
+                .Create();
+
+            // Act
+            var entity = sut.MapEndpoint(dto, null);
+
+            // Assert
+            using (new AssertionScope())
+            {
+                entity.Timeout.Should().Be(TimeSpan.FromSeconds(10));
+                entity.RetrySleepDurations.Should().BeEquivalentTo(new[] { TimeSpan.FromSeconds(1) });
             }
         }
 
