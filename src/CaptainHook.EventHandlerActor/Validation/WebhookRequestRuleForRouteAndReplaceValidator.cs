@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CaptainHook.Common.Configuration;
@@ -13,24 +14,22 @@ namespace CaptainHook.EventHandlerActor.Validation
         {
             RuleFor(x => x.Source).NotNull().SetValidator(new SourceParserLocationValidator());
             RuleFor(x => x.Destination).NotNull().SetValidator(new DestinationLocationValidator());
-            RuleFor(x => x.Routes).Must(ContainValidSelectors);
+            RuleFor(x => x.Routes)
+                .Must(ContainAtMostOneDefaultSelector).WithMessage("At most one route can use default selector")
+                .Must(AllSelectorsMustBeUnique).WithMessage("All routes must have unique selectors");
             RuleForEach(x => x.Routes).SetValidator((x, y) => new RouteValidator(x));
         }
 
-        private bool ContainValidSelectors(List<WebhookConfigRoute> routes)
+        private bool ContainAtMostOneDefaultSelector(List<WebhookConfigRoute> routes)
         {
-            var selectors = routes?.Select(r => r.Selector).ToList();
-            return ContainExactlyOneDefaultSelector(selectors) && AllSelectorsMustBeUnique(selectors);
+            return routes?.Select(r => r.Selector)
+                .Count(x => x == RouteAndReplaceRequestBuilder.DefaultFallbackSelectorKey) <= 1;
         }
 
-        private bool ContainExactlyOneDefaultSelector(IList<string> selectors)
+        private bool AllSelectorsMustBeUnique(List<WebhookConfigRoute> routes)
         {
-            return selectors.Count(x => x == RouteAndReplaceRequestBuilder.DefaultFallbackSelectorKey) == 1;
-        }
-
-        private bool AllSelectorsMustBeUnique(IList<string> selectors)
-        {
-            return selectors.Distinct().Count() == selectors.Count;
+            var selectors = routes?.Select(r => r.Selector).ToArray() ?? Array.Empty<string>();
+            return selectors.Distinct().Count() == selectors.Length;
         }
 
         private class SourceParserLocationValidator : AbstractValidator<SourceParserLocation>

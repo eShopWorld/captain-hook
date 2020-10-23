@@ -27,7 +27,7 @@ namespace CaptainHook.Application.Validators.Dtos
                 .NotEmpty()
                 .WithMessage($"{subject} list must contain at least one endpoint")
                 .Must(ContainAtMostOneEndpointWithDefaultSelector)
-                    .WithMessage("There can be only one endpoint with the default selector")
+                    .WithMessage("There can be at most one endpoint with the default selector")
                 .Must(NotContainMultipleEndpointsWithTheSameSelector)
                     .WithMessage("There cannot be multiple endpoints with the same selector");
 

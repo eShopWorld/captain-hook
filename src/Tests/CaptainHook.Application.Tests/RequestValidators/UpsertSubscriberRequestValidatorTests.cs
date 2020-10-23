@@ -210,7 +210,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var result = _validator.TestValidate(request);
 
             result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.Endpoints)
-                .WithErrorMessage("There can be only one endpoint with the default selector");
+                .WithErrorMessage("There can be at most one endpoint with the default selector");
         }
 
         [Fact, IsUnit]
@@ -228,7 +228,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
             var result = _validator.TestValidate(request);
 
             result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.Endpoints)
-                .WithErrorMessage("There can be only one endpoint with the default selector");
+                .WithErrorMessage("There can be at most one endpoint with the default selector");
         }
 
         [Fact, IsUnit]
