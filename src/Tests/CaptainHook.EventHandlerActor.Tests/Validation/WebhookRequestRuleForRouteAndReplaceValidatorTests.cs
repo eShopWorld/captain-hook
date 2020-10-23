@@ -76,7 +76,9 @@ namespace CaptainHook.EventHandlerActor.Tests.Validation
 
             var result = _validator.TestValidate(rule);
 
-            result.ShouldHaveValidationErrorFor(x => x.Source.Replace);
+            result
+                .ShouldHaveValidationErrorFor(x => x.Source.Replace)
+                .WithErrorMessage("Replace must contain property 'selector'");
         }
 
         [Theory, IsUnit]

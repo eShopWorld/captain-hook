@@ -19,7 +19,7 @@ namespace CaptainHook.Application.Validators.Dtos
                 .NotEmpty()
                 .Must(BeValidJsonPathExpression)
                     .WithMessage("The SelectionRule must be a valid JSONPath expression")
-                .When(ThereIsAtLeastOneEndpointWithSelectorDefined);
+                .When(SelectionRuleToBePresent);
 
             RuleFor(x => x.Endpoints).Cascade(CascadeMode.Stop)
                 .NotNull()
@@ -40,6 +40,16 @@ namespace CaptainHook.Application.Validators.Dtos
             RuleFor(x => x.UriTransform).Cascade(CascadeMode.Stop)
                 .SetValidator((webhooksDto, uriTransform) => new UriTransformValidator(webhooksDto.Endpoints))
                     .When(x => x.UriTransform?.Replace != null, ApplyConditionTo.CurrentValidator);
+        }
+
+        private static bool SelectionRuleToBePresent(WebhooksDto webhooks)
+        {
+            return ThereIsAtLeastOneEndpointWithSelectorDefined(webhooks) || UriTransformIsDefined(webhooks);
+        }
+
+        private static bool UriTransformIsDefined(WebhooksDto webhooks)
+        {
+            return webhooks.UriTransform != null;
         }
 
         private static bool ThereIsAtLeastOneEndpointWithSelectorDefined(WebhooksDto webhooks)
