@@ -179,7 +179,7 @@ namespace CaptainHook.Domain.Tests.Entities
         }
 
         [Theory, IsUnit]
-        [ClassData(typeof(WebhooksAndCallbacks))]
+        [ClassData(typeof(WebhooksCallbacksDlqHooks))]
         public void Validate_WebhookWithAllTokensInUriTransform_SucceedsValidation(WebhooksEntityType type)
         {
             // Arrange
@@ -192,11 +192,11 @@ namespace CaptainHook.Domain.Tests.Entities
             {
                 new EndpointBuilder()
                     .WithSelector("abc1")
-                    .WithUri("https://uri1.com/{selector}/{token1}")
+                    .WithUri("https://uri1.com/{selector}/{Token1}")
                     .Create(),
                 new EndpointBuilder()
                     .WithSelector("abc2")
-                    .WithUri("https://uri2.com/{selector}/{token2}")
+                    .WithUri("https://uri2.com/{selector}/{Token2}")
                     .Create()
             }, uriTransform);
 
