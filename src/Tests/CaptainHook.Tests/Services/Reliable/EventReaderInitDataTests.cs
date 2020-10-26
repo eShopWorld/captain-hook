@@ -109,6 +109,7 @@ namespace CaptainHook.Tests.Services.Reliable
             eventReaderInitData.SubscriberName.Should().Be(_subscriberConfiguration.SubscriberName);
             eventReaderInitData.EventType.Should().Be(_subscriberConfiguration.EventType);
             eventReaderInitData.SubscriberConfiguration.Should().BeEquivalentTo(_subscriberConfiguration);
+            eventReaderInitData.MaxDeliveryCount.Should().Be(_subscriberConfiguration.MaxDeliveryCount);
         }
 
         [Fact]

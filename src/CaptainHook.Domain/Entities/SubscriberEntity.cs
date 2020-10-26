@@ -23,6 +23,11 @@ namespace CaptainHook.Domain.Entities
         public string Etag { get; }
 
         /// <summary>
+        /// Get max delivery count
+        /// </summary>
+        public int? MaxDeliveryCount { get; set; }
+
+        /// <summary>
         /// Parent event for this subscriber
         /// </summary>
         public EventEntity ParentEvent { get; private set; }

@@ -52,6 +52,12 @@ namespace CaptainHook.Storage.Cosmos.Models
         public WebhookSubdocument DlqHooks { get; set; }
 
         /// <summary>
+        /// Max delivery count for subscriber.
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? MaxDeliveryCount { get; set; }
+
+        /// <summary>
         /// ETag of the document from Cosmos Db
         /// </summary>
         [JsonProperty("_etag")]

@@ -228,7 +228,8 @@ namespace CaptainHook.Storage.Cosmos
                 Webhooks = Map(subscriberEntity.Webhooks),
                 Callbacks = Map(subscriberEntity.Callbacks),
                 DlqHooks = Map(subscriberEntity.DlqHooks),
-                Etag = subscriberEntity.Etag
+                Etag = subscriberEntity.Etag,
+                MaxDeliveryCount = subscriberEntity.MaxDeliveryCount
             };
         }
 
@@ -275,7 +276,10 @@ namespace CaptainHook.Storage.Cosmos
             var subscriberEntity = new SubscriberEntity(
                 subscriberDocument.SubscriberName,
                 eventEntity,
-                subscriberDocument.Etag);
+                subscriberDocument.Etag)
+            {
+                MaxDeliveryCount = subscriberDocument.MaxDeliveryCount
+            };
 
             subscriberEntity.SetHooks(Map(subscriberDocument.Webhooks, subscriberEntity, WebhooksEntityType.Webhooks));
 

@@ -77,7 +77,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         public async Task<OperationResult<SubscriberConfiguration>> MapToWebhookAsync(SubscriberEntity entity)
         {
-            var webhooksResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.Webhooks);
+            var webhooksResult = await MapWebhooksAsync(entity, entity.Webhooks);
             if (webhooksResult.IsError)
             {
                 return webhooksResult.Error;
@@ -88,7 +88,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
             if (entity.HasCallbacks)
             {
-                var callbackResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.Callbacks);
+                var callbackResult = await MapWebhooksAsync(entity, entity.Callbacks);
                 if (callbackResult.IsError)
                 {
                     return callbackResult.Error;
@@ -105,7 +105,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             if (!entity.HasDlqHooks)
                 throw new ArgumentException("Entity must contain Dlqhooks", nameof(entity));
 
-            var webhooksResult = await MapWebhooksAsync(entity.Id, entity.ParentEvent.Name, entity.DlqHooks);
+            var webhooksResult = await MapWebhooksAsync(entity, entity.DlqHooks);
             if (webhooksResult.IsError)
             {
                 return webhooksResult.Error;
@@ -120,19 +120,19 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         }
 
-        private async Task<OperationResult<WebhookConfig>> MapWebhooksAsync(string name, string eventType, WebhooksEntity webhooksEntity)
+        private async Task<OperationResult<WebhookConfig>> MapWebhooksAsync(SubscriberEntity entity, WebhooksEntity webhooksEntity)
         {
             OperationResult<WebhookConfig> result;
 
             if (string.IsNullOrEmpty(webhooksEntity?.SelectionRule) &&
-                webhooksEntity?.Endpoints?.Count() == 1 &&
+                webhooksEntity?.Endpoints?.Count == 1 &&
                 webhooksEntity?.UriTransform == null)
             {
-                result = await MapSingleWebhookWithNoUriTransformAsync(name, eventType, webhooksEntity);
+                result = await MapSingleWebhookWithNoUriTransformAsync(entity, webhooksEntity);
             }
             else
             {
-                result = await MapForUriTransformAsync(name, eventType, webhooksEntity);
+                result = await MapForUriTransformAsync(entity, webhooksEntity);
             }
 
             return result.Then<WebhookConfig>(config => AddPayloadTransformRule(config, webhooksEntity.PayloadTransform, webhooksEntity.Type));
@@ -148,8 +148,11 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             return webhookConfig;
         }
 
-        private async Task<OperationResult<WebhookConfig>> MapSingleWebhookWithNoUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
+        private async Task<OperationResult<WebhookConfig>> MapSingleWebhookWithNoUriTransformAsync(SubscriberEntity entity, WebhooksEntity webhooksEntity)
         {
+            var name = entity.Id;
+            var eventType = entity.ParentEvent.Name;
+
             var authenticationResult = await MapAuthenticationAsync(webhooksEntity?.Endpoints?.FirstOrDefault()?.Authentication);
 
             if (authenticationResult.IsError)
@@ -166,18 +169,20 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 AuthenticationConfig = authenticationResult.Data
             };
 
-            if (webhooksEntity.Type == WebhooksEntityType.Webhooks && webhooksEntity.MaxDeliveryCount.HasValue)
+            if (entity.MaxDeliveryCount.HasValue)
             {
-                config.MaxDeliveryCount = webhooksEntity.MaxDeliveryCount.Value;
+                config.MaxDeliveryCount = entity.MaxDeliveryCount.Value;
             }
 
             return config;
         }
 
-        private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(string name, string eventType, WebhooksEntity webhooksEntity)
+        private async Task<OperationResult<WebhookConfig>> MapForUriTransformAsync(SubscriberEntity entity, WebhooksEntity webhooksEntity)
         {
-            var replacements = new Dictionary<string, string>(
-                webhooksEntity.UriTransform?.Replace ?? EmptyReplacementsDictionary);
+            var name = entity.Id;
+            var eventType = entity.ParentEvent.Name;
+
+            var replacements = new Dictionary<string, string>(webhooksEntity.UriTransform?.Replace ?? EmptyReplacementsDictionary);
 
             if (!string.IsNullOrEmpty(webhooksEntity.SelectionRule))
             {
@@ -206,9 +211,9 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 },
             };
 
-            if (webhooksEntity.Type == WebhooksEntityType.Webhooks && webhooksEntity.MaxDeliveryCount.HasValue)
+            if (entity.MaxDeliveryCount.HasValue)
             {
-                config.MaxDeliveryCount = webhooksEntity.MaxDeliveryCount.Value;
+                config.MaxDeliveryCount = entity.MaxDeliveryCount.Value;
             }
 
             return config;

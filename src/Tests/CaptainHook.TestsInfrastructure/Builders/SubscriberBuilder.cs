@@ -40,7 +40,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
             return this;
         }
 
-        public SubscriberBuilder WithWebhooksMaxDeliveryCount(int maxDeliveryCount)
+        public SubscriberBuilder WithMaxDeliveryCount(int maxDeliveryCount)
         {
             _webhookMaxDeliveryCount = maxDeliveryCount;
             return this;
@@ -117,10 +117,13 @@ namespace CaptainHook.TestsInfrastructure.Builders
 
         public SubscriberEntity Create()
         {
-            var subscriber = new SubscriberEntity(_name, _event, _etag);
+            var subscriber = new SubscriberEntity(_name, _event, _etag)
+            {
+                MaxDeliveryCount = _webhookMaxDeliveryCount
+            };
 
             return subscriber.SetHooks(
-                    new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity, _webhookPayloadTransform, _webhookMaxDeliveryCount))
+                    new WebhooksEntity(WebhooksEntityType.Webhooks, _webhookSelectionRule, _webhooks, _webhooksUriTransformEntity, _webhookPayloadTransform))
                 .Then(_ => subscriber.SetHooks(
                     new WebhooksEntity(WebhooksEntityType.Callbacks, _callbackSelectionRule, _callbacks, _callbacksUriTransformEntity, null)))
                 .Then(_ => subscriber.SetHooks(
