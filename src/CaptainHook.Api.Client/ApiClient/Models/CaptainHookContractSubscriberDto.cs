@@ -24,11 +24,12 @@ namespace CaptainHook.Api.Client.Models
         /// Initializes a new instance of the CaptainHookContractSubscriberDto
         /// class.
         /// </summary>
-        public CaptainHookContractSubscriberDto(CaptainHookContractWebhooksDto webhooks = default(CaptainHookContractWebhooksDto), CaptainHookContractWebhooksDto callbacks = default(CaptainHookContractWebhooksDto), CaptainHookContractWebhooksDto dlqHooks = default(CaptainHookContractWebhooksDto))
+        public CaptainHookContractSubscriberDto(CaptainHookContractWebhooksDto webhooks = default(CaptainHookContractWebhooksDto), CaptainHookContractWebhooksDto callbacks = default(CaptainHookContractWebhooksDto), CaptainHookContractWebhooksDto dlqHooks = default(CaptainHookContractWebhooksDto), int? maxDeliveryCount = default(int?))
         {
             Webhooks = webhooks;
             Callbacks = callbacks;
             DlqHooks = dlqHooks;
+            MaxDeliveryCount = maxDeliveryCount;
             CustomInit();
         }
 
@@ -51,6 +52,11 @@ namespace CaptainHook.Api.Client.Models
         /// </summary>
         [JsonProperty(PropertyName = "dlqHooks")]
         public CaptainHookContractWebhooksDto DlqHooks { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "maxDeliveryCount")]
+        public int? MaxDeliveryCount { get; set; }
 
     }
 }

@@ -7,6 +7,8 @@
 namespace CaptainHook.Api.Client.Models
 {
     using Newtonsoft.Json;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.Linq;
 
     public partial class CaptainHookContractEndpointDto
@@ -24,12 +26,14 @@ namespace CaptainHook.Api.Client.Models
         /// Initializes a new instance of the CaptainHookContractEndpointDto
         /// class.
         /// </summary>
-        public CaptainHookContractEndpointDto(string uri = default(string), string httpVerb = default(string), object authentication = default(object), string selector = default(string))
+        public CaptainHookContractEndpointDto(string uri = default(string), string httpVerb = default(string), object authentication = default(object), string selector = default(string), string timeout = default(string), IList<string> retrySleepDurations = default(IList<string>))
         {
             Uri = uri;
             HttpVerb = httpVerb;
             Authentication = authentication;
             Selector = selector;
+            Timeout = timeout;
+            RetrySleepDurations = retrySleepDurations;
             CustomInit();
         }
 
@@ -57,6 +61,16 @@ namespace CaptainHook.Api.Client.Models
         /// </summary>
         [JsonProperty(PropertyName = "selector")]
         public string Selector { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "timeout")]
+        public string Timeout { get; set; }
+
+        /// <summary>
+        /// </summary>
+        [JsonProperty(PropertyName = "retrySleepDurations")]
+        public IList<string> RetrySleepDurations { get; set; }
 
     }
 }

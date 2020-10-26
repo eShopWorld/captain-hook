@@ -412,6 +412,45 @@ namespace CaptainHook.Api.Client
             }
 
             /// <summary>
+            /// Returns a probe result
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            public static void GetProbe1(this ICaptainHookClient operations)
+            {
+                operations.GetProbe1Async().GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Returns a probe result
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task GetProbe1Async(this ICaptainHookClient operations, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.GetProbe1WithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Returns a probe result
+            /// </summary>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='customHeaders'>
+            /// Headers that will be added to request.
+            /// </param>
+            public static HttpOperationResponse GetProbe1WithHttpMessages(this ICaptainHookClient operations, Dictionary<string, List<string>> customHeaders = null)
+            {
+                return operations.GetProbe1WithHttpMessagesAsync(customHeaders, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
             /// Retrieve all subscribers from current configuration
             /// </summary>
             /// <param name='operations'>
