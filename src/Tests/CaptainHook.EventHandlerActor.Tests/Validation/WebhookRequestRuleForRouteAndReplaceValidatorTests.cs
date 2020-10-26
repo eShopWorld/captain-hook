@@ -159,7 +159,7 @@ namespace CaptainHook.EventHandlerActor.Tests.Validation
         }
 
         [Fact, IsUnit]
-        public void When_there_is_no_default_Route_Selector_then_validation_should_fail()
+        public void When_there_is_no_default_Route_Selector_then_validation_should_succeed()
         {
             var rule = new WebhookRequestRuleBuilder()
                 .WithSource(sourceBuilder => sourceBuilder
@@ -177,7 +177,7 @@ namespace CaptainHook.EventHandlerActor.Tests.Validation
 
             var result = _validator.TestValidate(rule);
 
-            result.ShouldHaveValidationErrorFor(x => x.Routes);
+            result.ShouldNotHaveValidationErrorFor(x => x.Routes);
         }
 
         [Fact, IsUnit]
@@ -199,7 +199,9 @@ namespace CaptainHook.EventHandlerActor.Tests.Validation
 
             var result = _validator.TestValidate(rule);
 
-            result.ShouldHaveValidationErrorFor(x => x.Routes);
+            result
+                .ShouldHaveValidationErrorFor(x => x.Routes)
+                .WithErrorMessage("At most one route can use default selector");
         }
 
         [Theory, IsUnit]
@@ -247,7 +249,9 @@ namespace CaptainHook.EventHandlerActor.Tests.Validation
 
             var result = _validator.TestValidate(rule);
 
-            result.ShouldHaveValidationErrorFor(x => x.Routes);
+            result
+                .ShouldHaveValidationErrorFor(x => x.Routes)
+                .WithErrorMessage("All routes must have unique selectors");
         }
     }
 }

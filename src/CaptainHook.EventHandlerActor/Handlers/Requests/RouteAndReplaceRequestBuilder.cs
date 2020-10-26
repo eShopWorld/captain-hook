@@ -38,6 +38,13 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
             var webhookConfig = GetWebhookConfig(routeAndReplaceRule, selector);
 
             void PublishUnroutableEventWithMessage(string message) => PublishUnroutableEvent(config, message, selector);
+
+            if (webhookConfig == null)
+            {
+                PublishUnroutableEventWithMessage($"No route found for selector '{selector}'");
+                return null;
+            }
+
             var replacementDictionary = BuildReplacementDictionary(routeAndReplaceRule.Source.Replace, payload, PublishUnroutableEventWithMessage);
 
             return new BuildUriContext(
@@ -88,7 +95,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
             if (route == null)
             {
                 var defaultRoute =
-                    rule.Routes.First(r => r.Selector.Equals(DefaultFallbackSelectorKey, StringComparison.OrdinalIgnoreCase));
+                    rule.Routes.FirstOrDefault(r => r.Selector.Equals(DefaultFallbackSelectorKey, StringComparison.OrdinalIgnoreCase));
                 return defaultRoute;
             }
 
