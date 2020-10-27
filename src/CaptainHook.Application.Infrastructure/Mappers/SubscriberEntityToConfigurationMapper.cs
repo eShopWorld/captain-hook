@@ -135,7 +135,19 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 result = await MapForUriTransformAsync(entity, webhooksEntity);
             }
 
-            return result.Then<WebhookConfig>(config => AddPayloadTransformRule(config, webhooksEntity.PayloadTransform, webhooksEntity.Type));
+            OperationResult<WebhookConfig> AssignMaxDeliveryCount(WebhookConfig config)
+            {
+                if (entity.MaxDeliveryCount.HasValue)
+                {
+                    config.MaxDeliveryCount = entity.MaxDeliveryCount.Value;
+                }
+
+                return config;
+            }
+
+            return result
+                .Then(AssignMaxDeliveryCount)
+                .Then<WebhookConfig>(config => AddPayloadTransformRule(config, webhooksEntity.PayloadTransform, webhooksEntity.Type));
         }
 
         private WebhookConfig AddPayloadTransformRule(WebhookConfig webhookConfig, string payloadTransform, WebhooksEntityType entityType)
@@ -153,26 +165,10 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             var name = entity.Id;
             var eventType = entity.ParentEvent.Name;
 
-            var authenticationResult = await MapAuthenticationAsync(webhooksEntity?.Endpoints?.FirstOrDefault()?.Authentication);
-
-            if (authenticationResult.IsError)
-            {
-                return authenticationResult.Error;
-            }
-
-            var config = new WebhookConfig
-            {
-                Name = name,
-                EventType = eventType,
-                Uri = webhooksEntity?.Endpoints?.FirstOrDefault()?.Uri,
-                HttpVerb = webhooksEntity?.Endpoints?.FirstOrDefault()?.HttpVerb,
-                AuthenticationConfig = authenticationResult.Data
-            };
-
-            if (entity.MaxDeliveryCount.HasValue)
-            {
-                config.MaxDeliveryCount = entity.MaxDeliveryCount.Value;
-            }
+            var singleEndpoint = webhooksEntity.Endpoints.Single();
+            WebhookConfig config = await MapEndpointToRouteAsync(singleEndpoint);
+            config.Name = name;
+            config.EventType = eventType;
 
             return config;
         }
@@ -210,11 +206,6 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                     }
                 },
             };
-
-            if (entity.MaxDeliveryCount.HasValue)
-            {
-                config.MaxDeliveryCount = entity.MaxDeliveryCount.Value;
-            }
 
             return config;
         }

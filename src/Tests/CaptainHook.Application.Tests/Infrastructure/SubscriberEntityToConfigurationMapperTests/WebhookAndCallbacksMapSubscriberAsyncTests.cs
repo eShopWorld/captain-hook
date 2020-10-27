@@ -599,6 +599,24 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         }
 
         [Fact, IsUnit]
+        public async Task WhenSingleWebhookHasDefinedRetrySleepDurations_MapsRetrySleepDurations()
+        {
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+            var webhooksRetrySleepDurations = new[] { TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(22) };
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://order-abc.eshopworld.com/webhook/", "PUT", null, authentication, webhooksRetrySleepDurations)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.RetrySleepDurations.Should().BeEquivalentTo(webhooksRetrySleepDurations);
+            }
+        }
+
+        [Fact, IsUnit]
         public async Task WhenSingleWebhookAndSingleCallbackHaveDefinedRetrySleepDurations_MapsRetrySleepDurations()
         {
             const string httpVerb = "PUT";
@@ -915,20 +933,15 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         }
 
         [Fact, IsUnit]
-        public async Task WhenSingleWebhookAndSingleCallbackHaveDefinedTimeout_MapsTimeout()
+        public async Task WhenSingleWebhookHasDefinedTimeout_MapsTimeout()
         {
-            const string httpVerb = "PUT";
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
-            var uriTransform = new UriTransformEntity(new Dictionary<string, string> { ["orderCode"] = "$.OrderCode", ["selector"] = "$.TenantCode" });
 
             var webhooksTimeout = TimeSpan.FromSeconds(11);
             var callbacksTimeout = TimeSpan.FromSeconds(33);
 
             var subscriber = new SubscriberBuilder()
-               .WithWebhooksUriTransform(uriTransform)
-               .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, timeout: webhooksTimeout)
-               .WithCallbacksUriTransform(uriTransform)
-               .WithCallback("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication, timeout: callbacksTimeout)
+               .WithWebhook("https://order-abc.eshopworld.com/webhook/", "PUT", null, authentication, timeout: webhooksTimeout)
                .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
@@ -936,18 +949,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             using (new AssertionScope())
             {
                 result.IsError.Should().BeFalse();
-                result.Data
-                    .WebhookRequestRules
-                    .Single(x => x.Routes.Any())
-                    .Routes
-                    .First()
-                    .Timeout.Should().Be(webhooksTimeout);
-                result.Data.Callback
-                    .WebhookRequestRules
-                    .Single(x => x.Routes.Any())
-                    .Routes
-                    .First()
-                    .Timeout.Should().Be(callbacksTimeout);
+                result.Data.Timeout.Should().Be(webhooksTimeout);
             }
         }
 
@@ -994,7 +996,27 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
         }
 
         [Fact, IsUnit]
-        public async Task WhenSingleWebhookHasDefinedMaxDeliveryCount_MapsMaxDeliveryCount()
+        public async Task WhenSingleSimpleWebhookHasDefinedMaxDeliveryCount_MapsMaxDeliveryCount()
+        {
+            const string httpVerb = "PUT";
+            var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
+
+            var subscriber = new SubscriberBuilder()
+                .WithWebhook("https://order-test.eshopworld.com/webhook/", httpVerb, null, authentication)
+                .WithMaxDeliveryCount(20)
+                .Create();
+
+            var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
+
+            using (new AssertionScope())
+            {
+                result.IsError.Should().BeFalse();
+                result.Data.MaxDeliveryCount.Should().Be(20);
+            }
+        }
+
+        [Fact, IsUnit]
+        public async Task WhenSingleRoutedWebhookHasDefinedMaxDeliveryCount_MapsMaxDeliveryCount()
         {
             const string httpVerb = "PUT";
             var authentication = new BasicAuthenticationEntity("mark", "kv-secret-name");
