@@ -253,5 +253,45 @@ namespace CaptainHook.EventHandlerActor.Tests.Validation
                 .ShouldHaveValidationErrorFor(x => x.Routes)
                 .WithErrorMessage("All routes must have unique selectors");
         }
+
+        [Fact, IsUnit]
+        public void When_Route_Uri_contains_replacements_which_are_not_provided_then_validation_should_fail()
+        {
+            var rule = new WebhookRequestRuleBuilder()
+                .WithSource(sourceBuilder => sourceBuilder
+                    .WithLocation(Location.Body)
+                    .AddReplace("selector", "something"))
+                .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                .AddRoute(routeBuilder => routeBuilder
+                    .WithSelector("*")
+                    .WithUri("https://api-{selector}.company.com/order/{orderCode}"))
+                .Create();
+
+            var result = _validator.TestValidate(rule);
+
+            result
+                .ShouldHaveValidationErrorFor("Routes[0].Uri")
+                .WithErrorMessage("'Uri' contains undefined replacements");
+        }
+
+        [Fact, IsUnit]
+        public void When_Route_Uri_is_empty_then_validation_should_fail()
+        {
+            var rule = new WebhookRequestRuleBuilder()
+                .WithSource(sourceBuilder => sourceBuilder
+                    .WithLocation(Location.Body)
+                    .AddReplace("selector", "something"))
+                .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                .AddRoute(routeBuilder => routeBuilder
+                    .WithSelector("*")
+                    .WithUri(""))
+                .Create();
+
+            var result = _validator.TestValidate(rule);
+
+            result
+                .ShouldHaveValidationErrorFor("Routes[0].Uri")
+                .WithErrorMessage("'Uri' must not be empty.");
+        }
     }
 }
