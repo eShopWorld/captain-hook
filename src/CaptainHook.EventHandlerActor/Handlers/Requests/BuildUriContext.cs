@@ -28,7 +28,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
             _replacedUri = _originalUri;
             foreach (var (key, value) in replacements)
             {
-                _replacedUri = _replacedUri.Replace($"{{{key}}}", value);
+                _replacedUri = _replacedUri.Replace($"{{{key}}}", value, StringComparison.OrdinalIgnoreCase);
             }
 
             return this;

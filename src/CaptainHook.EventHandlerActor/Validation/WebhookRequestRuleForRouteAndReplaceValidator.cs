@@ -61,8 +61,10 @@ namespace CaptainHook.EventHandlerActor.Validation
             {
                 _rule = rule;
                 RuleFor(x => x.Selector).NotEmpty();
-                RuleFor(x => x.Uri).NotEmpty()
-                    .Must(ContainOnlyDefinedSelectors);
+                RuleFor(x => x.Uri)
+                    .NotEmpty()
+                    .Must(ContainOnlyDefinedSelectors)
+                    .WithMessage("'{PropertyName}' contains undefined replacements");
             }
 
             private bool ContainOnlyDefinedSelectors(string uri)
