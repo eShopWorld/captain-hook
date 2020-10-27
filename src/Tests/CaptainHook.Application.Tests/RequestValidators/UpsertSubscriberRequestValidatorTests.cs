@@ -484,5 +484,34 @@ namespace CaptainHook.Application.Tests.RequestValidators
             result.ShouldHaveValidationErrorFor(x => x.Subscriber.Webhooks.PayloadTransform);
             result.ShouldHaveValidationErrorFor(x => x.Subscriber.DlqHooks.PayloadTransform);
         }
+
+        [Theory, IsUnit]
+        [InlineData(null)]
+        [InlineData(1)]
+        [InlineData(5)]
+        [InlineData(100)]
+        public void When_MaxDeliveryIsValid_Then_ValidationSucceeds(int? maxDelivery)
+        {
+            var dto = new SubscriberDtoBuilder().With(x => x.MaxDeliveryCount, maxDelivery).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldNotHaveValidationErrorFor(x => x.Subscriber.MaxDeliveryCount);
+        }
+
+        [Theory, IsUnit]
+        [InlineData(-1)]
+        [InlineData(0)]
+        public void When_MaxDeliveryIsNotValid_Then_ValidationFails(int maxDelivery)
+        {
+            var dto = new SubscriberDtoBuilder().With(x => x.MaxDeliveryCount, maxDelivery).Create();
+            var request = new UpsertSubscriberRequest("event", "subscriber", dto);
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.Subscriber.MaxDeliveryCount)
+                .WithErrorMessage("'Max Delivery Count' must be greater than or equal to '1'.");
+        }
     }
 }

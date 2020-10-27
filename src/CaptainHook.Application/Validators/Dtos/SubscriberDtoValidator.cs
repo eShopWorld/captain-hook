@@ -16,6 +16,10 @@ namespace CaptainHook.Application.Validators.Dtos
 
             RuleFor(x => x.DlqHooks)
                 .SetValidator(new WebhooksDtoValidator(WebhooksValidatorDtoType.DlqHook));
+
+            RuleFor(x => x.MaxDeliveryCount)
+                .Cascade(CascadeMode.Stop)
+                .GreaterThanOrEqualTo(1).When(entity => entity.MaxDeliveryCount.HasValue);
         }
     }
 }

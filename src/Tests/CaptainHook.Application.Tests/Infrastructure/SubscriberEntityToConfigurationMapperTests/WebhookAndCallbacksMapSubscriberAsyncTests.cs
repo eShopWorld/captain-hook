@@ -1003,7 +1003,7 @@ namespace CaptainHook.Application.Tests.Infrastructure.SubscriberEntityToConfigu
             var subscriber = new SubscriberBuilder()
                 .WithWebhooksUriTransform(uriTransform)
                 .WithWebhook("https://order-{selector}.eshopworld.com/webhook/", httpVerb, null, authentication)
-                .WithWebhooksMaxDeliveryCount(20)
+                .WithMaxDeliveryCount(20)
                 .Create();
 
             var result = await new SubscriberEntityToConfigurationMapper(_secretProviderMock.Object).MapToWebhookAsync(subscriber);
