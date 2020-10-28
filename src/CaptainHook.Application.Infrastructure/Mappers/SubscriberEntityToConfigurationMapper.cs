@@ -166,9 +166,15 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             var eventType = entity.ParentEvent.Name;
 
             var singleEndpoint = webhooksEntity.Endpoints.Single();
-            WebhookConfig config = await MapEndpointToRouteAsync(singleEndpoint);
-            config.Name = name;
-            config.EventType = eventType;
+            var config = await MapEndpointToRouteAsync<WebhookConfig>(singleEndpoint);
+
+            if (config.IsError)
+            {
+                return config;
+            }
+
+            config.Data.Name = name;
+            config.Data.EventType = eventType;
 
             return config;
         }
@@ -212,7 +218,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
         private async Task<OperationResult<IEnumerable<WebhookConfigRoute>>> MapWebhooksToRoutesAsync(WebhooksEntity webhooks)
         {
-            var tasks = webhooks.Endpoints.Select(MapEndpointToRouteAsync);
+            var tasks = webhooks.Endpoints.Select(MapEndpointToRouteAsync<WebhookConfigRoute>);
             await Task.WhenAll(tasks);
 
             var errors = tasks.Select(x => x.Result).Where(x => x.IsError);
@@ -226,7 +232,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             return tasks.Select(x => x.Result.Data).ToList();
         }
 
-        private async Task<OperationResult<WebhookConfigRoute>> MapEndpointToRouteAsync(EndpointEntity endpoint)
+        private async Task<OperationResult<TRoute>> MapEndpointToRouteAsync<TRoute>(EndpointEntity endpoint) where TRoute : WebhookConfig, new()
         {
             var authenticationResult = await MapAuthenticationAsync(endpoint.Authentication);
 
@@ -235,13 +241,17 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                 return authenticationResult.Error;
             }
 
-            var route = new WebhookConfigRoute
+            var route = new TRoute
             {
                 Uri = endpoint.Uri,
                 HttpVerb = endpoint.HttpVerb,
-                Selector = endpoint.Selector ?? "*",
                 AuthenticationConfig = authenticationResult.Data
             };
+
+            if (route is WebhookConfigRoute configRoute)
+            {
+                configRoute.Selector = endpoint.Selector ?? "*";
+            }
 
             if (endpoint.RetrySleepDurations != null)
             {
