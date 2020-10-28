@@ -9,7 +9,9 @@ namespace CaptainHook.Application.Validators
         public UpsertWebhookRequestValidator()
         {
             RuleFor(x => x.EventName).NotEmpty();
-            RuleFor(x => x.SubscriberName).NotEmpty();
+            RuleFor(x => x.SubscriberName).Cascade(CascadeMode.Stop)
+                .NotEmpty()
+                .MaximumLength(50);
             RuleFor(x => x.Selector).NotEmpty();
             RuleFor(x => x.Endpoint).Cascade(CascadeMode.Stop)
                 .NotNull()
