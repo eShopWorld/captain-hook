@@ -9,7 +9,9 @@ namespace CaptainHook.Application.Validators
         public UpsertSubscriberRequestValidator()
         {
             RuleFor(x => x.EventName).NotEmpty();
-            RuleFor(x => x.SubscriberName).NotEmpty();
+            RuleFor(x => x.SubscriberName).Cascade(CascadeMode.Stop)
+               .NotEmpty()
+               .MaximumLength(50);
             RuleFor(x => x.Subscriber).Cascade(CascadeMode.Stop)
                 .NotNull()
                 .SetValidator(new SubscriberDtoValidator());
