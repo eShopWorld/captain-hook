@@ -66,7 +66,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_EventIsEmpty_Then_ValidationFails(string invalidString)
+        public void When_EventNameIsEmpty_Then_ValidationFails(string invalidString)
         {
             // Arrange
             var dto = new SubscriberDtoBuilder().Create();
@@ -81,7 +81,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_SubscriberIsEmpty_Then_ValidationFails(string invalidString)
+        public void When_SubscriberNameIsEmpty_Then_ValidationFails(string invalidString)
         {
             // Arrange
             var dto = new SubscriberDtoBuilder().Create();
@@ -95,7 +95,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         }
 
         [Fact, IsUnit]
-        public void When_SubscriberIsTooLong_Then_ValidationFails()
+        public void When_SubscriberNameIsTooLong_Then_ValidationFails()
         {
             var request = new UpsertSubscriberRequest("event", new string('a', 51), new SubscriberDtoBuilder().Create());
 
