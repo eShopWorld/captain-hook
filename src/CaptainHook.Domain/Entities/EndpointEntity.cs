@@ -7,7 +7,7 @@ namespace CaptainHook.Domain.Entities
     /// </summary>
     public class EndpointEntity
     {
-        private const string DefaultEndpointSelector = "*";
+        public const string DefaultEndpointSelector = "*";
 
         public static bool IsDefaultSelector(string selector)
         {

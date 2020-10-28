@@ -250,7 +250,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
 
             if (route is WebhookConfigRoute configRoute)
             {
-                configRoute.Selector = endpoint.Selector ?? "*";
+                configRoute.Selector = endpoint.Selector ?? EndpointEntity.DefaultEndpointSelector;
             }
 
             if (endpoint.RetrySleepDurations != null)
