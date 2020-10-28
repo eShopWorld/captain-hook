@@ -58,21 +58,23 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
                 uri = route.Uri;
             }
 
+            void PublishUnroutableEventWithMessage(string message) => PublishUnroutableEvent(config, message);
+
             //after route has been selected then select the identifier for the RESTful URI if applicable
             var uriRules = config.WebhookRequestRules.FirstOrDefault(l => l.Destination.Location == Location.Uri);
             if (uriRules == null)
             {
-                return new Uri(uri);
+                return BuildUriContext.CreateUriOrPublishUnroutable(uri, PublishUnroutableEventWithMessage);
             }
 
             if (uriRules.Source.Location != Location.Body)
             {
-                return new Uri(uri);
+                return BuildUriContext.CreateUriOrPublishUnroutable(uri, PublishUnroutableEventWithMessage);
             }
 
             var parameter = ModelParser.ParsePayloadPropertyAsString(uriRules.Source.Path, payload);
             uri = CombineUriAndResourceId(uri, parameter);
-            return new Uri(uri);
+            return BuildUriContext.CreateUriOrPublishUnroutable(uri, PublishUnroutableEventWithMessage);
         }
 
         protected void PublishUnroutableEvent(WebhookConfig config, string message, string selector = null)

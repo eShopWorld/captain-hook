@@ -46,5 +46,21 @@ namespace CaptainHook.EventHandlerActor.Tests.Handlers.Requests
             // Assert
             result.Should().BeNull();
         }
+
+        [Fact, IsUnit]
+        public void ApplyReplace_InvalidUri_NoReplaceHappens()
+        {
+            // Arrange
+            var invalidUri = "abc.com";
+            var replacements = new Dictionary<string, string>();
+
+            // Act
+            var result = new BuildUriContext(invalidUri, a => { })
+                .ApplyReplace(replacements)
+                .CheckIfRoutableAndReturn();
+
+            // Assert
+            result.Should().BeNull();
+        }
     }
 }

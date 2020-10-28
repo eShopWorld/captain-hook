@@ -34,15 +34,19 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
             return this;
         }
 
-        public Uri CheckIfRoutableAndReturn()
+        public Uri CheckIfRoutableAndReturn() => CreateUriOrPublishUnroutable(_replacedUri, _publishUnroutableEvent);
+
+        public static Uri CreateUriOrPublishUnroutable(string uri, Action<string> publish)
         {
-            if (_replacedUri.Contains("{"))
+            var uriCreated = Uri.TryCreate(uri, UriKind.Absolute, out var newUri);
+            if (!uriCreated || uri.Contains("{"))
             {
-                _publishUnroutableEvent($"Uri still contains unpopulated variables: {_replacedUri}");
+                publish($"Value '{uri}' cannot be used to create a Uri");
                 return null;
             }
 
-            return new Uri(_replacedUri);
+            return newUri;
+
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CaptainHook.Contract;
@@ -27,12 +28,12 @@ namespace CaptainHook.Application.Validators.Common
                 .SelectMany(u => _extractSelectorsFromUri.Matches(u))
                 .Select(m => m.Value)
                 .Where(DoesNotContainSelectorString);
-            return values.All(replace.ContainsKey);
+            return !values.Except(replace.Keys, StringComparer.OrdinalIgnoreCase).Any();
         }
 
         private bool DoesNotContainSelectorString(string value)
         {
-            return !value.Equals("selector", System.StringComparison.InvariantCultureIgnoreCase);
+            return !value.Equals("selector", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
