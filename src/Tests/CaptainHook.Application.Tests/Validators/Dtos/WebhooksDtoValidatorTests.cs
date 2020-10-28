@@ -87,5 +87,36 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
             // Assert
             result.ShouldNotHaveValidationErrorFor(x => x.SelectionRule);
         }
+
+        [Fact, IsUnit]
+        public void Validate_UriTransformPresentWithVariousCasing_NoErrorOnUriTransformReplace()
+        {
+            // Arrange
+            var webhooksDto = new WebhooksDtoBuilder()
+                .With(x => x.SelectionRule, "$.Test")
+                .With(x => x.Endpoints, new List<EndpointDto>
+                {
+                    new EndpointDto
+                    {
+                        HttpVerb = "PUT",
+                        Uri = "https://abc.{selector}.com/{OrderCode}/{tenantCode}"
+                    }
+                })
+                .With(x => x.UriTransform, new UriTransformDto
+                {
+                    Replace = new Dictionary<string, string>
+                    {
+                        { "orderCode", "abc" },
+                        { "TenantCode", "abc" },
+                    }
+                })
+                .Create();
+
+            // Act
+            var result = _webhooksValidator.TestValidate(webhooksDto);
+
+            // Assert
+            result.ShouldNotHaveValidationErrorFor(x => x.UriTransform.Replace);
+        }
     }
 }
