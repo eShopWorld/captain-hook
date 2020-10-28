@@ -73,7 +73,8 @@ namespace CaptainHook.EventHandlerActor.Validation
                     return true;
 
                 var values = _extractSelectorsFromUri.Matches(uri).Select(m => m.Value);
-                return values.All(value => _rule.Source.Replace.ContainsKey(value));
+                var replaceKeys = _rule.Source.Replace.Keys;
+                return !values.Except(replaceKeys, StringComparer.OrdinalIgnoreCase).Any();
             }
         }
     }
