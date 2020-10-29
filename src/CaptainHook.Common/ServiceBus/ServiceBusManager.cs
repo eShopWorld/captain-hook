@@ -69,7 +69,7 @@ namespace CaptainHook.Common.ServiceBus
             int messageLockDurationInSeconds,
             CancellationToken cancellationToken)
         {
-            if (maxDeliveryCount == 0)
+            if (maxDeliveryCount <= 0)
             {
                 maxDeliveryCount = WebhookConfig.DefaultMaxDeliveryCount;
             }
