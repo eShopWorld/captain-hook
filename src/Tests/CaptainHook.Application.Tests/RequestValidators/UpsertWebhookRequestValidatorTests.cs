@@ -17,7 +17,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
         [Fact, IsUnit]
         public void When_RequestIsValid_Then_NoFailuresReturned()
         {
-            var request = new UpsertWebhookRequest("event", "subscriber", "*", new EndpointDtoBuilder().Create());
+            var request = new UpsertWebhookRequest("event", new string('a', 50), "*", new EndpointDtoBuilder().Create());
 
             var result = _validator.TestValidate(request);
 
@@ -43,7 +43,7 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_EventIsEmpty_Then_ValidationFails(string invalidString)
+        public void When_EventNameIsEmpty_Then_ValidationFails(string invalidString)
         {
             var request = new UpsertWebhookRequest(invalidString, "subscriber", "*", new EndpointDtoBuilder().Create());
 
@@ -54,9 +54,19 @@ namespace CaptainHook.Application.Tests.RequestValidators
 
         [Theory, IsUnit]
         [ClassData(typeof(EmptyStrings))]
-        public void When_SubscriberIsEmpty_Then_ValidationFails(string invalidString)
+        public void When_SubscriberNameIsEmpty_Then_ValidationFails(string invalidString)
         {
             var request = new UpsertWebhookRequest("event", invalidString, "*", new EndpointDtoBuilder().Create());
+
+            var result = _validator.TestValidate(request);
+
+            result.ShouldHaveValidationErrorFor(x => x.SubscriberName);
+        }
+
+        [Fact, IsUnit]
+        public void When_SubscriberNameIsTooLong_Then_ValidationFails()
+        {
+            var request = new UpsertWebhookRequest("event", new string('a', 51), "*", new EndpointDtoBuilder().Create());
 
             var result = _validator.TestValidate(request);
 

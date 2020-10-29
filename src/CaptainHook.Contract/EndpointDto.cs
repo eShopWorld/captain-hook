@@ -10,6 +10,7 @@ namespace CaptainHook.Contract
     public class EndpointDto
     {
         private static readonly AuthenticationDto NoAuthentication = new NoAuthenticationDto();
+       
         /// <summary>
         /// Webhook URI
         /// </summary>
