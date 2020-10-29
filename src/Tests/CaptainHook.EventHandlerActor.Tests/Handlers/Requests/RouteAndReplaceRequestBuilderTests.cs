@@ -101,6 +101,29 @@ namespace CaptainHook.EventHandlerActor.Tests.Handlers.Requests
 
         [IsUnit]
         [Fact]
+        public void BuildUri_PayloadContainsValuesButAreEmpty_ValidUriIsCreatedButMightBeIncorrect()
+        {
+            var config = new WebhookConfigBuilder()
+                .AddWebhookRequestRule(ruleBuilder => ruleBuilder
+                    .WithSource(source => source
+                        .AddReplace("selector", "$.TenantCode")
+                        .AddReplace("orderCode", "$.OrderCode"))
+                    .WithDestination(ruleAction: RuleAction.RouteAndReplace)
+                    .AddRoute(route => route
+                        .WithUri("https://blah.blah.eshopworld.com/s-{selector}/o-{orderCode}")
+                        .WithSelector("*")
+                        .WithNoAuthentication()))
+                .Create();
+            const string payload = "{\"BrandType\":\"Brand2\", \"TenantCode\":\"\", \"OrderCode\": null }";
+            _validatorMock.Setup(v => v.Validate(It.IsAny<WebhookConfig>())).Returns(new ValidationResult());
+
+            var uri = _builder.BuildUri(config, payload);
+
+            uri.Should().Be("https://blah.blah.eshopworld.com/s-/o-");
+        }
+
+        [IsUnit]
+        [Fact]
         public void BuildUri_PayloadDoesNotContainAnyReplaceValues_UnroutablePublishedAndNullReturned()
         {
             var config = new WebhookConfigBuilder()
