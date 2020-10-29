@@ -13,7 +13,8 @@ namespace CaptainHook.Common.Configuration
     /// </summary>
     public class WebhookConfig
     {
-        private const int DefaultMaxDeliveryCount = 10;
+        public const int DefaultMaxDeliveryCount = 10;
+
         private static readonly TimeSpan[] DefaultRetrySleepDurations = { TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30) };
 
         public WebhookConfig()
