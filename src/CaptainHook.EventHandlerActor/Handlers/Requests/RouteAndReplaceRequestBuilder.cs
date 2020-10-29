@@ -77,10 +77,10 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
             {
                 foreach (var (key, value) in sourceReplace)
                 {
-                    var valueFromPayload = RetrieveValueFromPayload(value, payload, publishUnroutableEvent);
-                    if (!string.IsNullOrEmpty(valueFromPayload))
+                    var (found, valueFromPayload) = RetrieveValueFromPayload(value, payload, publishUnroutableEvent);
+                    if (found)
                     {
-                        var escapedValue = Uri.EscapeDataString(valueFromPayload);
+                        var escapedValue = Uri.EscapeDataString(valueFromPayload ?? string.Empty);
                         yield return new KeyValuePair<string, string>(key, escapedValue);
                     }
                 }
@@ -105,21 +105,26 @@ namespace CaptainHook.EventHandlerActor.Handlers.Requests
         private string GetRouteSelector(string payload, WebhookRequestRule routeAndReplaceRule, Action<string> publishUnroutableEvent)
         {
             var selectorSource = routeAndReplaceRule.Source.Replace[SelectorKeyName];
-            return routeAndReplaceRule.Source.Location == Location.Body
-                ? RetrieveValueFromPayload(selectorSource, payload, publishUnroutableEvent)
-                : null;
+            if (routeAndReplaceRule.Source.Location == Location.Body)
+            {
+                var (_, value) = RetrieveValueFromPayload(selectorSource, payload, publishUnroutableEvent);
+                return value;
+            }
+
+            return null;
         }
 
-        private string RetrieveValueFromPayload(string propertyPath, string payload, Action<string> publishUnroutableEvent)
+        private (bool found, string value) RetrieveValueFromPayload(string propertyPath, string payload, Action<string> publishUnroutableEvent)
         {
             try
             {
-                return ModelParser.ParsePayloadPropertyAsString(propertyPath, payload);
+                var value = ModelParser.ParsePayloadPropertyAsString(propertyPath, payload);
+                return (true, value);
             }
             catch (Exception)
             {
                 publishUnroutableEvent($"Error looking for {propertyPath} in the message payload");
-                return null;
+                return (false, null);
             }
         }
     }

@@ -75,6 +75,8 @@ namespace CaptainHook.EventHandlerActor
 
         public async Task Handle(MessageData messageData)
         {
+            _bigBrother.Publish(new ActorHandleStarted(messageData, this));
+
             await StateManager.AddOrUpdateStateAsync(messageData.HandlerId.ToString(), messageData, (s, pair) => pair);
 
             _handleTimer = RegisterTimer(
@@ -95,7 +97,7 @@ namespace CaptainHook.EventHandlerActor
                 messageData = state as MessageData;
                 if (messageData == null)
                 {
-                    _bigBrother.Publish(new ActorError($" actor timer state could not be parsed to a guid so removing it.", this));
+                    _bigBrother.Publish(new ActorStateError(state, this));
                     return;
                 }
 

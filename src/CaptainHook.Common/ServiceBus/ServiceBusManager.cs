@@ -62,11 +62,18 @@ namespace CaptainHook.Common.ServiceBus
             }
         }
 
-        private async Task<ISubscription> CreateSubscriptionIfNotExistsAsync(ITopic topic, string subscriptionName,
+        private async Task<ISubscription> CreateSubscriptionIfNotExistsAsync(
+            ITopic topic, 
+            string subscriptionName,
             int maxDeliveryCount,
             int messageLockDurationInSeconds,
             CancellationToken cancellationToken)
         {
+            if (maxDeliveryCount <= 0)
+            {
+                maxDeliveryCount = WebhookConfig.DefaultMaxDeliveryCount;
+            }
+
             var subscriptionsList = await topic.Subscriptions.ListAsync(cancellationToken: cancellationToken);
             var subscription = subscriptionsList.SingleOrDefault(s => string.Equals(s.Name, subscriptionName, StringComparison.OrdinalIgnoreCase));
             if (subscription != null)
