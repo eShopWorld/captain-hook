@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Fabric;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -57,10 +56,6 @@ namespace CaptainHook.DirectorService
 
                 builder.RegisterType<SubscriberConfigurationLoader>()
                     .As<ISubscriberConfigurationLoader>()
-                    .SingleInstance();
-
-                builder.RegisterType<ConfigurationMerger>()
-                    .As<IConfigurationMerger>()
                     .SingleInstance();
 
                 builder.RegisterInstance(configurationSettings)
