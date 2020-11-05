@@ -70,7 +70,7 @@ namespace CaptainHook.DirectorService
         private async Task<OperationResult<IDictionary<string, SubscriberConfiguration>>> LoadConfigurationAsync()
         {
             var keyVaultUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
-            var subscriberConfigResult = await _subscriberConfigurationLoader.LoadAsync(keyVaultUri);
+            var subscriberConfigResult = await _subscriberConfigurationLoader.LoadAsync();
 
             if (subscriberConfigResult.IsError)
             {

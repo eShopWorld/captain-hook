@@ -7,6 +7,6 @@ namespace CaptainHook.DirectorService.Infrastructure.Interfaces
 {
     public interface ISubscriberConfigurationLoader
     {
-        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> LoadAsync(string keyVaultUri);
+        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> LoadAsync();
     }
 }
