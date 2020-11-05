@@ -26,20 +26,9 @@ namespace CaptainHook.DirectorService.Infrastructure
 
         public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> LoadAsync()
         {
-            var subscribersFromCosmos = await _subscriberRepository.GetAllSubscribersAsync();
-            if (subscribersFromCosmos.IsError)
-            {
-                return subscribersFromCosmos.Error;
-            }
-
-            var fromCosmosResult = await MapCosmosEntities(subscribersFromCosmos.Data);
-
-            if (fromCosmosResult.IsError)
-            {
-                return fromCosmosResult.Error;
-            }
-
-            return new ReadOnlyCollection<SubscriberConfiguration>(fromCosmosResult.Data);
+            return await _subscriberRepository.GetAllSubscribersAsync()
+                .Then(async data => await MapCosmosEntities(data))
+                .Then<IList<SubscriberConfiguration>, IEnumerable<SubscriberConfiguration>>(data => new ReadOnlyCollection<SubscriberConfiguration>(data.ToList()));
         }
 
         private async Task<OperationResult<IList<SubscriberConfiguration>>> MapCosmosEntities(IEnumerable<SubscriberEntity> subscribers)
