@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
+using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Domain.Results;
@@ -31,32 +32,32 @@ namespace CaptainHook.DirectorService.Infrastructure
                 return subscribersFromCosmos.Error;
             }
 
-            async Task<OperationResult<IList<SubscriberConfiguration>>> MapCosmosEntries()
-            {
-                var tasks = new List<Task<OperationResult<SubscriberConfiguration>>>();
-                foreach (var entity in subscribersFromCosmos.Data)
-                {
-                    tasks.Add(_subscriberEntityToConfigurationMapper.MapToWebhookAsync(entity));
-                    if (entity.HasDlqHooks)
-                    {
-                        tasks.Add(_subscriberEntityToConfigurationMapper.MapToDlqAsync(entity));
-                    }
-                }
+            //async Task<OperationResult<IList<SubscriberConfiguration>>> MapCosmosEntries()
+            //{
+            //    var tasks = new List<Task<OperationResult<SubscriberConfiguration>>>();
+            //    foreach (var entity in subscribersFromCosmos.Data)
+            //    {
+            //        tasks.Add(_subscriberEntityToConfigurationMapper.MapToWebhookAsync(entity));
+            //        if (entity.HasDlqHooks)
+            //        {
+            //            tasks.Add(_subscriberEntityToConfigurationMapper.MapToDlqAsync(entity));
+            //        }
+            //    }
 
-                await Task.WhenAll(tasks);
+            //    await Task.WhenAll(tasks);
 
-                var errors = tasks.Select(x => x.Result).Where(x => x.IsError);
+            //    var errors = tasks.Select(x => x.Result).Where(x => x.IsError);
 
-                if (errors.Any())
-                {
-                    var failures = errors.SelectMany(x => x.Error.Failures).ToArray();
-                    return new MappingError("Cannot map Cosmos DB entries", failures);
-                }
+            //    if (errors.Any())
+            //    {
+            //        var failures = errors.SelectMany(x => x.Error.Failures).ToArray();
+            //        return new MappingError("Cannot map Cosmos DB entries", failures);
+            //    }
 
-                return tasks.Select(t => t.Result.Data).ToList();
-            }
+            //    return tasks.Select(t => t.Result.Data).ToList();
+            //}
 
-            var fromCosmosResult = await MapCosmosEntries();
+            var fromCosmosResult = await MapCosmosEntities(subscribersFromCosmos.Data);
 
             if (fromCosmosResult.IsError)
             {
@@ -64,6 +65,31 @@ namespace CaptainHook.DirectorService.Infrastructure
             }
 
             return new ReadOnlyCollection<SubscriberConfiguration>(fromCosmosResult.Data);
+        }
+
+        private async Task<OperationResult<IList<SubscriberConfiguration>>> MapCosmosEntities(IEnumerable<SubscriberEntity> subscribers)
+        {
+            var tasks = new List<Task<OperationResult<SubscriberConfiguration>>>();
+            foreach (var entity in subscribers)
+            {
+                tasks.Add(_subscriberEntityToConfigurationMapper.MapToWebhookAsync(entity));
+                if (entity.HasDlqHooks)
+                {
+                    tasks.Add(_subscriberEntityToConfigurationMapper.MapToDlqAsync(entity));
+                }
+            }
+
+            await Task.WhenAll(tasks);
+
+            var errors = tasks.Select(x => x.Result).Where(x => x.IsError);
+
+            if (errors.Any())
+            {
+                var failures = errors.SelectMany(x => x.Error.Failures).ToArray();
+                return new MappingError("Cannot map Cosmos DB entries", failures);
+            }
+
+            return tasks.Select(t => t.Result.Data).ToList();
         }
     }
 }
