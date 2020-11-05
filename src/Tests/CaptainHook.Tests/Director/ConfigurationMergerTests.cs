@@ -38,6 +38,7 @@ namespace CaptainHook.Tests.Director
         private static readonly AuthenticationConfig NoAuthenticationConfig = new AuthenticationConfig();
 
         private readonly Mock<ISecretProvider> _secretProvider;
+
         public static IEnumerable<object[]> Data =>
             new List<object[]>
             {
