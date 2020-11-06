@@ -36,30 +36,36 @@ namespace CaptainHook.DirectorService.Infrastructure
             var tasks = new List<Task<OperationResult<SubscriberConfiguration>>>();
             foreach (var entity in subscribers)
             {
-                tasks.Add(_subscriberEntityToConfigurationMapper.MapToWebhookAsync(entity));
+                tasks.Add(TryMap(ent => _subscriberEntityToConfigurationMapper.MapToWebhookAsync(ent), entity));
                 if (entity.HasDlqHooks)
                 {
-                    tasks.Add(_subscriberEntityToConfigurationMapper.MapToDlqAsync(entity));
+                    tasks.Add(TryMap(ent => _subscriberEntityToConfigurationMapper.MapToDlqAsync(ent), entity));
                 }
             }
 
-            try
-            {
-                await Task.WhenAll(tasks);
-            }
-            catch (Exception ex)
-            {
-                return new MappingError("Cannot map Cosmos DB entries", new ExceptionFailure(ex));
-            }
+            await Task.WhenAll(tasks);
 
-            var errors = tasks.Select(x => x.Result).Where(x => x.IsError);
+            var errors = tasks.Select(x => x.Result).Where(x => x.IsError).Select(x => x.Error).ToArray();
             if (errors.Any())
             {
-                var failures = errors.SelectMany(x => x.Error.Failures).ToArray();
-                return new MappingError("Cannot map Cosmos DB entries", failures);
+                return new MappingError("Cannot map Cosmos DB entries", errors);
             }
 
             return tasks.Select(t => t.Result.Data).ToList();
+        }
+
+        private static Task<OperationResult<SubscriberConfiguration>> TryMap(
+            Func<SubscriberEntity, Task<OperationResult<SubscriberConfiguration>>> innerFunc, SubscriberEntity entity)
+        {
+            var result = innerFunc(entity);
+
+            if (result.IsFaulted)
+            {
+                var mappingError = new MappingError($"Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: {entity.Id}", new ExceptionFailure(result.Exception));
+                return Task.FromResult(new OperationResult<SubscriberConfiguration>(mappingError));
+            }
+
+            return Task.FromResult(result.Result);
         }
     }
 }
