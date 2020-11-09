@@ -10,7 +10,7 @@ namespace CaptainHook.DirectorService.Infrastructure.Interfaces
     {
         public IEnumerable<ErrorBase> Errors { get; }
         public IEnumerable<SubscriberConfiguration> Subscribers { get; }
-        public bool HaveErrors => Errors.Any();
+        public bool HasErrors => Errors.Any();
 
         public LoadingSubscribersResult(params ErrorBase[] errors)
             : this(Enumerable.Empty<SubscriberConfiguration>(), errors)

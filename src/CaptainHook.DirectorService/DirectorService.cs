@@ -83,7 +83,7 @@ namespace CaptainHook.DirectorService
                 }
 
                 var loadConfigurationResult = await _subscriberConfigurationLoader.LoadAsync();
-                if (loadConfigurationResult.HaveErrors)
+                if (loadConfigurationResult.HasErrors)
                 {
                     _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Errors));
                 }
@@ -157,7 +157,7 @@ namespace CaptainHook.DirectorService
             try
             {
                 var loadConfigurationResult = await _subscriberConfigurationLoader.LoadAsync();
-                if (loadConfigurationResult.HaveErrors)
+                if (loadConfigurationResult.HasErrors)
                 {
                     _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Errors));
                     reloadConfigFinishedTimedEvent.IsSuccess = false;
