@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.Mappers;
@@ -24,14 +23,19 @@ namespace CaptainHook.DirectorService.Infrastructure
             _subscriberEntityToConfigurationMapper = subscriberEntityToConfigurationMapper ?? throw new ArgumentNullException(nameof(_subscriberEntityToConfigurationMapper));
         }
 
-        public async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> LoadAsync()
+        public async Task<LoadingSubscribersResult> LoadAsync()
         {
-            return await _subscriberRepository.GetAllSubscribersAsync()
-                .Then(async data => await MapCosmosEntities(data))
-                .Then<IList<SubscriberConfiguration>, IEnumerable<SubscriberConfiguration>>(data => new ReadOnlyCollection<SubscriberConfiguration>(data.ToList()));
+            var entities = await _subscriberRepository.GetAllSubscribersAsync();
+            if (entities.IsError)
+            {
+                return new LoadingSubscribersResult(entities.Error); ;
+            }
+
+            var configurations = await MapCosmosEntities(entities.Data);
+            return configurations;
         }
 
-        private async Task<OperationResult<IList<SubscriberConfiguration>>> MapCosmosEntities(IEnumerable<SubscriberEntity> subscribers)
+        private async Task<LoadingSubscribersResult> MapCosmosEntities(IEnumerable<SubscriberEntity> subscribers)
         {
             var tasks = new List<Task<OperationResult<SubscriberConfiguration>>>();
             foreach (var entity in subscribers)
@@ -45,13 +49,12 @@ namespace CaptainHook.DirectorService.Infrastructure
 
             await Task.WhenAll(tasks);
 
-            var errors = tasks.Select(x => x.Result).Where(x => x.IsError).Select(x => x.Error).ToArray();
-            if (errors.Any())
-            {
-                return new MappingError("Cannot map Cosmos DB entries", errors);
-            }
+            var results = tasks.Select(x => x.Result).ToArray();
 
-            return tasks.Select(t => t.Result.Data).ToList();
+            var errors = results.Where(x => x.IsError).Select(x => x.Error);
+            var configs = results.Where(r => !r.IsError).Select(r => r.Data);
+
+            return new LoadingSubscribersResult(configs, errors);
         }
 
         private static Task<OperationResult<SubscriberConfiguration>> TryMap(
@@ -61,7 +64,7 @@ namespace CaptainHook.DirectorService.Infrastructure
 
             if (result.IsFaulted)
             {
-                var mappingError = new MappingError($"Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: {entity.Id}", new ExceptionFailure(result.Exception));
+                var mappingError = new MappingError($"Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: {entity?.Id}", new ExceptionFailure(result.Exception));
                 return Task.FromResult(new OperationResult<SubscriberConfiguration>(mappingError));
             }
 

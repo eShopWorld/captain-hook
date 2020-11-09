@@ -13,13 +13,11 @@ using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
-using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using JetBrains.Annotations;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
-using ConfigurationSettings = CaptainHook.Common.Configuration.ConfigurationSettings;
 
 namespace CaptainHook.DirectorService
 {
@@ -67,21 +65,6 @@ namespace CaptainHook.DirectorService
             _serviceBusManager = serviceBusManager ?? throw new ArgumentNullException(nameof(serviceBusManager));
         }
 
-        private async Task<OperationResult<IDictionary<string, SubscriberConfiguration>>> LoadConfigurationAsync()
-        {
-            var subscriberConfigResult = await _subscriberConfigurationLoader.LoadAsync();
-
-            if (subscriberConfigResult.IsError)
-            {
-                return subscriberConfigResult.Error;
-            }
-
-            var newSubscriberConfigurations = subscriberConfigResult.Data
-                .ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));
-
-            return newSubscriberConfigurations;
-        }
-
         /// <summary>
         /// This is the main entry point for your service replica.
         /// This method executes when this replica of your service becomes primary and has write status.
@@ -99,13 +82,12 @@ namespace CaptainHook.DirectorService
                     _refreshInProgress = true;
                 }
 
-                var loadConfigurationResult = await LoadConfigurationAsync();
-                if (loadConfigurationResult.IsError)
+                var loadConfigurationResult = await _subscriberConfigurationLoader.LoadAsync();
+                if (loadConfigurationResult.HaveErrors)
                 {
-                    _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Error));
-                    return;
+                    _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Errors));
                 }
-                _subscriberConfigurations = loadConfigurationResult.Data;
+                _subscriberConfigurations = loadConfigurationResult.Subscribers.ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));
 
                 var serviceList = await _fabricClientWrapper.GetServiceUriListAsync();
 
@@ -174,15 +156,14 @@ namespace CaptainHook.DirectorService
 
             try
             {
-                var loadConfigurationResult = await LoadConfigurationAsync();
-                if (loadConfigurationResult.IsError)
+                var loadConfigurationResult = await _subscriberConfigurationLoader.LoadAsync();
+                if (loadConfigurationResult.HaveErrors)
                 {
-                    _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Error));
+                    _bigBrother.Publish(new ConfigurationLoadErrorEvent(loadConfigurationResult.Errors));
                     reloadConfigFinishedTimedEvent.IsSuccess = false;
-                    return;
                 }
 
-                var newSubscriberConfigurations = loadConfigurationResult.Data;
+                var newSubscriberConfigurations = loadConfigurationResult.Subscribers.ToDictionary(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName));
                 var deployedServiceNames = await _fabricClientWrapper.GetServiceUriListAsync();
 
                 var changes = _readerServiceChangeDetector.DetectChanges(newSubscriberConfigurations.Values, deployedServiceNames);

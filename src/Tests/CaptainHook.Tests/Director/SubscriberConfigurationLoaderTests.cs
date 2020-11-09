@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.Mappers;
-using CaptainHook.Common.Configuration;
 using CaptainHook.DirectorService.Infrastructure;
+using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Repositories;
@@ -45,7 +44,7 @@ namespace CaptainHook.Tests.Director
 
             var result = await _subscriberConfigurationLoader.LoadAsync();
 
-            result.Data.Should().BeEquivalentTo(new ReadOnlyCollection<SubscriberConfiguration>(new[] { firstConfig, secondConfig }));
+            result.Should().BeEquivalentTo(new LoadingSubscribersResult(firstConfig, secondConfig));
             _repositoryMock.Verify(x => x.GetAllSubscribersAsync(), Times.Once);
             _mapperMock.Verify(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(2));
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Never);
@@ -65,7 +64,7 @@ namespace CaptainHook.Tests.Director
 
             var result = await _subscriberConfigurationLoader.LoadAsync();
 
-            result.Data.Should().BeEquivalentTo(new ReadOnlyCollection<SubscriberConfiguration>(new[] { firstConfig, secondConfig }));
+            result.Should().BeEquivalentTo(new LoadingSubscribersResult(firstConfig, secondConfig));
             _repositoryMock.Verify(x => x.GetAllSubscribersAsync(), Times.Once);
             _mapperMock.Verify(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()), Times.Once);
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Once);
@@ -78,15 +77,16 @@ namespace CaptainHook.Tests.Director
 
             var result = await _subscriberConfigurationLoader.LoadAsync();
 
-            result.Error.Should().BeEquivalentTo(new MappingError("error"));
+            result.Should().BeEquivalentTo(new LoadingSubscribersResult(new MappingError("error")));
             _repositoryMock.Verify(x => x.GetAllSubscribersAsync(), Times.Once);
             _mapperMock.Verify(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()), Times.Never);
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
         [Fact, IsDev]
-        public async Task LoadAsync_MapperReturnsErrorForSomeWebhooks_MappingErrorIsReturned()
+        public async Task LoadAsync_MapperReturnsErrorForSomeWebhooks_ErrorsAreReturned()
         {
+            var subscriberConfiguration = new SubscriberConfigurationBuilder().Create();
             _repositoryMock.Setup(r => r.GetAllSubscribersAsync())
                 .ReturnsAsync(new[] {
                     new SubscriberEntity(string.Empty),
@@ -95,26 +95,26 @@ namespace CaptainHook.Tests.Director
                     new SubscriberEntity(string.Empty)
                 });
             _mapperMock.SetupSequence(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().Create())
+                .ReturnsAsync(subscriberConfiguration)
                 .ReturnsAsync(new BusinessError("error1"))
                 .ReturnsAsync(new BusinessError("error2"))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().Create());
+                .ReturnsAsync(subscriberConfiguration);
 
             var result = await _subscriberConfigurationLoader.LoadAsync();
 
-            var expectedError = new MappingError("Cannot map Cosmos DB entries",
-                new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event1-sub1", new BusinessError("error1")),
-                new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event2-sub2", new BusinessError("error2"))
-            );
-            result.Error.Should().BeEquivalentTo(expectedError);
+            var expected = new LoadingSubscribersResult(
+                new[] { subscriberConfiguration, subscriberConfiguration },
+                new[] { new BusinessError("error1"), new BusinessError("error2") });
+            result.Should().BeEquivalentTo(expected);
             _repositoryMock.Verify(x => x.GetAllSubscribersAsync(), Times.Once);
             _mapperMock.Verify(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(4));
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
         [Fact, IsDev]
-        public async Task LoadAsync_MapperThrowsExceptionForSomeWebhooks_MappingErrorWithExceptionFailureIsReturned()
+        public async Task LoadAsync_MapperThrowsExceptionForSomeWebhooks_MappingErrorsWithExceptionFailuresAreReturned()
         {
+            var subscriberConfiguration = new SubscriberConfigurationBuilder().Create();
             _repositoryMock.Setup(r => r.GetAllSubscribersAsync())
                 .ReturnsAsync(new[] {
                     new SubscriberEntity(string.Empty),
@@ -123,18 +123,20 @@ namespace CaptainHook.Tests.Director
                     new SubscriberEntity(string.Empty)
                 });
             _mapperMock.SetupSequence(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().Create())
+                .ReturnsAsync(subscriberConfiguration)
                 .ThrowsAsync(new Exception("error1"))
                 .ThrowsAsync(new Exception("error2"))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().Create());
+                .ReturnsAsync(subscriberConfiguration);
 
             var result = await _subscriberConfigurationLoader.LoadAsync();
 
-            var expectedError = new MappingError("Cannot map Cosmos DB entries",
-                new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event1-sub1", new ExceptionFailure(new Exception("error1"))),
-                new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event2-sub2", new ExceptionFailure(new Exception("error2")))
-            );
-            result.Error.Should().BeEquivalentTo(expectedError);
+            var expected = new LoadingSubscribersResult(
+               new[] { subscriberConfiguration, subscriberConfiguration },
+               new[] {
+                   new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event1-sub1", new ExceptionFailure(new Exception("error1"))),
+                   new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event2-sub2", new ExceptionFailure(new Exception("error2")))
+               });
+            result.Should().BeEquivalentTo(expected);
             _repositoryMock.Verify(x => x.GetAllSubscribersAsync(), Times.Once);
             _mapperMock.Verify(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(4));
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Never);
@@ -143,6 +145,8 @@ namespace CaptainHook.Tests.Director
         [Fact, IsDev]
         public async Task LoadAsync_MapperReturnsErrorsForSomeDlqhooks_MappingErrorIsReturned()
         {
+            var subscriberConfiguration = new SubscriberConfigurationBuilder().Create();
+            var dlqSubscriberConfiguration = new SubscriberConfigurationBuilder().CreateAsDlq();
             _repositoryMock.Setup(r => r.GetAllSubscribersAsync())
                 .ReturnsAsync(new[] {
                     new SubscriberBuilder().WithDlqhook(string.Empty, string.Empty, string.Empty).Create(),
@@ -150,22 +154,20 @@ namespace CaptainHook.Tests.Director
                     new SubscriberBuilder().WithName("sub2").WithEvent("event2").WithDlqhook(string.Empty, string.Empty, string.Empty).Create(),
                     new SubscriberBuilder().WithDlqhook(string.Empty, string.Empty, string.Empty).Create()
                 });
-
             _mapperMock.Setup(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().Create());
+                .ReturnsAsync(subscriberConfiguration);
             _mapperMock.SetupSequence(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().CreateAsDlq())
+                .ReturnsAsync(dlqSubscriberConfiguration)
                 .ReturnsAsync(new BusinessError("error1"))
                 .ReturnsAsync(new BusinessError("error2"))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().CreateAsDlq());
+                .ReturnsAsync(dlqSubscriberConfiguration);
 
             var result = await _subscriberConfigurationLoader.LoadAsync();
 
-            var expectedError = new MappingError("Cannot map Cosmos DB entries",
-                new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event1-sub1", new BusinessError("error1")),
-                new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event2-sub2", new BusinessError("error2"))
-            );
-            result.Error.Should().BeEquivalentTo(expectedError);
+            var expected = new LoadingSubscribersResult(
+                new[] { subscriberConfiguration, dlqSubscriberConfiguration, subscriberConfiguration, subscriberConfiguration, subscriberConfiguration, dlqSubscriberConfiguration },
+                new[] { new BusinessError("error1"), new BusinessError("error2") });
+            result.Should().BeEquivalentTo(expected);
             _repositoryMock.Verify(x => x.GetAllSubscribersAsync(), Times.Once);
             _mapperMock.Verify(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(4));
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(4));
@@ -174,6 +176,8 @@ namespace CaptainHook.Tests.Director
         [Fact, IsDev]
         public async Task LoadAsync_MapperThrowsExceptionForOneDlqhook_MappingErrorIsReturned()
         {
+            var subscriberConfiguration = new SubscriberConfigurationBuilder().Create();
+            var dlqSubscriberConfiguration = new SubscriberConfigurationBuilder().CreateAsDlq();
             _repositoryMock.Setup(r => r.GetAllSubscribersAsync())
                 .ReturnsAsync(new[] {
                     new SubscriberBuilder().WithDlqhook(string.Empty, string.Empty, string.Empty).Create(),
@@ -181,22 +185,24 @@ namespace CaptainHook.Tests.Director
                     new SubscriberBuilder().WithName("sub2").WithEvent("event2").WithDlqhook(string.Empty, string.Empty, string.Empty).Create(),
                     new SubscriberBuilder().WithDlqhook(string.Empty, string.Empty, string.Empty).Create()
                 });
-
             _mapperMock.Setup(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().Create());
+                .ReturnsAsync(subscriberConfiguration);
             _mapperMock.SetupSequence(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().CreateAsDlq())
+                .ReturnsAsync(dlqSubscriberConfiguration)
                 .ThrowsAsync(new Exception("error1"))
                 .ThrowsAsync(new Exception("error2"))
-                .ReturnsAsync(new SubscriberConfigurationBuilder().CreateAsDlq());
+                .ReturnsAsync(dlqSubscriberConfiguration);
 
             var result = await _subscriberConfigurationLoader.LoadAsync();
 
-            var expectedError = new MappingError("Cannot map Cosmos DB entries",
-                new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event1-sub1", new ExceptionFailure(new Exception("error1"))),
-                new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event2-sub2", new ExceptionFailure(new Exception("error2")))
-            );
-            result.Error.Should().BeEquivalentTo(expectedError);
+            var expected = new LoadingSubscribersResult(
+               new[] { subscriberConfiguration, dlqSubscriberConfiguration, subscriberConfiguration, subscriberConfiguration, subscriberConfiguration, dlqSubscriberConfiguration },
+               new[]
+               {
+                   new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event1-sub1", new ExceptionFailure(new Exception("error1"))),
+                   new MappingError("Cannot map SubscriberEntity to SubscriberConfiguration. SubscriberId: event2-sub2", new ExceptionFailure(new Exception("error2")))
+               });
+            result.Should().BeEquivalentTo(expected);
             _repositoryMock.Verify(x => x.GetAllSubscribersAsync(), Times.Once);
             _mapperMock.Verify(x => x.MapToWebhookAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(4));
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(4));
