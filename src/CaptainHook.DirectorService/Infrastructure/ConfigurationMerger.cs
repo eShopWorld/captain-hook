@@ -5,20 +5,24 @@ using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Application.Infrastructure.Mappers;
 using CaptainHook.Common.Configuration;
+using CaptainHook.DirectorService.Events;
 using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.Domain.Entities;
 using CaptainHook.Domain.Errors;
 using CaptainHook.Domain.Results;
+using Eshopworld.Core;
 
 namespace CaptainHook.DirectorService.Infrastructure
 {
     public class ConfigurationMerger : IConfigurationMerger
     {
         private readonly ISubscriberEntityToConfigurationMapper _subscriberEntityToConfigurationMapper;
+        private readonly IBigBrother _bigBrother;
 
-        public ConfigurationMerger(ISubscriberEntityToConfigurationMapper subscriberEntityToConfigurationMapper)
+        public ConfigurationMerger(ISubscriberEntityToConfigurationMapper subscriberEntityToConfigurationMapper, IBigBrother bigBrother)
         {
             _subscriberEntityToConfigurationMapper = subscriberEntityToConfigurationMapper;
+            _bigBrother = bigBrother;
         }
 
         /// <summary>
@@ -37,6 +41,9 @@ namespace CaptainHook.DirectorService.Infrastructure
                     (kvSubscriber.SubscriberName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase) ||
                      (!string.IsNullOrEmpty(kvSubscriber.SourceSubscriptionName) && kvSubscriber.SourceSubscriptionName.Equals(cosmosSubscriber.Name, StringComparison.InvariantCultureIgnoreCase)))
                 ));
+
+            var mergeSubscribersEvent = new MergeSubscribersEvent(onlyInKv.Select(x => SubscriberConfiguration.Key(x.EventType, x.SubscriberName)));
+            _bigBrother.Publish(mergeSubscribersEvent);
 
             async Task<OperationResult<IEnumerable<SubscriberConfiguration>>> MapCosmosEntries()
             {

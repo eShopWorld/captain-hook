@@ -8,6 +8,7 @@ using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.DirectorService.Infrastructure;
 using CaptainHook.Domain.Entities;
 using CaptainHook.TestsInfrastructure.Builders;
+using Eshopworld.Core;
 using Eshopworld.Tests.Core;
 using FluentAssertions;
 using FluentAssertions.Execution;
@@ -105,7 +106,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberConfigurationBuilder().WithName("testevent.completed").Create(),
             };
 
-            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object));
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object), Mock.Of<IBigBrother>());
             var result = await configurationMerger.MergeAsync(kvSubscribers, new List<SubscriberEntity>());
 
             using (new AssertionScope())
@@ -142,7 +143,7 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object));
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object), Mock.Of<IBigBrother>());
             var result = await configurationMerger.MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
@@ -179,7 +180,7 @@ namespace CaptainHook.Tests.Director
                 new SubscriberBuilder().WithEvent("newtestevent").WithName("subscriber1").WithWebhook("https://cosmos.eshopworld.com/newtestevent2/", "POST", "*", BasicAuthenticationEntity).Create(),
             };
 
-            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object));
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object), Mock.Of<IBigBrother>());
             var result = await configurationMerger.MergeAsync(kvSubscribers, cosmosSubscribers);
 
             using (new AssertionScope())
@@ -213,7 +214,7 @@ namespace CaptainHook.Tests.Director
                     ).Create(),
             };
 
-            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object));
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object), Mock.Of<IBigBrother>());
             var result = await configurationMerger.MergeAsync(Enumerable.Empty<SubscriberConfiguration>(), cosmosSubscribers);
 
             var expectedConfiguration = new SubscriberConfigurationBuilder()
@@ -246,7 +247,7 @@ namespace CaptainHook.Tests.Director
                     .Create(),
             };
 
-            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object));
+            var configurationMerger = new ConfigurationMerger(new SubscriberEntityToConfigurationMapper(_secretProvider.Object), Mock.Of<IBigBrother>());
             var result = await configurationMerger.MergeAsync(new List<SubscriberConfiguration>(), cosmosSubscribers);
 
             using (new AssertionScope())
