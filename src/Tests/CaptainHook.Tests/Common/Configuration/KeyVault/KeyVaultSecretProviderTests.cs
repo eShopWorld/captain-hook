@@ -12,7 +12,7 @@ using Xunit;
 
 namespace CaptainHook.Tests.Common.Configuration.KeyVault
 {
-    public class KeyVaultSecretManagerTests
+    public class KeyVaultSecretProviderTests
     {
         private readonly KeyVaultSecretProvider _secretProvider;
 
@@ -20,7 +20,7 @@ namespace CaptainHook.Tests.Common.Configuration.KeyVault
 
         private readonly Mock<IBigBrother> _bigBrotherMock;
 
-        public KeyVaultSecretManagerTests()
+        public KeyVaultSecretProviderTests()
         {
             _bigBrotherMock = new Mock<IBigBrother>();
             _secretClientMock = new Mock<SecretClient>();

@@ -1,12 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using CaptainHook.Common.Configuration;
-using CaptainHook.Domain.Results;
+﻿using System.Threading.Tasks;
 
 namespace CaptainHook.DirectorService.Infrastructure.Interfaces
 {
     public interface ISubscriberConfigurationLoader
     {
-        Task<OperationResult<IEnumerable<SubscriberConfiguration>>> LoadAsync(string keyVaultUri);
+        Task<LoadingSubscribersResult> LoadAsync();
     }
 }

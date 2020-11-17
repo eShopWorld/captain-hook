@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using CaptainHook.Domain.Results;
 using Eshopworld.Core;
 using Newtonsoft.Json;
@@ -10,10 +11,9 @@ namespace CaptainHook.DirectorService.Events
         public string Message { get; set; }
         public string Failures { get; set; }
 
-        public ConfigurationLoadErrorEvent(ErrorBase error)
+        public ConfigurationLoadErrorEvent(IEnumerable<ErrorBase> errors)
         {
-            Message = error?.Message;
-            Failures = JsonConvert.SerializeObject(error?.Failures.Select(x => x.ToString()).ToArray());
+            Failures = JsonConvert.SerializeObject(errors);
         }
     }
 }

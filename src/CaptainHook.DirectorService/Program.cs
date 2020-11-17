@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Fabric;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -47,20 +46,8 @@ namespace CaptainHook.DirectorService
 
                 var builder = new ContainerBuilder();
 
-                builder.RegisterType<KeyVaultConfigurationLoader>()
-                    .As<IKeyVaultConfigurationLoader>()
-                    .SingleInstance();
-
-                builder.RegisterType<SubscribersKeyVaultProvider>()
-                    .As<ISubscribersKeyVaultProvider>()
-                    .SingleInstance();
-
                 builder.RegisterType<SubscriberConfigurationLoader>()
                     .As<ISubscriberConfigurationLoader>()
-                    .SingleInstance();
-
-                builder.RegisterType<ConfigurationMerger>()
-                    .As<IConfigurationMerger>()
                     .SingleInstance();
 
                 builder.RegisterInstance(configurationSettings)
