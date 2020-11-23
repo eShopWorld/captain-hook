@@ -19,7 +19,7 @@ namespace CaptainHook.TestsInfrastructure.Builders
         private TimeSpan? _httpTimeout;
 
         private readonly List<WebhookRequestRule> _webhookRequestRules = new List<WebhookRequestRule>();
-        
+
         private AuthenticationConfig _authenticationConfig = new BasicAuthenticationConfig
         {
             Type = AuthenticationType.Basic,
@@ -165,7 +165,8 @@ namespace CaptainHook.TestsInfrastructure.Builders
                 AuthenticationConfig = _authenticationConfig,
                 Callback = _callback,
                 WebhookRequestRules = _webhookRequestRules,
-                DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode : (SubscriberDlqMode?)null
+                DLQMode = _asDlq ? SubscriberDlqMode.WebHookMode : (SubscriberDlqMode?)null,
+                PayloadTransformation = _asDlq ? PayloadContractTypeEnum.WrapperContract : PayloadContractTypeEnum.Raw,
             };
 
             if (_httpTimeout.HasValue)
