@@ -115,6 +115,7 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             subscriberConfiguration.DLQMode = SubscriberDlqMode.WebHookMode;
             subscriberConfiguration.SourceSubscriptionName = entity.Name;
             subscriberConfiguration.SubscriberName = $"{entity.Name}-DLQ";
+            subscriberConfiguration.PayloadTransformation = PayloadContractTypeEnum.WrapperContract;
 
             return subscriberConfiguration;
 
