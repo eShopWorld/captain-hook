@@ -106,7 +106,6 @@ namespace CaptainHook.Common.Configuration
         /// 
         /// pertains to new callback/DLQ contract designed
         /// </summary>
-        [JsonIgnore]
         public PayloadContractTypeEnum PayloadTransformation { get; set; } = PayloadContractTypeEnum.Raw;
     }
 
