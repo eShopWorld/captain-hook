@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
@@ -81,8 +82,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 await AddAuthenticationHeaderAsync(cancellationToken, authenticationConfig, headers);
 
                 var response = await HttpSender.SendAsync(
-                    new SendRequest(httpMethod, uri, headers, payload, config.RetrySleepDurations, config.Timeout),
-                    cancellationToken);
+                     new SendRequest(httpMethod, uri, headers, payload, config.RetrySleepDurations, config.Timeout),
+                     cancellationToken);
 
                 await _requestLogger.LogAsync(response, messageData, payload, uri, httpMethod, headers, config);
 
@@ -90,7 +91,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
             catch (Exception e)
             {
-                BigBrother.Publish(new FailedWebhookExceptionEvent(uri?.AbsoluteUri, e));
+                BigBrother.Publish(new HttpSendFailureEvent(uri?.AbsoluteUri, e));
                 throw;
             }
         }

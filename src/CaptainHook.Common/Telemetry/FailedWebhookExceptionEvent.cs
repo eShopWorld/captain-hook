@@ -4,9 +4,9 @@ using Newtonsoft.Json;
 
 namespace CaptainHook.Common.Telemetry
 {
-    public class FailedWebhookExceptionEvent : TelemetryEvent
+    public class HttpSendFailureEvent : TelemetryEvent
     {
-        public FailedWebhookExceptionEvent(string uri, Exception exception)
+        public HttpSendFailureEvent(string uri, Exception exception)
         {
             Uri = uri;
             Exception = JsonConvert.SerializeObject(exception, new JsonSerializerSettings()
