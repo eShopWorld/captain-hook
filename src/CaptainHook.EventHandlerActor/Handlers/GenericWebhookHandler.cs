@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Platform.Messages;
@@ -53,6 +54,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public virtual async Task<bool> CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
         {
+            Uri uri = null;
             try
             {
                 if (!(request is MessageData messageData))
@@ -61,7 +63,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
 
                 //todo refactor into a single call and a dto
-                var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
+                uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
                 if (uri == null)
                 {
                     return true; //consider successful delivery
@@ -88,7 +90,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
             catch (Exception e)
             {
-                BigBrother.Publish(e.ToExceptionEvent());
+                BigBrother.Publish(new FailedWebhookExceptionEvent(uri?.AbsoluteUri, e));
                 throw;
             }
         }
