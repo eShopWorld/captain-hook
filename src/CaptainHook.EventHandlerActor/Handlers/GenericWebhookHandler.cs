@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Authentication;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Telemetry;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
 using Eshopworld.Core;
 using Eshopworld.Platform.Messages;
@@ -53,6 +55,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
         /// <returns></returns>
         public virtual async Task<bool> CallAsync<TRequest>(TRequest request, IDictionary<string, object> metadata, CancellationToken cancellationToken)
         {
+            Uri uri = null;
             try
             {
                 if (!(request is MessageData messageData))
@@ -61,7 +64,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 }
 
                 //todo refactor into a single call and a dto
-                var uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
+                uri = RequestBuilder.BuildUri(WebhookConfig, messageData.Payload);
                 if (uri == null)
                 {
                     return true; //consider successful delivery
@@ -79,8 +82,8 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 await AddAuthenticationHeaderAsync(cancellationToken, authenticationConfig, headers);
 
                 var response = await HttpSender.SendAsync(
-                    new SendRequest(httpMethod, uri, headers, payload, config.RetrySleepDurations, config.Timeout),
-                    cancellationToken);
+                     new SendRequest(httpMethod, uri, headers, payload, config.RetrySleepDurations, config.Timeout),
+                     cancellationToken);
 
                 await _requestLogger.LogAsync(response, messageData, payload, uri, httpMethod, headers, config);
 
@@ -88,7 +91,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
             catch (Exception e)
             {
-                BigBrother.Publish(e.ToExceptionEvent());
+                BigBrother.Publish(new HttpSendFailureEvent(uri?.AbsoluteUri, e));
                 throw;
             }
         }
