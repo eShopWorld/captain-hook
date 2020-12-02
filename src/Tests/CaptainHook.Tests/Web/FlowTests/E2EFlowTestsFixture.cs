@@ -87,7 +87,9 @@ namespace CaptainHook.Tests.Web.FlowTests
 
                 var retry = Policy
                 .HandleResult<HttpResponseMessage>(msg =>
-                    !expectMessages || msg.StatusCode == HttpStatusCode.NoContent || (expectCallback && (modelReceived == null || !modelReceived.Any(m => m.IsCallback))) /* keep polling */ )
+                    !expectMessages 
+                    || msg.StatusCode == HttpStatusCode.NotFound 
+                    || (expectCallback && (modelReceived == null || !modelReceived.Any(m => m.IsCallback))) /* keep polling */ )
                 .Or<Exception>()
                 .WaitAndRetryForeverAsync((i, context) => _defaultPollAttemptRetryTimeSpan);
 
@@ -99,13 +101,15 @@ namespace CaptainHook.Tests.Web.FlowTests
                 var result = await policy.ExecuteAsync(async () =>
                 {
                     //var cancellationToken = new CancellationToken();
-                    var request = new HttpRequestMessage(HttpMethod.Get, 
-                        $"{_testsConfig.PeterPanBaseUrl}/api/v1/inttest/check/{payloadId}");
+                    var request = new HttpRequestMessage(HttpMethod.Get, $"{_testsConfig.PeterPanBaseUrl}/api/v1/inttest/check/{payloadId}");
                     await tokenCred.ProcessHttpRequestAsync(request, default);
 
                     var response = await httpClient.SendAsync(request, default);
 
-                    if (response.StatusCode != HttpStatusCode.OK) return response;
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        return response;
+                    }
 
                     var content = await response.Content.ReadAsStringAsync();
                     modelReceived = jsonSerializer.Deserialize<ProcessedEventModel[]>(new JsonTextReader(new StringReader(content)));
@@ -143,7 +147,7 @@ namespace CaptainHook.Tests.Web.FlowTests
                 EnvironmentSettings.StsSettings.Subject,
                 _testsConfig.StsClientId,
                 new string[] { PeterPanConsts.PeterPanDeliveryScope },
-                EnvironmentSettings.StsSettings.Audience );
+                EnvironmentSettings.StsSettings.Audience);
             return new TokenCredentialsBuilder(tb).Build();
         }
     }
