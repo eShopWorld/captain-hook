@@ -152,7 +152,6 @@ namespace CaptainHook.Benchmark
             return uri;
         }
 
-        [ExcludeFromCodeCoverage]
         public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata = null)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.Body).ToList();

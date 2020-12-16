@@ -1,10 +1,12 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Tracing;
 using System.Fabric;
 
 namespace CaptainHook.EventReaderService
 {
     [EventSource(Name = "ESW-CaptainHook.Fabric-CaptainHook.EventReaderService")]
+    [ExcludeFromCodeCoverage]
     internal sealed class ServiceEventSource : EventSource
     {
         public static readonly ServiceEventSource Current = new ServiceEventSource();
