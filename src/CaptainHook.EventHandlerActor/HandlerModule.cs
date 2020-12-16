@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System.Diagnostics.CodeAnalysis;
+using Autofac;
 using CaptainHook.Common.Configuration;
 using CaptainHook.EventHandlerActor.Handlers;
 using CaptainHook.EventHandlerActor.Handlers.Authentication;
@@ -8,7 +9,8 @@ using FluentValidation;
 
 namespace CaptainHook.EventHandlerActor
 {
-    public class HandlerModule: Module
+    [ExcludeFromCodeCoverage]
+    public class HandlerModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {

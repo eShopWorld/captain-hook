@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Eshopworld.Core;
 using Newtonsoft.Json;
 
 namespace CaptainHook.Common.Telemetry
 {
+    [ExcludeFromCodeCoverage]
     public class HttpSendFailureEvent : TelemetryEvent
     {
         public HttpSendFailureEvent(string uri, Exception exception)

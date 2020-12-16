@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Http;
 using BenchmarkDotNet.Attributes;
@@ -224,7 +225,6 @@ namespace CaptainHook.Benchmark
 
             return payload.ToString(Formatting.None);
         }
-
 
         public HttpMethod SelectHttpVerb(WebhookConfig webhookConfig, string payload)
         {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Fabric;
 using System.IO;
 using Autofac.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ namespace CaptainHook.Api
     /// <summary>
     /// The FabricRuntime creates an instance of this class for each service type instance. 
     /// </summary>
+    [ExcludeFromCodeCoverage]
     internal sealed class CaptainHookApi : StatelessService
     {
         public CaptainHookApi(StatelessServiceContext context)

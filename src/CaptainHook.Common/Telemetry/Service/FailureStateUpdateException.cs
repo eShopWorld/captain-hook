@@ -1,7 +1,9 @@
-﻿using System.Fabric;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Fabric;
 
 namespace CaptainHook.Common.Telemetry.Service
 {
+    [ExcludeFromCodeCoverage]
     public class FailureStateUpdateException : ServiceException
     {
         public FailureStateUpdateException(string message, StatefulServiceContext context) : base(message, context)

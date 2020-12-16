@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CaptainHook.Common.Models.V2
 {
     /// <summary>
     /// Event definition model/POCO
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class Event
     {
         /// <summary>

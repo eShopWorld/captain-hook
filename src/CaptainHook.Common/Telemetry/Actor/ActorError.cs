@@ -1,7 +1,9 @@
-﻿using Microsoft.ServiceFabric.Actors.Runtime;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.ServiceFabric.Actors.Runtime;
 
 namespace CaptainHook.Common.Telemetry.Actor
 {
+    [ExcludeFromCodeCoverage]
     public class ActorError : ActorTelemetryEvent
     {
         public ActorError(string message, ActorBase actor) : base(actor)

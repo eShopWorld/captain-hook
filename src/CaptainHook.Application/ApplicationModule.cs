@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Autofac;
 using CaptainHook.Application.Handlers.Subscribers;
 using CaptainHook.Application.Infrastructure;
@@ -10,6 +11,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 
 namespace CaptainHook.Application
 {
+    [ExcludeFromCodeCoverage]
     public class ApplicationModule : Module
     {
         protected override void Load(ContainerBuilder builder)

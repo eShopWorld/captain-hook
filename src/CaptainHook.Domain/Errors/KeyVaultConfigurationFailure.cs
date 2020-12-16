@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using CaptainHook.Domain.Results;
 
 namespace CaptainHook.Domain.Errors
 {
+    [ExcludeFromCodeCoverage]
     public class KeyVaultConfigurationFailure : IFailure
     {
         public string Path { get; set; }

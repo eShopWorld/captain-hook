@@ -1,9 +1,11 @@
-﻿using System.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Net.Http;
 using CaptainHook.Common.Telemetry.Web;
 
 namespace CaptainHook.Common.Telemetry
 {
+    [ExcludeFromCodeCoverage]
     public class FailedWebhookEvent : WebhookEvent
     {
         public FailedWebhookEvent()

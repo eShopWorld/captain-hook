@@ -1,7 +1,9 @@
-﻿using Microsoft.ServiceFabric.Actors.Runtime;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.ServiceFabric.Actors.Runtime;
 
 namespace CaptainHook.Common.Telemetry.Actor
 {
+    [ExcludeFromCodeCoverage]
     public class ActorReminderCalled : ActorActivated
     {
         public ActorReminderCalled(ActorBase actor, string reminderName) : base(actor)
