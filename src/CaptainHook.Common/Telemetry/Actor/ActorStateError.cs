@@ -1,8 +1,10 @@
-﻿using Microsoft.ServiceFabric.Actors.Runtime;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.ServiceFabric.Actors.Runtime;
 using Newtonsoft.Json;
 
 namespace CaptainHook.Common.Telemetry.Actor
 {
+    [ExcludeFromCodeCoverage]
     public class ActorStateError : ActorTelemetryEvent
     {
         public ActorStateError(object state, ActorBase actor) : base(actor)

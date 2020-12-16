@@ -1,7 +1,9 @@
-﻿using System.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 
 namespace CaptainHook.Common.Exceptions
 {
+    [ExcludeFromCodeCoverage]
     public class ClientTokenFailureException : System.Exception
     {
         public ClientTokenFailureException(System.Exception e) : base("Could not get a token", e)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -9,6 +10,7 @@ using TokenCredential = Azure.Core.TokenCredential;
 
 namespace CaptainHook.Common.Configuration.KeyVault
 {
+    [ExcludeFromCodeCoverage]
     internal class AzureServiceTokenCredential : TokenCredential
     {
         public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
@@ -23,6 +25,7 @@ namespace CaptainHook.Common.Configuration.KeyVault
         }
     }
 
+    [ExcludeFromCodeCoverage]
     public class KeyVaultModule : Module
     {
         protected override void Load(ContainerBuilder builder)

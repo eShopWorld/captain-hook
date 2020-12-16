@@ -1,4 +1,5 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CaptainHook.Api.Core
@@ -6,6 +7,7 @@ namespace CaptainHook.Api.Core
     /// <summary>
     /// Adds default OperationId values for an operation.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     internal class OperationIdFilter : IOperationFilter
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)

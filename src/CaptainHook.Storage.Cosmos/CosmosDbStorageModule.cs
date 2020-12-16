@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System.Diagnostics.CodeAnalysis;
+using Autofac;
 using CaptainHook.Domain.Repositories;
 using CaptainHook.Storage.Cosmos.QueryBuilders;
 using Eshopworld.Data.CosmosDb;
@@ -9,6 +10,7 @@ namespace CaptainHook.Storage.Cosmos
     /// <summary>
     /// Module for dependencies in the repository
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class CosmosDbStorageModule : Module
     {
         private static readonly CosmosClientOptions CosmosClientOptions = new CosmosClientOptions
