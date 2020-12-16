@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using Autofac;
 using CaptainHook.Api.Core;
-using CaptainHook.Api.Helpers;
 using CaptainHook.Application;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
@@ -210,12 +209,7 @@ namespace CaptainHook.Api
             });
 
             app.UseRouting();
-
-#if OAUTH_OFF_MODE
-            app.UseFakeAuthentication();
-#else
             app.UseAuthentication();
-#endif
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
