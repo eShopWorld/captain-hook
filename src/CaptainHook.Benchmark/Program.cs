@@ -92,7 +92,6 @@ namespace CaptainHook.Benchmark
             //builder.BuildUri(_config, _data);
         }
 
-        /// <inheritdoc />
         public string BuildUriV1(WebhookConfig config, string payload)
         {
             var uri = config.Uri;
@@ -110,17 +109,15 @@ namespace CaptainHook.Benchmark
                         throw new ArgumentNullException(nameof(path), "routing path value in message payload is null or empty");
                     }
 
+
                     //selects the route based on the value found in the payload of the message
-                    foreach (var rules in config.WebhookRequestRules.Where(r => r.Routes.Any()))
+                    var rules = config.WebhookRequestRules.FirstOrDefault(r => r.Routes.Any());
+                    var route = rules?.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
+                    if (route == null)
                     {
-                        var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (route == null)
-                        {
-                            throw new Exception("route mapping/selector not found between config and the properties on the domain object");
-                        }
-                        uri = route.Uri;
-                        break;
+                        throw new Exception("route mapping/selector not found between config and the properties on the domain object");
                     }
+                    uri = route.Uri;
                 }
             }
 
@@ -154,7 +151,6 @@ namespace CaptainHook.Benchmark
             return uri;
         }
 
-        /// <inheritdoc />
         public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata = null)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.Body).ToList();
@@ -229,7 +225,6 @@ namespace CaptainHook.Benchmark
             return payload.ToString(Formatting.None);
         }
 
-        /// <inheritdoc />
 
         public HttpMethod SelectHttpVerb(WebhookConfig webhookConfig, string payload)
         {
@@ -248,15 +243,13 @@ namespace CaptainHook.Benchmark
                     }
 
                     //selects the route based on the value found in the payload of the message
-                    foreach (var rules in webhookConfig.WebhookRequestRules.Where(r => r.Routes.Any()))
+                    var rules = webhookConfig.WebhookRequestRules.FirstOrDefault(r => r.Routes.Any());
+                    var route = rules?.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
+                    if (route != null)
                     {
-                        var route = rules.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
-                        if (route != null)
-                        {
-                            return route.HttpMethod;
-                        }
-                        throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
+                        return route.HttpMethod;
                     }
+                    throw new Exception("route http verb mapping/selector not found between config and the properties on the domain object");
                 }
             }
             return webhookConfig.HttpMethod;

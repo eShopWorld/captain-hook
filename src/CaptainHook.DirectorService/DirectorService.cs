@@ -128,7 +128,7 @@ namespace CaptainHook.DirectorService
                     if (!_refreshInProgress)
                     {
                         _refreshInProgress = true;
-                        ThreadPool.QueueUserWorkItem(ExecuteConfigReload);
+                        Task.Run(ExecuteConfigReload, _cancellationToken);
                         return Task.FromResult(RequestReloadConfigurationResult.ReloadStarted);
                     }
                 }
@@ -150,7 +150,7 @@ namespace CaptainHook.DirectorService
             return Task.FromResult(_subscriberConfigurations);
         }
 
-        private async void ExecuteConfigReload(object state)
+        private async Task ExecuteConfigReload()
         {
             var reloadConfigFinishedTimedEvent = new ReloadConfigFinishedEvent();
 
