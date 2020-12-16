@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Http;
 using BenchmarkDotNet.Attributes;
@@ -150,6 +151,7 @@ namespace CaptainHook.Benchmark
             return uri;
         }
 
+        [ExcludeFromCodeCoverage]
         public string BuildPayload(WebhookConfig config, string sourcePayload, IDictionary<string, object> metadata = null)
         {
             var rules = config.WebhookRequestRules.Where(l => l.Destination.Location == Location.Body).ToList();
@@ -223,7 +225,6 @@ namespace CaptainHook.Benchmark
 
             return payload.ToString(Formatting.None);
         }
-
 
         public HttpMethod SelectHttpVerb(WebhookConfig webhookConfig, string payload)
         {
