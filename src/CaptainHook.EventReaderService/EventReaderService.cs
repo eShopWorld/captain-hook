@@ -260,9 +260,7 @@ namespace CaptainHook.EventReaderService
                             continue;
                         }
 
-                        // False warning for possibility of messages being null. This is handled 
-                        // ReSharper disable once PossibleNullReferenceException
-                        foreach (var message in messages)
+                        foreach (var message in messages ?? Enumerable.Empty<Message>())
                         {
                             var messageData = BuildMessageData(message);
 

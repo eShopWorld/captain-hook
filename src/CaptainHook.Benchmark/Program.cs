@@ -109,7 +109,6 @@ namespace CaptainHook.Benchmark
                         throw new ArgumentNullException(nameof(path), "routing path value in message payload is null or empty");
                     }
 
-
                     //selects the route based on the value found in the payload of the message
                     var rules = config.WebhookRequestRules.FirstOrDefault(r => r.Routes.Any());
                     var route = rules?.Routes.FirstOrDefault(r => r.Selector.Equals(value, StringComparison.OrdinalIgnoreCase));
