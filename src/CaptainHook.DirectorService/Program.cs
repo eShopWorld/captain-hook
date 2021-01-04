@@ -88,7 +88,7 @@ namespace CaptainHook.DirectorService
 
                 builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
 
-                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
+                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey, configurationSettings.InternalKey);
                 builder.RegisterStatefulService<DirectorService>(ServiceNaming.DirectorServiceType);
 
                 using (builder.Build())

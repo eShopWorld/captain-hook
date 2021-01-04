@@ -25,8 +25,8 @@ namespace CaptainHook.Common.Configuration
                 AddEntry(client, "AzureSubscriptionId"),
                 AddEntry(client, "ServiceBusNamespace"),
                 AddEntry(client, "ServiceBusConnectionString"),
-                AddEntry(client, "cm--ai-telemetry--instrumentation"),
-                AddEntry(client, "cm--ai-telemetry--internal"),
+                AddEntry(client, "InstrumentationKey"),
+                AddEntry(client, "InternalKey"),
 
                 AddEntry(client, "CaptainHook--ApiName"),
                 AddEntry(client, "CaptainHook--ApiSecret"),
