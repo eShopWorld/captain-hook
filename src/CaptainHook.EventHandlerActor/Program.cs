@@ -27,7 +27,7 @@ namespace CaptainHook.EventHandlerActor
 
                 var builder = new ContainerBuilder();
 
-                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
+                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey, configurationSettings.InternalKey);
 
                 builder.RegisterInstance(configurationSettings)
                     .SingleInstance();

@@ -7,9 +7,9 @@ namespace CaptainHook.Common.Telemetry
 {
     public static class TelemetryExtensions
     {
-        public static void SetupFullTelemetry(this ContainerBuilder builder, string insKey)
+        public static void SetupFullTelemetry(this ContainerBuilder builder, string instrumentationKey, string internalKey)
         {
-            builder.ConfigureTelemetryKeys(insKey, insKey);
+            builder.ConfigureTelemetryKeys(instrumentationKey, internalKey);
             builder.AddStatefullServiceTelemetry();
 
             builder.RegisterModule<TelemetryModule>();

@@ -1,4 +1,6 @@
-﻿namespace CaptainHook.Common.Configuration
+﻿using Eshopworld.DevOps.KeyVault;
+
+namespace CaptainHook.Common.Configuration
 {
     public class ConfigurationSettings
     {
@@ -6,7 +8,11 @@
 
         public string AzureSubscriptionId { get; set; }
 
+        [KeyVaultSecretName("cm--ai-telemetry--instrumentation")]
         public string InstrumentationKey { get; set; }
+
+        [KeyVaultSecretName("cm--ai-telemetry--internal")]
+        public string InternalKey { get; set; }
 
         public string ServiceBusConnectionString { get; set; }
 
