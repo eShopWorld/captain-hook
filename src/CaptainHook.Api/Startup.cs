@@ -34,6 +34,7 @@ namespace CaptainHook.Api
     public class Startup
     {
         private readonly string _instrumentationKey;
+        private readonly string _internalKey;
         private readonly IBigBrother _bb;
         private readonly IConfigurationRoot _configuration;
         private bool UseOpenApiV2 => true;
@@ -44,8 +45,9 @@ namespace CaptainHook.Api
         public Startup()
         {
             _configuration = TempConfigLoader.Load();
-            _instrumentationKey = _configuration["InstrumentationKey"];
-            _bb = BigBrother.CreateDefault(_instrumentationKey, _instrumentationKey);
+            _instrumentationKey = _configuration[nameof(ConfigurationSettings.InstrumentationKey)];
+            _internalKey = _configuration[nameof(ConfigurationSettings.InternalKey)];
+            _bb = BigBrother.CreateDefault(_instrumentationKey, _internalKey);
         }
 
         /// <summary>
@@ -56,7 +58,7 @@ namespace CaptainHook.Api
         /// <param name="builder">The <see cref="ContainerBuilder"/> to configure</param>
         public void ConfigureContainer(ContainerBuilder builder)
         {
-            builder.ConfigureTelemetryKeys(_instrumentationKey, _instrumentationKey);
+            builder.ConfigureTelemetryKeys(_instrumentationKey, _internalKey);
             builder.RegisterModule<TelemetryModule>();
 
             builder.RegisterType<SuccessfulProbeFilterCriteria>()

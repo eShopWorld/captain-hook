@@ -35,7 +35,7 @@ namespace CaptainHook.EventReaderService
                 //SF Deps
                 builder.Register<IActorProxyFactory>(_ => new ActorProxyFactory());
 
-                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey);
+                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey, configurationSettings.InternalKey);
                 builder.RegisterStatefulService<EventReaderService>(ServiceNaming.EventReaderServiceType);
 
                 using (builder.Build())
