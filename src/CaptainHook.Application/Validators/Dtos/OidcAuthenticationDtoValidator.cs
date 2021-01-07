@@ -12,7 +12,8 @@ namespace CaptainHook.Application.Validators.Dtos
         {
             RuleFor(x => x.ClientId).NotEmpty()
                 .WithMessage("'ClientId' must not be empty.");
-            RuleFor(x => x.Scopes).Must(BeSetAccordingToUseHeaders);
+            RuleFor(x => x.Scopes).Must(BeSetAccordingToUseHeaders)
+                 .WithMessage("'Scopes' must be defined only if 'UseHeaders' is true");
             RuleForEach(x => x.Scopes).NotEmpty().When(x => !x.UseHeaders);
             RuleFor(x => x.ClientSecretKeyName).NotEmpty()
                 .WithMessage("'ClientSecretKeyName' must not be empty.");
