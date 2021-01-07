@@ -44,9 +44,22 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
         }
 
         [Fact, IsUnit]
-        public void When_RequestIsValidOidc_Then_NoFailuresReturned()
+        public void When_RequestIsValidOidcWithScopes_Then_NoFailuresReturned()
         {
             var dto = new OidcAuthenticationDtoBuilder().Create();
+
+            var result = _oidcValidator.TestValidate(dto);
+
+            result.ShouldNotHaveAnyValidationErrors();
+        }
+
+        [Fact, IsUnit]
+        public void When_RequestIsValidOidcWithUseHeaders_Then_NoFailuresReturned()
+        {
+            var dto = new OidcAuthenticationDtoBuilder()
+                .With(x => x.Scopes, null)
+                .With(x => x.UseHeaders, true)
+                .Create();
 
             var result = _oidcValidator.TestValidate(dto);
 
@@ -98,9 +111,24 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
         }
 
         [Fact, IsUnit]
-        public void When_ScopesIsEmptyForOidc_Then_ValidationFails()
+        public void When_ScopesIsEmptyAndUseHeadersIsFalseForOidc_Then_ValidationFails()
         {
-            var dto = new OidcAuthenticationDtoBuilder().With(x => x.Scopes, null).Create();
+            var dto = new OidcAuthenticationDtoBuilder()
+                .With(x => x.Scopes, null)
+                .With(x => x.UseHeaders, false)
+                .Create();
+
+            var result = _oidcValidator.TestValidate(dto);
+
+            result.ShouldHaveValidationErrorFor(x => x.Scopes);
+        }
+
+        [Fact, IsUnit]
+        public void When_ScopesIsNotEmptyAndUseHeadersIsTrueForOidc_Then_ValidationFails()
+        {
+            var dto = new OidcAuthenticationDtoBuilder()
+                .With(x => x.UseHeaders, true)
+                .Create();
 
             var result = _oidcValidator.TestValidate(dto);
 
