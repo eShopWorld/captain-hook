@@ -73,7 +73,8 @@ namespace CaptainHook.Application.Infrastructure.Mappers
                     Uri = ent.Uri,
                     ClientId = ent.ClientId,
                     Scopes = ent.Scopes?.ToList(),
-                    ClientSecretKeyName = ent.ClientSecretKeyName
+                    ClientSecretKeyName = ent.ClientSecretKeyName,
+                    UseHeaders = ent.UseHeaders,
                 },
                 null => new NoAuthenticationDto(),
                 _ => null

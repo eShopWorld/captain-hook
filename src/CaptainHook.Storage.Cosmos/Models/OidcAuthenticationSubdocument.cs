@@ -31,5 +31,10 @@
         /// List of scopes for this authentication client
         /// </summary>
         public string[] Scopes { get; set; }
+
+        /// <summary>
+        /// Use headers flag
+        /// </summary>
+        public bool UseHeaders { get; set; }
     }
 }
