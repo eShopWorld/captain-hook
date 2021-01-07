@@ -23,7 +23,7 @@
         public string[] Scopes { get; }
 
         /// <summary>
-        /// Use headers
+        /// Flag which indicates that client id/secret are passed in headers and scopes & grant type are ignored
         /// </summary>
         public bool UseHeaders { get; }
 
