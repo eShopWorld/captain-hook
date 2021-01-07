@@ -22,12 +22,18 @@
         /// </summary>
         public string[] Scopes { get; }
 
-        public OidcAuthenticationEntity(string clientId, string clientSecretKeyName, string uri, string[] scopes)
+        /// <summary>
+        /// Flag which indicates that client id/secret are passed in headers and scopes & grant type are ignored
+        /// </summary>
+        public bool UseHeaders { get; }
+
+        public OidcAuthenticationEntity(string clientId, string clientSecretKeyName, string uri, string[] scopes, bool useHeaders = false)
         {
             ClientId = clientId;
             ClientSecretKeyName = clientSecretKeyName;
             Uri = uri;
             Scopes = scopes;
+            UseHeaders = useHeaders;
         }
     }
 }

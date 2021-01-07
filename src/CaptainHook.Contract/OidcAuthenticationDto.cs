@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace CaptainHook.Contract
 {
@@ -10,6 +9,7 @@ namespace CaptainHook.Contract
         public string Uri { get; set; }
         public string ClientSecretKeyName { get; set; }
         public List<string> Scopes { get; set; }
+        public bool UseHeaders { get; set; }
 
         public OidcAuthenticationDto()
         {
