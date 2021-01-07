@@ -53,11 +53,19 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
             result.ShouldNotHaveAnyValidationErrors();
         }
 
-        [Fact, IsUnit]
-        public void When_RequestIsValidOidcWithUseHeaders_Then_NoFailuresReturned()
+        public static IEnumerable<object[]> EmptyLists =>
+            new List<object[]>
+            {
+                new object[] {new List<string>()},
+                new object[] {null},
+            };
+
+        [Theory, IsUnit]
+        [MemberData(nameof(EmptyLists))]
+        public void When_RequestIsValidOidcWithUseHeaders_Then_NoFailuresReturned(List<string> scopes)
         {
             var dto = new OidcAuthenticationDtoBuilder()
-                .With(x => x.Scopes, null)
+                .With(x => x.Scopes, scopes)
                 .With(x => x.UseHeaders, true)
                 .Create();
 
@@ -110,11 +118,12 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
             result.ShouldHaveValidationErrorFor(x => x.Uri);
         }
 
-        [Fact, IsUnit]
-        public void When_ScopesIsEmptyAndUseHeadersIsFalseForOidc_Then_ValidationFails()
+        [Theory, IsUnit]
+        [MemberData(nameof(EmptyLists))]
+        public void When_ScopesIsEmptyAndUseHeadersIsFalseForOidc_Then_ValidationFails(List<string> scopes)
         {
             var dto = new OidcAuthenticationDtoBuilder()
-                .With(x => x.Scopes, null)
+                .With(x => x.Scopes, scopes)
                 .With(x => x.UseHeaders, false)
                 .Create();
 
@@ -127,6 +136,7 @@ namespace CaptainHook.Application.Tests.Validators.Dtos
         public void When_ScopesIsNotEmptyAndUseHeadersIsTrueForOidc_Then_ValidationFails()
         {
             var dto = new OidcAuthenticationDtoBuilder()
+                .With(x => x.Scopes, new List<string> {"test.scope.api"})
                 .With(x => x.UseHeaders, true)
                 .Create();
 
