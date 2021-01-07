@@ -91,13 +91,16 @@ namespace CaptainHook.Tests.Json
                 ""Name"": ""name"",
                 ""AuthenticationConfig"": {
                   ""Type"": ""Custom"",
+                  ""ClientId"": ""clientid"",
+                  ""Uri"": ""https://security.site.com/connect/token"",
+                  ""ClientSecret"": ""verylongsecuresecret"",
                 }
             }";
 
             var testObject = JsonConvert.DeserializeObject<TestObject>(data, new AuthenticationConfigConverter());
 
             testObject.AuthenticationConfig.Type.Should().Be(AuthenticationType.Custom);
-            testObject.AuthenticationConfig.Should().BeOfType<AuthenticationConfig>();
+            testObject.AuthenticationConfig.Should().BeOfType<OidcAuthenticationConfig>();
         }
 
         [Fact]
