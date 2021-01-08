@@ -55,7 +55,7 @@ namespace CaptainHook.Common.ServiceBus
         public async Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
         {
             var serviceBusNamespace = await GetServiceBusNamespaceAsync(cancellationToken);
-            var topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
+            var topic = await serviceBusNamespace.Topics.GetByNameAsync(topicName, cancellationToken);
             if (topic != null)
             {
                 await topic.Subscriptions.DeleteByNameAsync(subscriptionName, cancellationToken);
@@ -116,7 +116,7 @@ namespace CaptainHook.Common.ServiceBus
         private async Task<ITopic> CreateTopicIfNotExistsAsync(string topicName, CancellationToken cancellationToken = default)
         {
             var serviceBusNamespace = await GetServiceBusNamespaceAsync(cancellationToken);
-            var topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
+            var topic = await serviceBusNamespace.Topics.GetByNameAsync(topicName, cancellationToken);
 
             if (topic != null) return topic;
 
@@ -132,7 +132,7 @@ namespace CaptainHook.Common.ServiceBus
                 _bigBrother.Publish(exception.ToExceptionEvent());
             }
 
-            return await _findTopicPolicy.ExecuteAsync(ct => FindTopicAsync(serviceBusNamespace, topicName, ct), cancellationToken);
+            return await _findTopicPolicy.ExecuteAsync(ct => serviceBusNamespace.Topics.GetByNameAsync(topicName, ct), cancellationToken);
         }
 
         public IMessageReceiver CreateMessageReceiver(string serviceBusConnectionString, string topicName, string subscriptionName, bool dlqMode)
@@ -147,9 +147,11 @@ namespace CaptainHook.Common.ServiceBus
 
         private static async Task<ITopic> FindTopicAsync(IServiceBusNamespace sbNamespace, string name, CancellationToken cancellationToken = default)
         {
-            await sbNamespace.RefreshAsync(cancellationToken);
-            var topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
-            return topicsList.SingleOrDefault(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
+            return await sbNamespace.Topics.GetByNameAsync(name, cancellationToken);
+
+            //await sbNamespace.RefreshAsync(cancellationToken);
+            //var topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
+            //return topicsList.SingleOrDefault(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
         }
 
         private async Task<IServiceBusNamespace> GetServiceBusNamespaceAsync(CancellationToken cancellationToken = default)
