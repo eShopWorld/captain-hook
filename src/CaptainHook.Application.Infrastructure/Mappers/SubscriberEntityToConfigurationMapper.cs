@@ -289,13 +289,21 @@ namespace CaptainHook.Application.Infrastructure.Mappers
             {
                 var secretValue = await _secretProvider.GetSecretValueAsync(authenticationEntity.ClientSecretKeyName);
 
-                return new OidcAuthenticationConfig
+                var authenticationConfig = new OidcAuthenticationConfig
                 {
                     ClientId = authenticationEntity.ClientId,
                     ClientSecret = secretValue,
                     Uri = authenticationEntity.Uri,
                     Scopes = authenticationEntity.Scopes,
                 };
+
+                if (authenticationEntity.UseHeaders)
+                {
+                    // CH understands Custom as MaxMara
+                    authenticationConfig.Type = AuthenticationType.Custom;
+                }
+
+                return authenticationConfig;
             }
             catch
             {

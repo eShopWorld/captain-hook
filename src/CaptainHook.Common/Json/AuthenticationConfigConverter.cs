@@ -44,7 +44,7 @@ namespace CaptainHook.Common.Json
             {
                 AuthenticationType.Basic => new BasicAuthenticationConfig(),
                 AuthenticationType.OIDC => new OidcAuthenticationConfig(),
-                AuthenticationType.Custom => new AuthenticationConfig(),
+                AuthenticationType.Custom => new OidcAuthenticationConfig(),
                 AuthenticationType.None => new AuthenticationConfig(),
                 _ => new AuthenticationConfig()
             };
