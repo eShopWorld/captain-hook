@@ -13,6 +13,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Rest;
+using Microsoft.Rest.Azure;
 using Polly;
 using Polly.Retry;
 using ISubscription = Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription;
@@ -40,7 +41,7 @@ namespace CaptainHook.Common.ServiceBus
             _configurationSettings = configurationSettings ?? throw new ArgumentNullException(nameof(factory));
 
             static TimeSpan ExponentialBackoff(int x) => TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, RetryCeilingSeconds));
-            
+
             _findTopicPolicy = Policy
                 .HandleResult<ITopic>(b => b == null)
                 .WaitAndRetryForeverAsync(ExponentialBackoff);
@@ -55,7 +56,7 @@ namespace CaptainHook.Common.ServiceBus
         public async Task DeleteSubscriptionAsync(string topicName, string subscriptionName, CancellationToken cancellationToken)
         {
             var serviceBusNamespace = await GetServiceBusNamespaceAsync(cancellationToken);
-            var topic = await serviceBusNamespace.Topics.GetByNameAsync(topicName, cancellationToken);
+            var topic = await FindTopicAsync(serviceBusNamespace, TypeExtensions.GetEntityName(topicName), cancellationToken);
             if (topic != null)
             {
                 await topic.Subscriptions.DeleteByNameAsync(subscriptionName, cancellationToken);
@@ -63,7 +64,7 @@ namespace CaptainHook.Common.ServiceBus
         }
 
         private async Task<ISubscription> CreateSubscriptionIfNotExistsAsync(
-            ITopic topic, 
+            ITopic topic,
             string subscriptionName,
             int maxDeliveryCount,
             int messageLockDurationInSeconds,
@@ -116,7 +117,7 @@ namespace CaptainHook.Common.ServiceBus
         private async Task<ITopic> CreateTopicIfNotExistsAsync(string topicName, CancellationToken cancellationToken = default)
         {
             var serviceBusNamespace = await GetServiceBusNamespaceAsync(cancellationToken);
-            var topic = await serviceBusNamespace.Topics.GetByNameAsync(topicName, cancellationToken);
+            var topic = await FindTopicAsync(serviceBusNamespace, topicName, cancellationToken);
 
             if (topic != null) return topic;
 
@@ -132,7 +133,7 @@ namespace CaptainHook.Common.ServiceBus
                 _bigBrother.Publish(exception.ToExceptionEvent());
             }
 
-            return await _findTopicPolicy.ExecuteAsync(ct => serviceBusNamespace.Topics.GetByNameAsync(topicName, ct), cancellationToken);
+            return await _findTopicPolicy.ExecuteAsync(ct => FindTopicAsync(serviceBusNamespace, topicName, ct), cancellationToken);
         }
 
         public IMessageReceiver CreateMessageReceiver(string serviceBusConnectionString, string topicName, string subscriptionName, bool dlqMode)
@@ -147,11 +148,15 @@ namespace CaptainHook.Common.ServiceBus
 
         private static async Task<ITopic> FindTopicAsync(IServiceBusNamespace sbNamespace, string name, CancellationToken cancellationToken = default)
         {
-            return await sbNamespace.Topics.GetByNameAsync(name, cancellationToken);
-
-            //await sbNamespace.RefreshAsync(cancellationToken);
-            //var topicsList = await sbNamespace.Topics.ListAsync(cancellationToken: cancellationToken);
-            //return topicsList.SingleOrDefault(t => string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
+            try
+            {
+                var topic = await sbNamespace.Topics.GetByNameAsync(name, cancellationToken);
+                return topic;
+            }
+            catch (CloudException cex) when (cex.Body.Code == "NotFound")
+            {
+                return null;
+            }
         }
 
         private async Task<IServiceBusNamespace> GetServiceBusNamespaceAsync(CancellationToken cancellationToken = default)
