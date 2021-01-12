@@ -50,7 +50,7 @@ namespace CaptainHook.EventHandlerActor.Handlers.Authentication
                 new SendRequest(HttpMethod.Post, new Uri(OidcAuthenticationConfig.Uri), headers, string.Empty, defaultRetrySleepDurations),
                 cancellationToken);
 
-            if (authProviderResponse.StatusCode != HttpStatusCode.Created || authProviderResponse.Content == null)
+            if (!authProviderResponse.IsSuccessStatusCode || authProviderResponse.Content == null)
             {
                 throw new InvalidOperationException("didn't get a token from the provider");
             }
