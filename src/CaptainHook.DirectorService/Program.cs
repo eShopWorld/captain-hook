@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Fabric;
 using System.Threading;
@@ -16,11 +17,25 @@ using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
 using CaptainHook.Storage.Cosmos;
 using Eshopworld.Data.CosmosDb.Extensions;
+using Eshopworld.DevOps;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.DirectorService
 {
+    public class DirectorServiceSettings
+    {
+        public string AzureSubscriptionId { get; set; }
+
+        public string ServiceBusConnectionString { get; set; }
+
+        public string ServiceBusNamespace { get; set; }
+
+        public string Authority { get; set; }
+
+        public string ApiName { get; set; }
+    }
+
     internal static class Program
     {
         private const string CaptainHookConfigSection = "CaptainHook";
@@ -34,15 +49,43 @@ namespace CaptainHook.DirectorService
             {
                 var appSettings = TempConfigLoader.Load();
 
-                var configurationSettings = new ConfigurationSettings();
-                appSettings.Bind(configurationSettings);
+                var kvUri = Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable);
+
+                var environmentName = EswDevOpsSdk.GetEnvironmentName();
+
+                var configuration = new ConfigurationBuilder()
+                    .UseDefaultConfigs(environment: environmentName)
+                    .AddKeyVaultSecrets(new Uri(kvUri),
+                    new Dictionary<string, string>
+                    {
+                        {"cm--ai-telemetry--instrumentation", "Telemetry:InstrumentationKey"},
+                        {"cm--ai-telemetry--internal", "Telemetry:InternalKey"},
+                        {"cm--cosmos-connection--esw-platform", "DbConfiguration:ConnectionString"},
+                        {"cm--sb-connection--esw-eda", "ServiceBusConfiguration:ConnectionString"},
+                    }).Build();
+
+                var telemetrySettings = new TelemetrySettings();
+                configuration.GetSection("Telemetry").Bind(telemetrySettings);
+                var bb = BigBrother.CreateDefault(telemetrySettings.InstrumentationKey, telemetrySettings.InternalKey);
+                bb.UseEventSourceSink().ForExceptions();
+
+                var serviceSettings = new DirectorServiceSettings();
+                configuration.GetSection("Config").Bind(serviceSettings);
+
+
+                //var appSettings = TempConfigLoader.Load();
+
+                //var configurationSettings = new ConfigurationSettings();
+                //appSettings.Bind(configurationSettings);
+
+                //var config = 
 
                 //Get configs from the Config Package
                 var activationContext = FabricRuntime.GetActivationContext();
                 var defaultServicesSettings = ConfigFabricCodePackage(activationContext);
 
-                var bb = BigBrother.CreateDefault(configurationSettings.InstrumentationKey, configurationSettings.InternalKey);
-                bb.UseEventSourceSink().ForExceptions();
+                //var bb = BigBrother.CreateDefault(configurationSettings.InstrumentationKey, configurationSettings.InternalKey);
+                //bb.UseEventSourceSink().ForExceptions();
 
                 var builder = new ContainerBuilder();
 
@@ -50,7 +93,7 @@ namespace CaptainHook.DirectorService
                     .As<ISubscriberConfigurationLoader>()
                     .SingleInstance();
 
-                builder.RegisterInstance(configurationSettings)
+                builder.RegisterInstance(serviceSettings)
                        .SingleInstance();
 
                 builder.RegisterInstance(defaultServicesSettings)
@@ -86,9 +129,11 @@ namespace CaptainHook.DirectorService
                 builder.RegisterType<ServiceBusManager>()
                     .As<IServiceBusManager>();
 
-                builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
+                builder.ConfigureCosmosDb(configuration, connectionStringKey: "DbConfiguration:ConnectionString");
 
-                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey, configurationSettings.InternalKey);
+                //builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
+
+                builder.SetupFullTelemetry(telemetrySettings.InstrumentationKey, telemetrySettings.InternalKey);
                 builder.RegisterStatefulService<DirectorService>(ServiceNaming.DirectorServiceType);
 
                 using (builder.Build())
@@ -143,6 +188,6 @@ namespace CaptainHook.DirectorService
             return value;
         }
 
-        
+
     }
 }
