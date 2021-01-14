@@ -19,6 +19,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Include="appsettings.Development.json" />
+	  <Content Include="appsettings.json" />
+	  <Content Include="appsettings.PREP.json" />
+	  <Content Include="appsettings.PROD.json" />
+	  <Content Include="appsettings.SAND.json" />
+	  <Content Include="appsettings.TEST.json" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="Autofac" Version="5.2.0" />
 		<PackageReference Include="Autofac.ServiceFabric" Version="3.0.0" />
 		<PackageReference Include="Base62-net" Version="1.1.1" />

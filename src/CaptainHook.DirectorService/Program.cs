@@ -41,8 +41,8 @@ namespace CaptainHook.DirectorService
                         {"cm--ai-telemetry--instrumentation", "Telemetry:InstrumentationKey"},
                         {"cm--ai-telemetry--internal", "Telemetry:InternalKey"},
                         {"cm--cosmos-connection--esw-platform", "CosmosDB:ConnectionString"},
-                        {"cm--sb-connection--esw-eda", "ServiceBusConfiguration:ConnectionString"},
-                        {"cm--sb-subscription-id--esw-eda", "ServiceBusConfiguration:SubscriptionId"},
+                        {"cm--sb-connection--esw-eda", $"{nameof(ServiceBusSettings)}:{nameof(ServiceBusSettings.ConnectionString)}"},
+                        {"cm--sb-subscription-id--esw-eda", $"{nameof(ServiceBusSettings)}:{nameof(ServiceBusSettings.SubscriptionId)}"},
                     }).Build();
 
                 var telemetrySettings = configuration.GetSection("Telemetry").Get<TelemetrySettings>();
