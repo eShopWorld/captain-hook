@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
@@ -21,28 +20,6 @@ using ISubscription = Microsoft.Azure.Management.ServiceBus.Fluent.ISubscription
 
 namespace CaptainHook.Common.ServiceBus
 {
-    public class ServiceBusConfiguration
-    {
-        private static readonly Regex NamespaceRegex = new Regex(@"sb:\/\/(?<namespace>.*)\.servicebus", RegexOptions.Compiled);
-
-        private string _connectionString;
-        private string _serviceBusNamespace;
-
-        public string ConnectionString
-        {
-            get => _connectionString;
-            set
-            {
-                _connectionString = value;
-                _serviceBusNamespace = NamespaceRegex.Matches(_connectionString).FirstOrDefault()?.Groups["namespace"]?.Value;
-            }
-        }
-
-        public string SubscriptionId { get; set; }
-
-        public string ServiceBusNamespace => _serviceBusNamespace;
-    }
-
     /// <inheritdoc/>
     [ExcludeFromCodeCoverage]
     public class ServiceBusManager : IServiceBusManager
@@ -52,16 +29,16 @@ namespace CaptainHook.Common.ServiceBus
         private readonly IMessageProviderFactory _factory;
         private readonly IBigBrother _bigBrother;
         private readonly AsyncRetryPolicy<ITopic> _findTopicPolicy;
-        private readonly ServiceBusConfiguration _serviceBusConfiguration;
+        private readonly ServiceBusSettings _serviceBusSettings;
 
         public ServiceBusManager(
             IMessageProviderFactory factory,
             IBigBrother bigBrother,
-            ServiceBusConfiguration serviceBusConfiguration)
+            ServiceBusSettings serviceBusSettings)
         {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
-            _serviceBusConfiguration = serviceBusConfiguration ?? throw new ArgumentNullException(nameof(serviceBusConfiguration));
+            _serviceBusSettings = serviceBusSettings ?? throw new ArgumentNullException(nameof(serviceBusSettings));
 
             static TimeSpan ExponentialBackoff(int x) => TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, RetryCeilingSeconds));
 
@@ -198,16 +175,16 @@ namespace CaptainHook.Common.ServiceBus
 
             var sbNamespacesList = await Microsoft.Azure.Management.Fluent
                 .Azure.Authenticate(client, string.Empty)
-                .WithSubscription(_serviceBusConfiguration.SubscriptionId)
+                .WithSubscription(_serviceBusSettings.SubscriptionId)
                 .ServiceBusNamespaces
                 .ListAsync(cancellationToken: cancellationToken);
 
-            var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == _serviceBusConfiguration.ServiceBusNamespace);
+            var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == _serviceBusSettings.ServiceBusNamespace);
 
             if (sbNamespace == null)
             {
                 throw new InvalidOperationException(
-                    $"Couldn't find the service bus namespace {_serviceBusConfiguration.ServiceBusNamespace} in the subscription with ID {_serviceBusConfiguration.SubscriptionId}.");
+                    $"Couldn't find the service bus namespace {_serviceBusSettings.ServiceBusNamespace} in the subscription with ID {_serviceBusSettings.SubscriptionId}.");
             }
 
             return sbNamespace;
