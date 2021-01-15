@@ -32,17 +32,14 @@ namespace CaptainHook.DirectorService
         {
             try
             {
-                var environmentName = EswDevOpsSdk.GetEnvironmentName();
-
                 var configuration = new ConfigurationBuilder()
-                    .UseDefaultConfigs(environment: environmentName)
+                    .UseDefaultConfigs()
                     .AddKeyVaultSecrets(new Dictionary<string, string>
                     {
                         {"cm--ai-telemetry--instrumentation", "Telemetry:InstrumentationKey"},
                         {"cm--ai-telemetry--internal", "Telemetry:InternalKey"},
                         {"cm--cosmos-connection--esw-platform", "CosmosDB:ConnectionString"},
                         {"cm--sb-connection--esw-eda", $"{nameof(ServiceBusSettings)}:{nameof(ServiceBusSettings.ConnectionString)}"},
-                        {"cm--sb-subscription-id--esw-eda", $"{nameof(ServiceBusSettings)}:{nameof(ServiceBusSettings.SubscriptionId)}"},
                     }).Build();
 
                 var telemetrySettings = configuration.GetSection("Telemetry").Get<TelemetrySettings>();
