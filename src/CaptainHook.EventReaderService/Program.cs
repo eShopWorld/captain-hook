@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common;
-using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceBus;
 using CaptainHook.Common.Telemetry;
 using Eshopworld.DevOps;
@@ -44,6 +43,7 @@ namespace CaptainHook.EventReaderService
 
                 var builder = new ContainerBuilder();
                 //builder.RegisterInstance(configurationSettings).SingleInstance();
+                //builder.RegisterInstance(serviceBusSettings).SingleInstance();
                 builder.RegisterType<MessageProviderFactory>().As<IMessageProviderFactory>().SingleInstance();
                 builder.RegisterType<ServiceBusManager>().As<IServiceBusManager>();
                 builder.RegisterType<MessageLockDurationCalculator>().As<IMessageLockDurationCalculator>().SingleInstance();

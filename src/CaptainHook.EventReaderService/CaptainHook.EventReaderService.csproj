@@ -19,31 +19,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="appsettings.CI.json" />
     <None Remove="appsettings.Development.json" />
-    <None Remove="appsettings.PREP.json" />
-    <None Remove="appsettings.PROD.json" />
-    <None Remove="appsettings.SAND.json" />
-    <None Remove="appsettings.TEST.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="appsettings.CI.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="appsettings.Development.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="appsettings.PREP.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="appsettings.PROD.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="appsettings.SAND.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="appsettings.TEST.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
