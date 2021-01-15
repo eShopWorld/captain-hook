@@ -32,6 +32,14 @@ namespace CaptainHook.EventReaderService
                 builder.RegisterType<ServiceBusManager>().As<IServiceBusManager>();
                 builder.RegisterType<MessageLockDurationCalculator>().As<IMessageLockDurationCalculator>().SingleInstance();
 
+                // temporary fix for ServiceBusManager, will be improved in the next task
+                var serviceBusSettings = new ServiceBusSettings
+                {
+                    ConnectionString = configurationSettings.ServiceBusConnectionString,
+                    SubscriptionId = configurationSettings.AzureSubscriptionId
+                };
+                builder.RegisterInstance(serviceBusSettings).SingleInstance();
+
                 //SF Deps
                 builder.Register<IActorProxyFactory>(_ => new ActorProxyFactory());
 
