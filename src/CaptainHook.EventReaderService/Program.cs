@@ -43,7 +43,7 @@ namespace CaptainHook.EventReaderService
 
                 var builder = new ContainerBuilder();
                 //builder.RegisterInstance(configurationSettings).SingleInstance();
-                //builder.RegisterInstance(serviceBusSettings).SingleInstance();
+                builder.RegisterInstance(serviceBusSettings).SingleInstance();
                 builder.RegisterType<MessageProviderFactory>().As<IMessageProviderFactory>().SingleInstance();
                 builder.RegisterType<ServiceBusManager>().As<IServiceBusManager>();
                 builder.RegisterType<MessageLockDurationCalculator>().As<IMessageLockDurationCalculator>().SingleInstance();
@@ -54,7 +54,7 @@ namespace CaptainHook.EventReaderService
                 //    ConnectionString = configurationSettings.ServiceBusConnectionString,
                 //    SubscriptionId = configurationSettings.AzureSubscriptionId
                 //};
-                builder.RegisterInstance(serviceBusSettings).SingleInstance();
+                //builder.RegisterInstance(serviceBusSettings).SingleInstance();
 
                 //SF Deps
                 builder.Register<IActorProxyFactory>(_ => new ActorProxyFactory());
