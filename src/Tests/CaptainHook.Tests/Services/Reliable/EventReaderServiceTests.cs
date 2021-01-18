@@ -37,7 +37,7 @@ namespace CaptainHook.Tests.Services.Reliable
 
         private readonly IBigBrother _mockedBigBrother;
 
-        private readonly ConfigurationSettings _config;
+        private readonly ServiceBusSettings _config;
 
         private readonly MockActorProxyFactory _mockActorProxyFactory;
 
@@ -58,7 +58,7 @@ namespace CaptainHook.Tests.Services.Reliable
                 replicaId: (new Random(int.MaxValue)).Next());
             _mockActorProxyFactory = new MockActorProxyFactory();
             _stateManager = new MockReliableStateManager();
-            _config = new ConfigurationSettings();
+            _config = new ServiceBusSettings();
             _mockedBigBrother = new Mock<IBigBrother>().Object;
             _mockMessageProvider = new Mock<IMessageReceiver>();
         }
