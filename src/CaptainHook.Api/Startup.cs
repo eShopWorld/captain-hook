@@ -83,15 +83,13 @@ namespace CaptainHook.Api
                 .As<ITelemetryFilterCriteria>();
 
             builder.RegisterModule<ApplicationModule>();
-            builder.RegisterModule<CosmosDbStorageModule>();
             builder.RegisterModule<KeyVaultModule>();
-            builder.RegisterModule<CosmosDbModule>();
+            builder.RegisterModule<CosmosDbStorageModule>();
+            builder.ConfigureCosmosDb(_configuration);
 
             //var appSettings = TempConfigLoader.Load();
             //var configurationSettings = new ConfigurationSettings();
             //appSettings.Bind(configurationSettings);
-
-            builder.ConfigureCosmosDb(_configuration);
         }
 
         //private const string CaptainHookConfigSection = "CaptainHook";
