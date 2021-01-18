@@ -28,12 +28,12 @@ namespace CaptainHook.Tests.Web.WebHooks
     public class GenericWebhookHandlerTests
     {
         private readonly CancellationToken _cancellationToken;
-        private readonly FeatureFlagsConfiguration _featureFlags;
+        private readonly LoggingConfiguration _loggingConfiguration;
 
         public GenericWebhookHandlerTests()
         {
             _cancellationToken = new CancellationToken();
-            _featureFlags = new FeatureFlagsConfiguration();
+            _loggingConfiguration = new LoggingConfiguration();
         }
 
         [IsUnit]
@@ -75,7 +75,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClientBuilder = new HttpClientFactory(httpClients);
             var httpSender = new HttpSender(httpClientBuilder);
             var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
-            var requestLogger = new RequestLogger(mockBigBrother.Object, _featureFlags);
+            var requestLogger = new RequestLogger(mockBigBrother.Object, _loggingConfiguration);
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 httpSender,
@@ -131,7 +131,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpSender = new HttpSender(httpClientBuilder);
 
             var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
-            var requestLogger = new RequestLogger(mockBigBrother.Object, _featureFlags);
+            var requestLogger = new RequestLogger(mockBigBrother.Object, _loggingConfiguration);
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 httpSender,
@@ -184,7 +184,7 @@ namespace CaptainHook.Tests.Web.WebHooks
                 .Verifiable();
 
             var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
-            var requestLogger = new RequestLogger(mockBigBrother.Object, _featureFlags);
+            var requestLogger = new RequestLogger(mockBigBrother.Object, _loggingConfiguration);
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 httpSender.Object,
@@ -259,7 +259,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClientBuilder = new HttpClientFactory(httpClients);
             var httpSender = new HttpSender(httpClientBuilder);
             var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
-            var requestLogger = new RequestLogger(mockBigBrother.Object, _featureFlags);
+            var requestLogger = new RequestLogger(mockBigBrother.Object, _loggingConfiguration);
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 httpSender,
@@ -340,7 +340,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             var httpClientBuilder = new HttpClientFactory(httpClients);
             var httpSender = new HttpSender(httpClientBuilder);
             var requestBuilder = new DefaultRequestBuilder(Mock.Of<IBigBrother>());
-            var requestLogger = new RequestLogger(mockBigBrother.Object, _featureFlags);
+            var requestLogger = new RequestLogger(mockBigBrother.Object, _loggingConfiguration);
 
             var genericWebhookHandler = new GenericWebhookHandler(
                 httpSender,
