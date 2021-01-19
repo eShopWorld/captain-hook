@@ -55,14 +55,11 @@ namespace CaptainHook.Tests.Web.FlowTests
         private TestsConfig GetTestsConfig()
         {
             var config = EswDevOpsSdk.BuildConfiguration();
-            var testsConfig = new TestsConfig();
-
-            // Load: InstrumentationKey and AzureSubscriptionId from KV; 
-            // PeterPanBaseUrl and StsClientId from appsettings
-            config.Bind(testsConfig);
-
-            // Binds CaptainHook:ServiceBusConnectionString, CaptainHook:ApiSecret from KV
-            config.Bind("CaptainHook", testsConfig);
+            
+            var testsConfig = config.Get<TestsConfig>();
+            testsConfig.InstrumentationKey = config.GetValue<string>("cm:ai-telemetry:instrumentation");
+            testsConfig.ServiceBusConnectionString = config.GetValue<string>("cm:sb-connection:esw-eda");
+            testsConfig.AzureSubscriptionId = config.GetValue<string>("cm:sb-subscription-id:esw-eda");
 
             return testsConfig;
         }
@@ -87,8 +84,8 @@ namespace CaptainHook.Tests.Web.FlowTests
 
                 var retry = Policy
                 .HandleResult<HttpResponseMessage>(msg =>
-                    !expectMessages 
-                    || msg.StatusCode == HttpStatusCode.NotFound 
+                    !expectMessages
+                    || msg.StatusCode == HttpStatusCode.NotFound
                     || (expectCallback && (modelReceived == null || !modelReceived.Any(m => m.IsCallback))) /* keep polling */ )
                 .Or<Exception>()
                 .WaitAndRetryForeverAsync((i, context) => _defaultPollAttemptRetryTimeSpan);
