@@ -6,13 +6,10 @@ using System.Reflection;
 using Autofac;
 using CaptainHook.Api.Core;
 using CaptainHook.Application;
-using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
-using CaptainHook.Common.ServiceBus;
 using CaptainHook.Contract;
 using CaptainHook.Storage.Cosmos;
 using Eshopworld.Core;
-using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.Telemetry;
 using Eshopworld.Telemetry.Configuration;
@@ -72,13 +69,12 @@ namespace CaptainHook.Api
         public void ConfigureContainer(ContainerBuilder builder)
         {
             builder.ConfigureTelemetryKeys(_instrumentationKey, _internalKey);
-            builder.RegisterModule<TelemetryModule>();
+            builder.RegisterKeyVaultSecretProvider(_configuration);
 
+            builder.RegisterModule<TelemetryModule>();
             builder.RegisterType<SuccessfulProbeFilterCriteria>()
                 .As<ITelemetryFilterCriteria>();
-
             builder.RegisterModule<ApplicationModule>();
-            builder.RegisterModule<KeyVaultModule>();
             builder.RegisterModule<CosmosDbStorageModule>();
             builder.ConfigureCosmosDb(_configuration);
         }

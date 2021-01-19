@@ -83,7 +83,7 @@ namespace CaptainHook.DirectorService
                     .As<ISubscriberEntityToConfigurationMapper>()
                     .SingleInstance();
 
-                builder.RegisterModule<KeyVaultModule>();
+                builder.RegisterKeyVaultSecretProvider(configuration);
 
                 builder.RegisterModule<CosmosDbStorageModule>();
 
