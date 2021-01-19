@@ -42,6 +42,8 @@ namespace CaptainHook.DirectorService
                         {"cm--sb-connection--esw-eda", $"{nameof(ServiceBusSettings)}:{nameof(ServiceBusSettings.ConnectionString)}"},
                     }).Build();
 
+                throw new Exception(configuration.GetDebugView());
+
                 var telemetrySettings = configuration.GetSection("Telemetry").Get<TelemetrySettings>();
                 var bb = BigBrother.CreateDefault(telemetrySettings.InstrumentationKey, telemetrySettings.InternalKey);
                 bb.UseEventSourceSink().ForExceptions();
