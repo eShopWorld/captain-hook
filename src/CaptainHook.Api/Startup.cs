@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -31,6 +32,7 @@ namespace CaptainHook.Api
     /// <summary>
     /// Startup class for ASP.NET runtime
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class Startup
     {
         private readonly string _instrumentationKey;
