@@ -180,7 +180,7 @@ namespace CaptainHook.Common.ServiceBus
                 .ServiceBusNamespaces
                 .ListAsync(cancellationToken: cancellationToken);
 
-            var sbNamespaceName = RetrieveNamespaceName(_serviceBusSettings.ConnectionString);
+            var sbNamespaceName = RetrieveNamespace(_serviceBusSettings.ConnectionString);
             var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == sbNamespaceName);
 
             if (sbNamespace == null)
@@ -192,7 +192,7 @@ namespace CaptainHook.Common.ServiceBus
             return sbNamespace;
         }
 
-        private string RetrieveNamespaceName(string sbConnectionString)
+        private string RetrieveNamespace(string sbConnectionString)
         {
             return NamespaceRegex.Matches(sbConnectionString).FirstOrDefault()?.Groups["namespace"]?.Value;
         }
