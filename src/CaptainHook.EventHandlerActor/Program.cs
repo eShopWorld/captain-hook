@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.EventHandlerActor
 {
+    [ExcludeFromCodeCoverage]
     internal static class Program
     {
         /// <summary>
