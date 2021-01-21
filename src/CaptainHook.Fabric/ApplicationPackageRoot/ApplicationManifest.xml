@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ApplicationManifest xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ApplicationTypeName="CaptainHookType" ApplicationTypeVersion="1.0.0" xmlns="http://schemas.microsoft.com/2011/01/fabric">
   <Parameters>
+    <Parameter Name="KeyVault_Base_Uri" DefaultValue="N/A" />
     <Parameter Name="AspNetCore_Environment" DefaultValue="N/A" />
     <Parameter Name="CaptainHook.DirectorService_DefaultMinReplicaSetSize" DefaultValue="2"/>
     <Parameter Name="CaptainHook.DirectorService_DefaultTargetReplicaSetSize" DefaultValue="3"/>
@@ -9,6 +10,7 @@
     <Parameter Name="CaptainHook.DirectorService_MinReplicaSetSize" DefaultValue="2" />
     <Parameter Name="CaptainHook.DirectorService_PartitionCount" DefaultValue="1" />
     <Parameter Name="CaptainHook.DirectorService_TargetReplicaSetSize" DefaultValue="3" />
+    <Parameter Name="CosmosDb_Tooling_ConnectionString" DefaultValue="" />
     <Parameter Name="CaptainHook.Api_InstanceCount" DefaultValue="1" />
   </Parameters>
   <!-- Import the ServiceManifest from the ServicePackage. The ServiceManifestName and ServiceManifestVersion 
@@ -17,18 +19,21 @@
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.ApiPkg" ServiceManifestVersion="1.0.0" />
     <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.EventHandlerActorPkg" ServiceManifestVersion="1.0.0" />
     <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <ServiceManifestImport>
     <ServiceManifestRef ServiceManifestName="CaptainHook.EventReaderServicePkg" ServiceManifestVersion="1.0.0" />
     <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
@@ -47,7 +52,9 @@
       </ConfigOverride>
     </ConfigOverrides>
     <EnvironmentOverrides CodePackageRef="Code">
+      <EnvironmentVariable Name="KEYVAULT_BASE_URI" Value="[KeyVault_Base_Uri]" />
       <EnvironmentVariable Name="ASPNETCORE_ENVIRONMENT" Value="[AspNetCore_Environment]" />
+      <EnvironmentVariable Name="CosmosDB:Tooling:ConnectionString" Value="[CosmosDb_Tooling_ConnectionString]" />
     </EnvironmentOverrides>
   </ServiceManifestImport>
   <DefaultServices>

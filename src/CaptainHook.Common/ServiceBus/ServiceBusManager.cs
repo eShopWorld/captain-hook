@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
@@ -180,23 +179,15 @@ namespace CaptainHook.Common.ServiceBus
                 .ServiceBusNamespaces
                 .ListAsync(cancellationToken: cancellationToken);
 
-            var sbNamespaceName = RetrieveNamespace(_serviceBusSettings.ConnectionString);
-            var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == sbNamespaceName);
+            var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == _serviceBusSettings.ServiceBusNamespace);
 
             if (sbNamespace == null)
             {
                 throw new InvalidOperationException(
-                    $"Couldn't find the service bus namespace {sbNamespaceName} in the subscription with ID {_serviceBusSettings.SubscriptionId}.");
+                    $"Couldn't find the service bus namespace {_serviceBusSettings.ServiceBusNamespace} in the subscription with ID {_serviceBusSettings.SubscriptionId}.");
             }
 
             return sbNamespace;
         }
-
-        private string RetrieveNamespace(string sbConnectionString)
-        {
-            return NamespaceRegex.Matches(sbConnectionString).FirstOrDefault()?.Groups["namespace"]?.Value;
-        }
-
-        private static readonly Regex NamespaceRegex = new Regex(@"sb:\/\/(?<namespace>.*)\.servicebus", RegexOptions.Compiled);
     }
 }
