@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
+using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Web;
 using Eshopworld.Core;
@@ -18,14 +19,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
     public class RequestLogger : IRequestLogger
     {
         private readonly IBigBrother _bigBrother;
-        private readonly LoggingConfiguration _loggingConfiguration;
+        private readonly FeatureFlagsConfiguration _featureFlags;
 
         public RequestLogger(
             IBigBrother bigBrother,
-            LoggingConfiguration loggingConfiguration)
+            FeatureFlagsConfiguration featureFlags)
         {
             _bigBrother = bigBrother;
-            _loggingConfiguration = loggingConfiguration;
+            _featureFlags = featureFlags;
         }
 
         public async Task LogAsync(
@@ -55,7 +56,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
             else
             {
-                var canLogPayload = !_loggingConfiguration.DisablePayloadLogging;
+                var canLogPayload = !(_featureFlags.GetFlag<DisablePayloadLoggingFeatureFlag>()?.IsEnabled ?? false);
                 
                 // request failed
                 _bigBrother.Publish(new FailedWebhookEvent(

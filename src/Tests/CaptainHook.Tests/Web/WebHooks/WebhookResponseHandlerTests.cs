@@ -60,7 +60,7 @@ namespace CaptainHook.Tests.Web.WebHooks
             Mock<IAuthenticationHandlerFactory> mockAuthHandlerFactory)
         {
             var requestBuilder = new DefaultRequestBuilder(_mockBigBrother.Object);
-            var requestLogger = new RequestLogger(_mockBigBrother.Object, new LoggingConfiguration());
+            var requestLogger = new RequestLogger(_mockBigBrother.Object, new FeatureFlagsConfiguration());
             var handlerFactory = new EventHandlerFactory(_mockBigBrother.Object, _mockHttpSender.Object,
                 mockAuthHandlerFactory.Object, requestLogger, requestBuilder);
 
