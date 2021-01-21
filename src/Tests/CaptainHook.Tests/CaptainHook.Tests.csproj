@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Eshopworld.DevOps" Version="5.1.11" />
+    <PackageReference Include="Eshopworld.DevOps" Version="5.1.7" />
     <PackageReference Include="Eshopworld.Messaging" Version="2.1.4" />
     <PackageReference Include="EShopworld.Security.Services.Testing" Version="2.6.5" />
     <PackageReference Include="Eshopworld.Telemetry" Version="3.1.5" />
