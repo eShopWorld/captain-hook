@@ -46,7 +46,7 @@ namespace CaptainHook.DirectorService
                 var bb = BigBrother.CreateDefault(telemetrySettings.InstrumentationKey, telemetrySettings.InternalKey);
                 bb.UseEventSourceSink().ForExceptions();
 
-                var serviceBusSettings = configuration.GetSection(nameof(ServiceBusSettings)).Get<ServiceBusSettings>();
+                var serviceBusConfig = configuration.GetSection(nameof(ServiceBusSettings)).Get<ServiceBusSettings>();
 
                 //Get configs from the Config Package
                 var activationContext = FabricRuntime.GetActivationContext();
@@ -61,7 +61,7 @@ namespace CaptainHook.DirectorService
                 builder.RegisterInstance(defaultServicesSettings)
                     .SingleInstance();
 
-                builder.RegisterInstance(serviceBusSettings)
+                builder.RegisterInstance(serviceBusConfig)
                     .SingleInstance();
 
                 builder.RegisterType<FabricClient>()

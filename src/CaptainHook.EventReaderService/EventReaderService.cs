@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceBus;
 using CaptainHook.Common.ServiceModels;
 using CaptainHook.Common.Telemetry.Service;
@@ -43,7 +44,7 @@ namespace CaptainHook.EventReaderService
         private readonly IServiceBusManager _serviceBusManager;
         private readonly IActorProxyFactory _proxyFactory;
         private readonly IMessageLockDurationCalculator _messageLockDurationCalculator;
-        private readonly ServiceBusSettings _settings;
+        private readonly ConfigurationSettings _settings;
         private EventReaderInitData _initData;
 
         internal ConcurrentDictionary<string, MessageDataHandle> _inflightMessages = new ConcurrentDictionary<string, MessageDataHandle>();
@@ -83,7 +84,7 @@ namespace CaptainHook.EventReaderService
             IServiceBusManager serviceBusManager,
             IActorProxyFactory proxyFactory,
             IMessageLockDurationCalculator messageLockDurationCalculator,
-            ServiceBusSettings settings)
+            ConfigurationSettings settings)
             : base(context)
         {
             _bigBrother = bigBrother;
@@ -111,7 +112,7 @@ namespace CaptainHook.EventReaderService
             IServiceBusManager serviceBusManager,
             IActorProxyFactory proxyFactory,
             IMessageLockDurationCalculator messageLockDurationCalculator,
-            ServiceBusSettings settings)
+            ConfigurationSettings settings)
             : base(context, reliableStateManagerReplica)
         {
             _bigBrother = bigBrother;
@@ -206,7 +207,7 @@ namespace CaptainHook.EventReaderService
                                 .FirstOrDefault(x => x.Routes.Any())?
                                 .Routes?
                                 .Max(x => _messageLockDurationCalculator.CalculateAsSeconds(x.Timeout, x.RetrySleepDurations));
-
+                
             return messageLockDurationFromRoutes ?? _messageLockDurationCalculator.CalculateAsSeconds(_initData.SubscriberConfiguration.Timeout, _initData.SubscriberConfiguration.RetrySleepDurations);
         }
 
@@ -216,8 +217,8 @@ namespace CaptainHook.EventReaderService
 
             var messageLockDurationInSeconds = CalculateMessageLock();
             await _serviceBusManager.CreateTopicAndSubscriptionAsync(_initData.SubscriptionName, _initData.EventType, _initData.MaxDeliveryCount, messageLockDurationInSeconds, cancellationToken);
-
-            var messageReceiver = _serviceBusManager.CreateMessageReceiver(_settings.ConnectionString, _initData.EventType, _initData.SubscriptionName, _initData.DlqMode != null);
+            
+            var messageReceiver = _serviceBusManager.CreateMessageReceiver(_settings.ServiceBusConnectionString, _initData.EventType, _initData.SubscriptionName, _initData.DlqMode != null);
 
             //add new receiver and set is as primary
             var wrapper = new MessageReceiverWrapper { Receiver = messageReceiver, ReceiverId = Guid.NewGuid() };
@@ -341,7 +342,7 @@ namespace CaptainHook.EventReaderService
         {
             var inactivityTimeoutReached =
                 _activeMessageReader.FirstTimeNoMessagesReadUtc?.AddMinutes(DefaultInactivityTimeBeforeConnectionResetInMinutes) <= DateTime.UtcNow;
-
+            
             if (inactivityTimeoutReached)
             {
                 await ResetConnection(cancellationToken);
