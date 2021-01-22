@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -31,6 +32,7 @@ namespace CaptainHook.Api
     /// <summary>
     /// Startup class for ASP.NET runtime
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class Startup
     {
         private readonly string _instrumentationKey;
@@ -69,13 +71,12 @@ namespace CaptainHook.Api
         public void ConfigureContainer(ContainerBuilder builder)
         {
             builder.ConfigureTelemetryKeys(_instrumentationKey, _internalKey);
-            builder.RegisterModule<TelemetryModule>();
+            builder.RegisterKeyVaultSecretProvider(_configuration);
 
+            builder.RegisterModule<TelemetryModule>();
             builder.RegisterType<SuccessfulProbeFilterCriteria>()
                 .As<ITelemetryFilterCriteria>();
-
             builder.RegisterModule<ApplicationModule>();
-            builder.RegisterModule<KeyVaultModule>();
             builder.RegisterModule<CosmosDbStorageModule>();
             builder.ConfigureCosmosDb(_configuration);
         }

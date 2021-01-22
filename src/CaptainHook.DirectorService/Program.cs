@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Fabric;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.DirectorService
 {
+    [ExcludeFromCodeCoverage]
     internal static class Program
     {
         /// <summary>
@@ -83,7 +85,7 @@ namespace CaptainHook.DirectorService
                     .As<ISubscriberEntityToConfigurationMapper>()
                     .SingleInstance();
 
-                builder.RegisterModule<KeyVaultModule>();
+                builder.RegisterKeyVaultSecretProvider(configuration);
 
                 builder.RegisterModule<CosmosDbStorageModule>();
 
