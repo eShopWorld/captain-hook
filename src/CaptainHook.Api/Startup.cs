@@ -1,16 +1,16 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Autofac;
 using CaptainHook.Api.Core;
 using CaptainHook.Application;
+using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.KeyVault;
 using CaptainHook.Contract;
 using CaptainHook.Storage.Cosmos;
 using Eshopworld.Core;
+using Eshopworld.Data.CosmosDb;
 using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.Telemetry;
 using Eshopworld.Telemetry.Configuration;
@@ -25,14 +25,12 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using TelemetrySettings = Eshopworld.DevOps.TelemetrySettings;
 
 namespace CaptainHook.Api
 {
     /// <summary>
     /// Startup class for ASP.NET runtime
     /// </summary>
-    [ExcludeFromCodeCoverage]
     public class Startup
     {
         private readonly string _instrumentationKey;
@@ -46,19 +44,9 @@ namespace CaptainHook.Api
         /// </summary>
         public Startup()
         {
-            _configuration = new ConfigurationBuilder()
-                   .UseDefaultConfigs()
-                   .AddKeyVaultSecrets(new Dictionary<string, string>
-                   {
-                        {"cm--ai-telemetry--instrumentation", "Telemetry:InstrumentationKey"},
-                        {"cm--ai-telemetry--internal", "Telemetry:InternalKey"},
-                        {"cm--cosmos-connection--esw-platform", "CosmosDB:ConnectionString"},
-                   }).Build();
-
-            var telemetrySettings = _configuration.GetSection("Telemetry").Get<TelemetrySettings>();
-            _instrumentationKey = telemetrySettings.InstrumentationKey;
-            _internalKey = telemetrySettings.InternalKey;
-
+            _configuration = TempConfigLoader.Load();
+            _instrumentationKey = _configuration[nameof(ConfigurationSettings.InstrumentationKey)];
+            _internalKey = _configuration[nameof(ConfigurationSettings.InternalKey)];
             _bb = BigBrother.CreateDefault(_instrumentationKey, _internalKey);
         }
 
@@ -71,15 +59,23 @@ namespace CaptainHook.Api
         public void ConfigureContainer(ContainerBuilder builder)
         {
             builder.ConfigureTelemetryKeys(_instrumentationKey, _internalKey);
-            builder.RegisterKeyVaultSecretProvider(_configuration);
-
             builder.RegisterModule<TelemetryModule>();
+
             builder.RegisterType<SuccessfulProbeFilterCriteria>()
                 .As<ITelemetryFilterCriteria>();
+
             builder.RegisterModule<ApplicationModule>();
             builder.RegisterModule<CosmosDbStorageModule>();
-            builder.ConfigureCosmosDb(_configuration);
+            builder.RegisterModule<KeyVaultModule>();
+            builder.RegisterModule<CosmosDbModule>();
+
+            var appSettings = TempConfigLoader.Load();
+            var configurationSettings = new ConfigurationSettings();
+            appSettings.Bind(configurationSettings);
+            builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
         }
+
+        private const string CaptainHookConfigSection = "CaptainHook";
 
         private static readonly AuthenticationDtoJsonConverter AuthenticationDtoJsonConverter = new AuthenticationDtoJsonConverter();
 
@@ -94,7 +90,8 @@ namespace CaptainHook.Api
                 services.AddApplicationInsightsTelemetry(_instrumentationKey);
                 services.AddApplicationInsightsTelemetryProcessor<TelemetryFilterProcessor>();
 
-                var serviceConfiguration = _configuration.GetSection(nameof(ServiceConfigurationOptions)).Get<ServiceConfigurationOptions>();
+                var serviceConfiguration = new ServiceConfigurationOptions();
+                _configuration.GetSection("ServiceConfigurationOptions").Bind(serviceConfiguration);
 
                 services.AddControllers(options =>
                     {

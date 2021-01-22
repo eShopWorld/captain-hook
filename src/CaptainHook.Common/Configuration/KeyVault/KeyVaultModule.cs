@@ -6,7 +6,6 @@ using Autofac;
 using Azure.Core;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Azure.Services.AppAuthentication;
-using Microsoft.Extensions.Configuration;
 using TokenCredential = Azure.Core.TokenCredential;
 
 namespace CaptainHook.Common.Configuration.KeyVault
@@ -27,22 +26,11 @@ namespace CaptainHook.Common.Configuration.KeyVault
     }
 
     [ExcludeFromCodeCoverage]
-    public static class ContainerBuilderExtensions
+    public class KeyVaultModule : Module
     {
-        public static void RegisterKeyVaultSecretProvider(this ContainerBuilder builder, IConfigurationRoot configuration)
+        protected override void Load(ContainerBuilder builder)
         {
-            var keyVaultUrl = configuration.GetValue<string>("KEYVAULT_URL");
-
-            if (string.IsNullOrEmpty(keyVaultUrl))
-            {
-                var instanceName = configuration.GetValue<string>("KeyVaultInstanceName");
-                keyVaultUrl = $"https://{instanceName}.vault.azure.net";
-            }
-
-            if (string.IsNullOrEmpty(keyVaultUrl))
-            {
-                throw new InvalidOperationException("KeyVault Uri or KeyVaultInstanceName must be provided in config");
-            }
+            base.Load(builder);
 
             var secretClientOptions = new SecretClientOptions
             {
@@ -55,7 +43,10 @@ namespace CaptainHook.Common.Configuration.KeyVault
                 }
             };
 
-            builder.Register(context => new SecretClient(new Uri(keyVaultUrl), new AzureServiceTokenCredential(), secretClientOptions));
+            builder.Register(context => new SecretClient(
+                new Uri(Environment.GetEnvironmentVariable(ConfigurationSettings.KeyVaultUriEnvVariable)),
+                new AzureServiceTokenCredential(),
+                secretClientOptions));
             builder.RegisterType<KeyVaultSecretProvider>().As<ISecretProvider>();
         }
     }
