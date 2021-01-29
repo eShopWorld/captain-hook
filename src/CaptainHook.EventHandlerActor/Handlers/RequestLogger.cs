@@ -7,6 +7,7 @@ using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Configuration.FeatureFlags;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Web;
+using CaptainHook.EventHandlerActor.Utils;
 using Eshopworld.Core;
 using Newtonsoft.Json;
 
@@ -39,7 +40,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             WebhookConfig config
         )
         {
-            var webhookRules = CollectRules (config);
+            var webhookRules = CollectRules(config);
 
             if (response.IsSuccessStatusCode)
             {
@@ -57,10 +58,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
             else
             {
                 var canLogPayload = !(_featureFlags.GetFlag<DisablePayloadLoggingFeatureFlag>()?.IsEnabled ?? false);
-                
+
                 // request failed
                 _bigBrother.Publish(new FailedWebhookEvent(
-                    headers.RequestHeaders.ToString(),
+                    headers.RequestHeaders.ToDebugString(),
                     response.Headers.ToString(),
                     canLogPayload ? messageData.Payload ?? string.Empty : string.Empty, // request body
                     await GetResponsePayloadAsync(response), // response body
@@ -79,10 +80,10 @@ namespace CaptainHook.EventHandlerActor.Handlers
             }
         }
 
-        private string CollectRules (WebhookConfig config)
+        private string CollectRules(WebhookConfig config)
         {
-            var list = config?.WebhookRequestRules?.Select (rule => (src: rule.Source, dest: rule.Destination)).ToArray ();
-            return list == null ? null: JsonConvert.SerializeObject (list, Formatting.None);
+            var list = config?.WebhookRequestRules?.Select(rule => (src: rule.Source, dest: rule.Destination)).ToArray();
+            return list == null ? null : JsonConvert.SerializeObject(list, Formatting.None);
         }
 
         private static async Task<string> GetResponsePayloadAsync(HttpResponseMessage response)
