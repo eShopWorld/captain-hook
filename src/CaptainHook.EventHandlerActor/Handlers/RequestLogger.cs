@@ -60,12 +60,12 @@ namespace CaptainHook.EventHandlerActor.Handlers
                 var canLogPayload = !(_featureFlags.GetFlag<DisablePayloadLoggingFeatureFlag>()?.IsEnabled ?? false);
 
                 // request failed
-                _bigBrother.Publish(new FailedWebhookEvent(
+                var failedWebhookEvent = new FailedWebhookEvent(
                     headers.RequestHeaders.ToDebugString(),
                     response.Headers.ToString(),
                     canLogPayload ? messageData.Payload ?? string.Empty : string.Empty, // request body
                     await GetResponsePayloadAsync(response), // response body
-                    canLogPayload ? actualPayload : string.Empty,  // messagePayload
+                    canLogPayload ? actualPayload : string.Empty, // messagePayload
                     messageData.EventHandlerActorId,
                     messageData.Type,
                     $"Response status code {response.StatusCode}",
@@ -73,10 +73,13 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     httpMethod,
                     response.StatusCode,
                     messageData.CorrelationId,
-                    webhookRules)
-                {
-                    AuthToken = response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? headers?.RequestHeaders?[Constants.Headers.Authorization] : string.Empty
-                });
+                    webhookRules);
+
+                failedWebhookEvent.AuthToken = response.StatusCode == System.Net.HttpStatusCode.Unauthorized 
+                    ? headers.RequestHeaders.TryGetValue(Constants.Headers.Authorization, out var authToken) ? authToken : "missing Authorization header" 
+                    : string.Empty;
+
+                _bigBrother.Publish(failedWebhookEvent);
             }
         }
 
