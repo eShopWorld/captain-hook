@@ -20,7 +20,7 @@ namespace CaptainHook.Api.Tests.Unit
     public class EventsControllerTests
     {
         private readonly Mock<IMediator> _mediatorMock;
-        private EventsController _sut;
+        private readonly EventsController _sut;
 
         public EventsControllerTests()
         {
