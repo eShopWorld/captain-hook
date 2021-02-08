@@ -30,7 +30,7 @@ namespace CaptainHook.Tests.Director
             _subscriberConfigurationLoader = new SubscriberConfigurationLoader(_repositoryMock.Object, _mapperMock.Object);
         }
 
-        [Fact, IsDev]
+        [Fact, IsUnit]
         public async Task LoadAsync_TwoSubscriberEntities_MappedToTwoConfigurations()
         {
             // valid subscribers entities are needed to run the loop without failing mapper, but the actual data is not important for this test
@@ -50,7 +50,7 @@ namespace CaptainHook.Tests.Director
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
-        [Fact, IsDev]
+        [Fact, IsUnit]
         public async Task LoadAsync_SubscriberEntityWithDlq_MappedToTwoConfigurations()
         {
             // valid subscriber entity with DLQ hook is needed, but the actual data is not important for this test
@@ -70,7 +70,7 @@ namespace CaptainHook.Tests.Director
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Once);
         }
 
-        [Fact, IsDev]
+        [Fact, IsUnit]
         public async Task LoadAsync_RepositoryReturnsError_SameErrorIsReturned()
         {
             _repositoryMock.Setup(r => r.GetAllSubscribersAsync()).ReturnsAsync(new MappingError("error"));
@@ -83,7 +83,7 @@ namespace CaptainHook.Tests.Director
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
-        [Fact, IsDev]
+        [Fact, IsUnit]
         public async Task LoadAsync_MapperReturnsErrorForSomeWebhooks_ErrorsAreReturned()
         {
             var subscriberConfiguration = new SubscriberConfigurationBuilder().Create();
@@ -111,7 +111,7 @@ namespace CaptainHook.Tests.Director
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
-        [Fact, IsDev]
+        [Fact, IsUnit]
         public async Task LoadAsync_MapperThrowsExceptionForSomeWebhooks_MappingErrorsWithExceptionFailuresAreReturned()
         {
             var subscriberConfiguration = new SubscriberConfigurationBuilder().Create();
@@ -142,7 +142,7 @@ namespace CaptainHook.Tests.Director
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Never);
         }
 
-        [Fact, IsDev]
+        [Fact, IsUnit]
         public async Task LoadAsync_MapperReturnsErrorsForSomeDlqhooks_MappingErrorIsReturned()
         {
             var subscriberConfiguration = new SubscriberConfigurationBuilder().Create();
@@ -173,7 +173,7 @@ namespace CaptainHook.Tests.Director
             _mapperMock.Verify(x => x.MapToDlqAsync(It.IsAny<SubscriberEntity>()), Times.Exactly(4));
         }
 
-        [Fact, IsDev]
+        [Fact, IsUnit]
         public async Task LoadAsync_MapperThrowsExceptionForOneDlqhook_MappingErrorIsReturned()
         {
             var subscriberConfiguration = new SubscriberConfigurationBuilder().Create();
