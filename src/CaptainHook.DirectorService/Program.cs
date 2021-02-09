@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Fabric;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace CaptainHook.DirectorService
 {
+    [ExcludeFromCodeCoverage]
     internal static class Program
     {
         private const string CaptainHookConfigSection = "CaptainHook";

@@ -29,6 +29,7 @@
                 <ModulePath>.*tests.*</ModulePath>
                 <ModulePath>.*moq.*</ModulePath>
                 <ModulePath>.*Tests.dll</ModulePath>
+                <ModulePath>.*TestsInfrastructure.dll</ModulePath>
                 <ModulePath>.*Benchmark.dll</ModulePath>
               </Exclude>
             </ModulePaths>

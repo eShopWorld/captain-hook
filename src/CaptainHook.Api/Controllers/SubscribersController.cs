@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using CaptainHook.Api.Constants;
 using CaptainHook.Application.Infrastructure.DirectorService.Remoting;

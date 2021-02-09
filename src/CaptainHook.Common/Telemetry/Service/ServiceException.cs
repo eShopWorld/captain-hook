@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Fabric;
 
 namespace CaptainHook.Common.Telemetry.Service
 {
+    [ExcludeFromCodeCoverage]
     public abstract class ServiceException : Exception
     {
         protected ServiceException(string message, StatefulServiceContext context) : base(message)

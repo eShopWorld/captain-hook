@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Net.Http;
@@ -21,6 +22,7 @@ namespace Platform.Eda.Cli
     [Subcommand(typeof(GeneratePowerShellCommand))]
     [Subcommand(typeof(ConfigureEdaCommand))]
     [VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
+    [ExcludeFromCodeCoverage]
     public class Program
     {
         private static IConsole _console;

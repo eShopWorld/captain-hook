@@ -143,7 +143,7 @@ namespace CaptainHook.Api.Controllers
         [ProducesResponseType(typeof(DirectorServiceIsBusyError), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status422UnprocessableEntity)]
         [ProducesResponseType(typeof(ErrorBase), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> PutSuscriber([FromRoute] string eventName, [FromRoute] string subscriberName, [FromBody] SubscriberDto dto)
+        public async Task<IActionResult> PutSubscriber([FromRoute] string eventName, [FromRoute] string subscriberName, [FromBody] SubscriberDto dto)
         {
             var request = new UpsertSubscriberRequest(eventName, subscriberName, dto);
             var result = await _mediator.Send(request);

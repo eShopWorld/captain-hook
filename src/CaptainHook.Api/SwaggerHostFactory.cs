@@ -1,4 +1,5 @@
-﻿using Autofac.Extensions.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
@@ -7,6 +8,7 @@ namespace CaptainHook.Api
     /// <summary>
     /// Swagger factory
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class SwaggerHostFactory
     {
         /// <summary>
