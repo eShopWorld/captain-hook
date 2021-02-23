@@ -6,6 +6,7 @@ using CaptainHook.Common;
 using CaptainHook.Common.Configuration;
 using CaptainHook.Common.Telemetry;
 using CaptainHook.Common.Telemetry.Web;
+using CaptainHook.EventHandlerActor.Utils;
 using Eshopworld.Core;
 using Newtonsoft.Json;
 
@@ -38,7 +39,7 @@ namespace CaptainHook.EventHandlerActor.Handlers
             WebhookConfig config
         )
         {
-            var webhookRules = CollectRules (config);
+            var webhookRules = CollectRules(config);
 
             if (response.IsSuccessStatusCode)
             {
@@ -56,14 +57,14 @@ namespace CaptainHook.EventHandlerActor.Handlers
             else
             {
                 var canLogPayload = !_loggingConfiguration.DisablePayloadLogging;
-                
+
                 // request failed
-                _bigBrother.Publish(new FailedWebhookEvent(
-                    headers.RequestHeaders.ToString(),
+                var failedWebhookEvent = new FailedWebhookEvent(
+                    headers.RequestHeaders.ToDebugString(),
                     response.Headers.ToString(),
                     canLogPayload ? messageData.Payload ?? string.Empty : string.Empty, // request body
                     await GetResponsePayloadAsync(response), // response body
-                    canLogPayload ? actualPayload : string.Empty,  // messagePayload
+                    canLogPayload ? actualPayload : string.Empty, // messagePayload
                     messageData.EventHandlerActorId,
                     messageData.Type,
                     $"Response status code {response.StatusCode}",
@@ -71,17 +72,20 @@ namespace CaptainHook.EventHandlerActor.Handlers
                     httpMethod,
                     response.StatusCode,
                     messageData.CorrelationId,
-                    webhookRules)
-                {
-                    AuthToken = response.StatusCode == System.Net.HttpStatusCode.Unauthorized ? headers?.RequestHeaders?[Constants.Headers.Authorization] : string.Empty
-                });
+                    webhookRules);
+
+                failedWebhookEvent.AuthToken = response.StatusCode == System.Net.HttpStatusCode.Unauthorized 
+                    ? headers.RequestHeaders.TryGetValue(Constants.Headers.Authorization, out var authToken) ? authToken : "missing Authorization header" 
+                    : string.Empty;
+
+                _bigBrother.Publish(failedWebhookEvent);
             }
         }
 
-        private string CollectRules (WebhookConfig config)
+        private string CollectRules(WebhookConfig config)
         {
-            var list = config?.WebhookRequestRules?.Select (rule => (src: rule.Source, dest: rule.Destination)).ToArray ();
-            return list == null ? null: JsonConvert.SerializeObject (list, Formatting.None);
+            var list = config?.WebhookRequestRules?.Select(rule => (src: rule.Source, dest: rule.Destination)).ToArray();
+            return list == null ? null : JsonConvert.SerializeObject(list, Formatting.None);
         }
 
         private static async Task<string> GetResponsePayloadAsync(HttpResponseMessage response)

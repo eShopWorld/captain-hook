@@ -49,6 +49,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\CaptainHook.Api.Client\CaptainHook.Api.Client.csproj" />
+    <ProjectReference Include="..\..\CaptainHook.Api\CaptainHook.Api.csproj" />
   </ItemGroup>
 
 </Project>

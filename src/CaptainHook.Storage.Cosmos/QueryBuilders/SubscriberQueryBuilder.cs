@@ -1,5 +1,4 @@
-﻿using CaptainHook.Domain.ValueObjects;
-using CaptainHook.Storage.Cosmos.Models;
+﻿using CaptainHook.Storage.Cosmos.Models;
 using Eshopworld.Data.CosmosDb;
 using Microsoft.Azure.Cosmos;
 
