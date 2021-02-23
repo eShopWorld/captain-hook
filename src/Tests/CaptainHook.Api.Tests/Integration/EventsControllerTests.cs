@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Threading.Tasks;
 using CaptainHook.Api.Client;
 using CaptainHook.Api.Client.Models;
@@ -7,16 +8,26 @@ using Eshopworld.Tests.Core;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace CaptainHook.Api.Tests.Integration
 {
     public class EventsControllerTests : IClassFixture<EventFixture>
     {
         private readonly EventFixture _fixture;
+        private readonly ITestOutputHelper _outputHelper;
 
-        public EventsControllerTests(EventFixture fixture)
+        public EventsControllerTests(EventFixture fixture, ITestOutputHelper outputHelper)
         {
             _fixture = fixture;
+            _outputHelper = outputHelper;
+
+            _outputHelper.WriteLine("Environment variables:");
+            var vars = Environment.GetEnvironmentVariables();
+            foreach (DictionaryEntry entry in vars)
+            {
+                _outputHelper.WriteLine($"'{entry.Key}': '{entry.Value}'");
+            }
         }
 
         [Fact, IsIntegration]
@@ -39,6 +50,7 @@ namespace CaptainHook.Api.Tests.Integration
             var result = await _fixture.AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(_fixture.IntegrationTestEventCreateName, _fixture.IntegrationTestSubscriberName, dto);
 
             // Assert
+            await _outputHelper.PrintIfInvalidHttpResponse(result.Response);
             result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
         }
 
@@ -56,6 +68,7 @@ namespace CaptainHook.Api.Tests.Integration
             var result = await _fixture.AuthenticatedClient.PutSuscriberWithHttpMessagesAsync(_fixture.IntegrationTestEventUpdateName, _fixture.IntegrationTestSubscriberName, dto);
 
             // Assert
+            await _outputHelper.PrintIfInvalidHttpResponse(result.Response);
             result.Response.StatusCode.Should().Be(StatusCodes.Status202Accepted);
         }
 
@@ -64,7 +77,7 @@ namespace CaptainHook.Api.Tests.Integration
         {
             // Act
             var result = await _fixture.UnauthenticatedClient.PutWebhookWithHttpMessagesAsync(_fixture.IntegrationTestEventUpdateName, _fixture.IntegrationTestSubscriberName, "*");
-            
+
             // Assert
             result.Response.StatusCode.Should().Be(StatusCodes.Status401Unauthorized);
         }
@@ -79,6 +92,7 @@ namespace CaptainHook.Api.Tests.Integration
             var result = await _fixture.AuthenticatedClient.PutWebhookWithHttpMessagesAsync(_fixture.IntegrationTestEventUpdateName, _fixture.IntegrationTestSubscriberName, "*", dto);
 
             // Assert
+            await _outputHelper.PrintIfInvalidHttpResponse(result.Response);
             result.Response.StatusCode.Should().Be(StatusCodes.Status201Created);
         }
 
@@ -101,6 +115,7 @@ namespace CaptainHook.Api.Tests.Integration
             var result = await _fixture.AuthenticatedClient.DeleteSubscriberWithHttpMessagesAsync(_fixture.IntegrationTestEventDeleteName, _fixture.IntegrationTestSubscriberName);
 
             // Assert
+            await _outputHelper.PrintIfInvalidHttpResponse(result.Response);
             result.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
         }
 
@@ -125,7 +140,7 @@ namespace CaptainHook.Api.Tests.Integration
             result.Response.StatusCode.Should().Be(StatusCodes.Status404NotFound);
         }
 
-        
+
     }
 
     public class EventFixture : ApiClientFixture, IDisposable
@@ -173,7 +188,7 @@ namespace CaptainHook.Api.Tests.Integration
 
         public CaptainHookContractAuthenticationDto GetTestAuthenticationDto()
         {
-            return new CaptainHookContractBasicAuthenticationDto("Basic", "user1", "AzureSubscriptionId");
+            return new CaptainHookContractBasicAuthenticationDto("Basic", "user1", "sts--sts-secret--platform-captainhook-api-client");
         }
 
         public CaptainHookContractEndpointDto GetTestEndpointDto()
