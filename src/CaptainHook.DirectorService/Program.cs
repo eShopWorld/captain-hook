@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Fabric;
@@ -17,6 +18,7 @@ using CaptainHook.DirectorService.Infrastructure.Interfaces;
 using CaptainHook.DirectorService.ReaderServiceManagement;
 using CaptainHook.Storage.Cosmos;
 using Eshopworld.Data.CosmosDb.Extensions;
+using Eshopworld.DevOps;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 
@@ -25,8 +27,6 @@ namespace CaptainHook.DirectorService
     [ExcludeFromCodeCoverage]
     internal static class Program
     {
-        private const string CaptainHookConfigSection = "CaptainHook";
-
         /// <summary>
         /// This is the entry point of the service host process.
         /// </summary>
@@ -34,17 +34,25 @@ namespace CaptainHook.DirectorService
         {
             try
             {
-                var appSettings = TempConfigLoader.Load();
+                var configuration = new ConfigurationBuilder()
+                    .UseDefaultConfigs()
+                    .AddKeyVaultSecrets(new Dictionary<string, string>
+                    {
+                        {"cm--ai-telemetry--instrumentation", "Telemetry:InstrumentationKey"},
+                        {"cm--ai-telemetry--internal", "Telemetry:InternalKey"},
+                        {"cm--cosmos-connection--esw-platform", "CosmosDB:ConnectionString"},
+                        {"cm--sb-connection--esw-eda", $"{nameof(ServiceBusSettings)}:{nameof(ServiceBusSettings.ConnectionString)}"},
+                    }).Build();
 
-                var configurationSettings = new ConfigurationSettings();
-                appSettings.Bind(configurationSettings);
+                var telemetrySettings = configuration.GetSection("Telemetry").Get<TelemetrySettings>();
+                var bb = BigBrother.CreateDefault(telemetrySettings.InstrumentationKey, telemetrySettings.InternalKey);
+                bb.UseEventSourceSink().ForExceptions();
+
+                var serviceBusSettings = configuration.GetSection(nameof(ServiceBusSettings)).Get<ServiceBusSettings>();
 
                 //Get configs from the Config Package
                 var activationContext = FabricRuntime.GetActivationContext();
                 var defaultServicesSettings = ConfigFabricCodePackage(activationContext);
-
-                var bb = BigBrother.CreateDefault(configurationSettings.InstrumentationKey, configurationSettings.InternalKey);
-                bb.UseEventSourceSink().ForExceptions();
 
                 var builder = new ContainerBuilder();
 
@@ -52,10 +60,10 @@ namespace CaptainHook.DirectorService
                     .As<ISubscriberConfigurationLoader>()
                     .SingleInstance();
 
-                builder.RegisterInstance(configurationSettings)
-                       .SingleInstance();
-
                 builder.RegisterInstance(defaultServicesSettings)
+                    .SingleInstance();
+
+                builder.RegisterInstance(serviceBusSettings)
                     .SingleInstance();
 
                 builder.RegisterType<FabricClient>()
@@ -77,7 +85,7 @@ namespace CaptainHook.DirectorService
                     .As<ISubscriberEntityToConfigurationMapper>()
                     .SingleInstance();
 
-                builder.RegisterModule<KeyVaultModule>();
+                builder.RegisterKeyVaultSecretProvider(configuration);
 
                 builder.RegisterModule<CosmosDbStorageModule>();
 
@@ -88,9 +96,9 @@ namespace CaptainHook.DirectorService
                 builder.RegisterType<ServiceBusManager>()
                     .As<IServiceBusManager>();
 
-                builder.ConfigureCosmosDb(appSettings.GetSection(CaptainHookConfigSection));
+                builder.ConfigureCosmosDb(configuration);
 
-                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey, configurationSettings.InternalKey);
+                builder.SetupFullTelemetry(telemetrySettings.InstrumentationKey, telemetrySettings.InternalKey);
                 builder.RegisterStatefulService<DirectorService>(ServiceNaming.DirectorServiceType);
 
                 using (builder.Build())
@@ -145,6 +153,6 @@ namespace CaptainHook.DirectorService
             return value;
         }
 
-        
+
     }
 }

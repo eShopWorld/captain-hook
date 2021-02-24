@@ -1,19 +1,22 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Integration.ServiceFabric;
 using CaptainHook.Common;
-using CaptainHook.Common.Configuration;
 using CaptainHook.Common.ServiceBus;
 using CaptainHook.Common.Telemetry;
+using Eshopworld.DevOps;
 using Eshopworld.Telemetry;
 using Microsoft.Extensions.Configuration;
 using Microsoft.ServiceFabric.Actors.Client;
 
 namespace CaptainHook.EventReaderService
 {
+    [ExcludeFromCodeCoverage]
     internal static class Program
     {
         /// <summary>
@@ -23,11 +26,21 @@ namespace CaptainHook.EventReaderService
         {
             try
             {
-                var configuration = TempConfigLoader.Load();
-                var configurationSettings = configuration.Get<ConfigurationSettings>();
+                var configuration = new ConfigurationBuilder()
+                    .UseDefaultConfigs()
+                    .AddKeyVaultSecrets(new Dictionary<string, string>
+                    {
+                        {"cm--ai-telemetry--instrumentation", "Telemetry:InstrumentationKey"},
+                        {"cm--ai-telemetry--internal", "Telemetry:InternalKey"},
+                        {"cm--sb-connection--esw-eda", $"{nameof(ServiceBusSettings)}:{nameof(ServiceBusSettings.ConnectionString)}"},
+                    }).Build();
+
+
+                var telemetrySettings = configuration.GetSection("Telemetry").Get<TelemetrySettings>();
+                var serviceBusSettings = configuration.GetSection(nameof(ServiceBusSettings)).Get<ServiceBusSettings>();
 
                 var builder = new ContainerBuilder();
-                builder.RegisterInstance(configurationSettings).SingleInstance();
+                builder.RegisterInstance(serviceBusSettings).SingleInstance();
                 builder.RegisterType<MessageProviderFactory>().As<IMessageProviderFactory>().SingleInstance();
                 builder.RegisterType<ServiceBusManager>().As<IServiceBusManager>();
                 builder.RegisterType<MessageLockDurationCalculator>().As<IMessageLockDurationCalculator>().SingleInstance();
@@ -35,7 +48,7 @@ namespace CaptainHook.EventReaderService
                 //SF Deps
                 builder.Register<IActorProxyFactory>(_ => new ActorProxyFactory());
 
-                builder.SetupFullTelemetry(configurationSettings.InstrumentationKey, configurationSettings.InternalKey);
+                builder.SetupFullTelemetry(telemetrySettings.InstrumentationKey, telemetrySettings.InternalKey);
                 builder.RegisterStatefulService<EventReaderService>(ServiceNaming.EventReaderServiceType);
 
                 using (builder.Build())

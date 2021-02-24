@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CaptainHook.Common.Configuration;
@@ -29,16 +30,16 @@ namespace CaptainHook.Common.ServiceBus
         private readonly IMessageProviderFactory _factory;
         private readonly IBigBrother _bigBrother;
         private readonly AsyncRetryPolicy<ITopic> _findTopicPolicy;
-        private readonly ConfigurationSettings _configurationSettings;
+        private readonly ServiceBusSettings _serviceBusSettings;
 
         public ServiceBusManager(
             IMessageProviderFactory factory,
             IBigBrother bigBrother,
-            ConfigurationSettings configurationSettings)
+            ServiceBusSettings serviceBusSettings)
         {
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _bigBrother = bigBrother ?? throw new ArgumentNullException(nameof(bigBrother));
-            _configurationSettings = configurationSettings ?? throw new ArgumentNullException(nameof(factory));
+            _serviceBusSettings = serviceBusSettings ?? throw new ArgumentNullException(nameof(serviceBusSettings));
 
             static TimeSpan ExponentialBackoff(int x) => TimeSpan.FromSeconds(Math.Clamp(Math.Pow(2, x), 0, RetryCeilingSeconds));
 
@@ -170,25 +171,32 @@ namespace CaptainHook.Common.ServiceBus
             var client = RestClient.Configure()
                 .WithEnvironment(AzureEnvironment.AzureGlobalCloud)
                 .WithLogLevel(HttpLoggingDelegatingHandler.Level.Basic)
-                .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty,
-                    AzureEnvironment.AzureGlobalCloud))
+                .WithCredentials(new AzureCredentials(tokenCredentials, tokenCredentials, string.Empty, AzureEnvironment.AzureGlobalCloud))
                 .Build();
 
             var sbNamespacesList = await Microsoft.Azure.Management.Fluent
                 .Azure.Authenticate(client, string.Empty)
-                .WithSubscription(_configurationSettings.AzureSubscriptionId)
+                .WithSubscription(_serviceBusSettings.SubscriptionId)
                 .ServiceBusNamespaces
                 .ListAsync(cancellationToken: cancellationToken);
 
-            var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == _configurationSettings.ServiceBusNamespace);
+            var sbNamespaceName = RetrieveNamespace(_serviceBusSettings.ConnectionString);
+            var sbNamespace = sbNamespacesList.SingleOrDefault(n => n.Name == sbNamespaceName);
 
             if (sbNamespace == null)
             {
                 throw new InvalidOperationException(
-                    $"Couldn't find the service bus namespace {_configurationSettings.ServiceBusNamespace} in the subscription with ID {_configurationSettings.AzureSubscriptionId}.");
+                    $"Couldn't find the service bus namespace {sbNamespaceName} in the subscription with ID {_serviceBusSettings.SubscriptionId}.");
             }
 
             return sbNamespace;
         }
+
+        private string RetrieveNamespace(string sbConnectionString)
+        {
+            return NamespaceRegex.Matches(sbConnectionString).FirstOrDefault()?.Groups["namespace"]?.Value;
+        }
+
+        private static readonly Regex NamespaceRegex = new Regex(@"sb:\/\/(?<namespace>.*)\.servicebus", RegexOptions.Compiled);
     }
 }
