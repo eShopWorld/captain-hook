@@ -16,7 +16,6 @@ using Eshopworld.Data.CosmosDb.Extensions;
 using Eshopworld.Telemetry;
 using Eshopworld.Telemetry.Configuration;
 using Eshopworld.Telemetry.Processors;
-using Eshopworld.Web;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -26,6 +25,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using Platform.AppInfrastructure.Web;
 using TelemetrySettings = Eshopworld.DevOps.TelemetrySettings;
 
 namespace CaptainHook.Api
@@ -202,7 +202,6 @@ namespace CaptainHook.Api
         /// <param name="env">environment</param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseBigBrotherExceptionHandler();
             app.UseSwagger(o =>
             {
                 o.RouteTemplate = "swagger/{documentName}/swagger.json";

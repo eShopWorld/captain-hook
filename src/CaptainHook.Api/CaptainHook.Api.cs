@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Fabric;
 using System.IO;
 using Autofac.Extensions.DependencyInjection;
-using Eshopworld.Web;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.ServiceFabric;
 using Microsoft.ApplicationInsights.ServiceFabric.Module;
@@ -12,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Platform.AppInfrastructure.Web;
 
 namespace CaptainHook.Api
 {

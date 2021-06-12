@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <!-- Adding in update for a sub dep until Ms fix the dep tree-->
-    <PackageReference Include="MediatR" Version="8.1.0" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.8" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
     <PackageReference Include="Microsoft.ServiceFabric.Actors" Version="4.0.470" />
@@ -24,15 +24,15 @@
     <PackageReference Include="Autofac" Version="5.2.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Eshopworld.Telemetry" Version="3.1.5" />
-    <PackageReference Include="Eshopworld.Web" Version="4.1.7" />
     <PackageReference Include="IdentityServer4" Version="4.1.0" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.ServiceFabric.Native" Version="2.3.1" />
     <PackageReference Include="Microsoft.ServiceFabric.AspNetCore.Kestrel" Version="4.0.470" />
     <PackageReference Include="Microsoft.ServiceFabric.Services" Version="4.0.470" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.5.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.5.1" />
+    <PackageReference Include="Esw.Platform.AppInfrastructure" Version="1.1.11" />
   </ItemGroup>
 
   <ItemGroup>

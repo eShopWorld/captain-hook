@@ -4,10 +4,10 @@ using System.Threading;
 using Autofac.Extensions.DependencyInjection;
 using CaptainHook.Common;
 using Eshopworld.Telemetry;
-using Eshopworld.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.ServiceFabric.Services.Runtime;
+using Platform.AppInfrastructure.Web;
 
 namespace CaptainHook.Api
 {
